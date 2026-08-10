@@ -1,13 +1,816 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Receitando</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Receitando — Receitas que dão vontade</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #f8f7f3;
+            --card: #ffffff;
+            --text: #1c1c1a;
+            --muted: #77766f;
+            --border: #e8e6df;
+            --accent: #60734f;
+            --accent-dark: #4b5d3d;
+        }
+
+        body {
+            font-family: "DM Sans", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        button,
+        input {
+            font: inherit;
+        }
+
+        /* HEADER */
+
+        header {
+            max-width: 1200px;
+            margin: auto;
+            padding: 28px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.8px;
+        }
+
+        .logo span {
+            color: var(--accent);
+        }
+
+        nav {
+            display: flex;
+            gap: 28px;
+            font-size: 14px;
+            color: #5f5e58;
+        }
+
+        nav a {
+            transition: .2s;
+        }
+
+        nav a:hover {
+            color: var(--accent);
+        }
+
+        .favorite-btn {
+            border: 1px solid var(--border);
+            background: white;
+            padding: 9px 16px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        /* HERO */
+
+        .hero {
+            max-width: 1200px;
+            margin: 45px auto 80px;
+            padding: 0 24px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 70px;
+            align-items: center;
+        }
+
+        .hero-text small {
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--accent);
+            font-weight: 700;
+            font-size: 12px;
+        }
+
+        .hero h1 {
+            font-family: "Playfair Display", serif;
+            font-size: clamp(48px, 6vw, 76px);
+            line-height: 1.02;
+            letter-spacing: -3px;
+            margin: 18px 0;
+            max-width: 600px;
+        }
+
+        .hero p {
+            color: var(--muted);
+            max-width: 470px;
+            font-size: 17px;
+            margin-bottom: 30px;
+        }
+
+        .search {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 6px;
+            display: flex;
+            max-width: 480px;
+        }
+
+        .search input {
+            border: none;
+            outline: none;
+            background: transparent;
+            padding: 13px 15px;
+            flex: 1;
+            color: var(--text);
+        }
+
+        .search button {
+            border: none;
+            background: var(--accent);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .search button:hover {
+            background: var(--accent-dark);
+        }
+
+        .hero-image {
+            height: 500px;
+            border-radius: 28px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .hero-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .hero-tag {
+            position: absolute;
+            left: 20px;
+            bottom: 20px;
+            background: rgba(255,255,255,.92);
+            padding: 14px 18px;
+            border-radius: 14px;
+            backdrop-filter: blur(10px);
+        }
+
+        .hero-tag small {
+            color: var(--muted);
+        }
+
+        .hero-tag strong {
+            display: block;
+            font-family: "Playfair Display", serif;
+            font-size: 21px;
+        }
+
+        /* CATEGORIAS */
+
+        .section {
+            max-width: 1200px;
+            margin: auto;
+            padding: 0 24px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 28px;
+        }
+
+        .section-header h2 {
+            font-family: "Playfair Display", serif;
+            font-size: 34px;
+        }
+
+        .section-header a {
+            font-size: 14px;
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .categories {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
+
+        .category {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 40px;
+            padding: 11px 19px;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: .2s;
+        }
+
+        .category:hover,
+        .category.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+
+        /* RECEITAS */
+
+        .recipes {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            margin-bottom: 100px;
+        }
+
+        .recipe-card {
+            background: var(--card);
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            transition: .25s;
+        }
+
+        .recipe-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,.07);
+        }
+
+        .recipe-image {
+            height: 250px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .recipe-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: .4s;
+        }
+
+        .recipe-card:hover img {
+            transform: scale(1.04);
+        }
+
+        .heart {
+            position: absolute;
+            right: 14px;
+            top: 14px;
+            width: 38px;
+            height: 38px;
+            border: none;
+            border-radius: 50%;
+            background: rgba(255,255,255,.9);
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .recipe-content {
+            padding: 20px;
+        }
+
+        .recipe-category {
+            color: var(--accent);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.4px;
+            font-weight: 700;
+        }
+
+        .recipe-content h3 {
+            font-family: "Playfair Display", serif;
+            font-size: 25px;
+            margin: 7px 0;
+        }
+
+        .recipe-content p {
+            color: var(--muted);
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+
+        .recipe-info {
+            display: flex;
+            gap: 18px;
+            color: #77766f;
+            font-size: 13px;
+        }
+
+        /* NEWSLETTER */
+
+        .newsletter {
+            max-width: 1200px;
+            margin: 0 auto 80px;
+            padding: 55px;
+            background: #e9ede2;
+            border-radius: 25px;
+            text-align: center;
+        }
+
+        .newsletter h2 {
+            font-family: "Playfair Display", serif;
+            font-size: 38px;
+            margin-bottom: 10px;
+        }
+
+        .newsletter p {
+            color: var(--muted);
+            margin-bottom: 25px;
+        }
+
+        .newsletter input {
+            border: 1px solid var(--border);
+            background: white;
+            border-radius: 10px;
+            padding: 14px 16px;
+            width: 280px;
+            outline: none;
+        }
+
+        .newsletter button {
+            border: none;
+            background: var(--accent);
+            color: white;
+            padding: 14px 22px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-left: 5px;
+        }
+
+        /* FOOTER */
+
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 35px 24px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .footer-inner {
+            max-width: 1200px;
+            margin: auto;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* MOBILE */
+
+        @media (max-width: 800px) {
+
+            nav {
+                display: none;
+            }
+
+            .hero {
+                grid-template-columns: 1fr;
+                gap: 35px;
+                margin-top: 25px;
+            }
+
+            .hero h1 {
+                font-size: 50px;
+            }
+
+            .hero-image {
+                height: 380px;
+            }
+
+            .recipes {
+                grid-template-columns: 1fr;
+            }
+
+            .newsletter {
+                margin-left: 24px;
+                margin-right: 24px;
+                padding: 35px 20px;
+            }
+
+            .newsletter input {
+                width: 100%;
+                margin-bottom: 8px;
+            }
+
+            .newsletter button {
+                width: 100%;
+                margin: 0;
+            }
+
+            .footer-inner {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
 </head>
+
 <body>
 
-  <h1>Receitando</h1>
+<header>
+
+    <a href="#" class="logo">
+        receit<span>ando</span>.
+    </a>
+
+    <nav>
+        <a href="#">Início</a>
+        <a href="#receitas">Receitas</a>
+        <a href="#categorias">Categorias</a>
+        <a href="#sobre">Sobre</a>
+    </nav>
+
+    <button class="favorite-btn">
+        ♡ Favoritos
+    </button>
+
+</header>
+
+
+<main>
+
+    <!-- HERO -->
+
+    <section class="hero">
+
+        <div class="hero-text">
+
+            <small>Comida simples. Momentos especiais.</small>
+
+            <h1>
+                O que você vai cozinhar hoje?
+            </h1>
+
+            <p>
+                Receitas fáceis, gostosas e sem complicação.
+                Encontre aquela receita perfeita para o momento.
+            </p>
+
+            <div class="search">
+
+                <input
+                    type="text"
+                    id="searchInput"
+                    placeholder="Buscar uma receita..."
+                >
+
+                <button onclick="searchRecipes()">
+                    Buscar
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <div class="hero-image">
+
+            <img
+                src="https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=1000&q=85"
+                alt="Prato de comida"
+            >
+
+            <div class="hero-tag">
+                <small>Receita em destaque</small>
+                <strong>Risoto cremoso</strong>
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- CATEGORIAS -->
+
+    <section class="section" id="categorias">
+
+        <div class="section-header">
+
+            <h2>Categorias</h2>
+
+        </div>
+
+        <div class="categories">
+
+            <button class="category active">
+                Todas
+            </button>
+
+            <button class="category">
+                🍝 Massas
+            </button>
+
+            <button class="category">
+                🥩 Carnes
+            </button>
+
+            <button class="category">
+                🥗 Saudáveis
+            </button>
+
+            <button class="category">
+                🍰 Sobremesas
+            </button>
+
+            <button class="category">
+                ☕ Café da manhã
+            </button>
+
+        </div>
+
+    </section>
+
+
+    <!-- RECEITAS -->
+
+    <section class="section" id="receitas">
+
+        <div class="section-header">
+
+            <h2>Receitas para você</h2>
+
+            <a href="#">Ver todas →</a>
+
+        </div>
+
+
+        <div class="recipes">
+
+
+            <article class="recipe-card">
+
+                <div class="recipe-image">
+
+                    <img
+                        src="https://images.unsplash.com/photo-1473093295043-cdd812d0e601?auto=format&fit=crop&w=900&q=85"
+                        alt="Macarrão"
+                    >
+
+                    <button class="heart"
+                        onclick="favorite(this)">
+                        ♡
+                    </button>
+
+                </div>
+
+                <div class="recipe-content">
+
+                    <span class="recipe-category">
+                        Massas
+                    </span>
+
+                    <h3>
+                        Pasta cremosa
+                    </h3>
+
+                    <p>
+                        Uma massa cremosa, rápida e perfeita para qualquer dia.
+                    </p>
+
+                    <div class="recipe-info">
+                        <span>⏱ 25 min</span>
+                        <span>👤 2 porções</span>
+                    </div>
+
+                </div>
+
+            </article>
+
+
+            <article class="recipe-card">
+
+                <div class="recipe-image">
+
+                    <img
+                        src="https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=900&q=85"
+                        alt="Carne"
+                    >
+
+                    <button class="heart"
+                        onclick="favorite(this)">
+                        ♡
+                    </button>
+
+                </div>
+
+                <div class="recipe-content">
+
+                    <span class="recipe-category">
+                        Carnes
+                    </span>
+
+                    <h3>
+                        Steak com ervas
+                    </h3>
+
+                    <p>
+                        Carne suculenta com ervas frescas e manteiga.
+                    </p>
+
+                    <div class="recipe-info">
+                        <span>⏱ 30 min</span>
+                        <span>👤 2 porções</span>
+                    </div>
+
+                </div>
+
+            </article>
+
+
+            <article class="recipe-card">
+
+                <div class="recipe-image">
+
+                    <img
+                        src="https://images.unsplash.com/photo-1551024506-0bccd828d307?auto=format&fit=crop&w=900&q=85"
+                        alt="Sobremesa"
+                    >
+
+                    <button class="heart"
+                        onclick="favorite(this)">
+                        ♡
+                    </button>
+
+                </div>
+
+                <div class="recipe-content">
+
+                    <span class="recipe-category">
+                        Sobremesas
+                    </span>
+
+                    <h3>
+                        Donuts caseiros
+                    </h3>
+
+                    <p>
+                        Macios por dentro, dourados por fora e irresistíveis.
+                    </p>
+
+                    <div class="recipe-info">
+                        <span>⏱ 45 min</span>
+                        <span>👤 6 porções</span>
+                    </div>
+
+                </div>
+
+            </article>
+
+
+        </div>
+
+    </section>
+
+
+    <!-- NEWSLETTER -->
+
+    <section class="newsletter" id="sobre">
+
+        <h2>
+            Uma receita nova por semana.
+        </h2>
+
+        <p>
+            Receba ideias deliciosas direto no seu e-mail.
+        </p>
+
+        <input
+            type="email"
+            placeholder="seu@email.com"
+        >
+
+        <button onclick="subscribe()">
+            Quero receber
+        </button>
+
+    </section>
+
+</main>
+
+
+<footer>
+
+    <div class="footer-inner">
+
+        <span>
+            © 2026 Receitando
+        </span>
+
+        <span>
+            Feito com ♥ para quem gosta de cozinhar.
+        </span>
+
+    </div>
+
+</footer>
+
+
+<script>
+
+    function favorite(button) {
+
+        if (button.innerHTML === "♡") {
+            button.innerHTML = "♥";
+            button.style.color = "#60734f";
+        } else {
+            button.innerHTML = "♡";
+            button.style.color = "";
+        }
+
+    }
+
+
+    function searchRecipes() {
+
+        const input =
+            document.getElementById("searchInput");
+
+        const search =
+            input.value.toLowerCase().trim();
+
+        const cards =
+            document.querySelectorAll(".recipe-card");
+
+        cards.forEach(card => {
+
+            const text =
+                card.innerText.toLowerCase();
+
+            if (text.includes(search)) {
+                card.style.display = "";
+            } else {
+                card.style.display = "none";
+            }
+
+        });
+
+    }
+
+
+    document
+        .getElementById("searchInput")
+        .addEventListener("keyup", function(event) {
+
+            if (event.key === "Enter") {
+                searchRecipes();
+            }
+
+        });
+
+
+    document
+        .querySelectorAll(".category")
+        .forEach(button => {
+
+            button.addEventListener("click", function() {
+
+                document
+                    .querySelectorAll(".category")
+                    .forEach(btn =>
+                        btn.classList.remove("active")
+                    );
+
+                this.classList.add("active");
+
+            });
+
+        });
+
+
+    function subscribe() {
+
+        alert(
+            "Cadastro realizado! 🍳"
+        );
+
+    }
+
+</script>
 
 </body>
 </html>
