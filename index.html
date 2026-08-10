@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Receitas fáceis e gostosas — ideias rápidas para o dia a dia, com categorias, busca e favoritos.">
 
     <title>Receitando — Receitas que dão vontade</title>
 
@@ -42,6 +43,11 @@
         button,
         input {
             font: inherit;
+        }
+
+        :focus {
+            outline: 3px solid rgba(96,115,79,0.18);
+            outline-offset: 2px;
         }
 
         /* HEADER */
@@ -87,6 +93,18 @@
             border-radius: 30px;
             cursor: pointer;
             font-size: 14px;
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0,0,0,0);
+            white-space: nowrap;
+            border: 0;
         }
 
         /* HERO */
@@ -168,6 +186,7 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
+            display: block;
         }
 
         .hero-tag {
@@ -240,6 +259,10 @@
             color: white;
         }
 
+        .category:focus {
+            box-shadow: 0 4px 14px rgba(96,115,79,0.12);
+        }
+
         /* RECEITAS */
 
         .recipes {
@@ -290,6 +313,10 @@
             background: rgba(255,255,255,.9);
             cursor: pointer;
             font-size: 18px;
+        }
+
+        .heart[aria-pressed="true"] {
+            color: var(--accent);
         }
 
         .recipe-content {
@@ -438,15 +465,16 @@
         receit<span>ando</span>.
     </a>
 
-    <nav>
+    <nav aria-label="Menu principal">
         <a href="#">Início</a>
         <a href="#receitas">Receitas</a>
         <a href="#categorias">Categorias</a>
         <a href="#sobre">Sobre</a>
     </nav>
 
-    <button class="favorite-btn">
+    <button class="favorite-btn" id="showFavorites" aria-pressed="false">
         ♡ Favoritos
+        <span class="sr-only">Abrir favoritos</span>
     </button>
 
 </header>
@@ -456,13 +484,13 @@
 
     <!-- HERO -->
 
-    <section class="hero">
+    <section class="hero" aria-labelledby="hero-title">
 
         <div class="hero-text">
 
             <small>Comida simples. Momentos especiais.</small>
 
-            <h1>
+            <h1 id="hero-title">
                 O que você vai cozinhar hoje?
             </h1>
 
@@ -471,15 +499,16 @@
                 Encontre aquela receita perfeita para o momento.
             </p>
 
-            <div class="search">
+            <div class="search" role="search">
 
                 <input
                     type="text"
                     id="searchInput"
                     placeholder="Buscar uma receita..."
+                    aria-label="Buscar receitas"
                 >
 
-                <button onclick="searchRecipes()">
+                <button id="searchBtn" aria-label="Buscar">
                     Buscar
                 </button>
 
@@ -488,7 +517,7 @@
         </div>
 
 
-        <div class="hero-image">
+        <div class="hero-image" aria-hidden="true">
 
             <img
                 src="https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=1000&q=85"
@@ -507,39 +536,27 @@
 
     <!-- CATEGORIAS -->
 
-    <section class="section" id="categorias">
+    <section class="section" id="categorias" aria-labelledby="cats-title">
 
         <div class="section-header">
 
-            <h2>Categorias</h2>
+            <h2 id="cats-title">Categorias</h2>
 
         </div>
 
-        <div class="categories">
+        <div class="categories" role="list">
 
-            <button class="category active">
-                Todas
-            </button>
+            <button class="category active" data-filter="" role="listitem">Todas</button>
 
-            <button class="category">
-                🍝 Massas
-            </button>
+            <button class="category" data-filter="massas" role="listitem">🍝 Massas</button>
 
-            <button class="category">
-                🥩 Carnes
-            </button>
+            <button class="category" data-filter="carnes" role="listitem">🥩 Carnes</button>
 
-            <button class="category">
-                🥗 Saudáveis
-            </button>
+            <button class="category" data-filter="saudaveis" role="listitem">🥗 Saudáveis</button>
 
-            <button class="category">
-                🍰 Sobremesas
-            </button>
+            <button class="category" data-filter="sobremesas" role="listitem">🍰 Sobremesas</button>
 
-            <button class="category">
-                ☕ Café da manhã
-            </button>
+            <button class="category" data-filter="cafe-da-manha" role="listitem">☕ Café da manhã</button>
 
         </div>
 
@@ -548,11 +565,11 @@
 
     <!-- RECEITAS -->
 
-    <section class="section" id="receitas">
+    <section class="section" id="receitas" aria-labelledby="recipes-title">
 
         <div class="section-header">
 
-            <h2>Receitas para você</h2>
+            <h2 id="recipes-title">Receitas para você</h2>
 
             <a href="#">Ver todas →</a>
 
@@ -562,7 +579,7 @@
         <div class="recipes">
 
 
-            <article class="recipe-card">
+            <article class="recipe-card" data-category="massas">
 
                 <div class="recipe-image">
 
@@ -571,26 +588,20 @@
                         alt="Macarrão"
                     >
 
-                    <button class="heart"
-                        onclick="favorite(this)">
+                    <button class="heart" role="button" aria-pressed="false" tabindex="0">
                         ♡
+                        <span class="sr-only">Favoritar Pasta cremosa</span>
                     </button>
 
                 </div>
 
                 <div class="recipe-content">
 
-                    <span class="recipe-category">
-                        Massas
-                    </span>
+                    <span class="recipe-category">Massas</span>
 
-                    <h3>
-                        Pasta cremosa
-                    </h3>
+                    <h3>Pasta cremosa</h3>
 
-                    <p>
-                        Uma massa cremosa, rápida e perfeita para qualquer dia.
-                    </p>
+                    <p>Uma massa cremosa, rápida e perfeita para qualquer dia.</p>
 
                     <div class="recipe-info">
                         <span>⏱ 25 min</span>
@@ -602,7 +613,7 @@
             </article>
 
 
-            <article class="recipe-card">
+            <article class="recipe-card" data-category="carnes">
 
                 <div class="recipe-image">
 
@@ -611,26 +622,20 @@
                         alt="Carne"
                     >
 
-                    <button class="heart"
-                        onclick="favorite(this)">
+                    <button class="heart" role="button" aria-pressed="false" tabindex="0">
                         ♡
+                        <span class="sr-only">Favoritar Steak com ervas</span>
                     </button>
 
                 </div>
 
                 <div class="recipe-content">
 
-                    <span class="recipe-category">
-                        Carnes
-                    </span>
+                    <span class="recipe-category">Carnes</span>
 
-                    <h3>
-                        Steak com ervas
-                    </h3>
+                    <h3>Steak com ervas</h3>
 
-                    <p>
-                        Carne suculenta com ervas frescas e manteiga.
-                    </p>
+                    <p>Carne suculenta com ervas frescas e manteiga.</p>
 
                     <div class="recipe-info">
                         <span>⏱ 30 min</span>
@@ -642,7 +647,7 @@
             </article>
 
 
-            <article class="recipe-card">
+            <article class="recipe-card" data-category="sobremesas">
 
                 <div class="recipe-image">
 
@@ -651,26 +656,20 @@
                         alt="Sobremesa"
                     >
 
-                    <button class="heart"
-                        onclick="favorite(this)">
+                    <button class="heart" role="button" aria-pressed="false" tabindex="0">
                         ♡
+                        <span class="sr-only">Favoritar Donuts caseiros</span>
                     </button>
 
                 </div>
 
                 <div class="recipe-content">
 
-                    <span class="recipe-category">
-                        Sobremesas
-                    </span>
+                    <span class="recipe-category">Sobremesas</span>
 
-                    <h3>
-                        Donuts caseiros
-                    </h3>
+                    <h3>Donuts caseiros</h3>
 
-                    <p>
-                        Macios por dentro, dourados por fora e irresistíveis.
-                    </p>
+                    <p>Macios por dentro, dourados por fora e irresistíveis.</p>
 
                     <div class="recipe-info">
                         <span>⏱ 45 min</span>
@@ -691,22 +690,13 @@
 
     <section class="newsletter" id="sobre">
 
-        <h2>
-            Uma receita nova por semana.
-        </h2>
+        <h2>Uma receita nova por semana.</h2>
 
-        <p>
-            Receba ideias deliciosas direto no seu e-mail.
-        </p>
+        <p>Receba ideias deliciosas direto no seu e-mail.</p>
 
-        <input
-            type="email"
-            placeholder="seu@email.com"
-        >
+        <input type="email" id="newsletterEmail" placeholder="seu@email.com" aria-label="Email para newsletter">
 
-        <button onclick="subscribe()">
-            Quero receber
-        </button>
+        <button id="subscribeBtn">Quero receber</button>
 
     </section>
 
@@ -717,13 +707,9 @@
 
     <div class="footer-inner">
 
-        <span>
-            © 2026 Receitando
-        </span>
+        <span>© 2026 Receitando</span>
 
-        <span>
-            Feito com ♥ para quem gosta de cozinhar.
-        </span>
+        <span>Feito com ♥ para quem gosta de cozinhar.</span>
 
     </div>
 
@@ -731,84 +717,143 @@
 
 
 <script>
+    const FAVORITES_KEY = 'receitando_favorites_v1';
 
-    function favorite(button) {
+    function saveFavorites(list) {
+        localStorage.setItem(FAVORITES_KEY, JSON.stringify(list));
+    }
 
-        if (button.innerHTML === "♡") {
-            button.innerHTML = "♥";
-            button.style.color = "#60734f";
+    function loadFavorites() {
+        try {
+            return JSON.parse(localStorage.getItem(FAVORITES_KEY)) || [];
+        } catch (e) {
+            return [];
+        }
+    }
+
+    function applyFavoritesToUI() {
+        const favs = loadFavorites();
+        document.querySelectorAll('.recipe-card').forEach(card => {
+            const title = card.querySelector('h3').innerText.trim();
+            const btn = card.querySelector('.heart');
+            if (favs.includes(title)) {
+                btn.innerText = '♥';
+                btn.setAttribute('aria-pressed', 'true');
+            } else {
+                btn.innerText = '♡';
+                btn.setAttribute('aria-pressed', 'false');
+            }
+        });
+        const favBtn = document.getElementById('showFavorites');
+        if (favBtn) {
+            favBtn.setAttribute('aria-pressed', favs.length > 0 ? 'false' : 'false');
+        }
+    }
+
+    function toggleFavorite(button) {
+        const card = button.closest('.recipe-card');
+        const title = card.querySelector('h3').innerText.trim();
+        let favs = loadFavorites();
+
+        if (button.getAttribute('aria-pressed') === 'true') {
+            favs = favs.filter(t => t !== title);
+            button.innerText = '♡';
+            button.setAttribute('aria-pressed', 'false');
         } else {
-            button.innerHTML = "♡";
-            button.style.color = "";
+            favs.push(title);
+            button.innerText = '♥';
+            button.setAttribute('aria-pressed', 'true');
         }
 
+        saveFavorites(favs);
     }
 
+    // Debounced search + category filter
+    let searchTimeout = null;
 
-    function searchRecipes() {
+    function filterRecipes({ search = '', category = '' } = {}) {
+        const q = search.toLowerCase().trim();
+        document.querySelectorAll('.recipe-card').forEach(card => {
+            const title = card.querySelector('h3').innerText.toLowerCase();
+            const desc = card.querySelector('.recipe-content p').innerText.toLowerCase();
+            const cat = (card.getAttribute('data-category') || '').toLowerCase();
 
-        const input =
-            document.getElementById("searchInput");
+            const matchesSearch = q === '' || title.includes(q) || desc.includes(q) || cat.includes(q);
+            const matchesCategory = !category || category === '' || cat === category;
 
-        const search =
-            input.value.toLowerCase().trim();
-
-        const cards =
-            document.querySelectorAll(".recipe-card");
-
-        cards.forEach(card => {
-
-            const text =
-                card.innerText.toLowerCase();
-
-            if (text.includes(search)) {
-                card.style.display = "";
-            } else {
-                card.style.display = "none";
-            }
-
+            card.style.display = (matchesSearch && matchesCategory) ? '' : 'none';
         });
-
     }
 
+    function handleSearchInput() {
+        const input = document.getElementById('searchInput');
+        const activeCategory = document.querySelector('.category.active')?.getAttribute('data-filter') || '';
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            filterRecipes({ search: input.value, category: activeCategory });
+        }, 220);
+    }
 
-    document
-        .getElementById("searchInput")
-        .addEventListener("keyup", function(event) {
-
-            if (event.key === "Enter") {
-                searchRecipes();
-            }
-
-        });
-
-
-    document
-        .querySelectorAll(".category")
-        .forEach(button => {
-
-            button.addEventListener("click", function() {
-
-                document
-                    .querySelectorAll(".category")
-                    .forEach(btn =>
-                        btn.classList.remove("active")
-                    );
-
-                this.classList.add("active");
-
+    function setupCategoryButtons() {
+        document.querySelectorAll('.category').forEach(btn => {
+            btn.addEventListener('click', function () {
+                document.querySelectorAll('.category').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                const filter = this.getAttribute('data-filter') || '';
+                const search = document.getElementById('searchInput').value || '';
+                filterRecipes({ search, category: filter });
             });
-
+            btn.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    this.click();
+                }
+            });
         });
-
-
-    function subscribe() {
-
-        alert(
-            "Cadastro realizado! 🍳"
-        );
-
     }
+
+    function setupHearts() {
+        document.querySelectorAll('.heart').forEach(btn => {
+            btn.addEventListener('click', () => toggleFavorite(btn));
+            btn.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    toggleFavorite(btn);
+                }
+            });
+        });
+    }
+
+    function setupSearchBindings() {
+        const input = document.getElementById('searchInput');
+        const btn = document.getElementById('searchBtn');
+        input.addEventListener('input', handleSearchInput);
+        input.addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') handleSearchInput();
+        });
+        btn.addEventListener('click', handleSearchInput);
+    }
+
+    function setupSubscribe() {
+        const btn = document.getElementById('subscribeBtn');
+        btn.addEventListener('click', () => {
+            const email = document.getElementById('newsletterEmail').value || '';
+            if (!email || !email.includes('@')) {
+                alert('Digite um e-mail válido.');
+                return;
+            }
+            alert('Obrigado! Você foi inscrito. 🍳');
+            document.getElementById('newsletterEmail').value = '';
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        applyFavoritesToUI();
+        setupCategoryButtons();
+        setupHearts();
+        setupSearchBindings();
+        setupSubscribe();
+    });
 
 </script>
 
