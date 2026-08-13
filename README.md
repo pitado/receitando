@@ -145,8 +145,16 @@ Serviços locais:
 
 ## Domínio de produção
 
-O domínio já associado ao projeto é `receitando.miguelpita.com.br`. A topologia
-recomendada para publicar as duas aplicações separadamente é:
+O frontend é preparado para Cloudflare Workers com o adaptador OpenNext. O projeto
+deve acompanhar o repositório `pitado/receitando`, branch `main`, usando:
+
+- diretório raiz: `frontend`;
+- build: `npm run build:cloudflare`;
+- deploy: `npx opennextjs-cloudflare deploy`;
+- variável de build: `NEXT_PUBLIC_API_URL=https://api.receitando.miguelpita.com.br`.
+
+O domínio de produção reservado ao projeto é `receitando.miguelpita.com.br`. A
+topologia para publicar as duas aplicações separadamente é:
 
 - frontend: `https://receitando.miguelpita.com.br`;
 - API: `https://api.receitando.miguelpita.com.br`;
@@ -167,8 +175,17 @@ NEXT_PUBLIC_API_URL=https://api.receitando.miguelpita.com.br
 Também é possível servir tudo no mesmo domínio. Nesse caso, o proxy da hospedagem
 deve encaminhar `https://receitando.miguelpita.com.br/api/*` para o NestJS, e
 `NEXT_PUBLIC_API_URL` deve ser `https://receitando.miguelpita.com.br`. O `CNAME`
-atual ainda representa a configuração do GitHub Pages; publicar o Next.js e o
-NestJS exige configurar a hospedagem e os registros DNS correspondentes.
+da raiz pertence à configuração legada do GitHub Pages e não controla o Worker.
+O registro DNS só deve ser migrado depois de validar o Worker pelo endereço
+temporário `workers.dev` e confirmar que a API de produção está acessível.
+
+Para validar o empacotamento do frontend localmente:
+
+```bash
+npm --prefix frontend run lint
+npm --prefix frontend run typecheck
+npm --prefix frontend run build:cloudflare
+```
 
 ## Testando o matching
 
