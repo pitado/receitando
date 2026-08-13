@@ -1,0 +1,248 @@
+.page {
+  background:
+    radial-gradient(circle at 18% 20%, color-mix(in srgb, var(--color-surface-secondary) 52%, transparent), transparent 27rem),
+    var(--color-background);
+}
+
+.shell {
+  align-items: center;
+  display: grid;
+  gap: clamp(2.5rem, 7vw, 6rem);
+  grid-template-columns: minmax(0, 1fr);
+  min-height: calc(100vh - 10rem);
+  padding-block: clamp(3rem, 8vw, 6rem);
+}
+
+.intro {
+  max-width: 38rem;
+}
+
+.eyebrow {
+  color: var(--color-primary-dark);
+  display: inline-block;
+  font-size: 0.76rem;
+  font-weight: 850;
+  letter-spacing: 0.16em;
+  margin-bottom: var(--space-4);
+}
+
+.intro h1 {
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: clamp(2.8rem, 7vw, 5.5rem);
+  font-weight: 650;
+  letter-spacing: -0.055em;
+  line-height: 0.98;
+  margin: 0;
+  max-width: 11ch;
+}
+
+.intro > p {
+  color: var(--color-text-muted);
+  font-size: clamp(1rem, 2vw, 1.12rem);
+  line-height: 1.75;
+  margin: var(--space-6) 0 0;
+  max-width: 34rem;
+}
+
+.note {
+  align-items: flex-start;
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-7);
+  max-width: 30rem;
+}
+
+.note > span {
+  color: var(--color-primary);
+  font-size: 1.2rem;
+  line-height: 1.4;
+}
+
+.note p {
+  color: var(--color-text);
+  font-size: 0.93rem;
+  font-weight: 650;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.card {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: calc(var(--radius-card) + 0.35rem);
+  box-shadow: var(--shadow-card);
+  padding: clamp(1.5rem, 5vw, 2.4rem);
+  width: 100%;
+}
+
+.cardHeader > span {
+  color: var(--color-primary-dark);
+  font-size: 0.76rem;
+  font-weight: 850;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.cardHeader h2 {
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: clamp(2rem, 5vw, 2.8rem);
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+  margin: var(--space-2) 0 var(--space-3);
+}
+
+.cardHeader p {
+  color: var(--color-text-muted);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.form {
+  display: grid;
+  gap: var(--space-5);
+  margin-top: var(--space-7);
+}
+
+.field {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.field > span {
+  font-size: 0.88rem;
+  font-weight: 750;
+}
+
+.field input {
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-button);
+  color: var(--color-text);
+  min-height: 3.35rem;
+  padding: 0.85rem 1rem;
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    background-color var(--transition-fast);
+  width: 100%;
+}
+
+.field input::placeholder {
+  color: color-mix(in srgb, var(--color-text-muted) 72%, transparent);
+}
+
+.field input:focus {
+  background: var(--color-card);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 0.22rem color-mix(in srgb, var(--color-primary) 16%, transparent);
+}
+
+.formMeta {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  justify-content: space-between;
+}
+
+.remember {
+  align-items: center;
+  color: var(--color-text-muted);
+  display: inline-flex;
+  font-size: 0.86rem;
+  gap: var(--space-2);
+}
+
+.remember input {
+  accent-color: var(--color-primary);
+  height: 1rem;
+  width: 1rem;
+}
+
+.comingSoon {
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+}
+
+.submit {
+  background: var(--color-text);
+  border: 0;
+  border-radius: var(--radius-button);
+  box-shadow: var(--shadow-button);
+  color: var(--color-background);
+  cursor: pointer;
+  font-weight: 800;
+  min-height: 3.35rem;
+  padding: 0.85rem 1rem;
+  transition:
+    background-color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    transform var(--transition-fast);
+  width: 100%;
+}
+
+.submit:hover {
+  background: var(--color-primary-dark);
+  box-shadow: var(--shadow-button-hover);
+  transform: translateY(-1px);
+}
+
+.divider {
+  align-items: center;
+  color: var(--color-text-muted);
+  display: flex;
+  font-size: 0.76rem;
+  gap: var(--space-3);
+  margin-block: var(--space-6) var(--space-5);
+}
+
+.divider::before,
+.divider::after {
+  background: var(--color-border);
+  content: "";
+  height: 1px;
+  width: 100%;
+}
+
+.signup {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  margin: 0;
+  text-align: center;
+}
+
+.signup a {
+  color: var(--color-primary-dark);
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.signup a:hover {
+  text-decoration: underline;
+}
+
+@media (min-width: 56rem) {
+  .shell {
+    grid-template-columns: minmax(0, 1.08fr) minmax(22rem, 0.72fr);
+  }
+
+  .card {
+    justify-self: end;
+    max-width: 29rem;
+  }
+}
+
+@media (max-width: 40rem) {
+  .shell {
+    min-height: auto;
+  }
+
+  .intro h1 {
+    max-width: 12ch;
+  }
+
+  .formMeta {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
