@@ -47,7 +47,7 @@ Mais detalhes estão em [Arquitetura](docs/architecture.md), [Banco de dados](do
 
 ## Pré-requisitos
 
-- Node.js 20 ou superior
+- Node.js 20.9 ou superior
 - npm 10 ou superior
 - Docker com Docker Compose v2
 

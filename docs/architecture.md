@@ -65,7 +65,7 @@ O Prisma mantém o schema, migrations, cliente tipado e seed. A aplicação não
 sequenceDiagram
     actor Usuario as Usuário
     participant Web as Frontend
-    participant API as MatchingController
+    participant API as RecipesController
     participant Service as MatchingService
     participant Prisma as Prisma
     participant DB as PostgreSQL

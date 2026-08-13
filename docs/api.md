@@ -50,7 +50,7 @@ Resposta `200 OK`:
 | `GET` | `/api/ingredients/:id` | busca por identificador | `200` |
 | `POST` | `/api/ingredients` | cria ingrediente | `201` |
 | `PATCH` | `/api/ingredients/:id` | atualiza parcialmente | `200` |
-| `DELETE` | `/api/ingredients/:id` | remove ingrediente | `200`/`204` |
+| `DELETE` | `/api/ingredients/:id` | remove ingrediente | `204` |
 
 Corpo de criação:
 
@@ -67,7 +67,7 @@ Exemplo de recurso:
 
 ```json
 {
-  "id": "clx0000000000000000000001",
+  "id": "1a66fe64-4042-4a38-a1c1-eb1a14c09b2e",
   "name": "Açúcar",
   "normalizedName": "acucar",
   "category": "mercearia",
@@ -94,7 +94,7 @@ Corpo de atualização (todos os campos são opcionais, mas o corpo não deve es
 | `GET` | `/api/recipes/slug/:slug` | busca pelo slug público | `200` |
 | `POST` | `/api/recipes` | cria receita e relações | `201` |
 | `PATCH` | `/api/recipes/:id` | atualiza parcialmente | `200` |
-| `DELETE` | `/api/recipes/:id` | remove receita | `200`/`204` |
+| `DELETE` | `/api/recipes/:id` | remove receita | `204` |
 
 Corpo de criação:
 
@@ -108,13 +108,13 @@ Corpo de criação:
   "servings": 2,
   "ingredients": [
     {
-      "ingredientId": "clx0000000000000000000001",
+      "ingredientId": "1a66fe64-4042-4a38-a1c1-eb1a14c09b2e",
       "quantity": 1,
       "unit": "unidade",
       "optional": false
     },
     {
-      "ingredientId": "clx0000000000000000000002",
+      "ingredientId": "9a74ce6b-757f-4375-b6c1-371fb785b21b",
       "quantity": 1,
       "unit": "pitada",
       "optional": true
@@ -129,7 +129,7 @@ Exemplo resumido de resposta:
 
 ```json
 {
-  "id": "clx0000000000000000000100",
+  "id": "7419eb9c-712d-4d2e-ae13-f83ed52d9e78",
   "title": "Panqueca de banana",
   "slug": "panqueca-de-banana",
   "description": "Panqueca rápida e macia para o café da manhã.",
@@ -142,7 +142,7 @@ Exemplo resumido de resposta:
       "unit": "unidade",
       "optional": false,
       "ingredient": {
-        "id": "clx0000000000000000000001",
+        "id": "1a66fe64-4042-4a38-a1c1-eb1a14c09b2e",
         "name": "Banana",
         "normalizedName": "banana"
       }
@@ -175,7 +175,7 @@ Resposta `200 OK`:
 ```json
 [
   {
-    "id": "clx0000000000000000000100",
+    "id": "7419eb9c-712d-4d2e-ae13-f83ed52d9e78",
     "title": "Panqueca de banana",
     "slug": "panqueca-de-banana",
     "description": "Panqueca rápida e macia para o café da manhã.",
@@ -195,7 +195,7 @@ Resposta `200 OK`:
     "missingIngredients": []
   },
   {
-    "id": "clx0000000000000000000101",
+    "id": "b9cc7f86-ee77-443b-b20f-55e5acc4cc4f",
     "title": "Bolo de banana",
     "slug": "bolo-de-banana",
     "description": "Bolo caseiro de banana.",

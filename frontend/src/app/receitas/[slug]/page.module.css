@@ -154,7 +154,7 @@
 }
 
 .visual p {
-  color: var(--color-text-muted);
+  color: var(--color-text);
   font-size: 0.82rem;
   font-weight: 750;
   margin: 0;
@@ -238,7 +238,7 @@
 }
 
 .instructions li > span {
-  color: var(--color-primary);
+  color: var(--color-text);
   font-family: var(--font-editorial), Georgia, serif;
   font-size: 1.25rem;
   font-weight: 700;
