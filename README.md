@@ -31,8 +31,9 @@ O código é separado em duas aplicações:
 - `docs/`: decisões de arquitetura, modelo de dados e contrato da API;
 - `docker-compose.yml`: PostgreSQL local com volume persistente e healthcheck.
 
-O `index.html` e o `CNAME` na raiz são artefatos da landing page estática anterior,
-mantidos como referência. A aplicação desta fase é o projeto Next.js em `frontend/`.
+O antigo `index.html` estático foi removido para não competir com a aplicação nova.
+O `CNAME` permanece apenas enquanto o domínio ainda aponta para o GitHub Pages. A
+aplicação desta fase é o projeto Next.js em `frontend/`.
 
 Mais detalhes estão em [Arquitetura](docs/architecture.md), [Banco de dados](docs/database.md) e [API](docs/api.md).
 
@@ -166,8 +167,8 @@ NEXT_PUBLIC_API_URL=https://api.receitando.miguelpita.com.br
 Também é possível servir tudo no mesmo domínio. Nesse caso, o proxy da hospedagem
 deve encaminhar `https://receitando.miguelpita.com.br/api/*` para o NestJS, e
 `NEXT_PUBLIC_API_URL` deve ser `https://receitando.miguelpita.com.br`. O `CNAME`
-atual ainda pertence à landing page legada; publicar o Next.js e o NestJS exige
-configurar a hospedagem e os registros DNS correspondentes.
+atual ainda representa a configuração do GitHub Pages; publicar o Next.js e o
+NestJS exige configurar a hospedagem e os registros DNS correspondentes.
 
 ## Testando o matching
 
