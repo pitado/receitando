@@ -13,9 +13,6 @@ export function Header() {
     <header className={styles.header}>
       <div className={`container ${styles.inner}`}>
         <Link aria-label="Receitando — página inicial" className={styles.brand} href="/">
-          <span aria-hidden="true" className={styles.brandMark}>
-            R
-          </span>
           Receitando
         </Link>
 
@@ -27,7 +24,7 @@ export function Header() {
           ))}
         </nav>
 
-        <Link aria-label="Entrar — disponível em breve" className={styles.login} href="/favoritos">
+        <Link aria-label="Entrar" className={styles.login} href="/entrar">
           Entrar
         </Link>
       </div>
