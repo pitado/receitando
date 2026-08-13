@@ -1,6 +1,7 @@
 # Receitando
 
-O Receitando responde a uma pergunta simples: **“O que eu consigo cozinhar com o que tenho em casa?”**
+O Receitando responde a uma pergunta simples: **“O que eu consigo cozinhar com o que tenho em casa?
+teste”**
 
 A pessoa informa os ingredientes disponíveis, a aplicação compara essa lista com as receitas cadastradas e apresenta os resultados da maior para a menor compatibilidade. Cada resultado indica o percentual compatível, os ingredientes encontrados e o que ainda está faltando.
 
