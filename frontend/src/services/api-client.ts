@@ -49,6 +49,7 @@ export async function apiRequest<T>(
     response = await fetch(buildUrl(path), {
       ...init,
       cache: "no-store",
+      credentials: "include",
       headers: {
         Accept: "application/json",
         ...(init.body ? { "Content-Type": "application/json" } : {}),
