@@ -1,0 +1,88 @@
+.catalog {
+  display: grid;
+  gap: var(--space-7);
+}
+
+.toolbar {
+  align-items: end;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-5);
+}
+
+.searchField {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.searchField label {
+  color: var(--color-text);
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.searchField input {
+  appearance: none;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-button);
+  color: var(--color-text);
+  min-height: 3rem;
+  min-width: 0;
+  padding: 0.75rem 1rem;
+  width: 100%;
+}
+
+.searchField input::placeholder {
+  color: var(--color-text-muted);
+  opacity: 0.78;
+}
+
+.searchField input:hover {
+  border-color: var(--color-accent);
+}
+
+.count {
+  align-items: baseline;
+  display: flex;
+  gap: var(--space-2);
+}
+
+.count strong {
+  color: var(--color-primary-dark);
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: 1.65rem;
+}
+
+.count span {
+  color: var(--color-text-muted);
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.grid {
+  display: grid;
+  gap: var(--space-5);
+}
+
+@media (min-width: 36rem) {
+  .toolbar {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+}
+
+@media (min-width: 42rem) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 68rem) {
+  .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

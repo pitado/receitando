@@ -1,0 +1,47 @@
+# Dependências
+node_modules/
+
+# Variáveis locais e segredos
+.env
+.env.*
+!.env.example
+
+# Artefatos de build e cache
+dist/
+build/
+.next/
+out/
+.turbo/
+.cache/
+*.tsbuildinfo
+
+# Cobertura e resultados de testes
+coverage/
+.nyc_output/
+test-results/
+playwright-report/
+
+# Logs e arquivos temporários
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+tmp/
+temp/
+
+# IDEs e sistema operacional
+.idea/
+.vscode/
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Prisma/local databases
+*.db
+*.db-journal
+
+# Certificados e chaves locais
+*.pem
+*.key

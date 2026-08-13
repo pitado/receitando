@@ -1,0 +1,132 @@
+.header {
+  background: var(--color-background-translucent);
+  border-bottom: 1px solid var(--color-border);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.inner {
+  align-items: center;
+  display: flex;
+  gap: var(--space-4);
+  justify-content: space-between;
+  min-height: 4.5rem;
+}
+
+.brand {
+  align-items: center;
+  color: var(--color-text);
+  display: inline-flex;
+  flex-shrink: 0;
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  gap: var(--space-2);
+  letter-spacing: -0.035em;
+  text-decoration: none;
+}
+
+.brandMark {
+  align-items: center;
+  background: var(--color-primary-dark);
+  border-radius: 0.8rem 0.8rem 0.8rem 0.25rem;
+  color: var(--color-on-primary);
+  display: inline-flex;
+  font-family: var(--font-interface), Arial, sans-serif;
+  font-size: 0.88rem;
+  font-weight: 850;
+  height: 2.1rem;
+  justify-content: center;
+  letter-spacing: 0;
+  transform: rotate(-3deg);
+  width: 2.1rem;
+}
+
+.navigation {
+  align-items: center;
+  display: flex;
+  gap: var(--space-1);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.navigation::-webkit-scrollbar {
+  display: none;
+}
+
+.navLink {
+  border-radius: var(--radius-button);
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  font-weight: 700;
+  padding: 0.6rem 0.75rem;
+  text-decoration: none;
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast);
+  white-space: nowrap;
+}
+
+.navLink:hover {
+  background: var(--color-surface);
+  color: var(--color-primary-dark);
+}
+
+.login {
+  display: none;
+}
+
+@media (min-width: 48rem) {
+  .inner {
+    min-height: 5rem;
+  }
+
+  .navigation {
+    overflow: visible;
+  }
+
+  .navLink {
+    font-size: 0.95rem;
+    padding-inline: 0.9rem;
+  }
+
+  .login {
+    align-items: center;
+    background: var(--color-text);
+    border-radius: var(--radius-button);
+    color: var(--color-background);
+    display: inline-flex;
+    flex-shrink: 0;
+    font-size: 0.9rem;
+    font-weight: 750;
+    justify-content: center;
+    min-height: 2.65rem;
+    padding: 0.6rem 1rem;
+    text-decoration: none;
+    transition: background-color var(--transition-fast);
+  }
+
+  .login:hover {
+    background: var(--color-primary-dark);
+  }
+}
+
+@media (max-width: 35rem) {
+  .header {
+    position: static;
+  }
+
+  .inner {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding-block: var(--space-3);
+  }
+
+  .navigation {
+    margin-inline: calc(var(--page-gutter) * -1);
+    padding-inline: var(--page-gutter);
+    width: calc(100% + (var(--page-gutter) * 2));
+  }
+}

@@ -1,0 +1,25 @@
+.badge {
+  align-items: center;
+  background: var(--color-surface-secondary);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-pill);
+  color: var(--color-primary-dark);
+  display: inline-flex;
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  font-weight: 850;
+  gap: 0.25rem;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  padding: 0.55rem 0.72rem;
+}
+
+.score {
+  font-size: 0.95rem;
+}
+
+.complete {
+  background: var(--color-success-surface);
+  border-color: var(--color-success-border);
+  color: var(--color-success-text);
+}

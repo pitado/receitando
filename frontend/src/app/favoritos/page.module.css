@@ -1,0 +1,26 @@
+.page {
+  display: grid;
+  gap: clamp(2.5rem, 7vw, 5rem);
+}
+
+.action {
+  align-items: center;
+  background: var(--color-primary-dark);
+  border-radius: var(--radius-button);
+  box-shadow: var(--shadow-button);
+  color: var(--color-on-primary);
+  display: inline-flex;
+  font-weight: 800;
+  justify-content: center;
+  min-height: 3rem;
+  padding: 0.75rem 1.2rem;
+  text-decoration: none;
+  transition: background-color var(--transition-fast),
+    box-shadow var(--transition-fast), transform var(--transition-fast);
+}
+
+.action:hover {
+  background: var(--color-action-hover);
+  box-shadow: var(--shadow-button-hover);
+  transform: translateY(-1px);
+}

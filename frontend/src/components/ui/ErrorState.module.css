@@ -1,0 +1,36 @@
+.error {
+  align-items: center;
+  background: var(--color-error-surface);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-card);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-7);
+  text-align: center;
+}
+
+.icon {
+  align-items: center;
+  background: var(--color-background);
+  border-radius: var(--radius-round);
+  color: var(--color-primary-dark);
+  display: inline-flex;
+  font-weight: 850;
+  height: 2.75rem;
+  justify-content: center;
+  width: 2.75rem;
+}
+
+.title {
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: 1.5rem;
+  margin: 0;
+}
+
+.message {
+  color: var(--color-text-muted);
+  line-height: 1.6;
+  margin: 0;
+  max-width: 38rem;
+}
