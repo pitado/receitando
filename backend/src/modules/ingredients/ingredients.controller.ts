@@ -9,6 +9,7 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiConflictResponse,
@@ -17,9 +18,11 @@ import {
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiParam,
+  ApiSecurity,
   ApiTags,
 } from '@nestjs/swagger';
 
+import { AdminApiKeyGuard } from '../../common/guards/admin-api-key.guard';
 import { CreateIngredientDto } from './dto/create-ingredient.dto';
 import { IngredientDto } from './dto/ingredient.dto';
 import { UpdateIngredientDto } from './dto/update-ingredient.dto';
@@ -48,6 +51,8 @@ export class IngredientsController {
   }
 
   @Post()
+  @UseGuards(AdminApiKeyGuard)
+  @ApiSecurity('adminKey')
   @ApiCreatedResponse({ type: IngredientDto })
   @ApiConflictResponse({ description: 'Já existe um ingrediente com esse nome.' })
   create(@Body() dto: CreateIngredientDto): Promise<IngredientRecord> {
@@ -55,6 +60,8 @@ export class IngredientsController {
   }
 
   @Patch(':id')
+  @UseGuards(AdminApiKeyGuard)
+  @ApiSecurity('adminKey')
   @ApiParam({ name: 'id', format: 'uuid' })
   @ApiOkResponse({ type: IngredientDto })
   @ApiNotFoundResponse({ description: 'Ingrediente não encontrado.' })
@@ -67,6 +74,8 @@ export class IngredientsController {
   }
 
   @Delete(':id')
+  @UseGuards(AdminApiKeyGuard)
+  @ApiSecurity('adminKey')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiParam({ name: 'id', format: 'uuid' })
   @ApiNoContentResponse({ description: 'Ingrediente removido.' })

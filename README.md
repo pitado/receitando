@@ -91,6 +91,7 @@ Variáveis disponíveis:
 | `DATABASE_URL` | conexão usada pelo Prisma | `postgresql://receitando:receitando@localhost:5432/receitando?schema=public` |
 | `PORT` | porta HTTP do backend | `3333` |
 | `FRONTEND_URL` | origem aceita pelo CORS | `http://localhost:3000` |
+| `ADMIN_API_KEY` | chave exigida pelas rotas que alteram o catálogo | `troque-esta-chave-local` |
 | `NEXT_PUBLIC_API_URL` | origem pública do backend (o cliente acrescenta `/api`) | `http://localhost:3333` |
 
 > As credenciais do exemplo são somente para desenvolvimento local. Use segredos fortes e gerenciados em outros ambientes.
@@ -164,6 +165,7 @@ No ambiente do backend, configure:
 
 ```dotenv
 FRONTEND_URL=https://receitando.miguelpita.com.br
+ADMIN_API_KEY=<segredo-forte-gerenciado-pela-hospedagem>
 ```
 
 No ambiente do frontend, configure:

@@ -33,6 +33,10 @@ async function bootstrap(): Promise<void> {
     .setTitle('Receitando API')
     .setDescription('API para descobrir receitas a partir dos ingredientes disponíveis.')
     .setVersion('1.0')
+    .addApiKey(
+      { type: 'apiKey', name: 'x-admin-api-key', in: 'header' },
+      'adminKey',
+    )
     .build();
   const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('api/docs', app, swaggerDocument);

@@ -1,12 +1,13 @@
 import { Module } from '@nestjs/common';
 
+import { SecurityModule } from '../../common/security.module';
 import { MatchingModule } from '../matching/matching.module';
 import { RecipesController } from './recipes.controller';
 import { RecipesRepository } from './recipes.repository';
 import { RecipesService } from './recipes.service';
 
 @Module({
-  imports: [MatchingModule],
+  imports: [MatchingModule, SecurityModule],
   controllers: [RecipesController],
   providers: [RecipesRepository, RecipesService],
   exports: [RecipesService],

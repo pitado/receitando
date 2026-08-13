@@ -17,6 +17,8 @@ http://localhost:3333/api
 - Recursos inexistentes retornam `404 Not Found`.
 - Duplicidade de `normalizedName` ou `slug` retorna `409 Conflict`.
 - Erros internos e mensagens do banco não são expostos ao cliente.
+- Rotas `POST`, `PATCH` e `DELETE` que alteram o catálogo exigem o cabeçalho
+  `x-admin-api-key`. Leituras e `POST /api/recipes/match` continuam públicos.
 
 Formato típico de erro NestJS:
 

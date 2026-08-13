@@ -9,6 +9,7 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
@@ -19,9 +20,11 @@ import {
   ApiOkResponse,
   ApiOperation,
   ApiParam,
+  ApiSecurity,
   ApiTags,
 } from '@nestjs/swagger';
 
+import { AdminApiKeyGuard } from '../../common/guards/admin-api-key.guard';
 import { MatchRecipeResultDto } from '../matching/dto/match-recipe-result.dto';
 import { MatchRecipesDto } from '../matching/dto/match-recipes.dto';
 import type { MatchRecipeResult } from '../matching/matching.types';
@@ -75,6 +78,8 @@ export class RecipesController {
   }
 
   @Post()
+  @UseGuards(AdminApiKeyGuard)
+  @ApiSecurity('adminKey')
   @ApiCreatedResponse({ type: RecipeDto })
   @ApiBadRequestResponse({ description: 'Dados ou ingredientes inválidos.' })
   @ApiConflictResponse({ description: 'Já existe uma receita com esse slug.' })
@@ -83,6 +88,8 @@ export class RecipesController {
   }
 
   @Patch(':id')
+  @UseGuards(AdminApiKeyGuard)
+  @ApiSecurity('adminKey')
   @ApiParam({ name: 'id', format: 'uuid' })
   @ApiOkResponse({ type: RecipeDto })
   @ApiNotFoundResponse({ description: 'Receita não encontrada.' })
@@ -96,6 +103,8 @@ export class RecipesController {
   }
 
   @Delete(':id')
+  @UseGuards(AdminApiKeyGuard)
+  @ApiSecurity('adminKey')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiParam({ name: 'id', format: 'uuid' })
   @ApiNoContentResponse({ description: 'Receita removida.' })
