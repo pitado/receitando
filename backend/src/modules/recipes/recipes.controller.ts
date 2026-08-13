@@ -9,6 +9,7 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -25,6 +26,8 @@ import {
 } from '@nestjs/swagger';
 
 import { AdminApiKeyGuard } from '../../common/guards/admin-api-key.guard';
+import { RateLimitService } from '../../common/services/rate-limit.service';
+import { getClientIp, type RequestLike } from '../../common/utils/http';
 import { MatchRecipeResultDto } from '../matching/dto/match-recipe-result.dto';
 import { MatchRecipesDto } from '../matching/dto/match-recipes.dto';
 import type { MatchRecipeResult } from '../matching/matching.types';
@@ -41,6 +44,7 @@ export class RecipesController {
   constructor(
     private readonly recipesService: RecipesService,
     private readonly matchingService: MatchingService,
+    private readonly rateLimit: RateLimitService,
   ) {}
 
   @Post('match')
@@ -49,7 +53,8 @@ export class RecipesController {
   @ApiOperation({ summary: 'Ordena receitas pela compatibilidade com os ingredientes informados.' })
   @ApiOkResponse({ type: MatchRecipeResultDto, isArray: true })
   @ApiBadRequestResponse({ description: 'Lista de ingredientes inválida.' })
-  match(@Body() dto: MatchRecipesDto): Promise<MatchRecipeResult[]> {
+  match(@Body() dto: MatchRecipesDto, @Req() request: RequestLike): Promise<MatchRecipeResult[]> {
+    this.rateLimit.consume(`match:${getClientIp(request)}`, 60, 60 * 1000);
     return this.matchingService.match(dto.ingredients);
   }
 
