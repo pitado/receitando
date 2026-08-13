@@ -7,15 +7,35 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum UserRole {
+  USER
+  ADMIN
+}
+
 model User {
   id           String       @id @default(uuid()) @db.Uuid
   name         String
   email        String       @unique
   passwordHash String
+  role         UserRole     @default(USER)
   pantryItems  PantryItem[]
   favorites    Favorite[]
+  sessions     Session[]
   createdAt    DateTime     @default(now()) @db.Timestamptz(3)
   updatedAt    DateTime     @updatedAt @db.Timestamptz(3)
+}
+
+model Session {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @db.Uuid
+  tokenHash  String   @unique
+  expiresAt  DateTime @db.Timestamptz(3)
+  createdAt  DateTime @default(now()) @db.Timestamptz(3)
+  lastSeenAt DateTime @default(now()) @db.Timestamptz(3)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
 }
 
 model Ingredient {
@@ -32,17 +52,17 @@ model Ingredient {
 }
 
 model Recipe {
-  id          String             @id @default(uuid()) @db.Uuid
-  title       String
-  slug        String             @unique
-  description String
+  id           String             @id @default(uuid()) @db.Uuid
+  title        String
+  slug         String             @unique
+  description  String
   instructions String
-  prepMinutes Int
-  servings    Int
-  ingredients RecipeIngredient[]
-  favorites   Favorite[]
-  createdAt   DateTime           @default(now()) @db.Timestamptz(3)
-  updatedAt   DateTime           @updatedAt @db.Timestamptz(3)
+  prepMinutes  Int
+  servings     Int
+  ingredients  RecipeIngredient[]
+  favorites    Favorite[]
+  createdAt    DateTime           @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime           @updatedAt @db.Timestamptz(3)
 
   @@index([title])
 }
@@ -51,7 +71,7 @@ model RecipeIngredient {
   id           String     @id @default(uuid()) @db.Uuid
   recipeId     String     @db.Uuid
   ingredientId String     @db.Uuid
-  quantity     Float?
+  quantity     Decimal?   @db.Decimal(10, 3)
   unit         String?
   optional     Boolean    @default(false)
   recipe       Recipe     @relation(fields: [recipeId], references: [id], onDelete: Cascade)
@@ -65,9 +85,9 @@ model PantryItem {
   id           String     @id @default(uuid()) @db.Uuid
   userId       String     @db.Uuid
   ingredientId String     @db.Uuid
-  quantity     Float?
+  quantity     Decimal?   @db.Decimal(10, 3)
   unit         String?
-  expiresAt    DateTime?  @db.Timestamptz(3)
+  expiresAt    DateTime?  @db.Date
   user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   ingredient   Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Restrict)
   createdAt    DateTime   @default(now()) @db.Timestamptz(3)
