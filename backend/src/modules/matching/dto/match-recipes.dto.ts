@@ -2,7 +2,6 @@ import { ApiProperty } from '@nestjs/swagger';
 import {
   ArrayMaxSize,
   ArrayMinSize,
-  ArrayUnique,
   IsArray,
   IsString,
   Matches,
@@ -19,7 +18,6 @@ export class MatchRecipesDto {
   @IsArray()
   @ArrayMinSize(1)
   @ArrayMaxSize(100)
-  @ArrayUnique()
   @IsString({ each: true })
   @Matches(/\S/, { each: true, message: 'ingredients não aceita valores vazios' })
   @MaxLength(100, { each: true })

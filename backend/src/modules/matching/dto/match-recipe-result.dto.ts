@@ -22,12 +22,20 @@ export class MatchRecipeResultDto {
   @ApiProperty({ example: 100, minimum: 0, maximum: 100 })
   compatibility!: number;
 
-  @ApiProperty({ example: ['banana', 'farinha de trigo', 'leite', 'ovo'] })
+  @ApiProperty({
+    example: ['banana', 'farinha de trigo', 'leite', 'ovo'],
+    type: String,
+    isArray: true,
+  })
   requiredIngredients!: string[];
 
-  @ApiProperty({ example: ['banana', 'farinha de trigo', 'leite', 'ovo'] })
+  @ApiProperty({
+    example: ['banana', 'farinha de trigo', 'leite', 'ovo'],
+    type: String,
+    isArray: true,
+  })
   foundIngredients!: string[];
 
-  @ApiProperty({ example: [] })
+  @ApiProperty({ example: [], type: String, isArray: true })
   missingIngredients!: string[];
 }

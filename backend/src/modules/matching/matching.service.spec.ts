@@ -37,7 +37,7 @@ function makeRecipe(
 
 function makeService(recipes: MatchingRecipe[]): MatchingService {
   const repository: MatchingRecipesReader = {
-    findAll: async () => recipes,
+    findAll: () => Promise.resolve(recipes),
   };
 
   return new MatchingService(repository);

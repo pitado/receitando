@@ -108,8 +108,8 @@ select {
 }
 
 :focus-visible {
-  box-shadow: 0 0 0 0.22rem var(--color-background),
-    0 0 0 0.4rem var(--color-focus);
+  outline: 0.2rem solid var(--color-focus);
+  outline-offset: 0.2rem;
 }
 
 ::selection {

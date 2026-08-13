@@ -52,6 +52,11 @@ export class IngredientsService {
 
   async update(id: string, dto: UpdateIngredientDto): Promise<IngredientRecord> {
     await this.findOne(id);
+
+    if (dto.name === undefined && dto.category === undefined) {
+      throw new BadRequestException('Informe ao menos um campo para atualizar.');
+    }
+
     const data: UpdateIngredientRecord = {};
 
     if (dto.name !== undefined) {

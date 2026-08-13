@@ -31,6 +31,9 @@ O código é separado em duas aplicações:
 - `docs/`: decisões de arquitetura, modelo de dados e contrato da API;
 - `docker-compose.yml`: PostgreSQL local com volume persistente e healthcheck.
 
+O `index.html` e o `CNAME` na raiz são artefatos da landing page estática anterior,
+mantidos como referência. A aplicação desta fase é o projeto Next.js em `frontend/`.
+
 Mais detalhes estão em [Arquitetura](docs/architecture.md), [Banco de dados](docs/database.md) e [API](docs/api.md).
 
 ## Stack
@@ -50,26 +53,31 @@ Mais detalhes estão em [Arquitetura](docs/architecture.md), [Banco de dados](do
 
 ## Instalação
 
-Na raiz do repositório, instale as dependências de cada aplicação:
+Na raiz do repositório, instale as dependências bloqueadas de cada aplicação:
 
 ```bash
-npm install --prefix backend
-npm install --prefix frontend
+npm ci --prefix backend
+npm ci --prefix frontend
 ```
 
-Crie o arquivo local de configuração:
+Crie os arquivos locais de configuração. O `.env` da raiz é lido pelo Docker
+Compose, o `backend/.env` pelo NestJS/Prisma e o `frontend/.env.local` pelo Next.js:
 
 ```bash
 cp .env.example .env
+cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env.local
 ```
 
-No PowerShell, o comando equivalente é:
+No PowerShell, os comandos equivalentes são:
 
 ```powershell
 Copy-Item .env.example .env
+Copy-Item backend/.env.example backend/.env
+Copy-Item frontend/.env.example frontend/.env.local
 ```
 
-Os valores padrão estão preparados para desenvolvimento local. Se as aplicações usarem arquivos de ambiente próprios, copie as variáveis de backend para `backend/.env` e `NEXT_PUBLIC_API_URL` para `frontend/.env.local`. Arquivos `.env` não são versionados.
+Os valores padrão estão preparados para desenvolvimento local. Arquivos `.env` não são versionados.
 
 Variáveis disponíveis:
 
@@ -133,6 +141,33 @@ Serviços locais:
 - API: <http://localhost:3333/api>
 - Healthcheck: <http://localhost:3333/api/health>
 - Swagger: <http://localhost:3333/api/docs>
+
+## Domínio de produção
+
+O domínio já associado ao projeto é `receitando.miguelpita.com.br`. A topologia
+recomendada para publicar as duas aplicações separadamente é:
+
+- frontend: `https://receitando.miguelpita.com.br`;
+- API: `https://api.receitando.miguelpita.com.br`;
+- Swagger: `https://api.receitando.miguelpita.com.br/api/docs`.
+
+No ambiente do backend, configure:
+
+```dotenv
+FRONTEND_URL=https://receitando.miguelpita.com.br
+```
+
+No ambiente do frontend, configure:
+
+```dotenv
+NEXT_PUBLIC_API_URL=https://api.receitando.miguelpita.com.br
+```
+
+Também é possível servir tudo no mesmo domínio. Nesse caso, o proxy da hospedagem
+deve encaminhar `https://receitando.miguelpita.com.br/api/*` para o NestJS, e
+`NEXT_PUBLIC_API_URL` deve ser `https://receitando.miguelpita.com.br`. O `CNAME`
+atual ainda pertence à landing page legada; publicar o Next.js e o NestJS exige
+configurar a hospedagem e os registros DNS correspondentes.
 
 ## Testando o matching
 

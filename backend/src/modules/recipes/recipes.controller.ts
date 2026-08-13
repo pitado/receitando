@@ -41,6 +41,7 @@ export class RecipesController {
   ) {}
 
   @Post('match')
+  @ApiTags('matching')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Ordena receitas pela compatibilidade com os ingredientes informados.' })
   @ApiOkResponse({ type: MatchRecipeResultDto, isArray: true })

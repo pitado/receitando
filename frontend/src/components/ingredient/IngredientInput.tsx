@@ -44,6 +44,7 @@ export function IngredientInput({
           className={styles.input}
           disabled={disabled}
           id={inputId}
+          maxLength={100}
           name="ingredient"
           onChange={(event) => {
             setValue(event.target.value);

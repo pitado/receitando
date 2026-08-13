@@ -9,7 +9,12 @@ async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
   const frontendUrl = configService.get<string>('FRONTEND_URL', 'http://localhost:3000');
-  const port = configService.get<number>('PORT', 3333);
+  const configuredPort = configService.get<string>('PORT');
+  const port = configuredPort === undefined ? 3333 : Number(configuredPort);
+
+  if (!Number.isInteger(port) || port < 1 || port > 65_535) {
+    throw new Error('PORT deve ser um número inteiro entre 1 e 65535.');
+  }
 
   app.setGlobalPrefix('api');
   app.enableCors({

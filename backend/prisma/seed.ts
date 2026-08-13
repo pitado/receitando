@@ -72,7 +72,7 @@ const recipes: SeedRecipe[] = [
       { name: 'ovo', quantity: 2, unit: 'unidades' },
       { name: 'leite', quantity: 1, unit: 'xícara' },
       { name: 'fermento', quantity: 1, unit: 'colher de sopa' },
-      { name: 'açúcar', quantity: 0.75, unit: 'xícara' },
+      { name: 'açúcar', quantity: 0.75, unit: 'xícara', optional: true },
     ],
   },
   {
@@ -196,7 +196,14 @@ async function main(): Promise<void> {
         optional: item.optional ?? false,
       };
     });
-    const { ingredients: _ingredients, ...recipeData } = recipe;
+    const recipeData = {
+      title: recipe.title,
+      slug: recipe.slug,
+      description: recipe.description,
+      instructions: recipe.instructions,
+      prepMinutes: recipe.prepMinutes,
+      servings: recipe.servings,
+    };
 
     await prisma.recipe.upsert({
       where: { slug: recipe.slug },
@@ -217,7 +224,7 @@ async function main(): Promise<void> {
   console.log(`Seed concluído: ${ingredients.length} ingredientes e ${recipes.length} receitas.`);
 }
 
-main()
+void main()
   .catch((error: unknown) => {
     console.error(error);
     process.exitCode = 1;
