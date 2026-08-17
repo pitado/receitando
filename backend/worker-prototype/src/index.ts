@@ -36,7 +36,7 @@ type RecipeJoinRow = {
 };
 
 const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
-const PASSWORD_ITERATIONS = 210_000;
+const PASSWORD_ITERATIONS = 100_000;
 const encoder = new TextEncoder();
 
 function allowedOrigins(env: Env): string[] {
