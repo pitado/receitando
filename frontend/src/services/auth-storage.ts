@@ -1,4 +1,10 @@
 const AUTH_TOKEN_KEY = "receitando.auth.token";
+export const AUTH_CHANGED_EVENT = "receitando:auth-changed";
+
+function notifyAuthChange(): void {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new Event(AUTH_CHANGED_EVENT));
+}
 
 export function saveAuthToken(token: string, remember: boolean): void {
   if (typeof window === "undefined") return;
@@ -8,6 +14,7 @@ export function saveAuthToken(token: string, remember: boolean): void {
 
   const storage = remember ? window.localStorage : window.sessionStorage;
   storage.setItem(AUTH_TOKEN_KEY, token);
+  notifyAuthChange();
 }
 
 export function getAuthToken(): string | null {
@@ -24,4 +31,5 @@ export function clearAuthToken(): void {
 
   window.localStorage.removeItem(AUTH_TOKEN_KEY);
   window.sessionStorage.removeItem(AUTH_TOKEN_KEY);
+  notifyAuthChange();
 }
