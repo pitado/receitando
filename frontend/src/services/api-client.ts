@@ -1,3 +1,5 @@
+import { getAuthToken } from "@/services/auth-storage";
+
 const DEFAULT_API_URL = "http://localhost:3333";
 
 export type ApiErrorKind = "connection" | "http" | "invalid-response";
@@ -44,6 +46,7 @@ export async function apiRequest<T>(
   init: RequestInit = {},
 ): Promise<T> {
   let response: Response;
+  const authToken = getAuthToken();
 
   try {
     response = await fetch(buildUrl(path), {
@@ -53,6 +56,7 @@ export async function apiRequest<T>(
       headers: {
         Accept: "application/json",
         ...(init.body ? { "Content-Type": "application/json" } : {}),
+        ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
         ...init.headers,
       },
     });

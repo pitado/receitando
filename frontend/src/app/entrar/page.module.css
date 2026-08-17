@@ -137,6 +137,11 @@
   box-shadow: 0 0 0 0.22rem color-mix(in srgb, var(--color-primary) 16%, transparent);
 }
 
+.field input:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
 .formMeta {
   align-items: center;
   display: flex;
@@ -164,6 +169,17 @@
   font-size: 0.8rem;
 }
 
+.formError {
+  background: color-mix(in srgb, var(--color-primary) 9%, var(--color-card));
+  border: 1px solid color-mix(in srgb, var(--color-primary) 32%, var(--color-border));
+  border-radius: var(--radius-button);
+  color: var(--color-primary-dark);
+  font-size: 0.86rem;
+  line-height: 1.5;
+  margin: calc(var(--space-2) * -1) 0 0;
+  padding: 0.8rem 0.9rem;
+}
+
 .submit {
   background: var(--color-text);
   border: 0;
@@ -181,10 +197,15 @@
   width: 100%;
 }
 
-.submit:hover {
+.submit:hover:not(:disabled) {
   background: var(--color-primary-dark);
   box-shadow: var(--shadow-button-hover);
   transform: translateY(-1px);
+}
+
+.submit:disabled {
+  cursor: wait;
+  opacity: 0.72;
 }
 
 .divider {

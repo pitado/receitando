@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { LoginForm } from "./LoginForm";
 import styles from "./page.module.css";
 
 export const metadata: Metadata = {
@@ -33,43 +34,7 @@ export default function LoginPage() {
             <p>Use seu e-mail e sua senha para acessar o Receitando.</p>
           </div>
 
-          <form className={styles.form}>
-            <label className={styles.field}>
-              <span>E-mail</span>
-              <input
-                autoComplete="email"
-                inputMode="email"
-                name="email"
-                placeholder="voce@exemplo.com"
-                required
-                type="email"
-              />
-            </label>
-
-            <label className={styles.field}>
-              <span>Senha</span>
-              <input
-                autoComplete="current-password"
-                minLength={10}
-                name="password"
-                placeholder="Sua senha"
-                required
-                type="password"
-              />
-            </label>
-
-            <div className={styles.formMeta}>
-              <label className={styles.remember}>
-                <input name="remember" type="checkbox" />
-                <span>Lembrar de mim</span>
-              </label>
-              <span className={styles.comingSoon}>Recuperação de senha em breve</span>
-            </div>
-
-            <button className={styles.submit} type="submit">
-              Entrar
-            </button>
-          </form>
+          <LoginForm />
 
           <div className={styles.divider}>
             <span>ou</span>
