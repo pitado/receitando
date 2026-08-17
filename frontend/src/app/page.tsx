@@ -7,7 +7,7 @@ import styles from "./page.module.css";
 
 export default function HomePage() {
   return (
-    <>
+    <main className={styles.page}>
       <section className={styles.hero}>
         <div className={`container ${styles.heroGrid}`}>
           <div className={styles.heroCopy}>
@@ -75,6 +75,6 @@ export default function HomePage() {
           </ol>
         </div>
       </section>
-    </>
+    </main>
   );
 }
