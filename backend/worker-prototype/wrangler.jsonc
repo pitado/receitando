@@ -4,6 +4,14 @@
   "main": "src/index.ts",
   "compatibility_date": "2026-08-17",
   "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "preview_urls": false,
+  "routes": [
+    {
+      "pattern": "api.receitando.miguelpita.com.br",
+      "custom_domain": true
+    }
+  ],
   "vars": {
     "FRONTEND_URL": "https://receitando.miguelpita.com.br,http://localhost:3000"
   },
