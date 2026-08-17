@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { AuthControls } from "./AuthControls";
 import styles from "./Header.module.css";
 
 const links = [
@@ -24,9 +25,7 @@ export function Header() {
           ))}
         </nav>
 
-        <Link aria-label="Entrar" className={styles.login} href="/entrar">
-          Entrar
-        </Link>
+        <AuthControls />
       </div>
     </header>
   );
