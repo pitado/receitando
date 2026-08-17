@@ -73,7 +73,6 @@ export function LoginForm() {
           <input disabled={isSubmitting} name="remember" type="checkbox" />
           <span>Lembrar de mim</span>
         </label>
-        <span className={styles.comingSoon}>Recuperação de senha em breve</span>
       </div>
 
       {error ? (
