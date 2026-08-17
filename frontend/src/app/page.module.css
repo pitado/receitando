@@ -1,3 +1,9 @@
+.page {
+  background:
+    radial-gradient(circle at 18% 20%, color-mix(in srgb, var(--color-surface-secondary) 52%, transparent), transparent 27rem),
+    var(--color-background);
+}
+
 .hero {
   overflow: hidden;
   padding-block: clamp(3.5rem, 10vw, 8rem);
