@@ -8,8 +8,8 @@
     "typecheck": "tsc --noEmit",
     "dev": "wrangler dev",
     "dry-run": "wrangler deploy --dry-run",
-    "migrate:local": "wrangler d1 migrations apply recebendo --local",
-    "migrate:remote": "wrangler d1 migrations apply recebendo --remote",
+    "migrate:local": "wrangler d1 migrations apply receitando --local",
+    "migrate:remote": "wrangler d1 migrations apply receitando --remote",
     "deploy": "wrangler deploy"
   },
   "dependencies": {
