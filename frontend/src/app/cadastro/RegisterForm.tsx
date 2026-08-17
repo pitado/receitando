@@ -4,11 +4,11 @@ import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
 
 import { ApiError } from "@/services/api-client";
-import { login } from "@/services/auth.service";
+import { register } from "@/services/auth.service";
 
-import styles from "./page.module.css";
+import styles from "../entrar/page.module.css";
 
-export function LoginForm() {
+export function RegisterForm() {
   const router = useRouter();
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -18,22 +18,29 @@ export function LoginForm() {
 
     const form = event.currentTarget;
     const data = new FormData(form);
+    const name = String(data.get("name") ?? "").trim();
     const email = String(data.get("email") ?? "").trim();
     const password = String(data.get("password") ?? "");
+    const confirmPassword = String(data.get("confirmPassword") ?? "");
     const remember = data.get("remember") === "on";
+
+    if (password !== confirmPassword) {
+      setError("As senhas não coincidem.");
+      return;
+    }
 
     setError("");
     setIsSubmitting(true);
 
     try {
-      await login(email, password, remember);
+      await register(name, email, password, remember);
       router.push("/despensa");
       router.refresh();
     } catch (requestError: unknown) {
       if (requestError instanceof ApiError) {
         setError(requestError.message);
       } else {
-        setError("Não foi possível entrar agora. Tente novamente.");
+        setError("Não foi possível criar sua conta agora. Tente novamente.");
       }
     } finally {
       setIsSubmitting(false);
@@ -42,6 +49,20 @@ export function LoginForm() {
 
   return (
     <form className={styles.form} onSubmit={handleSubmit}>
+      <label className={styles.field}>
+        <span>Nome</span>
+        <input
+          autoComplete="name"
+          disabled={isSubmitting}
+          maxLength={100}
+          minLength={2}
+          name="name"
+          placeholder="Seu nome"
+          required
+          type="text"
+        />
+      </label>
+
       <label className={styles.field}>
         <span>E-mail</span>
         <input
@@ -58,11 +79,24 @@ export function LoginForm() {
       <label className={styles.field}>
         <span>Senha</span>
         <input
-          autoComplete="current-password"
+          autoComplete="new-password"
           disabled={isSubmitting}
           minLength={10}
           name="password"
-          placeholder="Sua senha"
+          placeholder="Pelo menos 10 caracteres"
+          required
+          type="password"
+        />
+      </label>
+
+      <label className={styles.field}>
+        <span>Confirmar senha</span>
+        <input
+          autoComplete="new-password"
+          disabled={isSubmitting}
+          minLength={10}
+          name="confirmPassword"
+          placeholder="Repita sua senha"
           required
           type="password"
         />
@@ -70,8 +104,8 @@ export function LoginForm() {
 
       <div className={styles.formMeta}>
         <label className={styles.remember}>
-          <input disabled={isSubmitting} name="remember" type="checkbox" />
-          <span>Lembrar de mim</span>
+          <input defaultChecked disabled={isSubmitting} name="remember" type="checkbox" />
+          <span>Continuar conectado</span>
         </label>
       </div>
 
@@ -82,7 +116,7 @@ export function LoginForm() {
       ) : null}
 
       <button className={styles.submit} disabled={isSubmitting} type="submit">
-        {isSubmitting ? "Entrando…" : "Entrar"}
+        {isSubmitting ? "Criando conta…" : "Criar conta"}
       </button>
     </form>
   );
