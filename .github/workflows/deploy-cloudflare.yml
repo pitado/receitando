@@ -43,6 +43,8 @@ jobs:
 
       - name: Build
         run: npm run build:cloudflare
+        env:
+          NEXT_PUBLIC_API_URL: https://api.receitando.miguelpita.com.br
 
       - name: Deploy
         run: npx opennextjs-cloudflare deploy -- --keep-vars
