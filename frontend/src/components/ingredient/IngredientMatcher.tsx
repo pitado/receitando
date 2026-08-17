@@ -189,9 +189,6 @@ export function IngredientMatcher() {
       <div aria-live="polite" aria-busy={isLoading} className={styles.results}>
         {status === "idle" ? (
           <div className={styles.idle}>
-            <span aria-hidden="true" className={styles.idleMark}>
-              R
-            </span>
             <div>
               <strong>As melhores combinações aparecem aqui</strong>
               <p>
