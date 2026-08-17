@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { AUTH_CHANGED_EVENT, clearAuthToken, getAuthToken } from "@/services/auth-storage";
 import { getCurrentUser, logout, type AuthUser } from "@/services/auth.service";
@@ -15,40 +15,50 @@ export function AuthControls() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSigningOut, setIsSigningOut] = useState(false);
 
-  const syncUser = useCallback(async () => {
-    const token = getAuthToken();
-
-    if (!token) {
-      setUser(null);
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      setUser(await getCurrentUser());
-    } catch {
-      clearAuthToken();
-      setUser(null);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
-    void syncUser();
+    let cancelled = false;
+
+    async function syncUser() {
+      // Keep the initial state synchronization outside the synchronous effect body.
+      await Promise.resolve();
+      if (cancelled) return;
+
+      const token = getAuthToken();
+
+      if (!token) {
+        setUser(null);
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const currentUser = await getCurrentUser();
+        if (!cancelled) setUser(currentUser);
+      } catch {
+        if (!cancelled) {
+          clearAuthToken();
+          setUser(null);
+        }
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    }
 
     function handleAuthChange() {
+      setIsLoading(true);
       void syncUser();
     }
 
+    void syncUser();
     window.addEventListener(AUTH_CHANGED_EVENT, handleAuthChange);
     window.addEventListener("storage", handleAuthChange);
 
     return () => {
+      cancelled = true;
       window.removeEventListener(AUTH_CHANGED_EVENT, handleAuthChange);
       window.removeEventListener("storage", handleAuthChange);
     };
-  }, [syncUser]);
+  }, []);
 
   async function handleLogout() {
     setIsSigningOut(true);
