@@ -1,0 +1,29 @@
+name: API Worker CI
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "backend/worker-prototype/**"
+      - ".github/workflows/api-worker-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend/worker-prototype
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/worker-prototype/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run dry-run
