@@ -25,7 +25,7 @@ async function bootstrap(): Promise<void> {
     origin: frontendUrl.split(',').map((origin) => origin.trim()),
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Accept', 'x-admin-api-key'],
+    allowedHeaders: ['Content-Type', 'Accept', 'Authorization', 'x-admin-api-key'],
   });
   app.use((_request: unknown, response: HeaderResponse, next: Next) => {
     response.setHeader('X-Content-Type-Options', 'nosniff');
