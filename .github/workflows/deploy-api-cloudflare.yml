@@ -1,0 +1,30 @@
+name: Deploy API Cloudflare
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  api-production:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend/worker-prototype
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/worker-prototype/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - name: Apply D1 migrations
+        run: npm run migrate:remote
+      - name: Deploy Worker
+        run: npm run deploy

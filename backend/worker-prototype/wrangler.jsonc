@@ -1,17 +1,18 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
-  "name": "receitando-api-prototype",
+  "name": "round-mouse-8bbd",
   "main": "src/index.ts",
-  "compatibility_date": "2026-08-13",
+  "compatibility_date": "2026-08-17",
   "compatibility_flags": ["nodejs_compat"],
   "vars": {
-    "FRONTEND_URL": "http://localhost:3000"
+    "FRONTEND_URL": "https://receitando.miguelpita.com.br,http://localhost:3000"
   },
-  "hyperdrive": [
+  "d1_databases": [
     {
-      "binding": "HYPERDRIVE",
-      "id": "00000000000000000000000000000000",
-      "localConnectionString": "postgresql://receitando:receitando@localhost:5432/receitando?schema=public"
+      "binding": "db",
+      "database_name": "receitando",
+      "database_id": "af1f7dbc-50a3-497c-9188-2f57467ae49b",
+      "migrations_dir": "migrations"
     }
   ],
   "observability": {
@@ -19,10 +20,6 @@
     "logs": {
       "enabled": true,
       "head_sampling_rate": 1
-    },
-    "traces": {
-      "enabled": true,
-      "head_sampling_rate": 0.01
     }
   }
 }
