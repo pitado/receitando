@@ -14,6 +14,21 @@ interface AuthSession {
   expiresAt: string;
 }
 
+export async function register(
+  name: string,
+  email: string,
+  password: string,
+  remember = true,
+): Promise<AuthUser> {
+  const session = await apiRequest<AuthSession>("/api/auth/register", {
+    method: "POST",
+    body: JSON.stringify({ name, email, password }),
+  });
+
+  saveAuthToken(session.token, remember);
+  return session.user;
+}
+
 export async function login(
   email: string,
   password: string,
@@ -26,6 +41,10 @@ export async function login(
 
   saveAuthToken(session.token, remember);
   return session.user;
+}
+
+export async function getCurrentUser(): Promise<AuthUser> {
+  return apiRequest<AuthUser>("/api/auth/me");
 }
 
 export async function logout(): Promise<void> {
