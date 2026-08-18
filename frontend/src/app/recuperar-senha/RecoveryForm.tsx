@@ -32,7 +32,7 @@ export function RecoveryForm() {
     try {
       const result = await requestPasswordReset(email.trim());
       setResetId(result.resetId);
-      setMessage(result.message);
+      setMessage("");
       setStep("code");
     } catch (requestError: unknown) {
       setError(
@@ -103,7 +103,7 @@ export function RecoveryForm() {
     try {
       const result = await requestPasswordReset(email.trim());
       setResetId(result.resetId);
-      setMessage("Se a conta existir, um novo código foi enviado. Aguarde alguns segundos antes de tentar novamente.");
+      setMessage("Código reenviado. Confira sua caixa de entrada e também a pasta de spam.");
     } catch (requestError: unknown) {
       setError(
         requestError instanceof ApiError
@@ -144,9 +144,9 @@ export function RecoveryForm() {
         </h2>
         <p>
           {step === "email"
-            ? "Vamos enviar um código de recuperação para o endereço da sua conta."
+            ? "Digite o e-mail cadastrado na sua conta. Se encontrarmos sua conta, enviaremos o código na hora."
             : step === "code"
-              ? `Enviamos as instruções para ${email}.`
+              ? `Código enviado para ${email}.`
               : "Use pelo menos 10 caracteres e escolha uma senha que você não reutilize em outros sites."}
         </p>
       </div>
@@ -168,7 +168,7 @@ export function RecoveryForm() {
           </label>
           {error ? <p className={styles.formError}>{error}</p> : null}
           <button className={styles.submit} disabled={isSubmitting} type="submit">
-            {isSubmitting ? "Enviando…" : "Enviar código"}
+            {isSubmitting ? "Verificando…" : "Continuar"}
           </button>
         </form>
       ) : null}
