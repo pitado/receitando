@@ -85,11 +85,17 @@ export function AuthControls() {
   }
 
   const firstName = user.name.trim().split(/\s+/)[0] || "Conta";
+  const initial = firstName.charAt(0).toUpperCase();
 
   return (
     <div className={styles.account}>
-      <Link className={styles.accountName} href="/conta" aria-label={`Abrir conta de ${firstName}`}>
-        Olá, {firstName}
+      <Link className={styles.accountName} href="/conta" aria-label={`Abrir perfil de ${firstName}`}>
+        <span className={styles.accountAvatar} aria-hidden="true">{initial}</span>
+        <span className={styles.accountCopy}>
+          <strong>Olá, {firstName}</strong>
+          <small>Meu perfil</small>
+        </span>
+        <span className={styles.accountArrow} aria-hidden="true">›</span>
       </Link>
       <button
         className={styles.logout}
