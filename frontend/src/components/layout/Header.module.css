@@ -114,21 +114,69 @@
   }
 
   .accountName {
-    border-radius: var(--radius-button);
+    align-items: center;
+    border: 1px solid transparent;
+    border-radius: 999px;
     color: var(--color-text-muted);
-    font-size: 0.9rem;
-    font-weight: 700;
-    max-width: 9rem;
-    overflow: hidden;
-    padding: 0.45rem 0.2rem;
+    display: inline-flex;
+    gap: 0.6rem;
+    min-height: 2.85rem;
+    padding: 0.32rem 0.55rem 0.32rem 0.35rem;
     text-decoration: none;
-    text-overflow: ellipsis;
-    transition: color var(--transition-fast);
-    white-space: nowrap;
+    transition:
+      background-color var(--transition-fast),
+      border-color var(--transition-fast),
+      color var(--transition-fast),
+      transform var(--transition-fast);
   }
 
   .accountName:hover {
+    background: var(--color-surface);
+    border-color: var(--color-border);
     color: var(--color-primary-dark);
+    transform: translateY(-1px);
+  }
+
+  .accountAvatar {
+    align-items: center;
+    background: var(--color-primary);
+    border-radius: 50%;
+    color: var(--color-background);
+    display: inline-flex;
+    flex: 0 0 2rem;
+    font-size: 0.82rem;
+    font-weight: 800;
+    height: 2rem;
+    justify-content: center;
+    width: 2rem;
+  }
+
+  .accountCopy {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.05;
+    max-width: 8rem;
+    min-width: 0;
+  }
+
+  .accountCopy strong {
+    font-size: 0.88rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .accountCopy small {
+    color: var(--color-text-muted);
+    font-size: 0.67rem;
+    font-weight: 650;
+    margin-top: 0.2rem;
+  }
+
+  .accountArrow {
+    font-size: 1.2rem;
+    line-height: 1;
+    opacity: 0.65;
   }
 
   .logout {
