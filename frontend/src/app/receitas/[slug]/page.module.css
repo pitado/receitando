@@ -45,6 +45,14 @@
   text-transform: uppercase;
 }
 
+.titleRow {
+  align-items: flex-end;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  justify-content: space-between;
+}
+
 .intro h1 {
   font-family: var(--font-editorial), Georgia, serif;
   font-size: clamp(3rem, 9vw, 5.75rem);
@@ -90,6 +98,22 @@
 .facts dd {
   font-weight: 800;
   margin: 0;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.tags span {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+  font-weight: 750;
+  padding: 0.4rem 0.65rem;
 }
 
 .visual {
