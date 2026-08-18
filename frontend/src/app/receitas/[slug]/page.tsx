@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { FavoriteButton } from "@/components/recipe/FavoriteButton";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { formatIngredientAmount, formatPrepTime } from "@/lib/format";
 import { ApiError } from "@/services/api-client";
 import { getRecipeBySlug } from "@/services/recipes.service";
-import type { Recipe } from "@/types/recipe";
+import type { Recipe, RecipeDifficulty } from "@/types/recipe";
 
 import styles from "./page.module.css";
 
@@ -20,28 +21,27 @@ interface RecipeDetailPageProps {
   params: Promise<{ slug: string }>;
 }
 
-function getInstructionSteps(instructions: Recipe["instructions"]): string[] {
-  const rawSteps = Array.isArray(instructions)
-    ? instructions
-    : instructions.split(/\r?\n/);
+const difficultyLabels: Record<RecipeDifficulty, string> = {
+  FACIL: "Fácil",
+  MEDIA: "Média",
+  DIFICIL: "Difícil",
+};
 
+function getInstructionSteps(instructions: Recipe["instructions"]): string[] {
+  const rawSteps = Array.isArray(instructions) ? instructions : instructions.split(/\r?\n/);
   return rawSteps
     .map((step) => step.trim().replace(/^\d+[.)]\s*/, ""))
     .filter(Boolean);
 }
 
-export default async function RecipeDetailPage({
-  params,
-}: RecipeDetailPageProps) {
+export default async function RecipeDetailPage({ params }: RecipeDetailPageProps) {
   const { slug } = await params;
   let recipe: Recipe | null = null;
 
   try {
     recipe = await getRecipeBySlug(slug);
   } catch (error: unknown) {
-    if (error instanceof ApiError && error.status === 404) {
-      notFound();
-    }
+    if (error instanceof ApiError && error.status === 404) notFound();
   }
 
   if (!recipe) {
@@ -64,8 +64,11 @@ export default async function RecipeDetailPage({
 
       <header className={styles.header}>
         <div className={styles.intro}>
-          <p className={styles.eyebrow}>Receita da cozinha Receitando</p>
-          <h1>{recipe.title}</h1>
+          <p className={styles.eyebrow}>{recipe.mealType} · {difficultyLabels[recipe.difficulty]}</p>
+          <div className={styles.titleRow}>
+            <h1>{recipe.title}</h1>
+            <FavoriteButton recipeId={recipe.id} />
+          </div>
           <p className={styles.description}>{recipe.description}</p>
           <dl className={styles.facts}>
             <div>
@@ -74,17 +77,26 @@ export default async function RecipeDetailPage({
             </div>
             <div>
               <dt>Rendimento</dt>
-              <dd>
-                {recipe.servings} {recipe.servings === 1 ? "porção" : "porções"}
-              </dd>
+              <dd>{recipe.servings} {recipe.servings === 1 ? "porção" : "porções"}</dd>
+            </div>
+            <div>
+              <dt>Dificuldade</dt>
+              <dd>{difficultyLabels[recipe.difficulty]}</dd>
+            </div>
+            <div>
+              <dt>Origem</dt>
+              <dd>{recipe.source.name}</dd>
             </div>
           </dl>
+          {recipe.tags.length > 0 ? (
+            <div className={styles.tags}>
+              {recipe.tags.map((tag) => <span key={tag}>{tag}</span>)}
+            </div>
+          ) : null}
         </div>
 
-        <div aria-label="Espaço reservado para foto da receita" className={styles.visual}>
-          <span className={styles.plate}>
-            <span />
-          </span>
+        <div aria-label="Identidade visual da receita" className={styles.visual}>
+          <span className={styles.plate}><span /></span>
           <p>Feita com o que já mora na sua cozinha.</p>
         </div>
       </header>
@@ -96,12 +108,11 @@ export default async function RecipeDetailPage({
           <ul>
             {recipe.ingredients.map((item) => {
               const amount = formatIngredientAmount(item.quantity, item.unit);
-
               return (
-                <li key={item.id ?? item.ingredient.id}>
+                <li key={item.ingredientId}>
                   <span className={styles.check} aria-hidden="true" />
                   <span>
-                    <strong>{item.ingredient.name}</strong>
+                    <strong>{item.name}</strong>
                     <small>
                       {amount || "a gosto"}
                       {item.optional ? " · opcional" : ""}
@@ -126,9 +137,7 @@ export default async function RecipeDetailPage({
               ))}
             </ol>
           ) : (
-            <p className={styles.noInstructions}>
-              O modo de preparo desta receita será adicionado em breve.
-            </p>
+            <p className={styles.noInstructions}>O modo de preparo desta receita será adicionado em breve.</p>
           )}
         </section>
       </div>
