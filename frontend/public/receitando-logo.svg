@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 110" role="img" aria-labelledby="title desc">
+  <title id="title">Receitando</title>
+  <desc id="desc">Marca Receitando em marrom escuro</desc>
+  <g fill="#3A1B12">
+    <path d="M10 15h34c25 0 40 10 40 28 0 13-8 22-22 27l24 25H64L43 72H31v23H10V15Zm21 17v23h12c13 0 20-4 20-12 0-7-7-11-19-11H31Z"/>
+    <path d="M10 65 29 44v51H10V65Z" opacity="0.98"/>
+    <text x="92" y="81" font-family="Georgia, 'Times New Roman', serif" font-size="68" font-weight="700" letter-spacing="-2.4">Receitando</text>
+  </g>
+</svg>
