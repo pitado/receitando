@@ -9,22 +9,46 @@ import { getPantry } from "@/services/pantry.service";
 
 import styles from "./page.module.css";
 
-function greetingForHour(hour: number) {
+const MORNING_LINES = [
+  "Bora colocar uma ideia no fogo?",
+  "Café passado, ideias na mesa.",
+  "O dia começou — o que vai sair dessa cozinha?",
+  "A primeira pitada do dia pode virar receita boa.",
+  "Panela no fogo e criatividade acordada.",
+];
+
+const AFTERNOON_LINES = [
+  "Tem receita boa saindo do forno.",
+  "A tarde pede uma pitada de ideia.",
+  "Ainda dá tempo de salvar o jantar.",
+  "Que tal mexer a panela e as ideias também?",
+  "A cozinha chamou para um intervalo gostoso.",
+];
+
+const NIGHT_LINES = [
+  "Ainda dá tempo de temperar o dia.",
+  "A cozinha ainda está aberta por aqui.",
+  "Fecha o dia com alguma coisa gostosa.",
+  "A noite combina com receita sem pressa.",
+  "Antes de apagar o fogo, que tal mais uma ideia?",
+];
+
+function greetingForHour(hour: number, variation: number) {
   if (hour < 12) {
     return {
       label: "Bom dia",
-      line: "Bora colocar uma ideia no fogo?",
+      line: MORNING_LINES[variation % MORNING_LINES.length],
     };
   }
   if (hour < 18) {
     return {
       label: "Boa tarde",
-      line: "Tem receita boa saindo do forno.",
+      line: AFTERNOON_LINES[variation % AFTERNOON_LINES.length],
     };
   }
   return {
     label: "Boa noite",
-    line: "Ainda dá tempo de temperar o dia.",
+    line: NIGHT_LINES[variation % NIGHT_LINES.length],
   };
 }
 
@@ -40,9 +64,11 @@ export function AccountClient() {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const [hour, setHour] = useState<number | null>(null);
+  const [greetingVariation, setGreetingVariation] = useState(0);
 
   useEffect(() => {
     setHour(new Date().getHours());
+    setGreetingVariation(Math.floor(Math.random() * 5));
 
     let cancelled = false;
     async function load() {
@@ -67,7 +93,10 @@ export function AccountClient() {
   }, []);
 
   const firstName = user?.name.trim().split(/\s+/)[0] || "cozinheiro";
-  const greeting = useMemo(() => greetingForHour(hour ?? 12), [hour]);
+  const greeting = useMemo(
+    () => greetingForHour(hour ?? 12, greetingVariation),
+    [hour, greetingVariation],
+  );
 
   if (isLoading) {
     return <div className={styles.loading}>Preparando sua bancada…</div>;
