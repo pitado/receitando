@@ -14,7 +14,7 @@
   ],
   "vars": {
     "FRONTEND_URL": "https://receitando.miguelpita.com.br,http://localhost:3000",
-    "EMAIL_FROM": "Receitando <contato@miguelpita.com.br>"
+    "EMAIL_FROM": "Receitando <noreply@mail.miguelpita.com.br>"
   },
   "d1_databases": [
     {
