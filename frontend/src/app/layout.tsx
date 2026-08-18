@@ -21,7 +21,7 @@ const fraunces = Fraunces({
 
 export const metadata: Metadata = {
   title: {
-    default: "Receitando — cozinhe com o que você tem",
+    default: "Receitando",
     template: "%s | Receitando",
   },
   description:
