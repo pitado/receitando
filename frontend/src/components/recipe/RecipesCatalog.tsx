@@ -64,7 +64,7 @@ export function RecipesCatalog({ initialError = "", initialRecipes }: RecipesCat
     }
   }
 
-  async function usePantry() {
+  async function matchWithPantry() {
     setIsLoading(true);
     setError("");
     try {
@@ -124,7 +124,7 @@ export function RecipesCatalog({ initialError = "", initialRecipes }: RecipesCat
           <p>O Receitando compara automaticamente sua despensa com cada receita do catálogo.</p>
         </div>
         {authenticated ? (
-          <button className={styles.pantryButton} onClick={() => void usePantry()} type="button">
+          <button className={styles.pantryButton} onClick={() => void matchWithPantry()} type="button">
             {matches ? "Atualizar com minha despensa" : "Ver o que posso fazer com minha despensa"}
           </button>
         ) : (
