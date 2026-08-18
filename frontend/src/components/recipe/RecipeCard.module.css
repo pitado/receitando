@@ -22,18 +22,11 @@
   align-items: flex-end;
   aspect-ratio: 16 / 9;
   background:
-    radial-gradient(
-      circle at 72% 25%,
-      var(--color-highlight) 0 9%,
-      transparent 9.5%
-    ),
-    radial-gradient(
-      circle at 35% 70%,
-      var(--color-surface-secondary) 0 18%,
-      transparent 18.5%
-    ),
+    radial-gradient(circle at 72% 25%, var(--color-highlight) 0 9%, transparent 9.5%),
+    radial-gradient(circle at 35% 70%, var(--color-surface-secondary) 0 18%, transparent 18.5%),
     var(--color-surface);
   display: flex;
+  gap: var(--space-2);
   justify-content: space-between;
   padding: var(--space-4);
   position: relative;
@@ -52,17 +45,24 @@
   width: 4.5rem;
 }
 
-.category {
+.category,
+.status {
   background: var(--color-background-translucent);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-pill);
   color: var(--color-text-muted);
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 800;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.045em;
   padding: 0.42rem 0.65rem;
   text-transform: uppercase;
   z-index: 1;
+}
+
+.status {
+  color: var(--color-primary-dark);
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 .body {
@@ -129,6 +129,13 @@
   line-height: 1.5;
   margin: 0;
   padding-top: var(--space-4);
+}
+
+.actions {
+  align-items: center;
+  display: flex;
+  gap: var(--space-3);
+  justify-content: space-between;
 }
 
 .cardLink {
