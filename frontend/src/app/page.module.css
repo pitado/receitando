@@ -6,7 +6,7 @@
 
 .hero {
   overflow: hidden;
-  padding-block: clamp(3.5rem, 10vw, 8rem);
+  padding-block: clamp(3.5rem, 10vw, 8rem) clamp(2.75rem, 6vw, 5rem);
 }
 
 .heroGrid {
@@ -168,14 +168,263 @@
   width: 2rem;
 }
 
-.matcherSection {
-  scroll-margin-top: 6rem;
-  padding-block: clamp(4rem, 9vw, 7rem);
+.editorialRibbon {
+  overflow: hidden;
+  padding-bottom: clamp(2rem, 5vw, 4rem);
 }
 
-.matcherSection :global(.container) {
+.ribbonGrid {
   display: grid;
-  gap: var(--space-8);
+  gap: 1rem;
+}
+
+.kitchenNote {
+  border: 1px solid var(--color-border);
+  border-radius: 1.2rem;
+  min-height: 13.5rem;
+  overflow: hidden;
+  padding: 1.45rem;
+  position: relative;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.kitchenNote:hover {
+  box-shadow: var(--shadow-card);
+  transform: translateY(-3px) rotate(0deg);
+}
+
+.kitchenNote:nth-child(1) {
+  transform: rotate(-1.2deg);
+}
+
+.kitchenNote:nth-child(2) {
+  transform: translateY(0.75rem) rotate(0.8deg);
+}
+
+.kitchenNote:nth-child(3) {
+  transform: rotate(-0.7deg);
+}
+
+.kitchenNote strong {
+  display: block;
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: clamp(1.45rem, 3vw, 2rem);
+  line-height: 1.04;
+  max-width: 12rem;
+}
+
+.kitchenNote p {
+  color: var(--color-text-muted);
+  line-height: 1.45;
+  margin: 0.75rem 0 0;
+  max-width: 15rem;
+}
+
+.miniEyebrow {
+  color: var(--color-primary-dark);
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.11em;
+  margin-bottom: 0.65rem;
+  text-transform: uppercase;
+}
+
+.noteWarm {
+  background: color-mix(in srgb, var(--color-surface-secondary) 82%, white);
+}
+
+.noteLight {
+  background: var(--color-card);
+}
+
+.noteGreen {
+  background: color-mix(in srgb, #dce4d3 68%, var(--color-card));
+}
+
+.tomatoArt,
+.eggArt,
+.leafArt {
+  bottom: 1.1rem;
+  display: block;
+  height: 5rem;
+  position: absolute;
+  right: 1.2rem;
+  width: 5rem;
+}
+
+.tomatoArt {
+  background: var(--color-primary);
+  border-radius: 48% 52% 51% 49%;
+  box-shadow: inset -0.55rem -0.55rem 0 color-mix(in srgb, var(--color-primary-dark) 16%, transparent);
+}
+
+.tomatoArt::before,
+.tomatoArt::after {
+  background: #78976f;
+  border-radius: 100% 0 100% 0;
+  content: "";
+  height: 1.5rem;
+  left: 1.8rem;
+  position: absolute;
+  top: -0.45rem;
+  transform: rotate(38deg);
+  width: 0.75rem;
+}
+
+.tomatoArt::after {
+  left: 2.55rem;
+  transform: rotate(-25deg);
+}
+
+.eggArt {
+  background: #fff9e8;
+  border-radius: 48% 52% 55% 45% / 58% 43% 57% 42%;
+  transform: rotate(-8deg);
+}
+
+.eggArt i {
+  background: var(--color-highlight);
+  border-radius: 50%;
+  height: 2.05rem;
+  left: 1.55rem;
+  position: absolute;
+  top: 1.45rem;
+  width: 2.05rem;
+}
+
+.leafArt {
+  background: #7c9a6e;
+  border-radius: 90% 10% 75% 25% / 75% 30% 70% 25%;
+  transform: rotate(-35deg);
+}
+
+.leafArt::after {
+  background: #fff6e9;
+  content: "";
+  height: 0.18rem;
+  left: 0.7rem;
+  opacity: 0.72;
+  position: absolute;
+  top: 2.35rem;
+  transform: rotate(-2deg);
+  width: 3.65rem;
+}
+
+.matcherSection {
+  scroll-margin-top: 6rem;
+  padding-block: clamp(3.5rem, 7vw, 6rem);
+}
+
+.matcherShell {
+  background:
+    radial-gradient(circle at 92% 8%, color-mix(in srgb, var(--color-highlight) 15%, transparent), transparent 14rem),
+    color-mix(in srgb, var(--color-surface-secondary) 50%, var(--color-background));
+  border: 1px solid var(--color-border);
+  border-radius: clamp(1.5rem, 4vw, 3rem);
+  display: grid;
+  gap: clamp(2rem, 5vw, 4rem);
+  overflow: hidden;
+  padding: clamp(1.5rem, 4vw, 3.5rem);
+  position: relative;
+}
+
+.matcherIntro {
+  align-content: center;
+  display: grid;
+  gap: var(--space-6);
+}
+
+.matcherCard {
+  position: relative;
+  z-index: 2;
+}
+
+.matcherSketch {
+  height: 10rem;
+  max-width: 22rem;
+  position: relative;
+}
+
+.sketchPlate {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  display: block;
+  height: 8.5rem;
+  left: 0;
+  position: absolute;
+  top: 0.5rem;
+  width: 8.5rem;
+}
+
+.sketchPlate::before {
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  content: "";
+  inset: 1.1rem;
+  position: absolute;
+}
+
+.sketchPlate i {
+  background: var(--color-primary);
+  border-radius: 50%;
+  height: 2.2rem;
+  left: 2rem;
+  position: absolute;
+  top: 2.4rem;
+  width: 2.2rem;
+}
+
+.sketchPlate i::after {
+  background: #7c9a6e;
+  border-radius: 80% 20% 80% 20%;
+  content: "";
+  height: 2.7rem;
+  left: 2.5rem;
+  position: absolute;
+  top: 0.8rem;
+  transform: rotate(22deg);
+  width: 1.35rem;
+}
+
+.sketchCard {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-card);
+  display: grid;
+  gap: 0.2rem;
+  left: 6.2rem;
+  padding: 0.9rem 1rem;
+  position: absolute;
+  top: 2.15rem;
+  transform: rotate(3deg);
+  width: 12rem;
+}
+
+.sketchCard::before {
+  background: var(--color-accent);
+  content: "";
+  height: 0.65rem;
+  left: 50%;
+  opacity: 0.7;
+  position: absolute;
+  top: -0.35rem;
+  transform: translateX(-50%) rotate(-2deg);
+  width: 3.2rem;
+}
+
+.sketchCard small {
+  color: var(--color-primary-dark);
+  font-size: 0.64rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sketchCard strong {
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: 1.2rem;
 }
 
 .howItWorks {
@@ -231,6 +480,14 @@
     grid-template-columns: minmax(0, 1.25fr) minmax(17rem, 0.75fr);
   }
 
+  .ribbonGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .matcherShell {
+    grid-template-columns: minmax(16rem, 0.78fr) minmax(0, 1.22fr);
+  }
+
   .steps {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
@@ -239,5 +496,17 @@
 @media (max-width: 47.99rem) {
   .heroVisual {
     max-width: 25rem;
+  }
+
+  .kitchenNote:nth-child(1),
+  .kitchenNote:nth-child(2),
+  .kitchenNote:nth-child(3) {
+    transform: none;
+  }
+
+  .matcherSketch {
+    height: 8.5rem;
+    transform: scale(0.88);
+    transform-origin: left top;
   }
 }
