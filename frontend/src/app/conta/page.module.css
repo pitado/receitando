@@ -1,0 +1,214 @@
+.page {
+  padding-block: clamp(2rem, 5vw, 4.5rem);
+}
+
+.shell {
+  display: grid;
+  gap: var(--space-6);
+}
+
+.loading,
+.emptyState {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: clamp(2rem, 6vw, 4rem);
+}
+
+.emptyState h1,
+.hero h1,
+.profileCard h2 {
+  font-family: var(--font-editorial), Georgia, serif;
+  letter-spacing: -0.045em;
+}
+
+.emptyState h1,
+.hero h1 {
+  font-size: clamp(2.6rem, 7vw, 5.3rem);
+  line-height: 0.96;
+  margin: 0;
+}
+
+.emptyState > p:not(.eyebrow) {
+  color: var(--color-text-muted);
+  line-height: 1.7;
+  max-width: 36rem;
+}
+
+.hero {
+  align-items: center;
+  display: flex;
+  gap: clamp(1.2rem, 4vw, 2rem);
+  padding-block: clamp(1rem, 3vw, 2rem);
+}
+
+.avatar {
+  align-items: center;
+  aspect-ratio: 1;
+  background: var(--color-surface-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  color: var(--color-primary-dark);
+  display: flex;
+  flex: 0 0 clamp(4.5rem, 10vw, 7rem);
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: clamp(1.6rem, 4vw, 2.6rem);
+  font-weight: 700;
+  justify-content: center;
+}
+
+.eyebrow,
+.cardLabel {
+  color: var(--color-primary-dark);
+  font-size: 0.76rem;
+  font-weight: 850;
+  letter-spacing: 0.14em;
+  margin: 0 0 var(--space-2);
+  text-transform: uppercase;
+}
+
+.greeting {
+  color: var(--color-text-muted);
+  font-size: clamp(1rem, 2vw, 1.16rem);
+  margin: var(--space-3) 0 0;
+}
+
+.profileCard {
+  align-items: center;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-5);
+  justify-content: space-between;
+  padding: clamp(1.5rem, 4vw, 2.3rem);
+}
+
+.profileCard h2 {
+  font-size: clamp(1.9rem, 4vw, 2.7rem);
+  margin: 0 0 var(--space-2);
+}
+
+.profileCard p {
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.primaryAction,
+.secondaryAction {
+  border-radius: var(--radius-button);
+  font-weight: 800;
+  min-height: 2.9rem;
+  padding: 0.78rem 1rem;
+  text-decoration: none;
+}
+
+.primaryAction {
+  background: var(--color-text);
+  color: var(--color-background);
+  display: inline-flex;
+  align-items: center;
+}
+
+.secondaryAction {
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+}
+
+.secondaryAction:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.stats {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.statCard {
+  background: var(--color-surface-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  color: var(--color-text);
+  display: grid;
+  gap: var(--space-2);
+  padding: clamp(1.4rem, 4vw, 2rem);
+  text-decoration: none;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.statCard:hover {
+  box-shadow: var(--shadow-card);
+  transform: translateY(-2px);
+}
+
+.statCard > span {
+  color: var(--color-primary-dark);
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: clamp(2.6rem, 6vw, 4rem);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.statCard strong {
+  font-size: 1rem;
+}
+
+.statCard small {
+  color: var(--color-text-muted);
+}
+
+.tip {
+  align-items: flex-start;
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  gap: var(--space-3);
+  padding-top: var(--space-6);
+}
+
+.tip > span {
+  color: var(--color-primary);
+}
+
+.tip strong {
+  display: block;
+  margin-bottom: var(--space-1);
+}
+
+.tip p {
+  color: var(--color-text-muted);
+  line-height: 1.6;
+  margin: 0;
+  max-width: 48rem;
+}
+
+@media (max-width: 44rem) {
+  .hero {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .stats {
+    grid-template-columns: 1fr;
+  }
+
+  .actions,
+  .actions > * {
+    width: 100%;
+  }
+
+  .primaryAction,
+  .secondaryAction {
+    justify-content: center;
+    text-align: center;
+  }
+}
