@@ -40,15 +40,60 @@ export default function HomePage() {
         </div>
       </section>
 
+      <section aria-label="Ideias da cozinha" className={styles.editorialRibbon}>
+        <div className={`container ${styles.ribbonGrid}`}>
+          <article className={`${styles.kitchenNote} ${styles.noteWarm}`}>
+            <span className={styles.miniEyebrow}>Saiu da despensa</span>
+            <strong>um jantar possível</strong>
+            <p>Às vezes a receita já estava aí. Faltava só juntar os pontos.</p>
+            <span aria-hidden="true" className={styles.tomatoArt}>
+              <i />
+            </span>
+          </article>
+
+          <article className={`${styles.kitchenNote} ${styles.noteLight}`}>
+            <span className={styles.miniEyebrow}>Tá quase no ponto</span>
+            <strong>falta só uma coisinha</strong>
+            <p>O Receitando mostra o que já combina e o que ainda está faltando.</p>
+            <span aria-hidden="true" className={styles.eggArt}>
+              <i />
+            </span>
+          </article>
+
+          <article className={`${styles.kitchenNote} ${styles.noteGreen}`}>
+            <span className={styles.miniEyebrow}>Hoje dá para fazer</span>
+            <strong>com o que já tem</strong>
+            <p>Menos lista de compras. Mais ideia para aproveitar a cozinha.</p>
+            <span aria-hidden="true" className={styles.leafArt}>
+              <i />
+            </span>
+          </article>
+        </div>
+      </section>
+
       <section className={styles.matcherSection} id="ingredientes">
-        <div className="container">
-          <SectionTitle
-            description="Adicione os ingredientes disponíveis. Nós comparamos com as receitas e mostramos as melhores combinações primeiro."
-            eyebrow="Comece por aqui"
-          >
-            O que tem na sua cozinha?
-          </SectionTitle>
-          <IngredientMatcher />
+        <div className={`container ${styles.matcherShell}`}>
+          <div className={styles.matcherIntro}>
+            <SectionTitle
+              description="Adicione os ingredientes disponíveis. Nós comparamos com as receitas e mostramos as melhores combinações primeiro."
+              eyebrow="Comece por aqui"
+            >
+              O que tem na sua cozinha?
+            </SectionTitle>
+
+            <div aria-hidden="true" className={styles.matcherSketch}>
+              <span className={styles.sketchPlate}>
+                <i />
+              </span>
+              <span className={styles.sketchCard}>
+                <small>3 ingredientes</small>
+                <strong>já viram ideia</strong>
+              </span>
+            </div>
+          </div>
+          <div className={styles.matcherCard}>
+            <IngredientMatcher />
+          </div>
         </div>
       </section>
 
