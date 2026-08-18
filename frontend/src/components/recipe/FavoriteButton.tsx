@@ -13,6 +13,7 @@ interface FavoriteButtonProps {
   label?: boolean;
   onChange?: (favorite: boolean) => void;
   recipeId: string;
+  syncFavorite?: boolean;
 }
 
 export function FavoriteButton({
@@ -20,6 +21,7 @@ export function FavoriteButton({
   label = true,
   onChange,
   recipeId,
+  syncFavorite = true,
 }: FavoriteButtonProps) {
   const router = useRouter();
   const [authenticated, setAuthenticated] = useState(() => Boolean(getAuthToken()));
@@ -27,7 +29,7 @@ export function FavoriteButton({
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (authenticated) {
+    if (authenticated && syncFavorite) {
       listFavorites()
         .then((recipes) => setFavorite(recipes.some((recipe) => recipe.id === recipeId)))
         .catch(() => undefined);
@@ -40,14 +42,16 @@ export function FavoriteButton({
         setFavorite(false);
         return;
       }
-      listFavorites()
-        .then((recipes) => setFavorite(recipes.some((recipe) => recipe.id === recipeId)))
-        .catch(() => undefined);
+      if (syncFavorite) {
+        listFavorites()
+          .then((recipes) => setFavorite(recipes.some((recipe) => recipe.id === recipeId)))
+          .catch(() => undefined);
+      }
     }
 
     window.addEventListener(AUTH_CHANGED_EVENT, handleAuthChange);
     return () => window.removeEventListener(AUTH_CHANGED_EVENT, handleAuthChange);
-  }, [authenticated, recipeId]);
+  }, [authenticated, recipeId, syncFavorite]);
 
   async function toggleFavorite() {
     if (!authenticated) {
@@ -57,11 +61,9 @@ export function FavoriteButton({
 
     setSaving(true);
     try {
-      if (favorite) {
-        await removeFavorite(recipeId);
-      } else {
-        await addFavorite(recipeId);
-      }
+      if (favorite) await removeFavorite(recipeId);
+      else await addFavorite(recipeId);
+
       const next = !favorite;
       setFavorite(next);
       onChange?.(next);
