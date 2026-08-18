@@ -1,0 +1,272 @@
+.personalSection,
+.section,
+.statsSection,
+.manifesto {
+  padding-block: clamp(3.5rem, 8vw, 6.5rem);
+}
+
+.personalCard {
+  align-items: center;
+  background: var(--color-surface-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-5);
+  justify-content: space-between;
+  padding: clamp(1.5rem, 4vw, 2.4rem);
+}
+
+.personalCard h2,
+.sectionHeader h2,
+.statLead h2,
+.manifesto h2 {
+  font-family: var(--font-editorial), Georgia, serif;
+  letter-spacing: -0.045em;
+}
+
+.personalCard h2 {
+  font-size: clamp(2rem, 5vw, 3.4rem);
+  line-height: 1;
+  margin: 0 0 var(--space-3);
+}
+
+.personalCard p:not(.eyebrow) {
+  color: var(--color-text-muted);
+  line-height: 1.65;
+  margin: 0;
+}
+
+.eyebrow {
+  color: var(--color-primary-dark);
+  font-size: 0.76rem;
+  font-weight: 850;
+  letter-spacing: 0.14em;
+  margin: 0 0 var(--space-2);
+  text-transform: uppercase;
+}
+
+.sectionHeader {
+  align-items: end;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  justify-content: space-between;
+  margin-bottom: var(--space-7);
+}
+
+.sectionHeader h2 {
+  font-size: clamp(2.4rem, 6vw, 4.4rem);
+  line-height: 0.98;
+  margin: 0;
+}
+
+.textLink {
+  color: var(--color-primary-dark);
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.textLink:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+}
+
+.recipeGrid,
+.commentGrid {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.recipeCard {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  color: var(--color-text);
+  display: grid;
+  gap: var(--space-3);
+  min-height: 18rem;
+  padding: clamp(1.35rem, 3vw, 1.8rem);
+  text-decoration: none;
+  transition: box-shadow var(--transition-fast), transform var(--transition-fast);
+}
+
+.recipeCard:hover,
+.commentCard:hover {
+  box-shadow: var(--shadow-card);
+  transform: translateY(-2px);
+}
+
+.recipeMeta {
+  color: var(--color-primary-dark);
+  font-size: 0.75rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.recipeCard h3 {
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: clamp(1.75rem, 4vw, 2.35rem);
+  line-height: 1;
+  margin: 0;
+}
+
+.recipeCard > p {
+  color: var(--color-text-muted);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.recipeFooter {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: auto;
+  padding-top: var(--space-3);
+}
+
+.recipeFooter span {
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
+}
+
+.recipeFooter strong {
+  margin-left: auto;
+}
+
+.statsSection {
+  background: var(--color-primary-dark);
+  color: var(--color-on-primary);
+}
+
+.statsGrid {
+  display: grid;
+  gap: var(--space-6);
+}
+
+.statsSection .eyebrow {
+  color: var(--color-highlight);
+}
+
+.statLead h2 {
+  font-size: clamp(2.2rem, 5vw, 3.7rem);
+  line-height: 1;
+  margin: 0;
+  max-width: 38rem;
+}
+
+.stat {
+  border-top: 1px solid color-mix(in srgb, var(--color-on-primary) 25%, transparent);
+  display: grid;
+  gap: 0.35rem;
+  padding-top: var(--space-4);
+}
+
+.stat strong {
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: clamp(2.6rem, 6vw, 4.5rem);
+  font-weight: 600;
+  line-height: 1;
+}
+
+.stat span {
+  color: color-mix(in srgb, var(--color-on-primary) 72%, transparent);
+  font-size: 0.9rem;
+}
+
+.commentCard {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  color: var(--color-text);
+  display: grid;
+  gap: var(--space-4);
+  padding: clamp(1.35rem, 3vw, 1.8rem);
+  text-decoration: none;
+  transition: box-shadow var(--transition-fast), transform var(--transition-fast);
+}
+
+.authorRow {
+  align-items: center;
+  display: flex;
+  gap: var(--space-3);
+}
+
+.avatar {
+  flex: 0 0 2.8rem;
+  height: 2.8rem;
+  width: 2.8rem;
+}
+
+.authorRow > div {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.authorRow span,
+.commentCard small {
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+}
+
+.commentCard blockquote {
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: 1.35rem;
+  line-height: 1.35;
+  margin: 0;
+}
+
+.manifesto {
+  border-top: 1px solid var(--color-border);
+}
+
+.manifestoInner {
+  max-width: 58rem;
+}
+
+.manifesto h2 {
+  font-size: clamp(2.7rem, 7vw, 5.2rem);
+  line-height: 0.96;
+  margin: 0 0 var(--space-5);
+}
+
+.manifesto p:not(.eyebrow) {
+  color: var(--color-text-muted);
+  font-size: clamp(1.05rem, 2vw, 1.2rem);
+  line-height: 1.7;
+  margin: 0 0 var(--space-5);
+  max-width: 45rem;
+}
+
+.srOnly {
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  width: 1px;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+@media (min-width: 48rem) {
+  .recipeGrid,
+  .commentGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .statsGrid {
+    align-items: end;
+    grid-template-columns: 1.5fr repeat(3, minmax(0, 0.55fr));
+  }
+}
+
+@media (max-width: 47.99rem) {
+  .personalCard,
+  .sectionHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

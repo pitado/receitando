@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { HomeLiveSections } from "@/components/home/HomeLiveSections";
 import { IngredientMatcher } from "@/components/ingredient/IngredientMatcher";
 import { SectionTitle } from "@/components/ui/SectionTitle";
 
@@ -50,6 +51,8 @@ export default function HomePage() {
           <IngredientMatcher />
         </div>
       </section>
+
+      <HomeLiveSections />
 
       <section className={styles.howItWorks}>
         <div className="container">
