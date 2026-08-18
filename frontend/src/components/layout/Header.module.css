@@ -15,14 +15,16 @@
 }
 
 .brand {
-  color: var(--color-text);
+  align-items: center;
   display: inline-flex;
   flex-shrink: 0;
-  font-family: var(--font-editorial), Georgia, serif;
-  font-size: 1.5rem;
-  font-weight: 700;
-  letter-spacing: -0.035em;
   text-decoration: none;
+}
+
+.brandLogo {
+  display: block;
+  height: auto;
+  width: clamp(8.8rem, 12vw, 10.8rem);
 }
 
 .navigation {
@@ -64,6 +66,10 @@
 @media (min-width: 48rem) {
   .inner {
     min-height: 5rem;
+  }
+
+  .brandLogo {
+    width: 10.8rem;
   }
 
   .navigation {
@@ -156,6 +162,10 @@
     flex-direction: column;
     gap: var(--space-2);
     padding-block: var(--space-3);
+  }
+
+  .brandLogo {
+    width: 9.6rem;
   }
 
   .navigation {
