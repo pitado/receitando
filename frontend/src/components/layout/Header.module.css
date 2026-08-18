@@ -24,7 +24,7 @@
 .brandLogo {
   display: block;
   height: auto;
-  width: clamp(8.8rem, 12vw, 10.8rem);
+  width: clamp(10.5rem, 14vw, 13.5rem);
 }
 
 .navigation {
@@ -65,11 +65,11 @@
 
 @media (min-width: 48rem) {
   .inner {
-    min-height: 5rem;
+    min-height: 5.25rem;
   }
 
   .brandLogo {
-    width: 10.8rem;
+    width: 13.5rem;
   }
 
   .navigation {
@@ -165,7 +165,7 @@
   }
 
   .brandLogo {
-    width: 9.6rem;
+    width: 10.8rem;
   }
 
   .navigation {
