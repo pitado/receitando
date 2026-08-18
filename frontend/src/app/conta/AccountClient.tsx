@@ -67,18 +67,19 @@ export function AccountClient() {
   const [greetingVariation, setGreetingVariation] = useState(0);
 
   useEffect(() => {
-    setHour(new Date().getHours());
-    setGreetingVariation(Math.floor(Math.random() * 5));
-
     let cancelled = false;
+
     async function load() {
       try {
         const currentUser = await getCurrentUser();
         const [pantry, favorites] = await Promise.all([getPantry(), listFavorites()]);
         if (cancelled) return;
+
         setUser(currentUser);
         setPantryCount(pantry.length);
         setFavoriteCount(favorites.length);
+        setHour(new Date().getHours());
+        setGreetingVariation(Math.floor(Math.random() * 5));
       } catch {
         if (!cancelled) setHasError(true);
       } finally {
