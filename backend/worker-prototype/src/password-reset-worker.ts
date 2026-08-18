@@ -143,16 +143,67 @@ async function sendResetEmail(env: Env, email: string, code: string): Promise<vo
     body: JSON.stringify({
       from: env.EMAIL_FROM,
       to: [email],
-      subject: "Seu código para redefinir a senha do Receitando",
-      text: `Seu código de recuperação é ${code}. Ele expira em 10 minutos. Se você não pediu a troca de senha, ignore este e-mail.`,
+      subject: "Seu código está na mesa — volte para sua cozinha",
+      text: `Volte para sua cozinha.\n\nParece que a senha ficou fora da receita, mas isso é fácil de resolver.\n\nSeu código de recuperação é: ${code}\n\nEle expira em 10 minutos.\n\nSe você não pediu para trocar sua senha, pode ignorar este e-mail com tranquilidade.\n\nReceitando — ideias para o que já mora na sua cozinha.`,
       html: `
-        <div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;color:#3a1b12">
-          <h1 style="font-size:28px">Redefinir sua senha</h1>
-          <p>Use o código abaixo para continuar no Receitando:</p>
-          <p style="font-size:34px;font-weight:800;letter-spacing:8px;margin:28px 0">${code}</p>
-          <p>O código expira em <strong>10 minutos</strong>.</p>
-          <p style="color:#715c52">Se você não pediu a troca de senha, pode ignorar este e-mail.</p>
-        </div>
+        <!doctype html>
+        <html lang="pt-BR">
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width,initial-scale=1">
+            <title>Volte para sua cozinha</title>
+          </head>
+          <body style="margin:0;padding:0;background:#fff6e9;color:#2a1608;font-family:Arial,Helvetica,sans-serif;">
+            <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">Seu código do Receitando está na mesa e expira em 10 minutos.</div>
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;background:#fff6e9;">
+              <tr>
+                <td align="center" style="padding:40px 16px;">
+                  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:600px;background:#fffaf4;border:1px solid #ead5c5;border-radius:24px;overflow:hidden;">
+                    <tr>
+                      <td align="center" style="padding:36px 32px 18px;">
+                        <img src="https://receitando.miguelpita.com.br/receitando-logo.svg" width="210" alt="Receitando" style="display:block;width:210px;max-width:100%;height:auto;border:0;outline:none;text-decoration:none;">
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:12px 40px 0;text-align:center;">
+                        <div style="font-size:12px;line-height:1.4;font-weight:800;letter-spacing:2px;color:#c2452c;text-transform:uppercase;">Recuperação de senha</div>
+                        <h1 style="margin:14px 0 12px;font-family:Georgia,'Times New Roman',serif;font-size:38px;line-height:1.05;font-weight:600;color:#2a1608;">Volte para sua cozinha.</h1>
+                        <p style="margin:0 auto;max-width:450px;font-size:16px;line-height:1.7;color:#6b4b3b;">Parece que a senha ficou fora da receita, mas isso é fácil de resolver. Seu código já está na mesa.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:30px 40px;">
+                        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;background:#f8dfcd;border:1px solid #efc7ad;border-radius:18px;">
+                          <tr>
+                            <td align="center" style="padding:24px 20px;">
+                              <div style="font-size:12px;line-height:1.4;font-weight:800;letter-spacing:1.6px;color:#9a3d28;text-transform:uppercase;">Seu código está na mesa</div>
+                              <div style="margin-top:10px;font-family:Arial,Helvetica,sans-serif;font-size:38px;line-height:1;font-weight:800;letter-spacing:10px;color:#2a1608;">${code}</div>
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:0 40px 8px;text-align:center;">
+                        <p style="margin:0;font-size:15px;line-height:1.7;color:#6b4b3b;">Ele expira em <strong style="color:#2a1608;">10 minutos</strong> — tempo suficiente para voltar ao fogão sem deixar nada queimar.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:22px 40px 36px;">
+                        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;border-top:1px solid #ead5c5;">
+                          <tr>
+                            <td style="padding-top:20px;text-align:center;font-size:13px;line-height:1.6;color:#8a6c5b;">Se você não pediu para trocar sua senha, pode ignorar este e-mail. Sua conta continua segura e nenhuma alteração será feita.</td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                  </table>
+                  <div style="padding:22px 12px 0;font-size:12px;line-height:1.6;color:#9b7d6c;text-align:center;">Receitando · ideias para o que já mora na sua cozinha.</div>
+                </td>
+              </tr>
+            </table>
+          </body>
+        </html>
       `,
     }),
   });
