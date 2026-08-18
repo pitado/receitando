@@ -1,4 +1,4 @@
-import passwordResetWorker from "./password-reset-worker";
+import passwordResetWorker from "./password-reset-validation-worker";
 
 interface Env {
   db: D1Database;
