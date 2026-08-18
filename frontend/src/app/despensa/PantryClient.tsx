@@ -25,26 +25,39 @@ export function PantryClient() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [authenticated, setAuthenticated] = useState(false);
+  const [authenticated] = useState(() => Boolean(getAuthToken()));
 
   useEffect(() => {
-    const token = getAuthToken();
-    setAuthenticated(Boolean(token));
-    if (!token) {
-      setLoading(false);
-      return;
-    }
+    let cancelled = false;
 
-    Promise.all([getPantry(), getIngredients()])
-      .then(([pantry, catalog]) => {
+    async function loadPantry() {
+      await Promise.resolve();
+      if (cancelled) return;
+
+      if (!authenticated) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const [pantry, catalog] = await Promise.all([getPantry(), getIngredients()]);
+        if (cancelled) return;
         setItems(pantry);
         setIngredients(catalog);
-      })
-      .catch((cause: unknown) => {
-        setError(cause instanceof ApiError ? cause.message : "Não foi possível carregar sua despensa.");
-      })
-      .finally(() => setLoading(false));
-  }, []);
+      } catch (cause: unknown) {
+        if (!cancelled) {
+          setError(cause instanceof ApiError ? cause.message : "Não foi possível carregar sua despensa.");
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    void loadPantry();
+    return () => {
+      cancelled = true;
+    };
+  }, [authenticated]);
 
   const availableIngredients = useMemo(() => {
     const used = new Set(items.map((item) => item.ingredientId));
