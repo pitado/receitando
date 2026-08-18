@@ -1,0 +1,261 @@
+.community {
+  border-top: 1px solid var(--color-border);
+  display: grid;
+  gap: var(--space-5);
+  margin-top: clamp(2.5rem, 6vw, 5rem);
+  padding-top: clamp(2rem, 5vw, 4rem);
+}
+
+.heading p {
+  color: var(--color-primary-dark);
+  font-size: 0.76rem;
+  font-weight: 850;
+  letter-spacing: 0.14em;
+  margin: 0 0 var(--space-2);
+}
+
+.heading h2 {
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: clamp(2.2rem, 5vw, 4rem);
+  letter-spacing: -0.045em;
+  line-height: 1;
+  margin: 0;
+}
+
+.heading > span {
+  color: var(--color-text-muted);
+  display: block;
+  margin-top: var(--space-2);
+}
+
+.votes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.vote,
+.voteActive {
+  align-items: center;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  color: var(--color-text);
+  cursor: pointer;
+  display: inline-flex;
+  gap: 0.55rem;
+  min-height: 3rem;
+  padding: 0.65rem 1rem;
+}
+
+.voteActive {
+  background: var(--color-surface-secondary);
+  border-color: var(--color-primary);
+}
+
+.vote small,
+.voteActive small {
+  color: var(--color-text-muted);
+  font-weight: 800;
+}
+
+.commentForm {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  display: grid;
+  gap: var(--space-3);
+  padding: clamp(1.2rem, 3vw, 1.8rem);
+}
+
+.commentForm label {
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: 1.45rem;
+  font-weight: 700;
+}
+
+.commentForm textarea,
+.editBox textarea {
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: 1rem;
+  color: var(--color-text);
+  font: inherit;
+  line-height: 1.6;
+  min-height: 7rem;
+  padding: 1rem;
+  resize: vertical;
+  width: 100%;
+}
+
+.commentForm textarea:focus,
+.editBox textarea:focus {
+  border-color: var(--color-primary);
+  outline: none;
+}
+
+.commentForm > div,
+.editBox > div {
+  align-items: center;
+  display: flex;
+  gap: var(--space-2);
+  justify-content: flex-end;
+}
+
+.commentForm small {
+  color: var(--color-text-muted);
+  margin-right: auto;
+}
+
+.commentForm button,
+.editBox button,
+.commentActions button {
+  border-radius: var(--radius-button);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+}
+
+.commentForm button {
+  background: var(--color-text);
+  border: 0;
+  color: var(--color-background);
+  min-height: 2.7rem;
+  padding: 0.65rem 1rem;
+}
+
+button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.message {
+  background: var(--color-surface-secondary);
+  border-radius: 0.9rem;
+  color: var(--color-primary-dark);
+  margin: 0;
+  padding: 0.85rem 1rem;
+}
+
+.comments {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.commentsTitle {
+  align-items: center;
+  display: flex;
+  gap: 0.6rem;
+}
+
+.commentsTitle h3 {
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: 1.8rem;
+  margin: 0;
+}
+
+.commentsTitle span {
+  align-items: center;
+  background: var(--color-surface-secondary);
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 0.8rem;
+  font-weight: 800;
+  height: 1.7rem;
+  justify-content: center;
+  min-width: 1.7rem;
+  padding-inline: 0.4rem;
+}
+
+.empty {
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-card);
+  color: var(--color-text-muted);
+  padding: 1.5rem;
+}
+
+.comment {
+  align-items: flex-start;
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  gap: var(--space-3);
+  padding-block: 1.3rem;
+}
+
+.avatar {
+  flex: 0 0 3.1rem;
+  height: 3.1rem;
+  width: 3.1rem;
+}
+
+.commentBody {
+  min-width: 0;
+  width: 100%;
+}
+
+.commentMeta {
+  align-items: flex-start;
+  display: flex;
+  gap: var(--space-3);
+  justify-content: space-between;
+}
+
+.commentMeta > div {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.commentMeta span,
+.commentMeta time {
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+}
+
+.commentBody > p {
+  line-height: 1.7;
+  margin: 0.75rem 0 0;
+  white-space: pre-wrap;
+}
+
+.commentActions {
+  display: flex;
+  gap: 0.8rem;
+  margin-top: 0.8rem;
+}
+
+.commentActions button,
+.editBox button {
+  background: transparent;
+  border: 0;
+  color: var(--color-primary-dark);
+  padding: 0;
+}
+
+.editBox {
+  display: grid;
+  gap: var(--space-2);
+  margin-top: 0.8rem;
+}
+
+.editBox button:last-child {
+  background: var(--color-text);
+  color: var(--color-background);
+  padding: 0.55rem 0.8rem;
+}
+
+@media (max-width: 40rem) {
+  .votes,
+  .votes > button {
+    width: 100%;
+  }
+
+  .votes > button {
+    justify-content: center;
+  }
+
+  .commentMeta {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+}
