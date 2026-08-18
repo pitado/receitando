@@ -27,6 +27,25 @@ function formatDate(value: string) {
   return new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(value));
 }
 
+function VoteIcon({ direction }: { direction: "up" | "down" }) {
+  const transform = direction === "down" ? "rotate(180 12 12)" : undefined;
+
+  return (
+    <svg
+      aria-hidden="true"
+      className={styles.voteIcon}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <g transform={transform}>
+        <path d="M8.5 10.2 11.9 4c.5-.9 1.6-1.3 2.5-.8.8.4 1.2 1.3 1 2.2l-.7 3.3h3.9c1.2 0 2.1 1.1 1.8 2.3l-1.5 6.8c-.2.9-1 1.5-1.9 1.5H8.5V10.2Z" />
+        <path d="M4 9.8h4.5v9.8H4c-.8 0-1.5-.7-1.5-1.5v-6.8c0-.8.7-1.5 1.5-1.5Z" />
+      </g>
+    </svg>
+  );
+}
+
 export function RecipeCommunity({ recipeId }: RecipeCommunityProps) {
   const [summary, setSummary] = useState<RecipeSocialSummary>({ likes: 0, dislikes: 0, myVote: null });
   const [comments, setComments] = useState<RecipeComment[]>([]);
@@ -137,7 +156,7 @@ export function RecipeCommunity({ recipeId }: RecipeCommunityProps) {
           onClick={() => void vote("LIKE")}
           disabled={isBusy}
         >
-          <span aria-hidden="true">👍</span>
+          <VoteIcon direction="up" />
           <strong>Gostei</strong>
           <small>{summary.likes}</small>
         </button>
@@ -147,7 +166,7 @@ export function RecipeCommunity({ recipeId }: RecipeCommunityProps) {
           onClick={() => void vote("DISLIKE")}
           disabled={isBusy}
         >
-          <span aria-hidden="true">👎</span>
+          <VoteIcon direction="down" />
           <strong>Não gostei</strong>
           <small>{summary.dislikes}</small>
         </button>
