@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 
-import { EmptyState } from "@/components/ui/EmptyState";
 import { SectionTitle } from "@/components/ui/SectionTitle";
 
+import { FavoritesClient } from "./FavoritesClient";
 import styles from "./page.module.css";
 
 export const metadata: Metadata = {
@@ -16,22 +15,12 @@ export default function FavoritesPage() {
     <div className={`container page-shell ${styles.page}`}>
       <SectionTitle
         as="h1"
-        description="Seu caderno pessoal de receitas preferidas ficará organizado aqui quando a conta de usuário estiver disponível."
+        description="Seu caderno pessoal com as receitas que você marcou para fazer de novo."
         eyebrow="Seu caderno"
       >
-        Receitas para fazer de novo
+        Receitas favoritas
       </SectionTitle>
-
-      <EmptyState
-        action={
-          <Link className={styles.action} href="/receitas">
-            Explorar receitas
-          </Link>
-        }
-        description="Explore o catálogo e, em breve, você poderá guardar aqui tudo o que quiser cozinhar novamente."
-        icon="♡"
-        title="Você ainda não salvou nenhuma receita"
-      />
+      <FavoritesClient />
     </div>
   );
 }
