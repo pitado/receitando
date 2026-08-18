@@ -19,7 +19,6 @@ export function AuthControls() {
     let cancelled = false;
 
     async function syncUser() {
-      // Keep the initial state synchronization outside the synchronous effect body.
       await Promise.resolve();
       if (cancelled) return;
 
@@ -89,7 +88,9 @@ export function AuthControls() {
 
   return (
     <div className={styles.account}>
-      <span className={styles.accountName}>Olá, {firstName}</span>
+      <Link className={styles.accountName} href="/conta" aria-label={`Abrir conta de ${firstName}`}>
+        Olá, {firstName}
+      </Link>
       <button
         className={styles.logout}
         disabled={isSigningOut}
