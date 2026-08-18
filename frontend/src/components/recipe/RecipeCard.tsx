@@ -109,6 +109,7 @@ export function RecipeCard({
           </Link>
           <FavoriteButton
             initialFavorite={initialFavorite}
+            key={`${recipeId}-${initialFavorite ? "saved" : "unsaved"}`}
             label={false}
             onChange={onFavoriteChange}
             recipeId={recipeId}
