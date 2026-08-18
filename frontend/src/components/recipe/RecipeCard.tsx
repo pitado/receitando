@@ -112,6 +112,7 @@ export function RecipeCard({
             label={false}
             onChange={onFavoriteChange}
             recipeId={recipeId}
+            syncFavorite={false}
           />
         </div>
       </div>
