@@ -14,6 +14,19 @@ interface AuthSession {
   expiresAt: string;
 }
 
+interface ForgotPasswordResponse {
+  message: string;
+  resetId: string;
+}
+
+interface VerifyResetCodeResponse {
+  resetToken: string;
+}
+
+interface ResetPasswordResponse {
+  message: string;
+}
+
 export async function register(
   name: string,
   email: string,
@@ -41,6 +54,34 @@ export async function login(
 
   saveAuthToken(session.token, remember);
   return session.user;
+}
+
+export function requestPasswordReset(email: string): Promise<ForgotPasswordResponse> {
+  return apiRequest<ForgotPasswordResponse>("/api/auth/forgot-password", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+}
+
+export function verifyPasswordResetCode(
+  resetId: string,
+  code: string,
+): Promise<VerifyResetCodeResponse> {
+  return apiRequest<VerifyResetCodeResponse>("/api/auth/verify-reset-code", {
+    method: "POST",
+    body: JSON.stringify({ resetId, code }),
+  });
+}
+
+export function resetPassword(
+  resetId: string,
+  resetToken: string,
+  password: string,
+): Promise<ResetPasswordResponse> {
+  return apiRequest<ResetPasswordResponse>("/api/auth/reset-password", {
+    method: "POST",
+    body: JSON.stringify({ resetId, resetToken, password }),
+  });
 }
 
 export async function getCurrentUser(): Promise<AuthUser> {
