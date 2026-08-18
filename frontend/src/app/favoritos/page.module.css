@@ -3,6 +3,11 @@
   gap: clamp(2.5rem, 7vw, 5rem);
 }
 
+.grid {
+  display: grid;
+  gap: var(--space-5);
+}
+
 .action {
   align-items: center;
   background: var(--color-primary-dark);
@@ -15,12 +20,26 @@
   min-height: 3rem;
   padding: 0.75rem 1.2rem;
   text-decoration: none;
-  transition: background-color var(--transition-fast),
-    box-shadow var(--transition-fast), transform var(--transition-fast);
+  transition:
+    background-color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    transform var(--transition-fast);
 }
 
 .action:hover {
   background: var(--color-action-hover);
   box-shadow: var(--shadow-button-hover);
   transform: translateY(-1px);
+}
+
+@media (min-width: 42rem) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 68rem) {
+  .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }

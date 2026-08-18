@@ -3,6 +3,105 @@
   gap: var(--space-7);
 }
 
+.pantryPanel {
+  align-items: center;
+  background: linear-gradient(120deg, var(--color-surface), var(--color-card));
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  display: grid;
+  gap: var(--space-5);
+  padding: clamp(1.25rem, 3vw, 2rem);
+}
+
+.pantryPanel > div {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.pantryEyebrow {
+  color: var(--color-primary-dark);
+  font-size: 0.75rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.pantryPanel strong {
+  color: var(--color-text);
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  line-height: 1.1;
+}
+
+.pantryPanel p {
+  color: var(--color-text-muted);
+  line-height: 1.6;
+  margin: 0;
+  max-width: 48rem;
+}
+
+.pantryButton {
+  align-items: center;
+  background: var(--color-primary-dark);
+  border: 0;
+  border-radius: var(--radius-button);
+  color: var(--color-background);
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 800;
+  justify-content: center;
+  min-height: 3rem;
+  padding: 0.75rem 1rem;
+  text-align: center;
+  text-decoration: none;
+}
+
+.pantryButton:hover {
+  opacity: 0.9;
+}
+
+.matchSummary {
+  align-items: center;
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  justify-content: space-between;
+  padding-bottom: var(--space-5);
+}
+
+.matchSummary > div {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.matchSummary span {
+  color: var(--color-primary-dark);
+  font-size: 0.78rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.matchSummary strong {
+  color: var(--color-text);
+  font-size: 1.05rem;
+}
+
+.matchSummary button {
+  background: transparent;
+  border: 0;
+  color: var(--color-primary-dark);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 800;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 0.22em;
+}
+
 .toolbar {
   align-items: end;
   background: var(--color-surface);
@@ -71,6 +170,12 @@
 
 @media (min-width: 36rem) {
   .toolbar {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+}
+
+@media (min-width: 48rem) {
+  .pantryPanel {
     grid-template-columns: minmax(0, 1fr) auto;
   }
 }

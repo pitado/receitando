@@ -1,3 +1,7 @@
+export type RecipeDifficulty = "FACIL" | "MEDIA" | "DIFICIL";
+export type RecipeSourceType = "OWN" | "OPEN_DATASET" | "USER";
+export type RecipeMatchStatus = "READY" | "ALMOST_READY" | "NEAR" | "EXPLORE";
+
 export interface Ingredient {
   id: string;
   name: string;
@@ -8,11 +12,13 @@ export interface Ingredient {
 }
 
 export interface RecipeIngredient {
-  id?: string;
-  quantity: number | string | null;
+  ingredientId: string;
+  name: string;
+  normalizedName: string;
+  category: string;
+  quantity: number | null;
   unit: string | null;
   optional: boolean;
-  ingredient: Ingredient;
 }
 
 export interface Recipe {
@@ -23,22 +29,38 @@ export interface Recipe {
   instructions: string | string[];
   prepMinutes: number;
   servings: number;
+  mealType: string;
+  difficulty: RecipeDifficulty;
+  source: {
+    type: RecipeSourceType;
+    name: string;
+  };
+  imageUrl: string | null;
+  tags: string[];
   ingredients: RecipeIngredient[];
-  createdAt?: string;
-  updatedAt?: string;
+}
+
+export interface MatchIngredient {
+  id: string;
+  name: string;
 }
 
 export interface MatchRecipeResult {
   id: string;
   title: string;
   slug: string;
-  description?: string;
-  prepMinutes?: number;
-  servings?: number;
+  description: string;
+  prepMinutes: number;
+  servings: number;
+  mealType: string;
+  difficulty: RecipeDifficulty;
+  imageUrl: string | null;
+  tags: string[];
   compatibility: number;
-  requiredIngredients: string[];
-  foundIngredients: string[];
-  missingIngredients: string[];
+  status: RecipeMatchStatus;
+  foundIngredients: MatchIngredient[];
+  missingIngredients: MatchIngredient[];
+  optionalIngredients: MatchIngredient[];
 }
 
 export interface MatchRecipesPayload {

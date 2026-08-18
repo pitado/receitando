@@ -234,11 +234,15 @@ export function IngredientMatcher() {
                     recipe.description ??
                     "Uma possibilidade gostosa para aproveitar sua cozinha."
                   }
+                  difficulty={recipe.difficulty}
                   key={recipe.id}
+                  mealType={recipe.mealType}
                   missingIngredients={recipe.missingIngredients}
                   prepMinutes={recipe.prepMinutes}
+                  recipeId={recipe.id}
                   servings={recipe.servings}
                   slug={recipe.slug}
+                  status={recipe.status}
                   title={recipe.title}
                 />
               ))}
