@@ -46,11 +46,35 @@
   gap: 0.55rem;
   min-height: 3rem;
   padding: 0.65rem 1rem;
+  transition:
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.vote:hover:not(:disabled),
+.voteActive:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  color: var(--color-primary-dark);
+  transform: translateY(-1px);
 }
 
 .voteActive {
   background: var(--color-surface-secondary);
   border-color: var(--color-primary);
+  color: var(--color-primary-dark);
+}
+
+.voteIcon {
+  display: block;
+  flex: 0 0 1.15rem;
+  height: 1.15rem;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.65;
+  width: 1.15rem;
 }
 
 .vote small,
