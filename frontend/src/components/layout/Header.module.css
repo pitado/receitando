@@ -138,16 +138,12 @@
   }
 
   .accountAvatar {
-    align-items: center;
-    background: var(--color-primary);
+    border: 1px solid var(--color-border);
     border-radius: 50%;
-    color: var(--color-background);
-    display: inline-flex;
+    display: block;
     flex: 0 0 2rem;
-    font-size: 0.82rem;
-    font-weight: 800;
     height: 2rem;
-    justify-content: center;
+    overflow: hidden;
     width: 2rem;
   }
 
@@ -171,6 +167,9 @@
     font-size: 0.67rem;
     font-weight: 650;
     margin-top: 0.2rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .accountArrow {

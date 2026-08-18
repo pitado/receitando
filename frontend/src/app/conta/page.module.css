@@ -17,7 +17,8 @@
 
 .emptyState h1,
 .hero h1,
-.profileCard h2 {
+.profileCard h2,
+.editorCard h2 {
   font-family: var(--font-editorial), Georgia, serif;
   letter-spacing: -0.045em;
 }
@@ -43,18 +44,14 @@
 }
 
 .avatar {
-  align-items: center;
   aspect-ratio: 1;
-  background: var(--color-surface-secondary);
   border: 1px solid var(--color-border);
   border-radius: 50%;
-  color: var(--color-primary-dark);
-  display: flex;
+  display: block;
   flex: 0 0 clamp(4.5rem, 10vw, 7rem);
-  font-family: var(--font-editorial), Georgia, serif;
-  font-size: clamp(1.6rem, 4vw, 2.6rem);
-  font-weight: 700;
-  justify-content: center;
+  height: clamp(4.5rem, 10vw, 7rem);
+  overflow: hidden;
+  width: clamp(4.5rem, 10vw, 7rem);
 }
 
 .eyebrow,
@@ -73,26 +70,38 @@
   margin: var(--space-3) 0 0;
 }
 
-.profileCard {
-  align-items: center;
+.profileCard,
+.editorCard {
   background: var(--color-card);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
+  padding: clamp(1.5rem, 4vw, 2.3rem);
+}
+
+.profileCard {
+  align-items: center;
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-5);
   justify-content: space-between;
-  padding: clamp(1.5rem, 4vw, 2.3rem);
 }
 
-.profileCard h2 {
+.profileCard h2,
+.editorCard h2 {
   font-size: clamp(1.9rem, 4vw, 2.7rem);
   margin: 0 0 var(--space-2);
 }
 
-.profileCard p {
+.profileCard p,
+.editorHeading p {
   color: var(--color-text-muted);
   margin: 0;
+}
+
+.profileCard .handle {
+  color: var(--color-primary-dark);
+  font-weight: 800;
+  margin-bottom: 0.35rem;
 }
 
 .actions {
@@ -104,6 +113,7 @@
 .primaryAction,
 .secondaryAction {
   border-radius: var(--radius-button);
+  font: inherit;
   font-weight: 800;
   min-height: 2.9rem;
   padding: 0.78rem 1rem;
@@ -111,21 +121,246 @@
 }
 
 .primaryAction {
+  align-items: center;
   background: var(--color-text);
   color: var(--color-background);
   display: inline-flex;
-  align-items: center;
 }
 
 .secondaryAction {
   background: transparent;
   border: 1px solid var(--color-border);
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.secondaryAction:hover {
+  background: var(--color-surface-secondary);
+  border-color: var(--color-primary);
+}
+
+.editorCard {
+  box-shadow: var(--shadow-card);
+}
+
+.editorHeading {
+  align-items: flex-start;
+  display: flex;
+  gap: var(--space-4);
+  justify-content: space-between;
+  margin-bottom: var(--space-6);
+}
+
+.editorHeading > div > p:last-child {
+  line-height: 1.6;
+  max-width: 42rem;
+}
+
+.closeEditor {
+  align-items: center;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  display: inline-flex;
+  flex: 0 0 2.4rem;
+  font-size: 1.5rem;
+  height: 2.4rem;
+  justify-content: center;
+  line-height: 1;
+}
+
+.editorForm {
+  display: grid;
+  gap: var(--space-6);
+}
+
+.fieldsGrid {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.field {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.field > span,
+.avatarPicker legend {
+  color: var(--color-text);
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.field input {
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  color: var(--color-text);
+  font: inherit;
+  min-height: 3.15rem;
+  outline: none;
+  padding: 0.8rem 0.95rem;
+  width: 100%;
+}
+
+.field input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 16%, transparent);
+}
+
+.field small {
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+}
+
+.handleInput {
+  align-items: center;
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  display: flex;
+  min-height: 3.15rem;
+  overflow: hidden;
+}
+
+.handleInput:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 16%, transparent);
+}
+
+.handleInput strong {
+  color: var(--color-primary-dark);
+  padding-left: 0.95rem;
+}
+
+.handleInput input {
+  border: 0;
+  box-shadow: none !important;
+  min-height: auto;
+  padding-left: 0.25rem;
+}
+
+.avatarPicker {
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.avatarPicker > p {
+  color: var(--color-text-muted);
+  line-height: 1.5;
+  margin: 0.45rem 0 var(--space-4);
+}
+
+.avatarGrid {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.avatarOption {
+  align-items: center;
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  cursor: pointer;
+  display: grid;
+  gap: 0.55rem;
+  justify-items: center;
+  padding: 0.85rem;
+  position: relative;
+  transition:
+    border-color var(--transition-fast),
+    transform var(--transition-fast),
+    background-color var(--transition-fast);
+}
+
+.avatarOption:hover {
+  border-color: var(--color-primary);
+  transform: translateY(-2px);
+}
+
+.avatarOptionSelected {
+  background: var(--color-surface-secondary);
+  border-color: var(--color-primary);
+  box-shadow: inset 0 0 0 1px var(--color-primary);
+}
+
+.avatarOption input {
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  width: 1px;
+}
+
+.avatarPreview {
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  display: block;
+  height: 4.7rem;
+  width: 4.7rem;
+}
+
+.avatarOption span {
+  font-size: 0.82rem;
+  font-weight: 750;
+}
+
+.editError,
+.editSuccess {
+  border-radius: 14px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin: 0;
+  padding: 0.85rem 1rem;
+}
+
+.editError {
+  background: #FBE3D9;
+  color: #9A3425;
+}
+
+.editSuccess {
+  background: #EEF3E8;
+  color: #49643D;
+}
+
+.editorActions {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: flex-end;
+}
+
+.cancelButton,
+.saveButton {
+  border-radius: var(--radius-button);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+  min-height: 2.9rem;
+  padding: 0.78rem 1.1rem;
+}
+
+.cancelButton {
+  background: transparent;
+  border: 1px solid var(--color-border);
   color: var(--color-text-muted);
 }
 
-.secondaryAction:disabled {
-  cursor: default;
-  opacity: 0.7;
+.saveButton {
+  background: var(--color-text);
+  border: 1px solid var(--color-text);
+  color: var(--color-background);
+}
+
+.cancelButton:disabled,
+.saveButton:disabled {
+  cursor: wait;
+  opacity: 0.65;
 }
 
 .stats {
@@ -191,23 +426,38 @@
   max-width: 48rem;
 }
 
+@media (max-width: 54rem) {
+  .avatarGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 44rem) {
   .hero {
     align-items: flex-start;
     flex-direction: column;
   }
 
-  .stats {
+  .stats,
+  .fieldsGrid {
     grid-template-columns: 1fr;
   }
 
   .actions,
-  .actions > * {
+  .actions > *,
+  .editorActions,
+  .editorActions > * {
     width: 100%;
   }
 
+  .editorActions {
+    flex-direction: column-reverse;
+  }
+
   .primaryAction,
-  .secondaryAction {
+  .secondaryAction,
+  .cancelButton,
+  .saveButton {
     justify-content: center;
     text-align: center;
   }

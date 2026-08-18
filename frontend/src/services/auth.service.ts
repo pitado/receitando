@@ -6,6 +6,8 @@ export interface AuthUser {
   name: string;
   email: string;
   role: "USER" | "ADMIN";
+  handle?: string | null;
+  avatarKey?: string | null;
 }
 
 interface AuthSession {
@@ -86,6 +88,17 @@ export function resetPassword(
 
 export async function getCurrentUser(): Promise<AuthUser> {
   return apiRequest<AuthUser>("/api/auth/me");
+}
+
+export async function updateProfile(
+  name: string,
+  handle: string,
+  avatarKey: string,
+): Promise<AuthUser> {
+  return apiRequest<AuthUser>("/api/auth/me", {
+    method: "PATCH",
+    body: JSON.stringify({ name, handle, avatarKey }),
+  });
 }
 
 export async function logout(): Promise<void> {

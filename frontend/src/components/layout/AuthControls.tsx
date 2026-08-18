@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { FoodAvatar } from "@/components/profile/FoodAvatar";
 import { AUTH_CHANGED_EVENT, clearAuthToken, getAuthToken } from "@/services/auth-storage";
 import { getCurrentUser, logout, type AuthUser } from "@/services/auth.service";
 
@@ -85,15 +86,18 @@ export function AuthControls() {
   }
 
   const firstName = user.name.trim().split(/\s+/)[0] || "Conta";
-  const initial = firstName.charAt(0).toUpperCase();
 
   return (
     <div className={styles.account}>
       <Link className={styles.accountName} href="/conta" aria-label={`Abrir perfil de ${firstName}`}>
-        <span className={styles.accountAvatar} aria-hidden="true">{initial}</span>
+        <FoodAvatar
+          avatarKey={user.avatarKey}
+          className={styles.accountAvatar}
+          label={`Avatar de ${firstName}`}
+        />
         <span className={styles.accountCopy}>
           <strong>Olá, {firstName}</strong>
-          <small>Meu perfil</small>
+          <small>{user.handle ? `@${user.handle}` : "Meu perfil"}</small>
         </span>
         <span className={styles.accountArrow} aria-hidden="true">›</span>
       </Link>

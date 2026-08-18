@@ -1,9 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { type FormEvent, useEffect, useMemo, useState } from "react";
 
-import { getCurrentUser, type AuthUser } from "@/services/auth.service";
+import { FoodAvatar, FOOD_AVATARS } from "@/components/profile/FoodAvatar";
+import { ApiError } from "@/services/api-client";
+import { AUTH_CHANGED_EVENT } from "@/services/auth-storage";
+import { getCurrentUser, updateProfile, type AuthUser } from "@/services/auth.service";
 import { listFavorites } from "@/services/favorites.service";
 import { getPantry } from "@/services/pantry.service";
 
@@ -52,9 +55,16 @@ function greetingForHour(hour: number, variation: number) {
   };
 }
 
-function initials(name: string) {
-  const parts = name.trim().split(/\s+/).filter(Boolean).slice(0, 2);
-  return parts.map((part) => part[0]?.toUpperCase()).join("") || "R";
+function suggestedHandle(user: AuthUser): string {
+  if (user.handle) return user.handle;
+  const emailName = user.email.split("@")[0] ?? "cozinheiro";
+  const normalized = emailName
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9_]/g, "")
+    .slice(0, 24);
+  return normalized.length >= 3 ? normalized : "cozinheiro";
 }
 
 export function AccountClient() {
@@ -65,6 +75,13 @@ export function AccountClient() {
   const [hasError, setHasError] = useState(false);
   const [hour, setHour] = useState<number | null>(null);
   const [greetingVariation, setGreetingVariation] = useState(0);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editHandle, setEditHandle] = useState("");
+  const [editAvatar, setEditAvatar] = useState("tomato");
+  const [editError, setEditError] = useState("");
+  const [editMessage, setEditMessage] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -99,6 +116,48 @@ export function AccountClient() {
     [hour, greetingVariation],
   );
 
+  function openEditor() {
+    if (!user) return;
+    setEditName(user.name);
+    setEditHandle(suggestedHandle(user));
+    setEditAvatar(user.avatarKey || "tomato");
+    setEditError("");
+    setEditMessage("");
+    setIsEditing(true);
+  }
+
+  function closeEditor() {
+    if (isSaving) return;
+    setIsEditing(false);
+    setEditError("");
+    setEditMessage("");
+  }
+
+  async function submitProfile(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setEditError("");
+    setEditMessage("");
+    setIsSaving(true);
+
+    try {
+      const updated = await updateProfile(editName.trim(), editHandle.trim(), editAvatar);
+      setUser(updated);
+      setEditName(updated.name);
+      setEditHandle(updated.handle ?? "");
+      setEditAvatar(updated.avatarKey || "tomato");
+      setEditMessage("Perfil salvo. Sua cozinha agora tem mais a sua cara.");
+      window.dispatchEvent(new Event(AUTH_CHANGED_EVENT));
+    } catch (error: unknown) {
+      setEditError(
+        error instanceof ApiError
+          ? error.message
+          : "Não foi possível salvar seu perfil agora. Tente novamente.",
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
   if (isLoading) {
     return <div className={styles.loading}>Preparando sua bancada…</div>;
   }
@@ -117,7 +176,11 @@ export function AccountClient() {
   return (
     <div className={styles.shell}>
       <section className={styles.hero}>
-        <div className={styles.avatar} aria-hidden="true">{initials(user.name)}</div>
+        <FoodAvatar
+          avatarKey={user.avatarKey}
+          className={styles.avatar}
+          label={`Avatar de ${user.name}`}
+        />
         <div>
           <p className={styles.eyebrow}>MINHA COZINHA</p>
           <h1>{greeting.label}, {firstName}.</h1>
@@ -129,13 +192,109 @@ export function AccountClient() {
         <div>
           <p className={styles.cardLabel}>SEU PERFIL</p>
           <h2>{user.name}</h2>
+          <p className={styles.handle}>{user.handle ? `@${user.handle}` : "Escolha seu @ único"}</p>
           <p>{user.email}</p>
         </div>
         <div className={styles.actions}>
-          <button className={styles.secondaryAction} disabled type="button">Editar perfil · em breve</button>
+          <button className={styles.secondaryAction} onClick={openEditor} type="button">
+            Editar perfil
+          </button>
           <Link className={styles.primaryAction} href="/recuperar-senha">Alterar senha</Link>
         </div>
       </section>
+
+      {isEditing ? (
+        <section className={styles.editorCard} aria-label="Editar perfil">
+          <div className={styles.editorHeading}>
+            <div>
+              <p className={styles.cardLabel}>DEIXE COM A SUA CARA</p>
+              <h2>Editar perfil</h2>
+              <p>Seu @ é único no Receitando. A foto pode ser trocada quando quiser.</p>
+            </div>
+            <button className={styles.closeEditor} onClick={closeEditor} type="button" aria-label="Fechar edição">
+              ×
+            </button>
+          </div>
+
+          <form className={styles.editorForm} onSubmit={submitProfile}>
+            <div className={styles.fieldsGrid}>
+              <label className={styles.field}>
+                <span>Nome</span>
+                <input
+                  disabled={isSaving}
+                  maxLength={100}
+                  minLength={2}
+                  onChange={(event) => setEditName(event.target.value)}
+                  required
+                  type="text"
+                  value={editName}
+                />
+              </label>
+
+              <label className={styles.field}>
+                <span>Seu @</span>
+                <div className={styles.handleInput}>
+                  <strong>@</strong>
+                  <input
+                    autoCapitalize="none"
+                    autoCorrect="off"
+                    disabled={isSaving}
+                    maxLength={24}
+                    minLength={3}
+                    onChange={(event) => setEditHandle(event.target.value.toLowerCase().replace(/^@+/, ""))}
+                    pattern="[a-z0-9][a-z0-9_]{2,23}"
+                    placeholder="seunome"
+                    required
+                    spellCheck={false}
+                    type="text"
+                    value={editHandle}
+                  />
+                </div>
+                <small>3 a 24 caracteres. Letras, números e _.</small>
+              </label>
+            </div>
+
+            <fieldset className={styles.avatarPicker}>
+              <legend>Escolha sua foto de perfil</legend>
+              <p>Uma coleção de ingredientes abstratos feita para o Receitando.</p>
+              <div className={styles.avatarGrid}>
+                {FOOD_AVATARS.map((avatar) => {
+                  const selected = editAvatar === avatar.key;
+                  return (
+                    <label
+                      className={`${styles.avatarOption} ${selected ? styles.avatarOptionSelected : ""}`}
+                      key={avatar.key}
+                    >
+                      <input
+                        checked={selected}
+                        disabled={isSaving}
+                        name="avatar"
+                        onChange={() => setEditAvatar(avatar.key)}
+                        type="radio"
+                        value={avatar.key}
+                      />
+                      <FoodAvatar avatarKey={avatar.key} className={styles.avatarPreview} label={avatar.label} />
+                      <span>{avatar.label}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </fieldset>
+
+            {editError ? <p className={styles.editError}>{editError}</p> : null}
+            {editMessage ? <p className={styles.editSuccess}>{editMessage}</p> : null}
+
+            <div className={styles.editorActions}>
+              <button className={styles.cancelButton} disabled={isSaving} onClick={closeEditor} type="button">
+                Cancelar
+              </button>
+              <button className={styles.saveButton} disabled={isSaving} type="submit">
+                {isSaving ? "Salvando…" : "Salvar perfil"}
+              </button>
+            </div>
+          </form>
+        </section>
+      ) : null}
 
       <section className={styles.stats} aria-label="Resumo da conta">
         <Link className={styles.statCard} href="/despensa">
