@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { FavoriteButton } from "@/components/recipe/FavoriteButton";
+import { RecipeCommunity } from "@/components/recipe/RecipeCommunity";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { formatIngredientAmount, formatPrepTime } from "@/lib/format";
 import { ApiError } from "@/services/api-client";
@@ -71,27 +72,13 @@ export default async function RecipeDetailPage({ params }: RecipeDetailPageProps
           </div>
           <p className={styles.description}>{recipe.description}</p>
           <dl className={styles.facts}>
-            <div>
-              <dt>Preparo</dt>
-              <dd>{formatPrepTime(recipe.prepMinutes)}</dd>
-            </div>
-            <div>
-              <dt>Rendimento</dt>
-              <dd>{recipe.servings} {recipe.servings === 1 ? "porção" : "porções"}</dd>
-            </div>
-            <div>
-              <dt>Dificuldade</dt>
-              <dd>{difficultyLabels[recipe.difficulty]}</dd>
-            </div>
-            <div>
-              <dt>Origem</dt>
-              <dd>{recipe.source.name}</dd>
-            </div>
+            <div><dt>Preparo</dt><dd>{formatPrepTime(recipe.prepMinutes)}</dd></div>
+            <div><dt>Rendimento</dt><dd>{recipe.servings} {recipe.servings === 1 ? "porção" : "porções"}</dd></div>
+            <div><dt>Dificuldade</dt><dd>{difficultyLabels[recipe.difficulty]}</dd></div>
+            <div><dt>Origem</dt><dd>{recipe.source.name}</dd></div>
           </dl>
           {recipe.tags.length > 0 ? (
-            <div className={styles.tags}>
-              {recipe.tags.map((tag) => <span key={tag}>{tag}</span>)}
-            </div>
+            <div className={styles.tags}>{recipe.tags.map((tag) => <span key={tag}>{tag}</span>)}</div>
           ) : null}
         </div>
 
@@ -113,10 +100,7 @@ export default async function RecipeDetailPage({ params }: RecipeDetailPageProps
                   <span className={styles.check} aria-hidden="true" />
                   <span>
                     <strong>{item.name}</strong>
-                    <small>
-                      {amount || "a gosto"}
-                      {item.optional ? " · opcional" : ""}
-                    </small>
+                    <small>{amount || "a gosto"}{item.optional ? " · opcional" : ""}</small>
                   </span>
                 </li>
               );
@@ -141,6 +125,8 @@ export default async function RecipeDetailPage({ params }: RecipeDetailPageProps
           )}
         </section>
       </div>
+
+      <RecipeCommunity recipeId={recipe.id} />
     </article>
   );
 }
