@@ -13,7 +13,7 @@ export function getRecipeBySlug(
   slug: string,
   signal?: AbortSignal,
 ): Promise<Recipe> {
-  return apiRequest<Recipe>(`/api/recipes/slug/${encodeURIComponent(slug)}`, {
+  return apiRequest<Recipe>(`/api/recipes/${encodeURIComponent(slug)}`, {
     signal,
   });
 }
@@ -27,6 +27,14 @@ export function matchRecipes(
   return apiRequest<MatchRecipeResult[]>("/api/recipes/match", {
     method: "POST",
     body: JSON.stringify(payload),
+    signal,
+  });
+}
+
+export function matchRecipesFromPantry(
+  signal?: AbortSignal,
+): Promise<MatchRecipeResult[]> {
+  return apiRequest<MatchRecipeResult[]>("/api/recipes/match/pantry", {
     signal,
   });
 }
