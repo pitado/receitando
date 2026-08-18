@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
 
@@ -73,6 +74,9 @@ export function LoginForm() {
           <input disabled={isSubmitting} name="remember" type="checkbox" />
           <span>Lembrar de mim</span>
         </label>
+        <Link className={styles.forgotLink} href="/recuperar-senha">
+          Esqueci minha senha
+        </Link>
       </div>
 
       {error ? (
