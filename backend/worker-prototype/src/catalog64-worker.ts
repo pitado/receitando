@@ -153,6 +153,20 @@ async function loadRecipesByIds(env: Env, ids: string[]) {
   })).sort((a, b) => (order.get(a.id) ?? 999) - (order.get(b.id) ?? 999));
 }
 
+async function listCatalogIngredients(request: Request, env: Env): Promise<Response> {
+  const rows = await env.db.prepare(`
+    SELECT i.id, i.name, i.normalized_name AS normalizedName, i.category,
+      COUNT(DISTINCT ri.recipe_id) AS usageCount
+    FROM ingredients i
+    JOIN recipe_ingredients ri ON ri.ingredient_id = i.id
+    JOIN recipes r ON r.id = ri.recipe_id
+    GROUP BY i.id, i.name, i.normalized_name, i.category
+    ORDER BY usageCount DESC, i.name ASC
+    LIMIT 1200
+  `).all<{ id: string; name: string; normalizedName: string; category: string; usageCount: number }>();
+  return json(request, env, rows.results);
+}
+
 async function canonicalIngredientIds(env: Env, values: string[]): Promise<string[]> {
   const normalized = [...new Set(values.map(normalizeIngredient).filter(Boolean))].slice(0, 40);
   if (!normalized.length) return [];
@@ -248,6 +262,7 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname.replace(/\/+$/, "") || "/";
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders(request, env) });
+    if (request.method === "GET" && path === "/api/ingredients") return listCatalogIngredients(request, env);
     if (request.method === "POST" && path === "/api/recipes/match") return matchFromRequest(request, env);
     if (request.method === "GET" && path === "/api/recipes/match/pantry") return matchFromPantry(request, env);
     if (request.method === "GET" && path === "/api/recipes") return listRecipes(request, env);

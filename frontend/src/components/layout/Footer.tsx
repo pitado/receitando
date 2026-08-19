@@ -5,6 +5,7 @@ import styles from "./Footer.module.css";
 export function Footer() {
   return (
     <footer className={styles.footer}>
+      <div aria-hidden="true" className={styles.artwork} />
       <div className={`container ${styles.inner}`}>
         <div className={styles.brandBlock}>
           <Link className={styles.brand} href="/">

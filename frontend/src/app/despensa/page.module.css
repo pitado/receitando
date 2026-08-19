@@ -7,11 +7,11 @@
   align-items: start;
   display: grid;
   gap: clamp(1.5rem, 3vw, 2.5rem);
-  grid-template-columns: minmax(20rem, 0.9fr) minmax(0, 1.4fr);
+  grid-template-columns: minmax(20rem, 0.88fr) minmax(0, 1.25fr);
   min-width: 0;
 }
 
-.addForm,
+.addPanel,
 .loginState {
   align-self: start;
   background: var(--color-card);
@@ -27,7 +27,6 @@
 .formIntro {
   display: grid;
   gap: var(--space-2);
-  min-width: 0;
 }
 
 .formIntro p,
@@ -43,96 +42,162 @@
 .formIntro h2,
 .loginState h2 {
   font-family: var(--font-editorial), Georgia, serif;
-  font-size: clamp(1.7rem, 3.2vw, 2.35rem);
-  line-height: 1.05;
+  font-size: clamp(1.8rem, 3.4vw, 2.55rem);
+  line-height: 1.02;
   margin: 0;
-  overflow-wrap: anywhere;
 }
 
-.formIntro > span {
+.formIntro > span,
+.loginState span {
   color: var(--color-text-muted);
-  font-size: 0.88rem;
-  line-height: 1.55;
+  font-size: 0.9rem;
+  line-height: 1.6;
 }
 
-.addForm label {
+.searchBox {
   display: grid;
-  font-size: 0.86rem;
-  font-weight: 800;
   gap: var(--space-2);
-  min-width: 0;
 }
 
-.addForm label small {
-  color: var(--color-text-muted);
-  font-size: 0.72rem;
-  font-weight: 650;
-  margin-left: var(--space-1);
+.searchBox label {
+  font-size: 0.84rem;
+  font-weight: 800;
 }
 
-.addForm input,
-.addForm select {
+.searchBox input {
   background: var(--color-background);
   border: 1px solid var(--color-border);
-  border-radius: 0.85rem;
-  box-sizing: border-box;
+  border-radius: 1rem;
   color: var(--color-text);
   font: inherit;
-  min-height: 3rem;
-  min-width: 0;
-  padding: 0.75rem 0.9rem;
+  min-height: 3.4rem;
+  outline: none;
+  padding: 0.9rem 1rem;
   width: 100%;
 }
 
-.addForm select:disabled {
-  cursor: not-allowed;
-  opacity: 0.55;
+.searchBox input:focus {
+  border-color: var(--color-primary-dark);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary-dark) 12%, transparent);
 }
 
-.measureFields {
+.suggestionBlock {
   display: grid;
   gap: var(--space-3);
-  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
 }
 
-.addForm > button,
-.loginState a {
-  background: var(--color-text);
-  border: 0;
-  border-radius: 0.85rem;
-  color: var(--color-background);
+.suggestionHeading {
+  align-items: baseline;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  justify-content: space-between;
+}
+
+.suggestionHeading strong {
+  font-size: 0.88rem;
+}
+
+.suggestionHeading span {
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+}
+
+.suggestions {
+  display: grid;
+  gap: var(--space-2);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.suggestions button {
+  align-items: center;
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: 0.9rem;
+  color: var(--color-text);
   cursor: pointer;
-  font: inherit;
-  font-weight: 850;
-  min-height: 3rem;
-  padding: 0.9rem 1rem;
-  text-align: center;
-  text-decoration: none;
-  width: 100%;
+  display: grid;
+  gap: 0.1rem var(--space-2);
+  grid-template-columns: auto minmax(0, 1fr);
+  min-width: 0;
+  padding: 0.8rem 0.85rem;
+  text-align: left;
 }
 
-.addForm > button:disabled {
-  cursor: not-allowed;
+.suggestions button:hover {
+  background: var(--color-surface);
+  border-color: var(--color-primary-dark);
+}
+
+.suggestions button:disabled {
+  cursor: wait;
   opacity: 0.55;
+}
+
+.suggestions button > span {
+  align-items: center;
+  background: var(--color-surface-secondary);
+  border-radius: 999px;
+  color: var(--color-primary-dark);
+  display: inline-flex;
+  font-size: 1rem;
+  font-weight: 900;
+  grid-row: 1 / span 2;
+  height: 1.75rem;
+  justify-content: center;
+  width: 1.75rem;
+}
+
+.suggestions strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.suggestions small {
+  color: var(--color-text-muted);
+  font-size: 0.72rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+.saving,
+.noResults,
+.error {
+  border-radius: 0.8rem;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  margin: 0;
+  padding: 0.75rem 0.85rem;
+}
+
+.saving,
+.noResults {
+  background: var(--color-surface);
+  color: var(--color-text-muted);
 }
 
 .error {
   background: var(--color-surface-secondary);
   border: 1px solid var(--color-border);
-  border-radius: 0.75rem;
   color: var(--color-primary-dark);
-  font-size: 0.86rem;
-  margin: 0;
-  padding: 0.75rem;
 }
 
 .loginState {
   max-width: 38rem;
 }
 
-.loginState span {
-  color: var(--color-text-muted);
-  line-height: 1.6;
+.loginState a {
+  background: var(--color-text);
+  border-radius: 0.9rem;
+  color: var(--color-background);
+  font-weight: 850;
+  padding: 0.9rem 1rem;
+  text-align: center;
+  text-decoration: none;
 }
 
 .preview {
@@ -166,7 +231,7 @@
 
 .previewHeader h2 {
   font-family: var(--font-editorial), Georgia, serif;
-  font-size: clamp(1.7rem, 3.2vw, 2.35rem);
+  font-size: clamp(1.75rem, 3.2vw, 2.35rem);
   line-height: 1.05;
   margin: 0;
 }
@@ -176,77 +241,67 @@
   border-radius: var(--radius-pill);
   color: var(--color-text);
   flex: none;
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   font-weight: 800;
   padding: 0.5rem 0.75rem;
 }
 
 .items {
+  display: grid;
+  gap: var(--space-2);
   list-style: none;
   margin: 0;
-  padding: 0 clamp(1.25rem, 4vw, 2rem);
+  padding: var(--space-4) clamp(1.25rem, 4vw, 2rem);
 }
 
 .items li {
   align-items: center;
-  border-bottom: 1px solid var(--color-border);
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: 0.9rem;
   display: grid;
-  gap: var(--space-4);
-  grid-template-columns: auto minmax(0, 1fr) minmax(8rem, auto) auto;
-  padding-block: var(--space-4);
+  gap: var(--space-3);
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  padding: 0.8rem 0.9rem;
 }
 
-.itemNumber {
-  color: var(--color-primary-dark);
-  font-family: var(--font-editorial), Georgia, serif;
-  font-size: 1.1rem;
-  font-weight: 700;
-}
-
-.itemMain {
-  background: transparent;
-  border: 0;
-  color: inherit;
-  cursor: pointer;
+.items li > div {
   display: grid;
-  gap: var(--space-1);
+  gap: 0.15rem;
   min-width: 0;
-  padding: 0;
-  text-align: left;
 }
 
-.itemMain:hover strong {
-  color: var(--color-primary-dark);
+.items strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.itemMain strong {
-  font-size: 1rem;
-  overflow-wrap: anywhere;
-}
-
-.itemMain span {
+.items li > div span {
   color: var(--color-text-muted);
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   text-transform: capitalize;
 }
 
-.items li > p {
+.amount {
   color: var(--color-primary-dark);
-  font-size: 0.9rem;
+  font-size: 0.78rem;
   font-weight: 800;
-  margin: 0;
-  text-align: right;
 }
 
 .remove {
+  align-items: center;
   background: transparent;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-pill);
+  border-radius: 999px;
   color: var(--color-text-muted);
   cursor: pointer;
-  font: inherit;
-  font-size: 0.78rem;
-  padding: 0.45rem 0.7rem;
+  display: inline-flex;
+  font-size: 1.05rem;
+  height: 2rem;
+  justify-content: center;
+  padding: 0;
+  width: 2rem;
 }
 
 .remove:hover {
@@ -257,6 +312,7 @@
 .previewFooter {
   align-items: center;
   background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-4);
@@ -267,6 +323,7 @@
 .previewFooter > div {
   display: grid;
   gap: var(--space-1);
+  max-width: 31rem;
 }
 
 .previewFooter strong {
@@ -276,6 +333,7 @@
 .previewFooter span {
   color: var(--color-text-muted);
   font-size: 0.8rem;
+  line-height: 1.45;
 }
 
 .previewFooter a {
@@ -284,7 +342,7 @@
   color: var(--color-background);
   font-size: 0.84rem;
   font-weight: 800;
-  padding: 0.65rem 0.9rem;
+  padding: 0.68rem 0.95rem;
   text-decoration: none;
 }
 
@@ -311,38 +369,14 @@
   padding: var(--space-5) clamp(1.25rem, 4vw, 2rem);
 }
 
-@media (max-width: 64rem) {
-  .workspace {
-    grid-template-columns: minmax(18rem, 0.85fr) minmax(0, 1.15fr);
-  }
-
-  .items li {
-    grid-template-columns: auto minmax(0, 1fr) auto;
-  }
-
-  .items li > p {
-    grid-column: 2;
-    text-align: left;
-  }
-
-  .remove {
-    grid-column: 3;
-    grid-row: 1 / span 2;
-  }
-}
-
-@media (max-width: 52rem) {
+@media (max-width: 56rem) {
   .workspace {
     grid-template-columns: 1fr;
   }
-
-  .addForm {
-    position: static;
-  }
 }
 
-@media (max-width: 36rem) {
-  .measureFields {
+@media (max-width: 38rem) {
+  .suggestions {
     grid-template-columns: 1fr;
   }
 
@@ -351,17 +385,17 @@
   }
 
   .items li {
-    align-items: start;
-    gap: var(--space-3);
-    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) auto;
   }
 
-  .items li > p,
+  .amount {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
   .remove {
     grid-column: 2;
-    grid-row: auto;
-    justify-self: start;
-    text-align: left;
+    grid-row: 1 / span 2;
   }
 
   .previewFooter {
