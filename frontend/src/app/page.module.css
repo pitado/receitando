@@ -338,7 +338,9 @@
 }
 
 .matcherCard {
+  min-width: 0;
   position: relative;
+  width: 100%;
   z-index: 2;
 }
 
@@ -487,7 +489,16 @@
   }
 
   .matcherShell {
-    grid-template-columns: minmax(16rem, 0.78fr) minmax(0, 1.22fr);
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .matcherIntro {
+    align-items: center;
+    grid-template-columns: minmax(0, 1fr) minmax(16rem, 22rem);
+  }
+
+  .matcherCard {
+    grid-column: 1 / -1;
   }
 
   .steps {
