@@ -12,7 +12,7 @@ export default function HomePage() {
         className={styles.hero}
         style={{
           background:
-            "radial-gradient(ellipse at 16% 48%, rgba(226, 154, 122, 0.28) 0%, rgba(244, 199, 177, 0.16) 30%, rgba(255, 246, 233, 0) 66%)",
+            "radial-gradient(ellipse at 16% 48%, rgba(226, 154, 122, 0.28) 0%, rgba(244, 199, 177, 0.16) 30%, rgba(255, 246, 233, 0) 66%), radial-gradient(ellipse at 94% 20%, rgba(226, 154, 122, 0.2) 0%, rgba(244, 199, 177, 0.12) 30%, rgba(255, 246, 233, 0) 64%)",
         }}
       >
         <div className={`container ${styles.heroGrid}`}>
