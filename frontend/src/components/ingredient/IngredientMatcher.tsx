@@ -251,6 +251,7 @@ export function IngredientMatcher({
                     "Uma possibilidade gostosa para aproveitar sua cozinha."
                   }
                   difficulty={recipe.difficulty}
+                  imageUrl={recipe.imageUrl}
                   key={recipe.id}
                   mealType={recipe.mealType}
                   missingIngredients={recipe.missingIngredients}
