@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -82,9 +83,21 @@ export default async function RecipeDetailPage({ params }: RecipeDetailPageProps
           ) : null}
         </div>
 
-        <div aria-label="Identidade visual da receita" className={styles.visual}>
-          <span className={styles.plate}><span /></span>
-          <p>Feita com o que já mora na sua cozinha.</p>
+        <div aria-label={`Foto de ${recipe.title}`} className={styles.visual}>
+          {recipe.imageUrl ? (
+            <Image
+              alt={recipe.title}
+              className={styles.recipeImage}
+              fill
+              sizes="(min-width: 800px) 45vw, 100vw"
+              src={recipe.imageUrl}
+            />
+          ) : (
+            <>
+              <span className={styles.plate}><span /></span>
+              <p>Feita com o que já mora na sua cozinha.</p>
+            </>
+          )}
         </div>
       </header>
 

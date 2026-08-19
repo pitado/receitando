@@ -15,6 +15,7 @@ interface RecipeCardProps {
   compatibility?: number;
   description: string;
   difficulty?: RecipeDifficulty;
+  imageUrl?: string | null;
   initialFavorite?: boolean;
   mealType?: string;
   missingIngredients?: MatchIngredient[];
@@ -55,6 +56,7 @@ export function RecipeCard({
   compatibility,
   description,
   difficulty,
+  imageUrl,
   initialFavorite = false,
   mealType,
   missingIngredients,
@@ -67,11 +69,20 @@ export function RecipeCard({
   title,
 }: RecipeCardProps) {
   const missingMessage = buildMissingMessage(compatibility, missingIngredients);
+  const imageStyle = imageUrl
+    ? { backgroundImage: `linear-gradient(180deg, rgba(42, 22, 8, 0.02), rgba(42, 22, 8, 0.32)), url("${imageUrl.replaceAll('"', '%22')}")` }
+    : undefined;
 
   return (
     <article className={styles.card}>
-      <div aria-hidden="true" className={styles.visual}>
-        <span className={styles.category}>{mealType || "Receita da casa"}</span>
+      <div
+        aria-label={imageUrl ? `Foto de ${title}` : undefined}
+        aria-hidden={imageUrl ? undefined : true}
+        className={`${styles.visual} ${imageUrl ? styles.visualWithImage : ""}`}
+        role={imageUrl ? "img" : undefined}
+        style={imageStyle}
+      >
+        <span className={styles.category}>{mealType || "Receita"}</span>
         {status ? <span className={styles.status}>{statusLabels[status]}</span> : null}
       </div>
 

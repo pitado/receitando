@@ -1,0 +1,70 @@
+name: Import TheMealDB Catalog
+
+on:
+  workflow_dispatch:
+    inputs:
+      batch_size:
+        description: "Receitas por arquivo SQL"
+        required: true
+        default: "20"
+
+jobs:
+  import-themealdb:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend/worker-prototype
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      THEMEALDB_API_KEY: ${{ secrets.THEMEALDB_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/worker-prototype/package-lock.json
+
+      - name: Install backend dependencies
+        run: npm ci
+
+      - name: Build TheMealDB SQL batches
+        run: |
+          rm -rf generated/themealdb
+          API_KEY="${THEMEALDB_API_KEY:-1}"
+          node scripts/build-themealdb-import.mjs \
+            --api-key "$API_KEY" \
+            --output generated/themealdb \
+            --batch-size "${{ inputs.batch_size }}"
+          cat generated/themealdb/manifest.json
+
+      - name: Validate generated catalog
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const manifest = JSON.parse(fs.readFileSync('generated/themealdb/manifest.json', 'utf8'));
+          if (!manifest.imported || manifest.imported < 700) {
+            throw new Error(`Catálogo incompleto: ${manifest.imported || 0} receitas. Abortando antes de alterar o D1.`);
+          }
+          const files = fs.readdirSync('generated/themealdb').filter((name) => /^batch-.*\.sql$/.test(name));
+          if (!files.length) throw new Error('Nenhum lote SQL foi gerado.');
+          console.log(`Validação OK: ${manifest.imported} receitas em ${files.length} lotes.`);
+          NODE
+
+      - name: Apply catalog schema migrations
+        run: npm run migrate:remote
+
+      - name: Replace visible recipe catalog
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          files=(generated/themealdb/batch-*.sql)
+          for file in "${files[@]}"; do
+            echo "Importando $file"
+            npx wrangler d1 execute receitando --remote --file="$file" --yes
+          done
+
+      - name: Import summary
+        run: cat generated/themealdb/manifest.json

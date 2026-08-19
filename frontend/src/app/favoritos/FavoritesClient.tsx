@@ -82,6 +82,7 @@ export function FavoritesClient() {
         <RecipeCard
           description={recipe.description}
           difficulty={recipe.difficulty}
+          imageUrl={recipe.imageUrl}
           initialFavorite
           key={recipe.id}
           mealType={recipe.mealType}
