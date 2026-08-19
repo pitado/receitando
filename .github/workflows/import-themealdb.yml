@@ -7,6 +7,10 @@ on:
         description: "Receitas por arquivo SQL"
         required: true
         default: "20"
+      translation_concurrency:
+        description: "Traduções simultâneas no Workers AI"
+        required: true
+        default: "8"
 
 jobs:
   import-themealdb:
@@ -16,6 +20,7 @@ jobs:
         working-directory: backend/worker-prototype
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_AI_API_TOKEN: ${{ secrets.CLOUDFLARE_AI_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       THEMEALDB_API_KEY: ${{ secrets.THEMEALDB_API_KEY }}
     steps:
@@ -30,17 +35,32 @@ jobs:
       - name: Install backend dependencies
         run: npm ci
 
-      - name: Build TheMealDB SQL batches
+      - name: Validate Workers AI credentials
+        run: |
+          if [ -z "${CLOUDFLARE_AI_API_TOKEN:-}" ]; then
+            echo "Secret CLOUDFLARE_AI_API_TOKEN ausente."
+            echo "Crie um token do Workers AI no Cloudflare e salve em Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+          if [ -z "${CLOUDFLARE_ACCOUNT_ID:-}" ]; then
+            echo "Secret CLOUDFLARE_ACCOUNT_ID ausente."
+            exit 1
+          fi
+
+      - name: Build translated TheMealDB SQL batches
         run: |
           rm -rf generated/themealdb
           API_KEY="${THEMEALDB_API_KEY:-1}"
           node scripts/build-themealdb-import.mjs \
             --api-key "$API_KEY" \
+            --cloudflare-account-id "$CLOUDFLARE_ACCOUNT_ID" \
+            --cloudflare-ai-token "$CLOUDFLARE_AI_API_TOKEN" \
+            --translation-concurrency "${{ inputs.translation_concurrency }}" \
             --output generated/themealdb \
             --batch-size "${{ inputs.batch_size }}"
           cat generated/themealdb/manifest.json
 
-      - name: Validate generated catalog
+      - name: Validate translated catalog
         run: |
           node - <<'NODE'
           const fs = require('fs');
@@ -48,9 +68,12 @@ jobs:
           if (!manifest.imported || manifest.imported < 700) {
             throw new Error(`Catálogo incompleto: ${manifest.imported || 0} receitas. Abortando antes de alterar o D1.`);
           }
+          if (manifest.language !== 'pt-BR' || !manifest.translations) {
+            throw new Error('O catálogo não foi traduzido corretamente. Abortando antes de alterar o D1.');
+          }
           const files = fs.readdirSync('generated/themealdb').filter((name) => /^batch-.*\.sql$/.test(name));
           if (!files.length) throw new Error('Nenhum lote SQL foi gerado.');
-          console.log(`Validação OK: ${manifest.imported} receitas em ${files.length} lotes.`);
+          console.log(`Validação OK: ${manifest.imported} receitas em PT-BR, ${manifest.translations} textos traduzidos, ${files.length} lotes.`);
           NODE
 
       - name: Apply catalog schema migrations
