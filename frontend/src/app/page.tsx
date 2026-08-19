@@ -51,13 +51,13 @@ export default function HomePage() {
         <div
           aria-hidden="true"
           style={{
-            left: "-3.5rem",
-            opacity: 0.34,
+            left: "0.75rem",
+            opacity: 0.5,
             pointerEvents: "none",
             position: "absolute",
-            top: "-6.5rem",
-            transform: "rotate(-8deg)",
-            width: "min(12rem, 34vw)",
+            top: "1rem",
+            transform: "rotate(-7deg)",
+            width: "clamp(10rem, 15vw, 15rem)",
             zIndex: 0,
           }}
         >
