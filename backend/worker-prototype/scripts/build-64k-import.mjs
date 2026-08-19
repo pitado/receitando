@@ -164,7 +164,7 @@ function recipeSql(recipe) {
     const ingredientId = `exting-${hash(normalized)}`;
     const relationId = `extri-${hash(`${recipe.recipeId}|${ingredientId}`)}`;
     lines.push(`INSERT OR IGNORE INTO ingredients (id,name,normalized_name,category) VALUES (${sql(ingredientId)},${sql(displayName)},${sql(normalized)},'dataset aberto');`);
-    lines.push(`INSERT OR IGNORE INTO recipe_ingredients (id,recipe_id,ingredient_id,quantity,unit,optional) VALUES (${sql(relationId)},${sql(recipe.recipeId)},${sql(ingredientId)},NULL,NULL,0);`);
+    lines.push(`INSERT OR IGNORE INTO recipe_ingredients (id,recipe_id,ingredient_id,quantity,unit,optional) SELECT ${sql(relationId)},${sql(recipe.recipeId)},id,NULL,NULL,0 FROM ingredients WHERE normalized_name = ${sql(normalized)} LIMIT 1;`);
     if (ingredientIndex < 3) lines.push(`INSERT OR IGNORE INTO recipe_tags (recipe_id,tag) VALUES (${sql(recipe.recipeId)},${sql(normalized.slice(0, 60))});`);
   });
   if (recipe.category) lines.push(`INSERT OR IGNORE INTO recipe_tags (recipe_id,tag) VALUES (${sql(recipe.recipeId)},${sql(slugify(recipe.category).slice(0, 60))});`);
