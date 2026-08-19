@@ -9,9 +9,10 @@
 .inner {
   align-items: center;
   display: flex;
-  gap: var(--space-4);
+  gap: var(--space-5);
   justify-content: space-between;
-  min-height: 4.5rem;
+  min-height: 5.25rem;
+  padding-block: 0.45rem;
 }
 
 .brand {
@@ -24,7 +25,7 @@
 .brandLogo {
   display: block;
   height: auto;
-  width: clamp(10.5rem, 14vw, 13.5rem);
+  width: clamp(12rem, 16vw, 15.5rem);
 }
 
 .navigation {
@@ -42,9 +43,9 @@
 .navLink {
   border-radius: var(--radius-button);
   color: var(--color-text-muted);
-  font-size: 0.9rem;
+  font-size: 0.94rem;
   font-weight: 700;
-  padding: 0.6rem 0.75rem;
+  padding: 0.65rem 0.82rem;
   text-decoration: none;
   transition:
     background-color var(--transition-fast),
@@ -65,11 +66,12 @@
 
 @media (min-width: 48rem) {
   .inner {
-    min-height: 5.25rem;
+    min-height: 6.1rem;
+    padding-block: 0.6rem;
   }
 
   .brandLogo {
-    width: 13.5rem;
+    width: 15rem;
   }
 
   .navigation {
@@ -77,8 +79,8 @@
   }
 
   .navLink {
-    font-size: 0.95rem;
-    padding-inline: 0.9rem;
+    font-size: 1rem;
+    padding-inline: 0.95rem;
   }
 
   .login {
@@ -88,11 +90,11 @@
     color: var(--color-background);
     display: inline-flex;
     flex-shrink: 0;
-    font-size: 0.9rem;
+    font-size: 0.92rem;
     font-weight: 750;
     justify-content: center;
-    min-height: 2.65rem;
-    padding: 0.6rem 1rem;
+    min-height: 2.8rem;
+    padding: 0.65rem 1.05rem;
     text-decoration: none;
     transition: background-color var(--transition-fast);
   }
@@ -120,8 +122,8 @@
     color: var(--color-text-muted);
     display: inline-flex;
     gap: 0.6rem;
-    min-height: 2.85rem;
-    padding: 0.32rem 0.55rem 0.32rem 0.35rem;
+    min-height: 3rem;
+    padding: 0.34rem 0.58rem 0.34rem 0.36rem;
     text-decoration: none;
     transition:
       background-color var(--transition-fast),
@@ -141,10 +143,10 @@
     border: 1px solid var(--color-border);
     border-radius: 50%;
     display: block;
-    flex: 0 0 2rem;
-    height: 2rem;
+    flex: 0 0 2.15rem;
+    height: 2.15rem;
     overflow: hidden;
-    width: 2rem;
+    width: 2.15rem;
   }
 
   .accountCopy {
@@ -156,7 +158,7 @@
   }
 
   .accountCopy strong {
-    font-size: 0.88rem;
+    font-size: 0.9rem;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -164,7 +166,7 @@
 
   .accountCopy small {
     color: var(--color-text-muted);
-    font-size: 0.67rem;
+    font-size: 0.68rem;
     font-weight: 650;
     margin-top: 0.2rem;
     overflow: hidden;
@@ -185,10 +187,10 @@
     color: var(--color-text);
     cursor: pointer;
     font: inherit;
-    font-size: 0.88rem;
+    font-size: 0.9rem;
     font-weight: 750;
-    min-height: 2.65rem;
-    padding: 0.55rem 0.9rem;
+    min-height: 2.8rem;
+    padding: 0.6rem 0.95rem;
     transition:
       background-color var(--transition-fast),
       border-color var(--transition-fast),
@@ -220,7 +222,7 @@
   }
 
   .brandLogo {
-    width: 10.8rem;
+    width: 11.8rem;
   }
 
   .navigation {
