@@ -29,23 +29,18 @@ export default async function CombinePage({ searchParams }: CombinePageProps) {
   return (
     <main className={styles.page}>
       <section className={styles.hero}>
-        <div className="container">
+        <div className={`container ${styles.heroContainer}`}>
           <p className={styles.eyebrow}>Combinações da sua cozinha</p>
           <h1>O que dá para fazer?</h1>
           <p className={styles.description}>
             Conte o que tem na cozinha. A gente junta os pontos e organiza as
             receitas da maior compatibilidade para a menor.
           </p>
-
-          <div className={styles.futureFilters}>
-            <span>Próxima pitada</span>
-            <p>Filtros por tempo, dificuldade e tipo de refeição entram aqui.</p>
-          </div>
         </div>
       </section>
 
       <section className={styles.matcherSection}>
-        <div className="container">
+        <div className={`container ${styles.matcherContainer}`}>
           <IngredientMatcher initialIngredients={initialIngredients} />
         </div>
       </section>
