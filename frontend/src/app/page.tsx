@@ -30,18 +30,11 @@ export default function HomePage() {
           <div aria-hidden="true" className={styles.heroVisual}>
             <Image
               alt=""
+              className={styles.heroVegetables}
               fill
               priority
-              sizes="(min-width: 768px) 32rem, 88vw"
+              sizes="(min-width: 768px) 42rem, 92vw"
               src="/home-vegetables-background.jpg"
-              style={{
-                borderRadius: "inherit",
-                mixBlendMode: "multiply",
-                objectFit: "contain",
-                objectPosition: "center",
-                opacity: 0.34,
-                transform: "scale(1.12)",
-              }}
             />
             <div className={styles.note}>
               <span className={styles.noteLabel}>Hoje dá para fazer</span>
