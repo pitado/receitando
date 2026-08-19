@@ -27,20 +27,30 @@ export default function HomePage() {
             </Link>
           </div>
 
-          <div aria-hidden="true" className={styles.heroVisual}>
+          <div
+            aria-hidden="true"
+            className={styles.heroVisual}
+            style={{
+              aspectRatio: "1.45 / 0.82",
+              background: "transparent",
+              border: 0,
+              borderRadius: 0,
+              maxWidth: "42rem",
+              overflow: "visible",
+            }}
+          >
             <Image
               alt=""
               fill
               priority
-              sizes="(min-width: 768px) 32rem, 88vw"
+              sizes="(min-width: 768px) 42rem, 92vw"
               src="/home-vegetables-background.jpg"
               style={{
-                borderRadius: "inherit",
                 mixBlendMode: "multiply",
                 objectFit: "contain",
                 objectPosition: "center",
-                opacity: 0.34,
-                transform: "scale(1.12)",
+                opacity: 0.22,
+                transform: "scale(1.28)",
               }}
             />
             <div className={styles.note}>
