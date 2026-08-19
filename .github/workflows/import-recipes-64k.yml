@@ -60,45 +60,74 @@ jobs:
           from pathlib import Path
 
           root = Path("dataset-64k")
-          json_files = sorted(root.rglob("*.json"), key=lambda p: p.stat().st_size, reverse=True)
           csv_files = sorted(root.rglob("*.csv"), key=lambda p: p.stat().st_size, reverse=True)
+          json_files = sorted(root.rglob("*.json"), key=lambda p: p.stat().st_size, reverse=True)
 
-          def valid_json(path: Path):
+          title_keys = {"title", "name", "recipe", "recipe_name", "recipe title"}
+          ingredient_keys = {"ingredients", "ingredient_list", "recipeingredientparts"}
+          direction_keys = {"directions", "instructions", "steps"}
+
+          def normalized_keys(row):
+              if not isinstance(row, dict):
+                  return set()
+              return {str(key).strip().lower().replace("_", " ") for key in row.keys()}
+
+          def looks_like_recipe_rows(rows):
+              if not isinstance(rows, list) or not rows or not isinstance(rows[0], dict):
+                  return False
+              keys = normalized_keys(rows[0])
+              has_title = any(key.replace(" ", "_") in {"title", "name", "recipe", "recipe_name", "recipe_title"} for key in keys)
+              has_ingredients = any(key.replace(" ", "_") in {"ingredients", "ingredient_list", "recipeingredientparts"} for key in keys)
+              has_directions = any(key.replace(" ", "_") in {"directions", "instructions", "steps"} for key in keys)
+              return has_title and has_ingredients and has_directions
+
+          def read_csv(path: Path):
+              with path.open("r", encoding="utf-8-sig", newline="") as handle:
+                  return list(csv.DictReader(handle))
+
+          def read_json(path: Path):
               try:
                   data = json.loads(path.read_text(encoding="utf-8"))
               except Exception:
                   return None
-              if isinstance(data, list) and data:
-                  return data
-              if isinstance(data, dict) and isinstance(data.get("recipes"), list) and data["recipes"]:
-                  return data["recipes"]
-              return None
+              if isinstance(data, dict) and isinstance(data.get("recipes"), list):
+                  data = data["recipes"]
+              return data if isinstance(data, list) else None
 
           rows = None
           source = None
-          for path in json_files:
-              rows = valid_json(path)
-              if rows:
+
+          preferred_csv = [path for path in csv_files if path.name.lower() == "1_recipe_csv.csv"]
+          for path in preferred_csv + [path for path in csv_files if path not in preferred_csv]:
+              candidate = read_csv(path)
+              if looks_like_recipe_rows(candidate):
+                  rows = candidate
                   source = path
                   break
 
           if rows is None:
-              if not csv_files:
-                  raise SystemExit("Nenhum JSON utilizável ou CSV encontrado no dataset baixado.")
-              source = csv_files[0]
-              with source.open("r", encoding="utf-8-sig", newline="") as handle:
-                  rows = list(csv.DictReader(handle))
+              for path in json_files:
+                  candidate = read_json(path)
+                  if looks_like_recipe_rows(candidate):
+                      rows = candidate
+                      source = path
+                      break
 
-          if not rows:
-              raise SystemExit("O dataset foi encontrado, mas não contém receitas utilizáveis.")
+          if not rows or source is None:
+              print("Arquivos CSV encontrados:")
+              for path in csv_files:
+                  print(f"- {path} ({path.stat().st_size} bytes)")
+              print("Arquivos JSON encontrados:")
+              for path in json_files:
+                  print(f"- {path} ({path.stat().st_size} bytes)")
+              raise SystemExit("Nenhum arquivo com colunas de título, ingredientes e instruções foi encontrado.")
 
           output = root / "recipes-normalized.json"
           output.write_text(json.dumps(rows, ensure_ascii=False), encoding="utf-8")
           print(f"Fonte selecionada: {source}")
           print(f"Registros detectados: {len(rows)}")
           print(f"JSON normalizado: {output}")
-          if isinstance(rows[0], dict):
-              print(f"Colunas detectadas: {', '.join(rows[0].keys())}")
+          print(f"Colunas detectadas: {', '.join(rows[0].keys())}")
           PY
 
       - name: Build D1 SQL batches
@@ -111,6 +140,18 @@ jobs:
             --limit "${{ inputs.limit }}" \
             --batch-size "${{ inputs.batch_size }}"
           cat generated/64k/manifest.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          manifest = json.loads(Path("generated/64k/manifest.json").read_text())
+          batches = sorted(Path("generated/64k").glob("batch-*.sql"))
+          if int(manifest.get("imported", 0)) <= 0 or not batches:
+              raise SystemExit(
+                  "O gerador não produziu receitas/lotes SQL. Verifique as colunas e o formato do dataset antes de acessar o D1."
+              )
+          print(f"Lotes SQL prontos: {len(batches)}")
+          PY
 
       - name: Apply catalog schema migration
         env:
@@ -124,7 +165,13 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           set -euo pipefail
-          for file in generated/64k/batch-*.sql; do
+          shopt -s nullglob
+          files=(generated/64k/batch-*.sql)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "Nenhum lote SQL foi gerado."
+            exit 1
+          fi
+          for file in "${files[@]}"; do
             echo "Importando $file"
             npx wrangler d1 execute receitando --remote --file="$file" --yes
           done
