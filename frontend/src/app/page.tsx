@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 import { HomeLiveSections } from "@/components/home/HomeLiveSections";
@@ -27,14 +28,24 @@ export default function HomePage() {
           </div>
 
           <div aria-hidden="true" className={styles.heroVisual}>
+            <Image
+              alt=""
+              fill
+              priority
+              sizes="(min-width: 768px) 32rem, 88vw"
+              src="/home-hero-kitchen.webp"
+              style={{
+                borderRadius: "inherit",
+                objectFit: "cover",
+                objectPosition: "center",
+                opacity: 0.92,
+              }}
+            />
             <div className={styles.note}>
               <span className={styles.noteLabel}>Hoje dá para fazer</span>
               <strong>algo gostoso</strong>
               <span>com o que já está na despensa.</span>
             </div>
-            <span className={`${styles.ingredientShape} ${styles.shapeOne}`} />
-            <span className={`${styles.ingredientShape} ${styles.shapeTwo}`} />
-            <span className={`${styles.ingredientShape} ${styles.shapeThree}`} />
           </div>
         </div>
       </section>
