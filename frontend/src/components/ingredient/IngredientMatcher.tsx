@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRef, useState } from "react";
 
 import { IngredientChip } from "@/components/ingredient/IngredientChip";
@@ -18,6 +19,11 @@ import styles from "./IngredientMatcher.module.css";
 
 type MatcherStatus = "idle" | "loading" | "success" | "error";
 
+type IngredientMatcherProps = {
+  initialIngredients?: string[];
+  previewLimit?: number;
+};
+
 const suggestions = ["ovo", "banana", "farinha de trigo", "leite"];
 
 function getErrorMessage(error: unknown): string {
@@ -32,8 +38,11 @@ function getErrorMessage(error: unknown): string {
   return "Não foi possível buscar receitas agora. Tente novamente.";
 }
 
-export function IngredientMatcher() {
-  const [ingredients, setIngredients] = useState<string[]>([]);
+export function IngredientMatcher({
+  initialIngredients = [],
+  previewLimit,
+}: IngredientMatcherProps) {
+  const [ingredients, setIngredients] = useState<string[]>(initialIngredients);
   const [fieldError, setFieldError] = useState<string | null>(null);
   const [results, setResults] = useState<MatchRecipeResult[]>([]);
   const [status, setStatus] = useState<MatcherStatus>("idle");
@@ -118,6 +127,9 @@ export function IngredientMatcher() {
   }
 
   const isLoading = status === "loading";
+  const visibleResults = previewLimit ? results.slice(0, previewLimit) : results;
+  const hasMoreResults = Boolean(previewLimit && results.length > previewLimit);
+  const combineHref = `/combinar?ingredientes=${encodeURIComponent(ingredients.join(","))}`;
 
   return (
     <div className={styles.matcher}>
@@ -224,10 +236,14 @@ export function IngredientMatcher() {
                   {results.length} {results.length === 1 ? "receita" : "receitas"}
                 </h2>
               </div>
-              <p>Da maior compatibilidade para a menor.</p>
+              <p>
+                {hasMoreResults
+                  ? `Mostrando as ${visibleResults.length} melhores por aqui.`
+                  : "Da maior compatibilidade para a menor."}
+              </p>
             </div>
             <div className={styles.grid}>
-              {results.map((recipe) => (
+              {visibleResults.map((recipe) => (
                 <RecipeCard
                   compatibility={recipe.compatibility}
                   description={
@@ -247,6 +263,13 @@ export function IngredientMatcher() {
                 />
               ))}
             </div>
+
+            {hasMoreResults ? (
+              <Link className={styles.seeAll} href={combineHref}>
+                Ver todas as combinações
+                <span aria-hidden="true">→</span>
+              </Link>
+            ) : null}
           </section>
         ) : null}
       </div>
