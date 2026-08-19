@@ -6,6 +6,7 @@ import styles from "./Header.module.css";
 
 const links = [
   { href: "/receitas", label: "Receitas" },
+  { href: "/combinar", label: "Combinar" },
   { href: "/despensa", label: "Despensa" },
   { href: "/favoritos", label: "Favoritos" },
 ];
