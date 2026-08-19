@@ -169,6 +169,7 @@ export function RecipesCatalog({ initialError = "", initialRecipes }: RecipesCat
                 compatibility={match?.compatibility}
                 description={recipe.description}
                 difficulty={recipe.difficulty}
+                imageUrl={recipe.imageUrl}
                 initialFavorite={favoriteIds.has(recipe.id)}
                 key={recipe.id}
                 mealType={recipe.mealType}
