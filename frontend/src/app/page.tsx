@@ -1,7 +1,6 @@
 import Link from "next/link";
 
 import { HomeLiveSections } from "@/components/home/HomeLiveSections";
-import { IngredientMatcher } from "@/components/ingredient/IngredientMatcher";
 import { SectionTitle } from "@/components/ui/SectionTitle";
 
 import styles from "./page.module.css";
@@ -21,9 +20,9 @@ export default function HomePage() {
               mostra o que está faltando e ajuda você a aproveitar melhor os
               alimentos.
             </p>
-            <Link className={styles.cta} href="#ingredientes">
+            <Link className={styles.cta} href="/combinar">
               Ver o que posso fazer
-              <span aria-hidden="true">↓</span>
+              <span aria-hidden="true">→</span>
             </Link>
           </div>
 
@@ -68,32 +67,6 @@ export default function HomePage() {
               <i />
             </span>
           </article>
-        </div>
-      </section>
-
-      <section className={styles.matcherSection} id="ingredientes">
-        <div className={`container ${styles.matcherShell}`}>
-          <div className={styles.matcherIntro}>
-            <SectionTitle
-              description="Adicione os ingredientes disponíveis. Aqui mostramos só as melhores ideias; a busca completa fica na página Combinar."
-              eyebrow="Comece por aqui"
-            >
-              O que tem na sua cozinha?
-            </SectionTitle>
-
-            <div aria-hidden="true" className={styles.matcherSketch}>
-              <span className={styles.sketchPlate}>
-                <i />
-              </span>
-              <span className={styles.sketchCard}>
-                <small>3 ingredientes</small>
-                <strong>já viram ideia</strong>
-              </span>
-            </div>
-          </div>
-          <div className={styles.matcherCard}>
-            <IngredientMatcher previewLimit={3} />
-          </div>
         </div>
       </section>
 
