@@ -10,6 +10,16 @@ export default function HomePage() {
   return (
     <main className={styles.page}>
       <section className={styles.hero}>
+        <div aria-hidden="true" className={styles.heroBackdropArt}>
+          <Image
+            alt=""
+            fill
+            priority
+            sizes="(min-width: 768px) 58vw, 92vw"
+            src="/home-vegetables-original.png"
+          />
+        </div>
+
         <div className={`container ${styles.heroGrid}`}>
           <div className={styles.heroCopy}>
             <p className={styles.eyebrow}>Sua cozinha, novas possibilidades</p>
@@ -27,32 +37,7 @@ export default function HomePage() {
             </Link>
           </div>
 
-          <div
-            aria-hidden="true"
-            className={styles.heroVisual}
-            style={{
-              aspectRatio: "1.45 / 0.82",
-              background: "transparent",
-              border: 0,
-              borderRadius: 0,
-              maxWidth: "42rem",
-              overflow: "visible",
-            }}
-          >
-            <Image
-              alt=""
-              fill
-              priority
-              sizes="(min-width: 768px) 42rem, 92vw"
-              src="/home-vegetables-background.jpg"
-              style={{
-                mixBlendMode: "multiply",
-                objectFit: "contain",
-                objectPosition: "center",
-                opacity: 0.22,
-                transform: "scale(1.28)",
-              }}
-            />
+          <div aria-hidden="true" className={styles.heroVisual}>
             <div className={styles.note}>
               <span className={styles.noteLabel}>Hoje dá para fazer</span>
               <strong>algo gostoso</strong>
