@@ -8,13 +8,13 @@ on:
         required: true
         default: "0"
       limit:
-        description: "Quantidade máxima de receitas neste lote"
-        required: true
-        default: "2000"
-      batch_size:
-        description: "Receitas por arquivo SQL"
+        description: "Receitas a verificar por fotos neste lote (máx. 180)"
         required: true
         default: "100"
+      batch_size:
+        description: "Receitas com foto por arquivo SQL"
+        required: true
+        default: "10"
 
 jobs:
   import-catalog:
@@ -63,10 +63,6 @@ jobs:
           csv_files = sorted(root.rglob("*.csv"), key=lambda p: p.stat().st_size, reverse=True)
           json_files = sorted(root.rglob("*.json"), key=lambda p: p.stat().st_size, reverse=True)
 
-          title_keys = {"title", "name", "recipe", "recipe_name", "recipe title"}
-          ingredient_keys = {"ingredients", "ingredient_list", "recipeingredientparts"}
-          direction_keys = {"directions", "instructions", "steps"}
-
           def normalized_keys(row):
               if not isinstance(row, dict):
                   return set()
@@ -114,30 +110,35 @@ jobs:
                       break
 
           if not rows or source is None:
-              print("Arquivos CSV encontrados:")
-              for path in csv_files:
-                  print(f"- {path} ({path.stat().st_size} bytes)")
-              print("Arquivos JSON encontrados:")
-              for path in json_files:
-                  print(f"- {path} ({path.stat().st_size} bytes)")
               raise SystemExit("Nenhum arquivo com colunas de título, ingredientes e instruções foi encontrado.")
 
           output = root / "recipes-normalized.json"
           output.write_text(json.dumps(rows, ensure_ascii=False), encoding="utf-8")
           print(f"Fonte selecionada: {source}")
           print(f"Registros detectados: {len(rows)}")
-          print(f"JSON normalizado: {output}")
           print(f"Colunas detectadas: {', '.join(rows[0].keys())}")
           PY
+
+      - name: Find real recipe photos
+        env:
+          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+        run: |
+          node scripts/enrich-64k-images.mjs \
+            --input dataset-64k/recipes-normalized.json \
+            --output dataset-64k/recipes-with-images.json \
+            --manifest dataset-64k/images-manifest.json \
+            --offset "${{ inputs.offset }}" \
+            --limit "${{ inputs.limit }}"
+          cat dataset-64k/images-manifest.json
 
       - name: Build D1 SQL batches
         run: |
           rm -rf generated/64k
           node scripts/build-64k-import.mjs \
-            --input dataset-64k/recipes-normalized.json \
+            --input dataset-64k/recipes-with-images.json \
             --output generated/64k \
-            --offset "${{ inputs.offset }}" \
-            --limit "${{ inputs.limit }}" \
+            --offset "0" \
+            --limit "999999" \
             --batch-size "${{ inputs.batch_size }}"
           cat generated/64k/manifest.json
           python - <<'PY'
@@ -147,9 +148,7 @@ jobs:
           manifest = json.loads(Path("generated/64k/manifest.json").read_text())
           batches = sorted(Path("generated/64k").glob("batch-*.sql"))
           if int(manifest.get("imported", 0)) <= 0 or not batches:
-              raise SystemExit(
-                  "O gerador não produziu receitas/lotes SQL. Verifique as colunas e o formato do dataset antes de acessar o D1."
-              )
+              raise SystemExit("Nenhuma receita com foto real foi encontrada neste intervalo; nada será enviado ao D1.")
           print(f"Lotes SQL prontos: {len(batches)}")
           PY
 
@@ -177,4 +176,8 @@ jobs:
           done
 
       - name: Import summary
-        run: cat generated/64k/manifest.json
+        run: |
+          echo "=== Fotos ==="
+          cat dataset-64k/images-manifest.json
+          echo "=== D1 ==="
+          cat generated/64k/manifest.json
