@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 
 import { HomeLiveSections } from "@/components/home/HomeLiveSections";
@@ -9,17 +8,13 @@ import styles from "./page.module.css";
 export default function HomePage() {
   return (
     <main className={styles.page}>
-      <section className={styles.hero}>
-        <div aria-hidden="true" className={styles.heroBackdropArt}>
-          <Image
-            alt=""
-            fill
-            priority
-            sizes="(min-width: 768px) 58vw, 92vw"
-            src="/home-vegetables-original.png"
-          />
-        </div>
-
+      <section
+        className={styles.hero}
+        style={{
+          background:
+            "radial-gradient(ellipse at 16% 48%, rgba(226, 154, 122, 0.28) 0%, rgba(244, 199, 177, 0.16) 30%, rgba(255, 246, 233, 0) 66%)",
+        }}
+      >
         <div className={`container ${styles.heroGrid}`}>
           <div className={styles.heroCopy}>
             <p className={styles.eyebrow}>Sua cozinha, novas possibilidades</p>
