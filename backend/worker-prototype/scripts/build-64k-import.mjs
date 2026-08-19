@@ -113,7 +113,7 @@ function mealType(category) {
 }
 
 function buildRecipe(row, index) {
-  const title = String(pick(row, ["Title", "title", "Name", "name", "recipe_name", "Recipe"])).trim();
+  const title = String(pick(row, ["recipe_title", "Title", "title", "Name", "name", "recipe_name", "Recipe"])).trim();
   if (!title) return null;
 
   const category = String(pick(row, ["Category", "category", "Course", "course"])).trim();
@@ -131,9 +131,10 @@ function buildRecipe(row, index) {
   const recipeId = `ext64-${hash(`${externalId}|${title}`)}`;
   const slug = `${slugify(title)}-${hash(externalId, 7)}`;
   const instructionText = directions.map((step, stepIndex) => `${stepIndex + 1}. ${String(step).trim()}`).join("\n");
-  const description = category
+  const datasetDescription = String(pick(row, ["description", "Description"])).trim();
+  const description = datasetDescription || (category
     ? `${title}, receita da categoria ${category}${subcategory ? ` · ${subcategory}` : ""}.`
-    : `${title}, receita do catálogo aberto do Receitando.`;
+    : `${title}, receita do catálogo aberto do Receitando.`);
 
   return {
     recipeId,
