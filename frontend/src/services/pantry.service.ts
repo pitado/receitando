@@ -28,7 +28,11 @@ export function getIngredients(): Promise<IngredientOption[]> {
   return apiRequest<IngredientOption[]>("/api/ingredients");
 }
 
-export function savePantryItem(ingredientId: string, quantity: number | null, unit: string): Promise<PantryItem[]> {
+export function savePantryItem(
+  ingredientId: string,
+  quantity: number | null,
+  unit: string | null,
+): Promise<PantryItem[]> {
   return apiRequest<PantryItem[]>("/api/pantry", {
     method: "POST",
     body: JSON.stringify({ ingredientId, quantity, unit }),

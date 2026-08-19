@@ -4,9 +4,11 @@
 }
 
 .workspace {
+  align-items: start;
   display: grid;
-  gap: var(--space-6);
-  grid-template-columns: minmax(18rem, 0.72fr) minmax(0, 1.5fr);
+  gap: clamp(1.5rem, 3vw, 2.5rem);
+  grid-template-columns: minmax(20rem, 0.9fr) minmax(0, 1.4fr);
+  min-width: 0;
 }
 
 .addForm,
@@ -17,8 +19,15 @@
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-card);
   display: grid;
-  gap: var(--space-4);
-  padding: clamp(1.25rem, 4vw, 2rem);
+  gap: var(--space-5);
+  min-width: 0;
+  padding: clamp(1.35rem, 3vw, 2rem);
+}
+
+.formIntro {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
 }
 
 .formIntro p,
@@ -34,8 +43,16 @@
 .formIntro h2,
 .loginState h2 {
   font-family: var(--font-editorial), Georgia, serif;
-  font-size: clamp(1.65rem, 4vw, 2.25rem);
+  font-size: clamp(1.7rem, 3.2vw, 2.35rem);
+  line-height: 1.05;
   margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.formIntro > span {
+  color: var(--color-text-muted);
+  font-size: 0.88rem;
+  line-height: 1.55;
 }
 
 .addForm label {
@@ -43,6 +60,14 @@
   font-size: 0.86rem;
   font-weight: 800;
   gap: var(--space-2);
+  min-width: 0;
+}
+
+.addForm label small {
+  color: var(--color-text-muted);
+  font-size: 0.72rem;
+  font-weight: 650;
+  margin-left: var(--space-1);
 }
 
 .addForm input,
@@ -50,13 +75,27 @@
   background: var(--color-background);
   border: 1px solid var(--color-border);
   border-radius: 0.85rem;
+  box-sizing: border-box;
   color: var(--color-text);
   font: inherit;
   min-height: 3rem;
+  min-width: 0;
   padding: 0.75rem 0.9rem;
+  width: 100%;
 }
 
-.addForm button,
+.addForm select:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.measureFields {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+}
+
+.addForm > button,
 .loginState a {
   background: var(--color-text);
   border: 0;
@@ -65,14 +104,16 @@
   cursor: pointer;
   font: inherit;
   font-weight: 850;
+  min-height: 3rem;
   padding: 0.9rem 1rem;
   text-align: center;
   text-decoration: none;
+  width: 100%;
 }
 
-.addForm button:disabled {
-  cursor: wait;
-  opacity: 0.6;
+.addForm > button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
 .error {
@@ -99,6 +140,7 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-card);
+  min-width: 0;
   overflow: hidden;
 }
 
@@ -110,7 +152,7 @@
   flex-wrap: wrap;
   gap: var(--space-4);
   justify-content: space-between;
-  padding: clamp(1.25rem, 5vw, 2rem);
+  padding: clamp(1.3rem, 4vw, 2rem);
 }
 
 .previewHeader p {
@@ -124,7 +166,8 @@
 
 .previewHeader h2 {
   font-family: var(--font-editorial), Georgia, serif;
-  font-size: clamp(1.65rem, 4vw, 2.25rem);
+  font-size: clamp(1.7rem, 3.2vw, 2.35rem);
+  line-height: 1.05;
   margin: 0;
 }
 
@@ -132,6 +175,7 @@
   background: var(--color-surface-secondary);
   border-radius: var(--radius-pill);
   color: var(--color-text);
+  flex: none;
   font-size: 0.82rem;
   font-weight: 800;
   padding: 0.5rem 0.75rem;
@@ -140,7 +184,7 @@
 .items {
   list-style: none;
   margin: 0;
-  padding: 0 clamp(1.25rem, 5vw, 2rem);
+  padding: 0 clamp(1.25rem, 4vw, 2rem);
 }
 
 .items li {
@@ -148,27 +192,39 @@
   border-bottom: 1px solid var(--color-border);
   display: grid;
   gap: var(--space-4);
-  grid-template-columns: auto minmax(0, 1fr) auto auto;
-  padding-block: var(--space-5);
+  grid-template-columns: auto minmax(0, 1fr) minmax(8rem, auto) auto;
+  padding-block: var(--space-4);
 }
 
 .itemNumber {
-  color: var(--color-text);
+  color: var(--color-primary-dark);
   font-family: var(--font-editorial), Georgia, serif;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: 700;
 }
 
-.items div {
+.itemMain {
+  background: transparent;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
   display: grid;
   gap: var(--space-1);
+  min-width: 0;
+  padding: 0;
+  text-align: left;
 }
 
-.items strong {
-  font-size: 1.05rem;
+.itemMain:hover strong {
+  color: var(--color-primary-dark);
 }
 
-.items div span {
+.itemMain strong {
+  font-size: 1rem;
+  overflow-wrap: anywhere;
+}
+
+.itemMain span {
   color: var(--color-text-muted);
   font-size: 0.8rem;
   text-transform: capitalize;
@@ -176,6 +232,7 @@
 
 .items li > p {
   color: var(--color-primary-dark);
+  font-size: 0.9rem;
   font-weight: 800;
   margin: 0;
   text-align: right;
@@ -190,6 +247,45 @@
   font: inherit;
   font-size: 0.78rem;
   padding: 0.45rem 0.7rem;
+}
+
+.remove:hover {
+  border-color: var(--color-primary-dark);
+  color: var(--color-primary-dark);
+}
+
+.previewFooter {
+  align-items: center;
+  background: var(--color-surface);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  justify-content: space-between;
+  padding: 1rem clamp(1.25rem, 4vw, 2rem);
+}
+
+.previewFooter > div {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.previewFooter strong {
+  font-size: 0.9rem;
+}
+
+.previewFooter span {
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+}
+
+.previewFooter a {
+  background: var(--color-primary-dark);
+  border-radius: var(--radius-pill);
+  color: var(--color-background);
+  font-size: 0.84rem;
+  font-weight: 800;
+  padding: 0.65rem 0.9rem;
+  text-decoration: none;
 }
 
 .empty {
@@ -212,24 +308,68 @@
 .notice {
   line-height: 1.6;
   margin: 0;
-  padding: var(--space-5) clamp(1.25rem, 5vw, 2rem);
+  padding: var(--space-5) clamp(1.25rem, 4vw, 2rem);
+}
+
+@media (max-width: 64rem) {
+  .workspace {
+    grid-template-columns: minmax(18rem, 0.85fr) minmax(0, 1.15fr);
+  }
+
+  .items li {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .items li > p {
+    grid-column: 2;
+    text-align: left;
+  }
+
+  .remove {
+    grid-column: 3;
+    grid-row: 1 / span 2;
+  }
 }
 
 @media (max-width: 52rem) {
   .workspace {
     grid-template-columns: 1fr;
   }
+
+  .addForm {
+    position: static;
+  }
 }
 
 @media (max-width: 36rem) {
+  .measureFields {
+    grid-template-columns: 1fr;
+  }
+
+  .previewHeader {
+    align-items: start;
+  }
+
   .items li {
     align-items: start;
+    gap: var(--space-3);
     grid-template-columns: auto minmax(0, 1fr);
   }
 
   .items li > p,
   .remove {
     grid-column: 2;
+    grid-row: auto;
+    justify-self: start;
     text-align: left;
+  }
+
+  .previewFooter {
+    align-items: stretch;
+  }
+
+  .previewFooter a {
+    text-align: center;
+    width: 100%;
   }
 }

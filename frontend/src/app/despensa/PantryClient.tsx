@@ -16,12 +16,17 @@ import {
 
 import styles from "./page.module.css";
 
+function formatAmount(item: PantryItem): string {
+  if (item.quantity === null) return "Quantidade não informada";
+  return `${item.quantity}${item.unit ? ` ${item.unit}` : ""}`;
+}
+
 export function PantryClient() {
   const [items, setItems] = useState<PantryItem[]>([]);
   const [ingredients, setIngredients] = useState<IngredientOption[]>([]);
   const [ingredientId, setIngredientId] = useState("");
   const [quantity, setQuantity] = useState("");
-  const [unit, setUnit] = useState("unidade");
+  const [unit, setUnit] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -59,28 +64,55 @@ export function PantryClient() {
     };
   }, [authenticated]);
 
-  const availableIngredients = useMemo(() => {
-    const used = new Set(items.map((item) => item.ingredientId));
-    return ingredients.filter((ingredient) => !used.has(ingredient.id) || ingredient.id === ingredientId);
-  }, [ingredientId, ingredients, items]);
+  const selectedItem = useMemo(
+    () => items.find((item) => item.ingredientId === ingredientId) ?? null,
+    [ingredientId, items],
+  );
+
+  function handleIngredientChange(nextId: string) {
+    setIngredientId(nextId);
+    setError(null);
+
+    const existing = items.find((item) => item.ingredientId === nextId);
+    if (existing) {
+      setQuantity(existing.quantity === null ? "" : String(existing.quantity));
+      setUnit(existing.unit ?? "");
+      return;
+    }
+
+    setQuantity("");
+    setUnit("");
+  }
+
+  function handleQuantityChange(value: string) {
+    setQuantity(value);
+    if (!value.trim()) setUnit("");
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!ingredientId) return;
+
     setSaving(true);
     setError(null);
+
     const parsedQuantity = quantity.trim() === "" ? null : Number(quantity.replace(",", "."));
+    if (parsedQuantity !== null && (!Number.isFinite(parsedQuantity) || parsedQuantity < 0)) {
+      setError("Informe uma quantidade válida ou deixe o campo vazio.");
+      setSaving(false);
+      return;
+    }
 
     try {
       const next = await savePantryItem(
         ingredientId,
-        parsedQuantity !== null && Number.isFinite(parsedQuantity) ? parsedQuantity : null,
-        unit,
+        parsedQuantity,
+        parsedQuantity === null ? null : unit || null,
       );
       setItems(next);
       setIngredientId("");
       setQuantity("");
-      setUnit("unidade");
+      setUnit("");
     } catch (cause: unknown) {
       setError(cause instanceof ApiError ? cause.message : "Não foi possível salvar o ingrediente.");
     } finally {
@@ -91,7 +123,14 @@ export function PantryClient() {
   async function handleRemove(id: string) {
     setError(null);
     try {
-      setItems(await removePantryItem(id));
+      const next = await removePantryItem(id);
+      setItems(next);
+      const removed = items.find((item) => item.id === id);
+      if (removed?.ingredientId === ingredientId) {
+        setIngredientId("");
+        setQuantity("");
+        setUnit("");
+      }
     } catch (cause: unknown) {
       setError(cause instanceof ApiError ? cause.message : "Não foi possível remover o ingrediente.");
     }
@@ -112,35 +151,53 @@ export function PantryClient() {
     <div className={styles.workspace}>
       <form className={styles.addForm} onSubmit={handleSubmit}>
         <div className={styles.formIntro}>
-          <p>ADICIONAR À DESPENSA</p>
-          <h2>O que entrou na cozinha?</h2>
+          <p>{selectedItem ? "ATUALIZAR ITEM" : "ADICIONAR À DESPENSA"}</p>
+          <h2>{selectedItem ? "Ajuste o que você já tem" : "O que entrou na cozinha?"}</h2>
+          <span>Quantidade e unidade são opcionais. Para encontrar receitas, o ingrediente é o que importa.</span>
         </div>
+
         <label>
           Ingrediente
-          <select value={ingredientId} onChange={(event) => setIngredientId(event.target.value)} required>
-            <option value="">Selecione</option>
-            {availableIngredients.map((ingredient) => (
+          <select value={ingredientId} onChange={(event) => handleIngredientChange(event.target.value)} required>
+            <option value="">Selecione um ingrediente</option>
+            {ingredients.map((ingredient) => (
               <option key={ingredient.id} value={ingredient.id}>{ingredient.name}</option>
             ))}
           </select>
         </label>
-        <label>
-          Quantidade
-          <input inputMode="decimal" placeholder="Ex.: 6" value={quantity} onChange={(event) => setQuantity(event.target.value)} />
-        </label>
-        <label>
-          Unidade
-          <select value={unit} onChange={(event) => setUnit(event.target.value)}>
-            <option value="unidade">unidade</option>
-            <option value="g">g</option>
-            <option value="kg">kg</option>
-            <option value="ml">ml</option>
-            <option value="l">litro</option>
-            <option value="xícara">xícara</option>
-            <option value="colher">colher</option>
-          </select>
-        </label>
-        <button disabled={saving || !ingredientId} type="submit">{saving ? "Salvando…" : "Adicionar"}</button>
+
+        <div className={styles.measureFields}>
+          <label>
+            Quantidade <small>opcional</small>
+            <input
+              inputMode="decimal"
+              min="0"
+              placeholder="Ex.: 2"
+              type="number"
+              step="any"
+              value={quantity}
+              onChange={(event) => handleQuantityChange(event.target.value)}
+            />
+          </label>
+          <label>
+            Unidade <small>opcional</small>
+            <select disabled={!quantity.trim()} value={unit} onChange={(event) => setUnit(event.target.value)}>
+              <option value="">sem unidade</option>
+              <option value="unidade">unidade</option>
+              <option value="g">g</option>
+              <option value="kg">kg</option>
+              <option value="ml">ml</option>
+              <option value="l">litro</option>
+              <option value="xícara">xícara</option>
+              <option value="colher de sopa">colher de sopa</option>
+              <option value="colher de chá">colher de chá</option>
+            </select>
+          </label>
+        </div>
+
+        <button disabled={saving || !ingredientId} type="submit">
+          {saving ? "Salvando…" : selectedItem ? "Atualizar item" : "Adicionar à despensa"}
+        </button>
         {error ? <p className={styles.error}>{error}</p> : null}
       </form>
 
@@ -162,19 +219,28 @@ export function PantryClient() {
         ) : null}
 
         {items.length > 0 ? (
-          <ul className={styles.items}>
-            {items.map((item, index) => (
-              <li key={item.id}>
-                <span aria-hidden="true" className={styles.itemNumber}>{String(index + 1).padStart(2, "0")}</span>
-                <div>
-                  <strong>{item.ingredientName}</strong>
-                  <span>{item.category}</span>
-                </div>
-                <p>{item.quantity ?? "—"} {item.unit ?? ""}</p>
-                <button className={styles.remove} onClick={() => void handleRemove(item.id)} type="button">Remover</button>
-              </li>
-            ))}
-          </ul>
+          <>
+            <ul className={styles.items}>
+              {items.map((item, index) => (
+                <li key={item.id}>
+                  <span aria-hidden="true" className={styles.itemNumber}>{String(index + 1).padStart(2, "0")}</span>
+                  <button className={styles.itemMain} onClick={() => handleIngredientChange(item.ingredientId)} type="button">
+                    <strong>{item.ingredientName}</strong>
+                    <span>{item.category}</span>
+                  </button>
+                  <p>{formatAmount(item)}</p>
+                  <button className={styles.remove} onClick={() => void handleRemove(item.id)} type="button">Remover</button>
+                </li>
+              ))}
+            </ul>
+            <div className={styles.previewFooter}>
+              <div>
+                <strong>Sua despensa alimenta o combinador.</strong>
+                <span>As quantidades ficam salvas para organização, mas não bloqueiam uma combinação.</span>
+              </div>
+              <Link href="/receitas">Encontrar receitas</Link>
+            </div>
+          </>
         ) : null}
       </section>
     </div>
