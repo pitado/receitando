@@ -1,0 +1,84 @@
+name: Import 64K Recipe Catalog
+
+on:
+  workflow_dispatch:
+    inputs:
+      offset:
+        description: "Índice inicial no dataset"
+        required: true
+        default: "0"
+      limit:
+        description: "Quantidade máxima de receitas neste lote"
+        required: true
+        default: "2000"
+      batch_size:
+        description: "Receitas por arquivo SQL"
+        required: true
+        default: "100"
+
+jobs:
+  import-catalog:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend/worker-prototype
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/worker-prototype/package-lock.json
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install backend dependencies
+        run: npm ci
+
+      - name: Install KaggleHub
+        run: python -m pip install --disable-pip-version-check kagglehub==1.0.2
+
+      - name: Download public CC0 dataset
+        run: |
+          python - <<'PY'
+          import kagglehub
+          path = kagglehub.dataset_download(
+              "prashantsingh001/recipes-dataset-64k-dishes",
+              output_dir="dataset-64k",
+          )
+          print(f"Dataset baixado em: {path}")
+          PY
+
+      - name: Build D1 SQL batches
+        run: |
+          rm -rf generated/64k
+          node scripts/build-64k-import.mjs \
+            --input dataset-64k \
+            --output generated/64k \
+            --offset "${{ inputs.offset }}" \
+            --limit "${{ inputs.limit }}" \
+            --batch-size "${{ inputs.batch_size }}"
+          cat generated/64k/manifest.json
+
+      - name: Apply catalog schema migration
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npm run migrate:remote
+
+      - name: Import batches into D1
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          for file in generated/64k/batch-*.sql; do
+            echo "Importando $file"
+            npx wrangler d1 execute receitando --remote --file="$file" --yes
+          done
+
+      - name: Import summary
+        run: cat generated/64k/manifest.json
