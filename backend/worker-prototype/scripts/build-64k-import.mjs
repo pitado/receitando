@@ -114,7 +114,8 @@ function mealType(category) {
 
 function buildRecipe(row, index) {
   const title = String(pick(row, ["recipe_title", "Title", "title", "Name", "name", "recipe_name", "Recipe"])).trim();
-  if (!title) return null;
+  const imageUrl = String(pick(row, ["_image_url", "image_url", "Image", "image"])).trim();
+  if (!title || !imageUrl) return null;
 
   const category = String(pick(row, ["Category", "category", "Course", "course"])).trim();
   const subcategory = String(pick(row, ["Subcategory", "subcategory", "SubCategory", "sub_category"])).trim();
@@ -150,13 +151,18 @@ function buildRecipe(row, index) {
     prepMinutes: Math.min(180, Math.max(10, 10 + directions.length * 4)),
     servings: 4,
     ingredients: cleanedIngredients,
+    imageUrl,
+    imageSource: String(pick(row, ["_image_source", "image_source"], "Pexels")).slice(0, 80),
+    imageAuthor: String(pick(row, ["_image_author", "image_author"])).slice(0, 160) || null,
+    imagePageUrl: String(pick(row, ["_image_page_url", "image_page_url"])).slice(0, 800) || null,
+    imageAlt: String(pick(row, ["_image_alt", "image_alt"], title)).slice(0, 300),
   };
 }
 
 function recipeSql(recipe) {
   const lines = [];
   lines.push(
-    `INSERT OR IGNORE INTO recipes (id,title,slug,description,instructions,prep_minutes,servings,meal_type,difficulty,source_type,source_name,image_url,external_source,external_id,external_category,external_subcategory) VALUES (${sql(recipe.recipeId)},${sql(recipe.title)},${sql(recipe.slug)},${sql(recipe.description)},${sql(recipe.instructions)},${recipe.prepMinutes},${recipe.servings},${sql(recipe.mealType)},${sql(recipe.difficulty)},'OPEN_DATASET',${sql(SOURCE_NAME)},NULL,${sql(SOURCE)},${sql(recipe.externalId)},${sql(recipe.category || null)},${sql(recipe.subcategory || null)});`,
+    `INSERT OR IGNORE INTO recipes (id,title,slug,description,instructions,prep_minutes,servings,meal_type,difficulty,source_type,source_name,image_url,image_source,image_author,image_page_url,image_alt,external_source,external_id,external_category,external_subcategory) VALUES (${sql(recipe.recipeId)},${sql(recipe.title)},${sql(recipe.slug)},${sql(recipe.description)},${sql(recipe.instructions)},${recipe.prepMinutes},${recipe.servings},${sql(recipe.mealType)},${sql(recipe.difficulty)},'OPEN_DATASET',${sql(SOURCE_NAME)},${sql(recipe.imageUrl)},${sql(recipe.imageSource)},${sql(recipe.imageAuthor)},${sql(recipe.imagePageUrl)},${sql(recipe.imageAlt)},${sql(SOURCE)},${sql(recipe.externalId)},${sql(recipe.category || null)},${sql(recipe.subcategory || null)});`,
   );
 
   recipe.ingredients.forEach((displayName, ingredientIndex) => {
@@ -193,8 +199,8 @@ for (let index = 0; index < recipes.length; index += batchSize) {
 
 writeFileSync(
   join(output, "manifest.json"),
-  JSON.stringify({ source: SOURCE, sourceName: SOURCE_NAME, offset, requested: limit, imported: recipes.length, batches: batchIndex, batchSize }, null, 2),
+  JSON.stringify({ source: SOURCE, sourceName: SOURCE_NAME, offset, requested: limit, imported: recipes.length, batches: batchIndex, batchSize, requiresPhoto: true }, null, 2),
   "utf8",
 );
 
-console.log(`Preparadas ${recipes.length} receitas em ${batchIndex} lotes.`);
+console.log(`Preparadas ${recipes.length} receitas com foto em ${batchIndex} lotes.`);
