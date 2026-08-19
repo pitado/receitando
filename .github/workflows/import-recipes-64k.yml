@@ -1,23 +1,19 @@
-name: Import 64K Recipe Catalog
+name: Analyze 64K Recipe Dataset
 
 on:
   workflow_dispatch:
     inputs:
       offset:
-        description: "Índice inicial no dataset"
+        description: "Índice inicial no dataset para análise"
         required: true
         default: "0"
       limit:
-        description: "Quantidade máxima de receitas neste lote"
+        description: "Quantidade de receitas para analisar"
         required: true
-        default: "2000"
-      batch_size:
-        description: "Receitas por arquivo SQL"
-        required: true
-        default: "100"
+        default: "1000"
 
 jobs:
-  import-catalog:
+  analyze-catalog:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -25,18 +21,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: backend/worker-prototype/package-lock.json
-
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-
-      - name: Install backend dependencies
-        run: npm ci
 
       - name: Install KaggleHub
         run: python -m pip install --disable-pip-version-check kagglehub==1.0.2
@@ -52,129 +39,56 @@ jobs:
           print(f"Dataset baixado em: {path}")
           PY
 
-      - name: Normalize dataset to JSON
+      - name: Analyze ingredient and recipe diversity
         run: |
           python - <<'PY'
+          import ast
           import csv
           import json
+          from collections import Counter
           from pathlib import Path
 
+          offset = int("${{ inputs.offset }}")
+          limit = int("${{ inputs.limit }}")
           root = Path("dataset-64k")
           csv_files = sorted(root.rglob("*.csv"), key=lambda p: p.stat().st_size, reverse=True)
-          json_files = sorted(root.rglob("*.json"), key=lambda p: p.stat().st_size, reverse=True)
+          preferred = [p for p in csv_files if p.name.lower() == "1_recipe_csv.csv"]
+          source = (preferred or csv_files)[0]
 
-          title_keys = {"title", "name", "recipe", "recipe_name", "recipe title"}
-          ingredient_keys = {"ingredients", "ingredient_list", "recipeingredientparts"}
-          direction_keys = {"directions", "instructions", "steps"}
+          with source.open("r", encoding="utf-8-sig", newline="") as handle:
+              rows = list(csv.DictReader(handle))
 
-          def normalized_keys(row):
-              if not isinstance(row, dict):
-                  return set()
-              return {str(key).strip().lower().replace("_", " ") for key in row.keys()}
-
-          def looks_like_recipe_rows(rows):
-              if not isinstance(rows, list) or not rows or not isinstance(rows[0], dict):
-                  return False
-              keys = normalized_keys(rows[0])
-              has_title = any(key.replace(" ", "_") in {"title", "name", "recipe", "recipe_name", "recipe_title"} for key in keys)
-              has_ingredients = any(key.replace(" ", "_") in {"ingredients", "ingredient_list", "recipeingredientparts"} for key in keys)
-              has_directions = any(key.replace(" ", "_") in {"directions", "instructions", "steps"} for key in keys)
-              return has_title and has_ingredients and has_directions
-
-          def read_csv(path: Path):
-              with path.open("r", encoding="utf-8-sig", newline="") as handle:
-                  return list(csv.DictReader(handle))
-
-          def read_json(path: Path):
+          selected = rows[offset:offset + limit]
+          categories = Counter()
+          ingredients = Counter()
+          for row in selected:
+              category = (row.get("category") or "sem categoria").strip()
+              categories[category] += 1
+              raw = row.get("ingredients") or ""
+              values = []
               try:
-                  data = json.loads(path.read_text(encoding="utf-8"))
+                  parsed = ast.literal_eval(raw)
+                  if isinstance(parsed, list):
+                      values = parsed
               except Exception:
-                  return None
-              if isinstance(data, dict) and isinstance(data.get("recipes"), list):
-                  data = data["recipes"]
-              return data if isinstance(data, list) else None
+                  values = [part.strip() for part in raw.split(";") if part.strip()]
+              for value in values:
+                  name = str(value).strip().lower()
+                  if name:
+                      ingredients[name] += 1
 
-          rows = None
-          source = None
-
-          preferred_csv = [path for path in csv_files if path.name.lower() == "1_recipe_csv.csv"]
-          for path in preferred_csv + [path for path in csv_files if path not in preferred_csv]:
-              candidate = read_csv(path)
-              if looks_like_recipe_rows(candidate):
-                  rows = candidate
-                  source = path
-                  break
-
-          if rows is None:
-              for path in json_files:
-                  candidate = read_json(path)
-                  if looks_like_recipe_rows(candidate):
-                      rows = candidate
-                      source = path
-                      break
-
-          if not rows or source is None:
-              print("Arquivos CSV encontrados:")
-              for path in csv_files:
-                  print(f"- {path} ({path.stat().st_size} bytes)")
-              print("Arquivos JSON encontrados:")
-              for path in json_files:
-                  print(f"- {path} ({path.stat().st_size} bytes)")
-              raise SystemExit("Nenhum arquivo com colunas de título, ingredientes e instruções foi encontrado.")
-
-          output = root / "recipes-normalized.json"
-          output.write_text(json.dumps(rows, ensure_ascii=False), encoding="utf-8")
-          print(f"Fonte selecionada: {source}")
-          print(f"Registros detectados: {len(rows)}")
-          print(f"JSON normalizado: {output}")
-          print(f"Colunas detectadas: {', '.join(rows[0].keys())}")
+          report = {
+              "source": str(source),
+              "offset": offset,
+              "requested": limit,
+              "analyzed": len(selected),
+              "total_dataset_rows": len(rows),
+              "top_categories": categories.most_common(30),
+              "top_ingredients": ingredients.most_common(100),
+          }
+          Path("dataset-64k/analysis-summary.json").write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+          print(json.dumps(report, ensure_ascii=False, indent=2))
           PY
 
-      - name: Build D1 SQL batches
-        run: |
-          rm -rf generated/64k
-          node scripts/build-64k-import.mjs \
-            --input dataset-64k/recipes-normalized.json \
-            --output generated/64k \
-            --offset "${{ inputs.offset }}" \
-            --limit "${{ inputs.limit }}" \
-            --batch-size "${{ inputs.batch_size }}"
-          cat generated/64k/manifest.json
-          python - <<'PY'
-          import json
-          from pathlib import Path
-
-          manifest = json.loads(Path("generated/64k/manifest.json").read_text())
-          batches = sorted(Path("generated/64k").glob("batch-*.sql"))
-          if int(manifest.get("imported", 0)) <= 0 or not batches:
-              raise SystemExit(
-                  "O gerador não produziu receitas/lotes SQL. Verifique as colunas e o formato do dataset antes de acessar o D1."
-              )
-          print(f"Lotes SQL prontos: {len(batches)}")
-          PY
-
-      - name: Apply catalog schema migration
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: npm run migrate:remote
-
-      - name: Import batches into D1
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: |
-          set -euo pipefail
-          shopt -s nullglob
-          files=(generated/64k/batch-*.sql)
-          if [ ${#files[@]} -eq 0 ]; then
-            echo "Nenhum lote SQL foi gerado."
-            exit 1
-          fi
-          for file in "${files[@]}"; do
-            echo "Importando $file"
-            npx wrangler d1 execute receitando --remote --file="$file" --yes
-          done
-
-      - name: Import summary
-        run: cat generated/64k/manifest.json
+      - name: Important
+        run: echo "Este workflow é somente analítico e não grava receitas no D1."
