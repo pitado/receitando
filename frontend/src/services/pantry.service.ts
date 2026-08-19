@@ -18,6 +18,7 @@ export interface IngredientOption {
   name: string;
   normalizedName: string;
   category: string;
+  usageCount?: number;
 }
 
 export function getPantry(): Promise<PantryItem[]> {
