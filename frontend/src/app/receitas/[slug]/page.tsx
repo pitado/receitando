@@ -82,9 +82,15 @@ export default async function RecipeDetailPage({ params }: RecipeDetailPageProps
           ) : null}
         </div>
 
-        <div aria-label="Identidade visual da receita" className={styles.visual}>
-          <span className={styles.plate}><span /></span>
-          <p>Feita com o que já mora na sua cozinha.</p>
+        <div aria-label={`Foto de ${recipe.title}`} className={styles.visual}>
+          {recipe.imageUrl ? (
+            <img className={styles.recipeImage} src={recipe.imageUrl} alt={recipe.title} />
+          ) : (
+            <>
+              <span className={styles.plate}><span /></span>
+              <p>Feita com o que já mora na sua cozinha.</p>
+            </>
+          )}
         </div>
       </header>
 
