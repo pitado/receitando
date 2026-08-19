@@ -10,11 +10,11 @@
   background-image: url("/receitando-footer-art.png");
   background-position: center;
   background-repeat: repeat-x;
-  background-size: auto 100%;
+  background-size: auto 122%;
   content: "";
   filter: sepia(0.75) saturate(0.72) hue-rotate(325deg) brightness(1.04);
   inset: 0;
-  opacity: 0.62;
+  opacity: 0.58;
   position: absolute;
   z-index: -2;
 }
@@ -22,9 +22,9 @@
 .footer::after {
   background: linear-gradient(
     90deg,
-    color-mix(in srgb, var(--color-background) 78%, transparent),
-    color-mix(in srgb, var(--color-background) 66%, transparent),
-    color-mix(in srgb, var(--color-background) 78%, transparent)
+    color-mix(in srgb, var(--color-background) 80%, transparent),
+    color-mix(in srgb, var(--color-background) 70%, transparent),
+    color-mix(in srgb, var(--color-background) 80%, transparent)
   );
   content: "";
   inset: 0;
@@ -35,21 +35,21 @@
 .inner {
   align-items: center;
   display: grid;
-  gap: var(--space-4);
-  min-height: clamp(10.5rem, 14vw, 13rem);
-  padding-block: clamp(1.8rem, 3vw, 2.75rem) 1.25rem;
+  gap: var(--space-3);
+  min-height: clamp(7.5rem, 9vw, 9rem);
+  padding-block: clamp(1.1rem, 2vw, 1.6rem) 0.85rem;
 }
 
 .brandBlock {
   display: grid;
-  gap: var(--space-2);
-  max-width: 27rem;
+  gap: var(--space-1);
+  max-width: 26rem;
 }
 
 .brand {
   color: var(--color-text);
   font-family: var(--font-editorial), Georgia, serif;
-  font-size: 1.5rem;
+  font-size: 1.35rem;
   font-weight: 700;
   letter-spacing: -0.03em;
   text-decoration: none;
@@ -58,20 +58,20 @@
 .description,
 .copyright {
   color: var(--color-text-muted);
-  font-size: 0.84rem;
-  line-height: 1.5;
+  font-size: 0.8rem;
+  line-height: 1.4;
   margin: 0;
 }
 
 .links {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-3) var(--space-5);
+  gap: var(--space-2) var(--space-4);
 }
 
 .link {
   color: var(--color-text-muted);
-  font-size: 0.88rem;
+  font-size: 0.84rem;
   font-weight: 700;
   text-decoration: none;
 }
@@ -81,8 +81,8 @@
 }
 
 .copyright {
-  border-top: 1px solid color-mix(in srgb, var(--color-border) 80%, transparent);
-  padding-top: var(--space-4);
+  border-top: 1px solid color-mix(in srgb, var(--color-border) 78%, transparent);
+  padding-top: var(--space-3);
 }
 
 @media (min-width: 48rem) {
@@ -97,10 +97,11 @@
 
 @media (max-width: 36rem) {
   .footer::before {
-    background-size: auto 100%;
+    background-size: auto 118%;
   }
 
   .inner {
-    min-height: 12rem;
+    min-height: 8.5rem;
+    padding-block: 1rem 0.8rem;
   }
 }
