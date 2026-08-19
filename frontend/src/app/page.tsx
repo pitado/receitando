@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 
 import { HomeLiveSections } from "@/components/home/HomeLiveSections";
@@ -43,37 +42,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section
-        aria-label="Ideias da cozinha"
-        className={styles.editorialRibbon}
-        style={{ position: "relative" }}
-      >
-        <div
-          aria-hidden="true"
-          style={{
-            left: "0.75rem",
-            opacity: 0.5,
-            pointerEvents: "none",
-            position: "absolute",
-            top: "1rem",
-            transform: "rotate(-7deg)",
-            width: "clamp(10rem, 15vw, 15rem)",
-            zIndex: 0,
-          }}
-        >
-          <Image
-            alt=""
-            height={635}
-            src="/receitando-beet.webp"
-            style={{ display: "block", height: "auto", width: "100%" }}
-            width={408}
-          />
-        </div>
-
-        <div
-          className={`container ${styles.ribbonGrid}`}
-          style={{ position: "relative", zIndex: 1 }}
-        >
+      <section aria-label="Ideias da cozinha" className={styles.editorialRibbon}>
+        <div className={`container ${styles.ribbonGrid}`}>
           <article className={`${styles.kitchenNote} ${styles.noteWarm}`}>
             <span className={styles.miniEyebrow}>Saiu da despensa</span>
             <strong>um jantar possível</strong>

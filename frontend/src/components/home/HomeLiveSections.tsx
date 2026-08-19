@@ -66,7 +66,7 @@ export function HomeLiveSections() {
   return (
     <>
       {user ? (
-        <section className={`${styles.personalSection} ${styles.vegetableSection} ${styles.withBeet}`}>
+        <section className={styles.personalSection}>
           <div className={`container ${styles.personalCard}`}>
             <div>
               <p className={styles.eyebrow}>SUA COZINHA HOJE</p>
@@ -81,7 +81,7 @@ export function HomeLiveSections() {
         </section>
       ) : null}
 
-      <section className={`${styles.section} ${styles.vegetableSection} ${styles.withBroccoli}`}>
+      <section className={styles.section}>
         <div className="container">
           <div className={styles.sectionHeader}>
             <div>
@@ -111,7 +111,7 @@ export function HomeLiveSections() {
       </section>
 
       {feed ? (
-        <section className={`${styles.statsSection} ${styles.vegetableSection} ${styles.withTomatoes}`}>
+        <section className={styles.statsSection}>
           <div className={`container ${styles.statsGrid}`}>
             <div className={styles.statLead}>
               <p className={styles.eyebrow}>A COZINHA ESTÁ VIVA</p>
@@ -125,7 +125,7 @@ export function HomeLiveSections() {
       ) : null}
 
       {feed?.recentComments.length ? (
-        <section className={`${styles.section} ${styles.vegetableSection} ${styles.withCarrots}`}>
+        <section className={styles.section}>
           <div className="container">
             <div className={styles.sectionHeader}>
               <div>
@@ -152,7 +152,7 @@ export function HomeLiveSections() {
         </section>
       ) : null}
 
-      <section className={`${styles.manifesto} ${styles.vegetableSection} ${styles.withLettuce}`}>
+      <section className={styles.manifesto}>
         <div className={`container ${styles.manifestoInner}`}>
           <p className={styles.eyebrow}>MENOS DESPERDÍCIO, MAIS IDEIA</p>
           <h2>Antes de pensar no que comprar, olha o que já mora na sua cozinha.</h2>
