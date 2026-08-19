@@ -52,11 +52,60 @@ jobs:
           print(f"Dataset baixado em: {path}")
           PY
 
+      - name: Normalize dataset to JSON
+        run: |
+          python - <<'PY'
+          import csv
+          import json
+          from pathlib import Path
+
+          root = Path("dataset-64k")
+          json_files = sorted(root.rglob("*.json"), key=lambda p: p.stat().st_size, reverse=True)
+          csv_files = sorted(root.rglob("*.csv"), key=lambda p: p.stat().st_size, reverse=True)
+
+          def valid_json(path: Path):
+              try:
+                  data = json.loads(path.read_text(encoding="utf-8"))
+              except Exception:
+                  return None
+              if isinstance(data, list) and data:
+                  return data
+              if isinstance(data, dict) and isinstance(data.get("recipes"), list) and data["recipes"]:
+                  return data["recipes"]
+              return None
+
+          rows = None
+          source = None
+          for path in json_files:
+              rows = valid_json(path)
+              if rows:
+                  source = path
+                  break
+
+          if rows is None:
+              if not csv_files:
+                  raise SystemExit("Nenhum JSON utilizável ou CSV encontrado no dataset baixado.")
+              source = csv_files[0]
+              with source.open("r", encoding="utf-8-sig", newline="") as handle:
+                  rows = list(csv.DictReader(handle))
+
+          if not rows:
+              raise SystemExit("O dataset foi encontrado, mas não contém receitas utilizáveis.")
+
+          output = root / "recipes-normalized.json"
+          output.write_text(json.dumps(rows, ensure_ascii=False), encoding="utf-8")
+          print(f"Fonte selecionada: {source}")
+          print(f"Registros detectados: {len(rows)}")
+          print(f"JSON normalizado: {output}")
+          if isinstance(rows[0], dict):
+              print(f"Colunas detectadas: {', '.join(rows[0].keys())}")
+          PY
+
       - name: Build D1 SQL batches
         run: |
           rm -rf generated/64k
           node scripts/build-64k-import.mjs \
-            --input dataset-64k \
+            --input dataset-64k/recipes-normalized.json \
             --output generated/64k \
             --offset "${{ inputs.offset }}" \
             --limit "${{ inputs.limit }}" \
