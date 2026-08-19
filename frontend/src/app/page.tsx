@@ -33,12 +33,14 @@ export default function HomePage() {
               fill
               priority
               sizes="(min-width: 768px) 32rem, 88vw"
-              src="/home-hero-kitchen.webp"
+              src="/home-vegetables-background.jpg"
               style={{
                 borderRadius: "inherit",
-                objectFit: "cover",
+                mixBlendMode: "multiply",
+                objectFit: "contain",
                 objectPosition: "center",
-                opacity: 0.92,
+                opacity: 0.34,
+                transform: "scale(1.12)",
               }}
             />
             <div className={styles.note}>
