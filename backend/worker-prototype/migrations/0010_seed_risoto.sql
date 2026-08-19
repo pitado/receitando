@@ -22,7 +22,7 @@ INSERT OR IGNORE INTO recipes (
   35,
   3,
   'almoco-jantar',
-  'MEDIO',
+  'MEDIA',
   'OWN',
   'Receitando'
 );
