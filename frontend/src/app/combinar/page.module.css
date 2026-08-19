@@ -7,7 +7,12 @@
 }
 
 .hero {
-  padding-block: clamp(3.5rem, 8vw, 6.5rem) clamp(2rem, 5vw, 3.5rem);
+  padding-block: clamp(3rem, 7vw, 5.5rem) clamp(1.75rem, 4vw, 2.75rem);
+}
+
+.heroContainer,
+.matcherContainer {
+  max-width: 92rem;
 }
 
 .eyebrow {
@@ -21,7 +26,7 @@
 
 .hero h1 {
   font-family: var(--font-editorial), Georgia, serif;
-  font-size: clamp(3rem, 8vw, 6rem);
+  font-size: clamp(3rem, 7vw, 5.5rem);
   font-weight: 620;
   letter-spacing: -0.045em;
   line-height: 0.96;
@@ -30,46 +35,12 @@
 
 .description {
   color: var(--color-text-muted);
-  font-size: clamp(1.05rem, 2vw, 1.2rem);
+  font-size: clamp(1rem, 1.8vw, 1.16rem);
   line-height: 1.7;
   margin: var(--space-5) 0 0;
   max-width: 45rem;
 }
 
-.futureFilters {
-  align-items: center;
-  background: color-mix(in srgb, var(--color-surface-secondary) 64%, var(--color-card));
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-3) var(--space-5);
-  margin-top: var(--space-7);
-  max-width: 49rem;
-  padding: 1rem 1.2rem;
-}
-
-.futureFilters span {
-  color: var(--color-primary-dark);
-  font-size: 0.72rem;
-  font-weight: 850;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.futureFilters p {
-  color: var(--color-text-muted);
-  font-size: 0.9rem;
-  margin: 0;
-}
-
 .matcherSection {
   padding-bottom: clamp(5rem, 9vw, 8rem);
-}
-
-@media (max-width: 39rem) {
-  .futureFilters {
-    align-items: flex-start;
-    flex-direction: column;
-  }
 }
