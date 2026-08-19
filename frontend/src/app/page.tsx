@@ -75,7 +75,7 @@ export default function HomePage() {
         <div className={`container ${styles.matcherShell}`}>
           <div className={styles.matcherIntro}>
             <SectionTitle
-              description="Adicione os ingredientes disponíveis. Nós comparamos com as receitas e mostramos as melhores combinações primeiro."
+              description="Adicione os ingredientes disponíveis. Aqui mostramos só as melhores ideias; a busca completa fica na página Combinar."
               eyebrow="Comece por aqui"
             >
               O que tem na sua cozinha?
@@ -92,7 +92,7 @@ export default function HomePage() {
             </div>
           </div>
           <div className={styles.matcherCard}>
-            <IngredientMatcher />
+            <IngredientMatcher previewLimit={3} />
           </div>
         </div>
       </section>
