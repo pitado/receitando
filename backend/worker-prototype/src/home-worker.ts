@@ -1,4 +1,4 @@
-import socialWorker from "./social-worker";
+import catalog64Worker from "./catalog64-worker";
 
 interface Env {
   db: D1Database;
@@ -106,6 +106,6 @@ export default {
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders(request, env) });
     if (request.method === "GET" && path === "/api/home-feed") return homeFeed(request, env);
 
-    return socialWorker.fetch(request, env);
+    return catalog64Worker.fetch(request, env);
   },
 };
