@@ -11,6 +11,11 @@ const SOURCE_ID = "wikibooks";
 const SOURCE_LICENSE = "CC BY-SA 4.0";
 const SOURCE_LICENSE_URL = "https://creativecommons.org/licenses/by-sa/4.0/";
 const IMAGE_SOURCE = "Wikimedia Commons";
+const ALL_CATEGORIES = "Todas as categorias";
+const MASTER_CATEGORY = "Livro/Livro de receitas";
+const MAX_CATEGORY_DEPTH = 3;
+const MAX_DISCOVERY_PAGES = 5000;
+const IMPORT_BATCH_SIZE = 20;
 
 const ALLOWED_CATEGORIES = new Map([
   ["Doces", "sobremesa"],
@@ -21,22 +26,40 @@ const ALLOWED_CATEGORIES = new Map([
   ["Sobremesas", "sobremesa"],
 ]);
 
+const IMAGE_STOPWORDS = new Set([
+  "a", "as", "ao", "aos", "com", "da", "das", "de", "do", "dos", "e", "em", "na", "nas", "no", "nos",
+  "para", "por", "um", "uma", "uns", "umas", "receita", "receitas",
+]);
+
 function args() {
   const values = process.argv.slice(2);
-  const result = { category: "Salgados, Lanches e Sanduíches", limit: 12 };
+  const result = { category: ALL_CATEGORIES, limit: 100 };
+
   for (let index = 0; index < values.length; index += 1) {
     if (values[index] === "--category" && values[index + 1]) result.category = values[++index];
-    if (values[index] === "--limit" && values[index + 1]) result.limit = Number(values[++index]);
+    if (values[index] === "--limit" && values[index + 1]) {
+      const raw = String(values[++index]).trim().toLowerCase();
+      result.limit = ["all", "todas", "todos", "0"].includes(raw) ? Infinity : Number(raw);
+    }
   }
-  result.limit = Math.max(1, Math.min(50, Number.isFinite(result.limit) ? result.limit : 12));
-  if (!ALLOWED_CATEGORIES.has(result.category)) {
-    throw new Error(`Categoria não permitida: ${result.category}. Use uma destas: ${[...ALLOWED_CATEGORIES.keys()].join(", ")}`);
+
+  if (result.limit !== Infinity) {
+    result.limit = Math.max(1, Math.min(1000, Number.isFinite(result.limit) ? result.limit : 100));
   }
+
+  if (result.category !== ALL_CATEGORIES && !ALLOWED_CATEGORIES.has(result.category)) {
+    throw new Error(
+      `Categoria não permitida: ${result.category}. Use “${ALL_CATEGORIES}” ou uma destas: ${[
+        ...ALLOWED_CATEGORIES.keys(),
+      ].join(", ")}`,
+    );
+  }
+
   return result;
 }
 
 function normalize(value) {
-  return value
+  return String(value ?? "")
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
@@ -59,7 +82,7 @@ function sql(value) {
 }
 
 function cleanWiki(value) {
-  return value
+  return String(value ?? "")
     .replace(/<!--.*?-->/g, "")
     .replace(/<ref\b[^>]*>[\s\S]*?<\/ref>/gi, "")
     .replace(/<ref\b[^/>]*\/>/gi, "")
@@ -122,7 +145,11 @@ function parseRecipe(wikitext) {
         started = true;
         continue;
       }
-      if (normalizedHeading.includes("preparo") || normalizedHeading.includes("modo de preparar") || normalizedHeading.includes("modo de preparo")) {
+      if (
+        normalizedHeading.includes("preparo") ||
+        normalizedHeading.includes("modo de preparar") ||
+        normalizedHeading.includes("modo de preparo")
+      ) {
         mode = "steps";
         started = true;
         continue;
@@ -144,12 +171,19 @@ function parseRecipe(wikitext) {
     }
 
     if (mode === "steps" && /^(?:#+|\*#+)/.test(originalLine.trim())) {
-      const item = cleanWiki(originalLine.trim().replace(/^(?:#+|\*#+)\s*/, "")).replace(/^\d+[.)]\s*/, "").trim();
+      const item = cleanWiki(originalLine.trim().replace(/^(?:#+|\*#+)\s*/, ""))
+        .replace(/^\d+[.)]\s*/, "")
+        .trim();
       if (item) steps.push(item);
       continue;
     }
 
-    if (mode === "steps" && cleanedLine && !cleanedLine.startsWith("[[Categoria:") && !cleanedLine.startsWith("Categoria:")) {
+    if (
+      mode === "steps" &&
+      cleanedLine &&
+      !cleanedLine.startsWith("[[Categoria:") &&
+      !cleanedLine.startsWith("Categoria:")
+    ) {
       if (!/^\{\|/.test(originalLine.trim()) && !/^\|/.test(originalLine.trim())) steps.push(cleanedLine);
     }
   }
@@ -162,8 +196,14 @@ function parseRecipe(wikitext) {
 
 function ingredientName(raw) {
   let value = raw
-    .replace(/^\s*(?:\d+(?:[.,]\d+)?(?:\s+e\s+\d+\/\d+)?|\d+\/\d+|uma?|duas?|meia?)\s+/i, "")
-    .replace(/^\s*(?:kg|g|gramas?|quilogramas?|litros?|ml|mililitros?|x[ií]caras?(?:\s*\([^)]*\))?|chávenas?|copos?(?:\s*\([^)]*\))?|colheres?(?:\s*\([^)]*\))?|latas?|pacotes?|vidros?|dentes?|unidades?|tabletes?|envelopes?|pitadas?)\s+(?:de\s+)?/i, "")
+    .replace(
+      /^\s*(?:\d+(?:[.,]\d+)?(?:\s+e\s+\d+\/\d+)?|\d+\/\d+|uma?|duas?|meia?)\s+/i,
+      "",
+    )
+    .replace(
+      /^\s*(?:kg|g|gramas?|quilogramas?|litros?|ml|mililitros?|x[ií]caras?(?:\s*\([^)]*\))?|chávenas?|copos?(?:\s*\([^)]*\))?|colheres?(?:\s*\([^)]*\))?|latas?|pacotes?|vidros?|dentes?|unidades?|tabletes?|envelopes?|pitadas?)\s+(?:de\s+)?/i,
+      "",
+    )
     .replace(/^\s*de\s+/i, "")
     .replace(/\s*[;,.]+$/, "")
     .trim();
@@ -178,8 +218,9 @@ async function mediaWikiRequest(baseUrl, params, sourceLabel) {
   for (const [key, value] of Object.entries({ ...params, format: "json", formatversion: "2", origin: "*" })) {
     url.searchParams.set(key, String(value));
   }
+
   const response = await fetch(url, {
-    headers: { "User-Agent": "ReceitandoAcademic/0.1 (https://receitando.miguelpita.com.br/)" },
+    headers: { "User-Agent": "ReceitandoAcademic/0.2 (https://receitando.miguelpita.com.br/)" },
   });
   if (!response.ok) throw new Error(`${sourceLabel} respondeu ${response.status}`);
   return response.json();
@@ -193,33 +234,90 @@ function commons(params) {
   return mediaWikiRequest(COMMONS_API_URL, params, "Wikimedia Commons");
 }
 
-async function categoryMembers(category, desired) {
-  const members = [];
-  let cmcontinue;
-  const target = Math.min(200, Math.max(desired * 4, 40));
-  while (members.length < target) {
-    const payload = await mediaWiki({
-      action: "query",
-      list: "categorymembers",
-      cmtitle: `Categoria:${category}`,
-      cmnamespace: "0",
-      cmtype: "page",
-      cmlimit: "50",
-      ...(cmcontinue ? { cmcontinue } : {}),
-    });
-    members.push(...(payload?.query?.categorymembers ?? []));
-    cmcontinue = payload?.continue?.cmcontinue;
-    if (!cmcontinue) break;
+function categoryTitle(value) {
+  return value.startsWith("Categoria:") ? value : `Categoria:${value}`;
+}
+
+async function crawlCategory(rootCategory) {
+  const pages = new Map();
+  const queue = [{ title: categoryTitle(rootCategory), depth: 0 }];
+  const visitedCategories = new Set();
+
+  while (queue.length && pages.size < MAX_DISCOVERY_PAGES) {
+    const current = queue.shift();
+    if (!current || visitedCategories.has(current.title)) continue;
+    visitedCategories.add(current.title);
+
+    let cmcontinue;
+    do {
+      const payload = await mediaWiki({
+        action: "query",
+        list: "categorymembers",
+        cmtitle: current.title,
+        cmtype: "page|subcat",
+        cmlimit: "500",
+        ...(cmcontinue ? { cmcontinue } : {}),
+      });
+
+      for (const member of payload?.query?.categorymembers ?? []) {
+        if (
+          member?.ns === 0 &&
+          typeof member.title === "string" &&
+          member.title.startsWith("Livro de receitas/")
+        ) {
+          pages.set(member.pageid ?? member.title, { ...member, rootCategory });
+        } else if (
+          member?.ns === 14 &&
+          current.depth < MAX_CATEGORY_DEPTH &&
+          typeof member.title === "string"
+        ) {
+          queue.push({ title: member.title, depth: current.depth + 1 });
+        }
+
+        if (pages.size >= MAX_DISCOVERY_PAGES) break;
+      }
+
+      cmcontinue = payload?.continue?.cmcontinue;
+    } while (cmcontinue && pages.size < MAX_DISCOVERY_PAGES);
   }
-  return members.filter((page) => typeof page.title === "string" && page.title.startsWith("Livro de receitas/"));
+
+  return [...pages.values()];
+}
+
+async function discoverRecipePages(selectedCategory) {
+  const roots =
+    selectedCategory === ALL_CATEGORIES
+      ? [MASTER_CATEGORY, ...ALLOWED_CATEGORIES.keys()]
+      : [selectedCategory];
+
+  const pages = new Map();
+  for (const root of roots) {
+    console.log(`Descobrindo páginas em “${root}”...`);
+    const found = await crawlCategory(root);
+    for (const page of found) {
+      const key = page.pageid ?? page.title;
+      if (!pages.has(key)) pages.set(key, page);
+    }
+  }
+
+  return [...pages.values()].sort((a, b) => String(a.title).localeCompare(String(b.title), "pt-BR"));
 }
 
 async function pageSource(title) {
-  const payload = await mediaWiki({ action: "parse", page: title, prop: "wikitext|categories" });
+  const payload = await mediaWiki({
+    action: "parse",
+    page: title,
+    prop: "wikitext|categories",
+  });
   const raw = payload?.parse?.wikitext;
   const wikitext = typeof raw === "string" ? raw : raw?.["*"];
   if (typeof wikitext !== "string") return null;
-  return { wikitext };
+
+  const categories = (payload?.parse?.categories ?? [])
+    .map((item) => item?.category)
+    .filter((item) => typeof item === "string");
+
+  return { wikitext, categories };
 }
 
 function embeddedImageNames(wikitext) {
@@ -232,28 +330,79 @@ function embeddedImageNames(wikitext) {
   return names;
 }
 
-async function pageImageName(title) {
+async function pageImageCandidates(title, wikitext) {
+  const candidates = [];
   const payload = await mediaWiki({
     action: "query",
-    prop: "pageimages",
+    prop: "pageimages|images",
     titles: title,
     piprop: "name",
     pilicense: "free",
+    imlimit: "max",
   });
+
   const page = payload?.query?.pages?.[0];
-  return typeof page?.pageimage === "string" ? page.pageimage : null;
+  if (typeof page?.pageimage === "string") candidates.push(page.pageimage);
+
+  for (const image of page?.images ?? []) {
+    if (typeof image?.title === "string") candidates.push(image.title);
+  }
+
+  candidates.push(...embeddedImageNames(wikitext));
+  return [...new Set(candidates.map((name) => String(name).trim()).filter(Boolean))].slice(0, 40);
 }
 
 function acceptableCommonsImage(fileTitle, info) {
   const mime = String(info?.mime ?? "").toLowerCase();
   if (mime && !["image/jpeg", "image/png", "image/webp"].includes(mime)) return false;
+
   const normalizedTitle = normalize(fileTitle);
-  if (/\b(?:icon|icone|logo|wikibooks|wikipedia|commons|book|livro)\b/.test(normalizedTitle)) return false;
+  if (/\b(?:icon|icone|logo|wikibooks|wikipedia|commons|book|livro|mapa|map)\b/.test(normalizedTitle)) {
+    return false;
+  }
+
   return Boolean(info?.thumburl || info?.url);
 }
 
-async function commonsImage(fileName, recipeTitle) {
-  const fileTitle = /^(?:File|Ficheiro|Imagem):/i.test(fileName) ? fileName.replace(/^(?:Ficheiro|Imagem):/i, "File:") : `File:${fileName}`;
+function licenseLooksFree(license) {
+  const value = normalize(license);
+  if (!value) return false;
+  if (/\b(?:non free|fair use|all rights reserved)\b/.test(value)) return false;
+  return true;
+}
+
+function recipeTokens(recipeTitle) {
+  return normalize(recipeTitle)
+    .split(" ")
+    .filter((token) => token.length >= 3 && !IMAGE_STOPWORDS.has(token))
+    .map((token) => (token.length > 4 && token.endsWith("s") ? token.slice(0, -1) : token));
+}
+
+function imageLooksRelevant(recipeTitle, fileTitle, metadata) {
+  const tokens = recipeTokens(recipeTitle);
+  if (!tokens.length) return true;
+
+  const metadataText = [
+    fileTitle,
+    cleanMetadata(metadata?.ObjectName?.value),
+    cleanMetadata(metadata?.ImageDescription?.value),
+    cleanMetadata(metadata?.Categories?.value),
+    cleanMetadata(metadata?.Keywords?.value),
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  const haystack = normalize(metadataText);
+  const matched = tokens.filter((token) => haystack.includes(token)).length;
+  if (tokens.length === 1) return matched === 1;
+  return matched >= 2 || matched / tokens.length >= 0.5;
+}
+
+async function commonsImage(fileName, recipeTitle, requireRelevance = false) {
+  const fileTitle = /^(?:File|Ficheiro|Imagem):/i.test(fileName)
+    ? fileName.replace(/^(?:Ficheiro|Imagem):/i, "File:")
+    : `File:${fileName}`;
+
   const payload = await commons({
     action: "query",
     prop: "imageinfo",
@@ -261,13 +410,15 @@ async function commonsImage(fileName, recipeTitle) {
     iiprop: "url|mime|extmetadata",
     iiurlwidth: "1400",
   });
+
   const page = payload?.query?.pages?.[0];
   const info = page?.imageinfo?.[0];
   if (!info || !acceptableCommonsImage(fileTitle, info)) return null;
 
-  const meta = info.extmetadata ?? {};
-  const license = cleanMetadata(meta.LicenseShortName?.value || meta.UsageTerms?.value);
-  if (!license) return null;
+  const metadata = info.extmetadata ?? {};
+  const license = cleanMetadata(metadata.LicenseShortName?.value || metadata.UsageTerms?.value);
+  if (!license || !licenseLooksFree(license)) return null;
+  if (requireRelevance && !imageLooksRelevant(recipeTitle, fileTitle, metadata)) return null;
 
   const imageUrl = normalizedHttpUrl(info.thumburl || info.url);
   const pageUrl = normalizedHttpUrl(info.descriptionurl);
@@ -276,37 +427,88 @@ async function commonsImage(fileName, recipeTitle) {
   return {
     url: imageUrl,
     source: IMAGE_SOURCE,
-    author: cleanMetadata(meta.Artist?.value || meta.Credit?.value || IMAGE_SOURCE)?.slice(0, 240) ?? IMAGE_SOURCE,
+    author:
+      cleanMetadata(metadata.Artist?.value || metadata.Credit?.value || IMAGE_SOURCE)?.slice(0, 240) ??
+      IMAGE_SOURCE,
     pageUrl,
     license: license.slice(0, 160),
-    licenseUrl: normalizedHttpUrl(meta.LicenseUrl?.value),
+    licenseUrl: normalizedHttpUrl(metadata.LicenseUrl?.value),
     alt: recipeTitle.slice(0, 240),
   };
 }
 
-async function freeImageForPage(title, wikitext) {
-  const candidates = [];
-  const featured = await pageImageName(title);
-  if (featured) candidates.push(featured);
-  candidates.push(...embeddedImageNames(wikitext));
+async function searchCommonsImage(recipeTitle) {
+  const significant = recipeTokens(recipeTitle);
+  const queries = [
+    `"${recipeTitle}"`,
+    recipeTitle,
+    `${recipeTitle} food`,
+    significant.length > 1 ? significant.join(" ") : null,
+  ].filter(Boolean);
 
-  const unique = [...new Set(candidates.map((name) => name.trim()).filter(Boolean))].slice(0, 8);
-  for (const fileName of unique) {
-    const image = await commonsImage(fileName, title.replace(/^Livro de receitas\//, "").trim());
+  const candidates = [];
+  for (const query of queries) {
+    const payload = await commons({
+      action: "query",
+      list: "search",
+      srsearch: query,
+      srnamespace: "6",
+      srlimit: "20",
+    });
+
+    for (const result of payload?.query?.search ?? []) {
+      if (typeof result?.title === "string") candidates.push(result.title);
+    }
+
+    if (candidates.length >= 30) break;
+  }
+
+  for (const fileTitle of [...new Set(candidates)].slice(0, 30)) {
+    const image = await commonsImage(fileTitle, recipeTitle, true);
     if (image) return image;
   }
+
   return null;
 }
 
-function recipeSql(recipe, category) {
+async function freeImageForPage(title, wikitext) {
+  const recipeTitle = title.replace(/^Livro de receitas\//, "").trim();
+  const associatedCandidates = await pageImageCandidates(title, wikitext);
+
+  for (const fileName of associatedCandidates) {
+    const image = await commonsImage(fileName, recipeTitle, false);
+    if (image) return image;
+  }
+
+  return searchCommonsImage(recipeTitle);
+}
+
+function canonicalCategory(categories, fallback) {
+  const normalizedCategories = categories.map(normalize);
+
+  for (const allowed of ALLOWED_CATEGORIES.keys()) {
+    const needle = normalize(allowed);
+    if (normalizedCategories.some((category) => category === needle || category.includes(needle))) {
+      return allowed;
+    }
+  }
+
+  return ALLOWED_CATEGORIES.has(fallback) ? fallback : "Outros";
+}
+
+function recipeSql(recipe) {
   const id = `wikibooks-${recipe.pageid}`;
   const title = recipe.title.replace(/^Livro de receitas\//, "").trim();
   const slug = `${slugify(title)}-wikilivros`;
-  const encodedTitle = recipe.title.replaceAll(" ", "_").split("/").map((part) => encodeURIComponent(part)).join("/");
+  const encodedTitle = recipe.title
+    .replaceAll(" ", "_")
+    .split("/")
+    .map((part) => encodeURIComponent(part))
+    .join("/");
   const sourceUrl = `https://pt.wikibooks.org/wiki/${encodedTitle}`;
-  const mealType = ALLOWED_CATEGORIES.get(category) ?? "outros";
+  const mealType = ALLOWED_CATEGORIES.get(recipe.category) ?? "outros";
   const now = new Date().toISOString();
-  const description = `Receita publicada no Wikilivros em português.`;
+  const description = "Receita publicada no Wikilivros em português.";
   const statements = [];
 
   statements.push(`INSERT INTO recipes (
@@ -319,9 +521,13 @@ function recipeSql(recipe, category) {
   ) VALUES (
     ${sql(id)}, ${sql(title)}, ${sql(slug)}, ${sql(description)}, ${sql(recipe.steps.join("\n"))}, 0, 0,
     ${sql(mealType)}, 'FACIL', 'OPEN_DATASET', ${sql(SOURCE_NAME)}, ${sql(recipe.image.url)},
-    ${sql(recipe.image.source)}, ${sql(recipe.image.author)}, ${sql(recipe.image.pageUrl)}, ${sql(recipe.image.license)}, ${sql(recipe.image.licenseUrl)}, ${sql(recipe.image.alt)},
-    ${sql(SOURCE_ID)}, ${sql(String(recipe.pageid))}, ${sql(category)}, NULL,
-    ${sql(sourceUrl)}, ${sql("Colaboradores do Wikilivros")}, ${sql(SOURCE_LICENSE)}, ${sql(SOURCE_LICENSE_URL)}, 'pt-BR', ${sql(now)},
+    ${sql(recipe.image.source)}, ${sql(recipe.image.author)}, ${sql(recipe.image.pageUrl)}, ${sql(
+      recipe.image.license,
+    )}, ${sql(recipe.image.licenseUrl)}, ${sql(recipe.image.alt)},
+    ${sql(SOURCE_ID)}, ${sql(String(recipe.pageid))}, ${sql(recipe.category)}, NULL,
+    ${sql(sourceUrl)}, ${sql("Colaboradores do Wikilivros")}, ${sql(SOURCE_LICENSE)}, ${sql(
+      SOURCE_LICENSE_URL,
+    )}, 'pt-BR', ${sql(now)},
     CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
   ) ON CONFLICT(id) DO UPDATE SET
     title = excluded.title,
@@ -355,64 +561,112 @@ function recipeSql(recipe, category) {
     const name = ingredientName(rawText);
     const normalizedName = normalize(name);
     if (!normalizedName) continue;
+
     const fallbackIngredientId = `ext-ing-${shortHash(normalizedName)}`;
     const recipeIngredientId = `wikibooks-ri-${recipe.pageid}-${shortHash(normalizedName)}`;
+
     statements.push(`INSERT OR IGNORE INTO ingredients (id, name, normalized_name, category, created_at, updated_at)
-      VALUES (${sql(fallbackIngredientId)}, ${sql(name)}, ${sql(normalizedName)}, 'outros', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);`);
+      VALUES (${sql(fallbackIngredientId)}, ${sql(name)}, ${sql(
+        normalizedName,
+      )}, 'outros', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);`);
+
     statements.push(`INSERT OR REPLACE INTO recipe_ingredients (id, recipe_id, ingredient_id, quantity, unit, optional, raw_text)
       SELECT ${sql(recipeIngredientId)}, ${sql(id)}, id, NULL, NULL, 0, ${sql(rawText)}
       FROM ingredients WHERE normalized_name = ${sql(normalizedName)} LIMIT 1;`);
   }
 
   statements.push(`INSERT OR IGNORE INTO recipe_tags (recipe_id, tag) VALUES (${sql(id)}, 'wikilivros');`);
-  statements.push(`INSERT OR IGNORE INTO recipe_tags (recipe_id, tag) VALUES (${sql(id)}, ${sql(slugify(category))});`);
+  statements.push(
+    `INSERT OR IGNORE INTO recipe_tags (recipe_id, tag) VALUES (${sql(id)}, ${sql(slugify(recipe.category))});`,
+  );
+
   return statements.join("\n");
+}
+
+function executeSql(sqlText, label) {
+  const safeLabel = slugify(label || "lote") || "lote";
+  const file = join(tmpdir(), `receitando-wikibooks-${safeLabel}-${Date.now()}.sql`);
+  writeFileSync(file, sqlText, "utf8");
+
+  execFileSync("npx", ["wrangler", "d1", "execute", "receitando", "--remote", `--file=${file}`, "--yes"], {
+    stdio: "inherit",
+    env: process.env,
+  });
 }
 
 async function main() {
   const { category, limit } = args();
-  console.log(`Buscando até ${limit} receitas com imagem livre em “${category}”...`);
-  const members = await categoryMembers(category, limit);
-  const recipes = [];
+  const targetLabel = limit === Infinity ? "todas as receitas possíveis" : `${limit} receitas`;
 
-  for (const member of members) {
-    if (recipes.length >= limit) break;
+  console.log(`Meta: ${targetLabel} com imagem livre. Escopo: “${category}”.`);
+  const members = await discoverRecipePages(category);
+  console.log(`Páginas de receitas descobertas: ${members.length}.`);
+
+  const recipes = [];
+  let validWithoutImage = 0;
+  let invalidStructure = 0;
+
+  for (let index = 0; index < members.length; index += 1) {
+    if (limit !== Infinity && recipes.length >= limit) break;
+
+    const member = members[index];
+    const shortTitle = member.title.replace(/^Livro de receitas\//, "").trim();
+
     try {
       const page = await pageSource(member.title);
       if (!page) continue;
-      const parsed = parseRecipe(page.wikitext);
-      if (!parsed) continue;
 
-      const image = await freeImageForPage(member.title, page.wikitext);
-      if (!image) {
-        console.log(`  - sem imagem livre: ${member.title.replace(/^Livro de receitas\//, "")}`);
+      const parsed = parseRecipe(page.wikitext);
+      if (!parsed) {
+        invalidStructure += 1;
         continue;
       }
 
-      recipes.push({ ...member, ...parsed, image });
-      console.log(`  ✓ ${member.title.replace(/^Livro de receitas\//, "")} · foto ${image.license}`);
+      const image = await freeImageForPage(member.title, page.wikitext);
+      if (!image) {
+        validWithoutImage += 1;
+        console.log(`  - sem imagem encontrada: ${shortTitle}`);
+        continue;
+      }
+
+      const recipeCategory = canonicalCategory(page.categories, member.rootCategory);
+      recipes.push({ ...member, ...parsed, image, category: recipeCategory });
+      console.log(`  ✓ ${shortTitle} · ${image.license} · ${recipes.length}/${targetLabel}`);
     } catch (error) {
       console.warn(`  - ignorada ${member.title}: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
-  if (!recipes.length) throw new Error("Nenhuma receita com estrutura suficiente e imagem livre foi encontrada.");
+  if (!recipes.length) {
+    throw new Error("Nenhuma receita com estrutura suficiente e imagem livre foi encontrada.");
+  }
 
-  const sqlText = [
-    "PRAGMA foreign_keys = ON;",
-    "DELETE FROM recipes WHERE COALESCE(external_source, '') <> 'wikibooks';",
-    "DELETE FROM recipes WHERE external_source = 'wikibooks' AND (image_url IS NULL OR TRIM(image_url) = '');",
-    ...recipes.map((recipe) => recipeSql(recipe, category)),
-  ].join("\n\n");
+  console.log(
+    `Encontradas ${recipes.length} receitas com foto. Sem foto: ${validWithoutImage}. Estrutura inválida: ${invalidStructure}.`,
+  );
 
-  const file = join(tmpdir(), `receitando-wikibooks-${Date.now()}.sql`);
-  writeFileSync(file, sqlText, "utf8");
-  console.log(`Importando ${recipes.length} receitas com imagens livres no D1...`);
-  execFileSync("npx", ["wrangler", "d1", "execute", "receitando", "--remote", `--file=${file}`, "--yes"], {
-    stdio: "inherit",
-    env: process.env,
-  });
-  console.log(`Concluído: catálogo mantido somente com receitas do Wikilivros que têm imagem livre.`);
+  executeSql(
+    [
+      "PRAGMA foreign_keys = ON;",
+      "DELETE FROM recipes WHERE COALESCE(external_source, '') <> 'wikibooks';",
+      "DELETE FROM recipes WHERE external_source = 'wikibooks' AND (image_url IS NULL OR TRIM(image_url) = '');",
+    ].join("\n\n"),
+    "limpeza",
+  );
+
+  for (let index = 0; index < recipes.length; index += IMPORT_BATCH_SIZE) {
+    const batch = recipes.slice(index, index + IMPORT_BATCH_SIZE);
+    const batchNumber = Math.floor(index / IMPORT_BATCH_SIZE) + 1;
+    const totalBatches = Math.ceil(recipes.length / IMPORT_BATCH_SIZE);
+
+    console.log(`Importando lote ${batchNumber}/${totalBatches} (${batch.length} receitas)...`);
+    executeSql(
+      ["PRAGMA foreign_keys = ON;", ...batch.map((recipe) => recipeSql(recipe))].join("\n\n"),
+      `lote-${batchNumber}`,
+    );
+  }
+
+  console.log(`Concluído: ${recipes.length} receitas do Wikilivros com imagens livres estão no catálogo.`);
 }
 
 main().catch((error) => {
