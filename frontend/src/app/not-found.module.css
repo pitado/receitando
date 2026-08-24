@@ -1,37 +1,34 @@
 .page {
   align-items: center;
   background:
-    radial-gradient(circle at 14% 32%, color-mix(in srgb, var(--color-surface-secondary) 72%, transparent), transparent 27rem),
-    radial-gradient(circle at 88% 20%, color-mix(in srgb, var(--color-accent) 16%, transparent), transparent 24rem),
+    radial-gradient(circle at 14% 34%, color-mix(in srgb, var(--color-surface-secondary) 74%, transparent), transparent 28rem),
+    radial-gradient(circle at 88% 18%, color-mix(in srgb, var(--color-accent) 14%, transparent), transparent 24rem),
     var(--color-background);
   display: flex;
   min-height: clamp(38rem, 74vh, 52rem);
   overflow: hidden;
-  padding-block: clamp(4rem, 9vw, 7rem);
-  position: relative;
+  padding-block: clamp(3.5rem, 8vw, 6.5rem);
 }
 
 .layout {
   align-items: center;
   display: grid;
-  gap: clamp(3rem, 8vw, 7rem);
-  position: relative;
-  z-index: 1;
+  gap: clamp(2.5rem, 7vw, 6rem);
 }
 
 .copy {
-  max-width: 43rem;
+  max-width: 39rem;
 }
 
 .code {
-  color: color-mix(in srgb, var(--color-primary) 16%, transparent);
+  color: color-mix(in srgb, var(--color-primary) 13%, transparent);
   display: block;
   font-family: var(--font-editorial), Georgia, serif;
-  font-size: clamp(6.5rem, 20vw, 12.5rem);
+  font-size: clamp(6.5rem, 20vw, 12rem);
   font-weight: 650;
   letter-spacing: -0.08em;
   line-height: 0.62;
-  margin-bottom: clamp(2rem, 5vw, 3.25rem);
+  margin-bottom: clamp(2rem, 5vw, 3rem);
   user-select: none;
 }
 
@@ -46,19 +43,20 @@
 
 .copy h1 {
   font-family: var(--font-editorial), Georgia, serif;
-  font-size: clamp(3rem, 7vw, 5.7rem);
+  font-size: clamp(3rem, 6.4vw, 5.2rem);
   font-weight: 620;
   letter-spacing: -0.055em;
   line-height: 0.95;
   margin: 0;
+  max-width: 36rem;
 }
 
 .description {
   color: var(--color-text-muted);
-  font-size: clamp(1rem, 2vw, 1.15rem);
-  line-height: 1.7;
-  margin: var(--space-6) 0 0;
-  max-width: 39rem;
+  font-size: clamp(1rem, 2vw, 1.12rem);
+  line-height: 1.6;
+  margin: var(--space-5) 0 0;
+  max-width: 33rem;
 }
 
 .actions {
@@ -107,116 +105,32 @@
 }
 
 .visual {
-  aspect-ratio: 1 / 0.92;
   margin-inline: auto;
-  max-width: 31rem;
-  position: relative;
+  max-width: 38rem;
   width: 100%;
 }
 
-.plate {
-  background: color-mix(in srgb, var(--color-card) 92%, var(--color-background));
-  border: 1px solid var(--color-border);
-  border-radius: 50%;
-  box-shadow:
-    inset 0 0 0 1.3rem var(--color-background),
-    var(--shadow-card);
-  height: min(24rem, 74vw);
-  left: 50%;
-  position: absolute;
-  top: 48%;
-  transform: translate(-50%, -50%) rotate(-5deg);
-  width: min(24rem, 74vw);
-}
-
-.crumbOne,
-.crumbTwo,
-.crumbThree {
-  background: var(--color-highlight);
-  border-radius: 50% 45% 52% 40%;
+.plateArt {
   display: block;
-  position: absolute;
-}
-
-.crumbOne {
-  height: 1.35rem;
-  left: 34%;
-  top: 39%;
-  transform: rotate(28deg);
-  width: 1rem;
-}
-
-.crumbTwo {
-  background: var(--color-primary);
-  height: 0.8rem;
-  left: 52%;
-  top: 55%;
-  transform: rotate(-18deg);
-  width: 1.2rem;
-}
-
-.crumbThree {
-  background: #7c9a6e;
-  height: 0.75rem;
-  left: 45%;
-  top: 66%;
-  transform: rotate(48deg);
-  width: 0.7rem;
-}
-
-.note {
-  background: var(--color-card);
-  border: 1px solid var(--color-border);
-  box-shadow: var(--shadow-card);
-  display: grid;
-  gap: 0.2rem;
-  padding: 1.2rem 1.35rem;
-  position: absolute;
-  right: -0.25rem;
-  top: 17%;
-  transform: rotate(5deg);
-  width: min(14rem, 55vw);
-}
-
-.note::before {
-  background: var(--color-accent);
-  content: "";
-  height: 0.8rem;
-  left: 50%;
-  opacity: 0.72;
-  position: absolute;
-  top: -0.42rem;
-  transform: translateX(-50%) rotate(-2deg);
-  width: 4rem;
-}
-
-.note span {
-  color: var(--color-primary-dark);
-  font-size: 0.68rem;
-  font-weight: 850;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-}
-
-.note strong {
-  font-family: var(--font-editorial), Georgia, serif;
-  font-size: 1.65rem;
-  line-height: 1;
+  height: auto;
+  object-fit: contain;
+  width: 100%;
 }
 
 @media (min-width: 48rem) {
   .layout {
-    grid-template-columns: minmax(0, 1.18fr) minmax(21rem, 0.82fr);
+    grid-template-columns: minmax(0, 1.02fr) minmax(24rem, 0.98fr);
   }
 }
 
 @media (max-width: 47.99rem) {
   .page {
     min-height: auto;
+    padding-block: 3.5rem;
   }
 
   .visual {
-    max-width: 23rem;
+    max-width: 25rem;
   }
 
   .code {
