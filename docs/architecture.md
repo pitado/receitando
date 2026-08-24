@@ -2,138 +2,171 @@
 
 ## Visão geral
 
-O Receitando adota uma arquitetura cliente-servidor simples, adequada ao aprendizado e preparada para crescer por módulos. O frontend nunca acessa o banco diretamente: toda leitura e escrita passa pela API REST, que concentra validação, regras de negócio e persistência.
+A produção atual do Receitando usa **Cloudflare Workers** tanto no frontend quanto na API. O frontend é uma aplicação Next.js compilada com OpenNext; a API é um Worker separado com persistência em Cloudflare D1.
 
 ```mermaid
 flowchart TB
     U[Usuário / navegador]
-    F[Frontend<br/>Next.js + React]
-    A[REST API<br/>NestJS]
-    P[Prisma ORM]
-    D[(PostgreSQL)]
+    F[Next.js + React<br/>OpenNext / Cloudflare Worker]
+    A[API<br/>Cloudflare Worker]
+    D[(Cloudflare D1)]
+    E[Resend]
 
     U --> F
     F -->|HTTP + JSON| A
-    A --> P
-    P --> D
+    A --> D
+    A -->|recuperação de senha| E
 ```
 
-Em desenvolvimento, os componentes usam estas URLs:
+O frontend nunca acessa o banco diretamente. Estado persistente passa pela API.
 
-| Componente | Endereço |
-| --- | --- |
-| Frontend | `http://localhost:3000` |
-| API REST | `http://localhost:3333/api` |
-| Swagger | `http://localhost:3333/api/docs` |
-| PostgreSQL | `localhost:5432` |
-
-## Responsabilidades
+## Componentes
 
 ### Frontend
 
-O Next.js usa App Router e componentes React. As páginas organizam a navegação e a apresentação; componentes reutilizáveis implementam a interface; e a camada de serviços concentra chamadas HTTP. Assim, componentes visuais não espalham detalhes de `fetch`, URLs ou tratamento de respostas.
+Diretório: `frontend/`
 
-Principais áreas:
+Responsabilidades principais:
 
-- home e `IngredientMatcher`, responsáveis pelo fluxo central;
-- catálogo em `/receitas`;
-- detalhes em `/receitas/[slug]`;
-- estruturas futuras em `/despensa` e `/favoritos`;
-- componentes compartilhados e tokens visuais centralizados.
+- navegação e layout;
+- autenticação no cliente;
+- catálogo e detalhes de receitas;
+- experiência de matching em `/combinar`;
+- despensa e favoritos;
+- perfil do usuário;
+- recuperação de senha;
+- interação social nas receitas;
+- estados de loading, erro e 404.
 
-### Backend
+A camada em `frontend/src/services/` concentra as chamadas HTTP para evitar espalhar detalhes da API pelos componentes visuais.
 
-O NestJS expõe uma API com prefixo global `/api`. A separação interna segue responsabilidades claras:
+### API
 
-- **controllers**: recebem HTTP, encaminham dados e definem o contrato de resposta;
-- **DTOs**: validam e documentam entradas;
-- **services**: aplicam regras de negócio;
-- **PrismaService**: concentra o acesso e o ciclo de vida da conexão;
-- **Prisma Client**: traduz operações tipadas para o PostgreSQL.
+Diretório: `backend/worker-prototype/`
 
-Os módulos iniciais são `ingredients`, `recipes` e `matching`. O healthcheck é independente e serve para diagnóstico da API.
+Apesar do nome histórico, esta é a API usada pela arquitetura atual.
 
-### Banco de dados
+O ponto de entrada configurado no Wrangler é `src/home-worker.ts`. A implementação é dividida em Workers encadeados:
 
-O PostgreSQL armazena usuários, ingredientes, receitas e seus relacionamentos. A tabela associativa `RecipeIngredient` contém os atributos da participação de um ingrediente na receita, como quantidade, unidade e obrigatoriedade. `PantryItem` e `Favorite` preparam o modelo para fases futuras sem exigir suas interfaces completas agora.
+```text
+home-worker
+   ↓
+catalog64-worker
+   ↓
+social-worker
+   ↓
+profile-worker
+   ↓
+password-reset-validation-worker
+   ↓
+password-reset-worker
+   ↓
+pantry-worker
+   ↓
+index
+```
 
-O Prisma mantém o schema, migrations, cliente tipado e seed. A aplicação não depende de SQL manual para o fluxo comum.
+Cada camada atende um grupo de rotas e encaminha o restante para a próxima.
 
-## Fluxo do motor de compatibilidade
+Áreas principais:
+
+- `home-worker`: feed da home;
+- `catalog64-worker`: catálogo eficiente, ingredientes e matching;
+- `social-worker`: votos e comentários;
+- `profile-worker`: perfil autenticado;
+- `password-reset-worker`: recuperação de senha;
+- `pantry-worker`: despensa e favoritos;
+- `index`: autenticação e rotas-base.
+
+## Persistência
+
+O banco de produção é **Cloudflare D1**.
+
+As migrations ficam em:
+
+```text
+backend/worker-prototype/migrations/
+```
+
+Elas definem contas, sessões, catálogo, aliases de ingredientes, despensa, favoritos, recuperação de senha, perfis, votos, comentários e metadados de fontes externas.
+
+A API usa SQL preparado diretamente pela API do D1.
+
+## Autenticação
+
+O login cria um token aleatório de sessão. O cliente recebe o token, enquanto o banco armazena somente seu hash.
+
+Requisições autenticadas usam:
+
+```text
+Authorization: Bearer <token>
+```
+
+Senhas são derivadas com PBKDF2 usando Web Crypto. Recuperações de senha usam códigos temporários e tokens que também são armazenados de forma derivada/hash.
+
+## Matching
+
+O fluxo principal é:
 
 ```mermaid
 sequenceDiagram
     actor Usuario as Usuário
     participant Web as Frontend
-    participant API as RecipesController
-    participant Service as MatchingService
-    participant Prisma as Prisma
-    participant DB as PostgreSQL
+    participant API as API Worker
+    participant DB as D1
 
-    Usuario->>Web: adiciona ingredientes
-    Web->>API: POST /api/recipes/match
-    API->>Service: ingredients[] validado
-    Service->>Service: normaliza e elimina duplicados
-    Service->>Prisma: busca receitas e ingredientes
-    Prisma->>DB: consulta relacionamentos
-    DB-->>Prisma: receitas completas
-    Prisma-->>Service: dados tipados
-    Service->>Service: calcula e ordena compatibilidade
-    Service-->>API: resultados encontrados/faltantes
-    API-->>Web: 200 + JSON
-    Web-->>Usuario: cards ordenados
+    Usuario->>Web: informa ingredientes ou usa a despensa
+    Web->>API: POST /api/recipes/match ou GET /api/recipes/match/pantry
+    API->>DB: resolve ingredientes e aliases
+    API->>DB: busca receitas candidatas
+    DB-->>API: receitas + relações
+    API->>API: calcula compatibilidade
+    API-->>Web: resultados ordenados
+    Web-->>Usuario: mostra o que combina e o que falta
 ```
 
-A compatibilidade inicial é:
+O cálculo principal considera ingredientes obrigatórios:
 
 ```text
-ingredientes obrigatórios encontrados
-───────────────────────────────────── × 100
- total de ingredientes obrigatórios
+compatibilidade = encontrados / obrigatórios × 100
 ```
 
-O resultado é arredondado para inteiro. Ingredientes opcionais podem ser exibidos, mas não reduzem o percentual. A normalização remove espaços externos, converte para minúsculas e remove marcas de acentuação; sinônimos permanecem fora do escopo desta fase.
+O motor também usa aliases normalizados para aproximar variações conhecidas de nomes de ingredientes.
 
-## Limites e dependências
+## Catálogos externos
+
+O schema suporta proveniência de receitas por meio de campos de origem e identidade externa.
+
+O repositório contém scripts/workflows de importação para fontes públicas usadas em experimentos, incluindo TheMealDB e um dataset CC0 de aproximadamente 64 mil receitas.
+
+Importação de dados é tratada separadamente da experiência principal. Licença e autorização da fonte devem ser verificadas antes de publicar conteúdo de terceiros.
+
+## Deploy e CI
 
 ```mermaid
 flowchart LR
-    subgraph Browser[Processo do navegador]
-        Pages[Páginas]
-        Components[Componentes]
-        Client[Serviço HTTP]
-        Pages --> Components --> Client
-    end
+    G[GitHub main]
+    CI[GitHub Actions]
+    FW[Frontend Worker]
+    AW[API Worker]
+    D1[(D1)]
 
-    subgraph Server[Processo NestJS]
-        Controllers[Controllers]
-        DTOs[DTOs e validação]
-        Services[Services]
-        Data[PrismaService]
-        Controllers --> DTOs
-        Controllers --> Services --> Data
-    end
-
-    Client -->|contrato REST| Controllers
-    Data --> Database[(PostgreSQL)]
+    G --> CI
+    CI --> FW
+    CI -->|workflow manual da API| D1
+    CI -->|após migrations| AW
 ```
 
-Regras importantes:
+O frontend possui deploy automatizado conforme os caminhos configurados no workflow. A API possui workflow de produção separado que valida o código, aplica migrations remotas e publica o Worker.
 
-- regra de negócio não fica em controllers nem em componentes visuais;
-- validação ocorre na fronteira da API;
-- detalhes do banco não vazam nas mensagens ao usuário;
-- o frontend depende do contrato REST, não do Prisma;
-- módulos futuros devem reutilizar `Ingredient` em vez de criar cadastros paralelos.
+Credenciais da Cloudflare e outros valores secretos ficam em GitHub Secrets ou secrets do ambiente, nunca na documentação.
 
-## Decisões para evolução
+## Desenvolvimento local
 
-- **Monorepositório simples:** duas aplicações independentes facilitam ensino, execução e deploy separado.
-- **API REST versionável:** o prefixo `/api` mantém espaço para infraestrutura; uma versão explícita poderá ser adicionada quando houver clientes externos.
-- **Relações preparadas:** despensa e favoritos já possuem entidades, mas suas regras serão implementadas com autenticação.
-- **Normalização centralizada:** todas as comparações devem chamar a mesma função para impedir resultados divergentes.
-- **Serviço de matching isolado:** no futuro ele poderá incluir quantidades, substituições, preferências ou validade sem alterar o contrato básico das receitas.
+| Componente | Endereço padrão |
+| --- | --- |
+| Frontend | `http://localhost:3000` |
+| API Worker | `http://localhost:8787` |
+| D1 | banco local gerenciado pelo Wrangler |
 
-## Implantação futura
-
-O Compose atual executa somente o PostgreSQL local. Frontend e backend continuam como processos de desenvolvimento para manter hot reload e depuração simples. Em produção, cada aplicação pode ser empacotada separadamente, com `DATABASE_URL`, origem CORS e URL pública da API definidas pelo ambiente. Redis, filas e outros serviços só devem ser adicionados quando existir uma necessidade concreta.
+A implementação antiga em `backend/` usa NestJS, Prisma e PostgreSQL e é mantida apenas como referência histórica; ela não representa a infraestrutura de produção atual.

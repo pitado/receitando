@@ -1,249 +1,205 @@
-# API REST
+# API do Receitando
 
-A API do Receitando usa JSON, prefixo global `/api` e documentação OpenAPI disponível em `/api/docs` durante o desenvolvimento.
+A API de produção roda em **Cloudflare Workers**, usa **Cloudflare D1** e responde em JSON.
 
-Base local:
+Base de produção:
 
 ```text
-http://localhost:3333/api
+https://api.receitando.miguelpita.com.br
+```
+
+Base local padrão:
+
+```text
+http://localhost:8787
 ```
 
 ## Convenções
 
-- Requisições com corpo usam `Content-Type: application/json`.
-- Identificadores são enviados como strings.
-- Datas seguem ISO 8601.
-- Campos desconhecidos ou inválidos são rejeitados pela validação global.
-- Recursos inexistentes retornam `404 Not Found`.
-- Duplicidade de `normalizedName` ou `slug` retorna `409 Conflict`.
-- Erros internos e mensagens do banco não são expostos ao cliente.
-- Rotas `POST`, `PATCH` e `DELETE` que alteram o catálogo exigem o cabeçalho
-  `x-admin-api-key`. Leituras e `POST /api/recipes/match` continuam públicos.
-
-Formato típico de erro NestJS:
-
-```json
-{
-  "statusCode": 400,
-  "message": ["ingredients must contain at least 1 elements"],
-  "error": "Bad Request"
-}
-```
+- rotas da aplicação usam prefixo `/api`;
+- corpos de requisição usam `Content-Type: application/json`;
+- erros seguem, em geral, `{ "statusCode": number, "message": string }`;
+- rotas autenticadas usam `Authorization: Bearer <token>`;
+- o token de sessão nunca deve ser commitado, logado em documentação ou compartilhado publicamente;
+- CORS aceita apenas origens configuradas pelo ambiente do Worker.
 
 ## Healthcheck
 
-### `GET /api/health`
+| Método | Rota | Acesso | Finalidade |
+| --- | --- | --- | --- |
+| `GET` | `/` | público | identificação simples da API |
+| `GET` | `/api/health` | público | healthcheck |
 
-Confirma que o processo HTTP está respondendo.
+## Autenticação e perfil
 
-Resposta `200 OK`:
+| Método | Rota | Acesso | Finalidade |
+| --- | --- | --- | --- |
+| `POST` | `/api/auth/register` | público | criar conta e sessão |
+| `POST` | `/api/auth/login` | público | autenticar usuário |
+| `GET` | `/api/auth/me` | autenticado | consultar perfil atual |
+| `PATCH` | `/api/auth/me` | autenticado | alterar nome, `@` e avatar |
+| `POST` | `/api/auth/logout` | autenticado | encerrar sessão atual |
+
+Exemplo de cadastro:
 
 ```json
 {
-  "status": "ok"
+  "name": "Pessoa Exemplo",
+  "email": "pessoa@example.com",
+  "password": "uma-senha-local-de-exemplo"
 }
 ```
+
+A resposta de login/cadastro inclui um token de sessão. Esse valor é credencial e deve permanecer privado.
+
+## Recuperação de senha
+
+| Método | Rota | Acesso | Finalidade |
+| --- | --- | --- | --- |
+| `POST` | `/api/auth/forgot-password` | público | solicitar código por e-mail |
+| `POST` | `/api/auth/verify-reset-code` | público | validar código de seis dígitos |
+| `POST` | `/api/auth/reset-password` | público | definir nova senha após validação |
+
+Os códigos expiram e são armazenados apenas como hash. Tokens temporários de recuperação também não devem aparecer em logs ou documentação real.
 
 ## Ingredientes
 
-| Método | Rota | Descrição | Sucesso |
+| Método | Rota | Acesso | Finalidade |
 | --- | --- | --- | --- |
-| `GET` | `/api/ingredients` | lista ingredientes | `200` |
-| `GET` | `/api/ingredients/:id` | busca por identificador | `200` |
-| `POST` | `/api/ingredients` | cria ingrediente | `201` |
-| `PATCH` | `/api/ingredients/:id` | atualiza parcialmente | `200` |
-| `DELETE` | `/api/ingredients/:id` | remove ingrediente | `204` |
+| `GET` | `/api/ingredients` | público | listar ingredientes usados pelo catálogo |
 
-Corpo de criação:
-
-```json
-{
-  "name": "Açúcar",
-  "category": "mercearia"
-}
-```
-
-`normalizedName` é calculado pelo backend e não precisa ser enviado.
-
-Exemplo de recurso:
-
-```json
-{
-  "id": "1a66fe64-4042-4a38-a1c1-eb1a14c09b2e",
-  "name": "Açúcar",
-  "normalizedName": "acucar",
-  "category": "mercearia",
-  "createdAt": "2026-01-01T12:00:00.000Z",
-  "updatedAt": "2026-01-01T12:00:00.000Z"
-}
-```
-
-Corpo de atualização (todos os campos são opcionais, mas o corpo não deve estar vazio):
-
-```json
-{
-  "name": "Açúcar refinado",
-  "category": "mercearia"
-}
-```
+A resposta inclui identificador, nome, forma normalizada, categoria e uso no catálogo quando disponível.
 
 ## Receitas
 
-| Método | Rota | Descrição | Sucesso |
+| Método | Rota | Acesso | Finalidade |
 | --- | --- | --- | --- |
-| `GET` | `/api/recipes` | lista receitas e ingredientes | `200` |
-| `GET` | `/api/recipes/:id` | busca por identificador | `200` |
-| `GET` | `/api/recipes/slug/:slug` | busca pelo slug público | `200` |
-| `POST` | `/api/recipes` | cria receita e relações | `201` |
-| `PATCH` | `/api/recipes/:id` | atualiza parcialmente | `200` |
-| `DELETE` | `/api/recipes/:id` | remove receita | `204` |
+| `GET` | `/api/recipes` | público | listar catálogo |
+| `GET` | `/api/recipes/:slug` | público | buscar receita por slug |
+| `POST` | `/api/recipes/match` | público | calcular compatibilidade por ingredientes |
+| `GET` | `/api/recipes/match/pantry` | autenticado | calcular compatibilidade usando a despensa |
 
-Corpo de criação:
+### Listagem
 
-```json
-{
-  "title": "Panqueca de banana",
-  "slug": "panqueca-de-banana",
-  "description": "Panqueca rápida e macia para o café da manhã.",
-  "instructions": "Amasse a banana. Misture os ingredientes. Doure dos dois lados.",
-  "prepMinutes": 15,
-  "servings": 2,
-  "ingredients": [
-    {
-      "ingredientId": "1a66fe64-4042-4a38-a1c1-eb1a14c09b2e",
-      "quantity": 1,
-      "unit": "unidade",
-      "optional": false
-    },
-    {
-      "ingredientId": "9a74ce6b-757f-4375-b6c1-371fb785b21b",
-      "quantity": 1,
-      "unit": "pitada",
-      "optional": true
-    }
-  ]
-}
+`GET /api/recipes` aceita:
+
+- `limit`: de 1 a 60, padrão 36;
+- `offset`: deslocamento para paginação;
+- `q`: busca simples pelo título.
+
+Exemplo:
+
+```text
+/api/recipes?limit=24&offset=0&q=banana
 ```
 
-O backend valida a existência de todos os ingredientes antes de persistir a receita. Uma atualização pode alterar os dados editoriais e, quando o campo `ingredients` for enviado, substituir o conjunto de relações de forma transacional.
-
-Exemplo resumido de resposta:
-
-```json
-{
-  "id": "7419eb9c-712d-4d2e-ae13-f83ed52d9e78",
-  "title": "Panqueca de banana",
-  "slug": "panqueca-de-banana",
-  "description": "Panqueca rápida e macia para o café da manhã.",
-  "instructions": "Amasse a banana. Misture os ingredientes. Doure dos dois lados.",
-  "prepMinutes": 15,
-  "servings": 2,
-  "ingredients": [
-    {
-      "quantity": 1,
-      "unit": "unidade",
-      "optional": false,
-      "ingredient": {
-        "id": "1a66fe64-4042-4a38-a1c1-eb1a14c09b2e",
-        "name": "Banana",
-        "normalizedName": "banana"
-      }
-    }
-  ]
-}
-```
-
-## Compatibilidade
-
-### `POST /api/recipes/match`
-
-Recebe de 1 a 100 nomes de ingredientes. Entradas vazias são inválidas; duplicatas deixam de contar depois da normalização.
+### Matching
 
 Requisição:
 
 ```json
 {
-  "ingredients": [
-    "ovo",
-    "banana",
-    "farinha de trigo",
-    "leite"
-  ]
+  "ingredients": ["ovo", "banana", "farinha de trigo", "leite"]
 }
 ```
-
-Resposta `200 OK`:
-
-```json
-[
-  {
-    "id": "7419eb9c-712d-4d2e-ae13-f83ed52d9e78",
-    "title": "Panqueca de banana",
-    "slug": "panqueca-de-banana",
-    "description": "Panqueca rápida e macia para o café da manhã.",
-    "compatibility": 100,
-    "requiredIngredients": [
-      "banana",
-      "ovo",
-      "farinha de trigo",
-      "leite"
-    ],
-    "foundIngredients": [
-      "banana",
-      "ovo",
-      "farinha de trigo",
-      "leite"
-    ],
-    "missingIngredients": []
-  },
-  {
-    "id": "b9cc7f86-ee77-443b-b20f-55e5acc4cc4f",
-    "title": "Bolo de banana",
-    "slug": "bolo-de-banana",
-    "description": "Bolo caseiro de banana.",
-    "compatibility": 80,
-    "requiredIngredients": [
-      "banana",
-      "ovo",
-      "farinha de trigo",
-      "leite",
-      "fermento"
-    ],
-    "foundIngredients": [
-      "banana",
-      "ovo",
-      "farinha de trigo",
-      "leite"
-    ],
-    "missingIngredients": [
-      "fermento"
-    ]
-  }
-]
-```
-
-Cálculo:
-
-```text
-compatibility = round(
-  ingredientes obrigatórios encontrados
-  / total de ingredientes obrigatórios
-  * 100
-)
-```
-
-Somente relações com `optional = false` participam do cálculo principal. A resposta é ordenada por `compatibility` decrescente. Nomes são comparados pela forma normalizada, portanto `AÇÚCAR`, ` açúcar ` e `acucar` são equivalentes; sinônimos diferentes não são inferidos.
 
 Exemplo com cURL:
 
 ```bash
-curl -X POST http://localhost:3333/api/recipes/match \
+curl -X POST https://api.receitando.miguelpita.com.br/api/recipes/match \
   -H "Content-Type: application/json" \
   -d '{"ingredients":["ovo","banana","farinha de trigo","leite"]}'
 ```
 
-## Swagger
+O motor normaliza nomes, resolve aliases conhecidos, identifica ingredientes obrigatórios encontrados e faltantes e ordena os resultados pela compatibilidade.
 
-Abra <http://localhost:3333/api/docs> com o backend em execução. A interface permite consultar schemas e enviar requisições para `ingredients`, `recipes` e `matching` sem instalar outro cliente HTTP.
+Estados usados pelo frontend:
 
-O documento gerado pelo Swagger é a referência executável do contrato. Este arquivo explica decisões e exemplos; se houver divergência durante o desenvolvimento, ajuste a implementação e esta documentação juntos.
+```text
+READY
+ALMOST_READY
+NEAR
+EXPLORE
+```
+
+## Despensa
+
+Todas as rotas exigem autenticação.
+
+| Método | Rota | Finalidade |
+| --- | --- | --- |
+| `GET` | `/api/pantry` | listar itens da despensa |
+| `POST` | `/api/pantry` | adicionar ou atualizar ingrediente |
+| `DELETE` | `/api/pantry/:itemId` | remover item |
+
+Exemplo de inclusão:
+
+```json
+{
+  "ingredientId": "id-do-ingrediente",
+  "quantity": 2,
+  "unit": "unidade"
+}
+```
+
+Quantidade e unidade são opcionais para o matching; a presença do ingrediente é o dado principal.
+
+## Favoritos
+
+Todas as rotas exigem autenticação.
+
+| Método | Rota | Finalidade |
+| --- | --- | --- |
+| `GET` | `/api/favorites` | listar receitas favoritas |
+| `POST` | `/api/favorites` | salvar receita |
+| `DELETE` | `/api/favorites/:recipeId` | remover dos favoritos |
+
+## Comunidade
+
+### Votos
+
+| Método | Rota | Acesso | Finalidade |
+| --- | --- | --- | --- |
+| `GET` | `/api/recipes/:recipeId/social` | público | contagens e voto atual quando autenticado |
+| `PUT` | `/api/recipes/:recipeId/vote` | autenticado | registrar `LIKE` ou `DISLIKE` |
+| `DELETE` | `/api/recipes/:recipeId/vote` | autenticado | remover voto |
+
+Corpo do voto:
+
+```json
+{
+  "vote": "LIKE"
+}
+```
+
+### Comentários
+
+| Método | Rota | Acesso | Finalidade |
+| --- | --- | --- | --- |
+| `GET` | `/api/recipes/:recipeId/comments` | público | listar comentários |
+| `POST` | `/api/recipes/:recipeId/comments` | autenticado | comentar |
+| `PATCH` | `/api/recipe-comments/:commentId` | dono do comentário | editar |
+| `DELETE` | `/api/recipe-comments/:commentId` | dono do comentário | excluir |
+
+Comentários aceitam texto entre 2 e 1200 caracteres.
+
+## Home
+
+| Método | Rota | Acesso | Finalidade |
+| --- | --- | --- | --- |
+| `GET` | `/api/home-feed` | público | receitas populares, comentários recentes e totais da comunidade |
+
+## Autenticação em requisições
+
+Exemplo de rota protegida:
+
+```bash
+curl https://api.receitando.miguelpita.com.br/api/pantry \
+  -H "Authorization: Bearer SEU_TOKEN_LOCAL"
+```
+
+`SEU_TOKEN_LOCAL` é apenas um placeholder. Nunca coloque tokens reais em commits, issues, screenshots públicos ou documentação.
+
+## Observação sobre a implementação antiga
+
+A pasta `backend/` contém a primeira versão em NestJS/Prisma/PostgreSQL. Ela não representa o contrato atualmente publicado. A referência de produção é o código em `backend/worker-prototype/` e esta documentação.

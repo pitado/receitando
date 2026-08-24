@@ -1,151 +1,214 @@
-# Modelo de dados
+# Modelo de dados atual
 
-O PostgreSQL é a fonte de verdade da aplicação e o Prisma gerencia schema, migrations, cliente e seed. O modelo inicial permite executar o fluxo de receitas e compatibilidade agora, preservando pontos de extensão para despensa e favoritos.
+A persistência de produção do Receitando usa **Cloudflare D1**. O schema é versionado por migrations SQL em `backend/worker-prototype/migrations/`.
 
-## Diagrama entidade-relacionamento
+## Visão geral
 
 ```mermaid
 erDiagram
-    USER ||--o{ PANTRY_ITEM : possui
-    USER ||--o{ FAVORITE : salva
-    INGREDIENT ||--o{ PANTRY_ITEM : referencia
-    INGREDIENT ||--o{ RECIPE_INGREDIENT : participa
-    RECIPE ||--o{ RECIPE_INGREDIENT : contem
-    RECIPE ||--o{ FAVORITE : recebe
+    USERS ||--o{ SESSIONS : possui
+    USERS ||--o{ PANTRY_ITEMS : possui
+    USERS ||--o{ FAVORITES : salva
+    USERS ||--o{ RECIPE_VOTES : avalia
+    USERS ||--o{ RECIPE_COMMENTS : comenta
+    USERS ||--o{ PASSWORD_RESET_CODES : solicita
 
-    USER {
-        string id PK
-        string name
-        string email UK
-        string passwordHash
-        datetime createdAt
-        datetime updatedAt
-    }
+    INGREDIENTS ||--o{ PANTRY_ITEMS : referencia
+    INGREDIENTS ||--o{ RECIPE_INGREDIENTS : participa
+    INGREDIENTS ||--o{ INGREDIENT_ALIASES : possui
 
-    INGREDIENT {
-        string id PK
-        string name
-        string normalizedName UK
-        string category
-        datetime createdAt
-        datetime updatedAt
-    }
-
-    RECIPE {
-        string id PK
-        string title
-        string slug UK
-        string description
-        string instructions
-        int prepMinutes
-        int servings
-        datetime createdAt
-        datetime updatedAt
-    }
-
-    RECIPE_INGREDIENT {
-        string id PK
-        string recipeId FK
-        string ingredientId FK
-        decimal quantity
-        string unit
-        boolean optional
-    }
-
-    PANTRY_ITEM {
-        string id PK
-        string userId FK
-        string ingredientId FK
-        decimal quantity
-        string unit
-        datetime expiresAt
-        datetime createdAt
-        datetime updatedAt
-    }
-
-    FAVORITE {
-        string userId PK,FK
-        string recipeId PK,FK
-        datetime createdAt
-    }
+    RECIPES ||--o{ RECIPE_INGREDIENTS : contem
+    RECIPES ||--o{ RECIPE_TAGS : possui
+    RECIPES ||--o{ FAVORITES : recebe
+    RECIPES ||--o{ RECIPE_VOTES : recebe
+    RECIPES ||--o{ RECIPE_COMMENTS : recebe
 ```
 
-## Entidades
+## Tabelas principais
 
-### User
+### `users`
 
-Representa a conta que futuramente terá despensa, favoritos e preferências. `email` deve ser único. `passwordHash` nunca guarda senha em texto puro nem é devolvido pela API. A autenticação não faz parte da primeira fase.
+Contas da aplicação.
 
-### Ingredient
+Campos relevantes:
 
-É o catálogo canônico de ingredientes. `name` preserva a forma legível; `normalizedName` é a chave de comparação em minúsculas, sem espaços externos e sem acentos. Esse campo deve ser único para impedir cadastros equivalentes como `Açúcar` e `acucar`. `category` permite filtros futuros.
+- `id`;
+- `name`;
+- `email` único;
+- `password_hash`;
+- `role` (`USER` ou `ADMIN`);
+- `handle` único quando preenchido;
+- `avatar_key`;
+- timestamps.
 
-### Recipe
+Senhas nunca são salvas em texto puro.
 
-Contém os dados editoriais da receita. `slug` é único e usado na URL pública. `prepMinutes` e `servings` devem ser inteiros positivos. `instructions` armazena o modo de preparo textual nesta fase.
+### `sessions`
 
-### RecipeIngredient
+Sessões autenticadas.
 
-Resolve a relação muitos-para-muitos entre receitas e ingredientes. Além das chaves estrangeiras, registra `quantity`, `unit` e `optional`. O par (`recipeId`, `ingredientId`) deve ser único: o mesmo ingrediente não deve aparecer duas vezes em uma receita.
+- associa uma sessão a `user_id`;
+- guarda somente `token_hash`;
+- possui expiração e `last_seen_at`;
+- é apagada em cascata quando a conta é removida.
 
-`optional = false` significa que o ingrediente participa do denominador do matching. Ingredientes opcionais não diminuem o percentual quando ausentes.
+O token real existe apenas no cliente durante a sessão.
 
-### PantryItem
+### `ingredients`
 
-Representa um ingrediente na despensa de uma pessoa. Quantidade, unidade e validade são opcionais do ponto de vista do domínio porque o usuário pode apenas informar que possui um item. A integração completa depende de autenticação e fica para uma fase futura.
+Catálogo canônico de ingredientes.
 
-### Favorite
+- `name`: nome exibido;
+- `normalized_name`: forma normalizada e única;
+- `category`: categoria do ingrediente.
 
-Associa usuário e receita. A chave composta (`userId`, `recipeId`) impede favoritar a mesma receita mais de uma vez.
+### `ingredient_aliases`
 
-## Integridade e índices
+Variações conhecidas de nomes apontando para um ingrediente canônico.
 
-Restrições recomendadas no schema Prisma:
+Exemplo conceitual:
 
-- unicidade em `User.email`, `Ingredient.normalizedName` e `Recipe.slug`;
-- unicidade composta em `RecipeIngredient(recipeId, ingredientId)`;
-- chave composta em `Favorite(userId, recipeId)`;
-- índices nas chaves estrangeiras usadas em junções;
-- exclusão em cascata de itens associativos quando sua receita ou usuário for removido;
-- restrição de exclusão de ingrediente enquanto houver receitas ou despensas que o referenciem, salvo quando a regra de negócio tratar a operação explicitamente.
+```text
+"farinha trigo" → "farinha de trigo"
+"mussarela"     → ingrediente canônico de queijo
+```
 
-A API deve converter violações conhecidas de unicidade ou referência em erros HTTP adequados (`409 Conflict` ou `400 Bad Request`) e nunca expor mensagens internas do PostgreSQL.
+O matching consulta tanto o nome canônico quanto aliases.
 
-## Normalização
+### `recipes`
 
-O valor normalizado é derivado pela aplicação, não digitado pelo cliente:
+Dados principais das receitas.
 
-1. remover espaços no início e no fim;
-2. converter para minúsculas;
-3. decompor Unicode;
-4. remover marcas diacríticas;
-5. manter o restante do nome sem inferir sinônimos.
+Campos atuais incluem:
 
-Exemplos:
+- título e `slug` público;
+- descrição e instruções;
+- tempo de preparo e porções;
+- tipo de refeição e dificuldade;
+- `source_type` e `source_name`;
+- `image_url` opcional;
+- metadados de origem externa;
+- timestamps.
 
-| Entrada | `normalizedName` |
-| --- | --- |
-| `Tomate` | `tomate` |
-| `  TOMATE ` | `tomate` |
-| `Açúcar` | `acucar` |
+Tipos de origem aceitos pelo schema:
 
-Essa mesma função deve ser usada no cadastro, na atualização e no matching.
+```text
+OWN
+OPEN_DATASET
+USER
+```
 
-## Migrations e seed
+Metadados externos permitem deduplicação por fonte e identificador sem depender apenas do título.
 
-Com o PostgreSQL disponível e `DATABASE_URL` configurada:
+### `recipe_ingredients`
+
+Relação entre receita e ingrediente.
+
+Além das chaves, pode armazenar:
+
+- quantidade;
+- unidade;
+- indicação de ingrediente opcional.
+
+O par receita/ingrediente é único.
+
+### `recipe_tags`
+
+Tags editoriais ou de classificação associadas às receitas.
+
+### `pantry_items`
+
+Itens da despensa de cada usuário.
+
+- `user_id`;
+- `ingredient_id`;
+- quantidade opcional;
+- unidade opcional;
+- validade opcional;
+- timestamps.
+
+O par usuário/ingrediente é único. Adicionar novamente o mesmo ingrediente atualiza o item existente.
+
+### `favorites`
+
+Relaciona usuários e receitas favoritas.
+
+A chave composta (`user_id`, `recipe_id`) impede duplicidade.
+
+### `recipe_votes`
+
+Uma avaliação por usuário e receita.
+
+Valores aceitos:
+
+```text
+LIKE
+DISLIKE
+```
+
+### `recipe_comments`
+
+Comentários da comunidade ligados a usuário e receita, com timestamps de criação e edição.
+
+### `password_reset_codes`
+
+Estado temporário da recuperação de senha.
+
+Armazena hashes do código e do token temporário, contador de tentativas, expiração, verificação e uso. O código real e o token real não são persistidos em texto puro.
+
+## Normalização de ingredientes
+
+A aplicação normaliza os nomes antes de comparar:
+
+1. decompõe Unicode;
+2. remove acentos;
+3. remove espaços externos;
+4. converte para minúsculas;
+5. reduz espaços repetidos;
+6. em partes atuais do matching, hífen e `_` também são tratados como separadores.
+
+A tabela de aliases cobre variações que não podem ser resolvidas apenas por normalização textual.
+
+## Matching
+
+O motor considera principalmente relações de `recipe_ingredients` com `optional = 0`.
+
+```text
+compatibilidade = ingredientes obrigatórios encontrados
+                  ------------------------------------- × 100
+                  total de ingredientes obrigatórios
+```
+
+Os resultados também carregam listas de ingredientes encontrados, faltantes e opcionais.
+
+## Fontes externas
+
+A migration `0011_external_catalog.sql` adiciona identidade e categorias externas às receitas e um índice único para a combinação de fonte + identificador.
+
+Isso permite importar catálogos públicos sem perder a proveniência e evita inserir a mesma receita externa repetidamente.
+
+## Migrations
+
+Local:
 
 ```bash
-npm --prefix backend run prisma:migrate
-npm --prefix backend run prisma:seed
+cd backend/worker-prototype
+npm run migrate:local
 ```
 
-O seed é idempotente sempre que possível e fornece pelo menos 15 ingredientes, 8 receitas e relacionamentos reais para exercitar percentuais completos, parciais e zero. Dados de seed são destinados a desenvolvimento e demonstração.
-
-Para inspecionar os registros com a interface do Prisma:
+Produção:
 
 ```bash
-npm --prefix backend run prisma:studio
+cd backend/worker-prototype
+npm run migrate:remote
 ```
 
-Antes de criar uma migration, altere `backend/prisma/schema.prisma` e gere uma mudança com nome descritivo. Migrations já compartilhadas não devem ser reescritas; correções posteriores devem entrar em uma nova migration.
+No deploy oficial da API, as migrations remotas são executadas pelo GitHub Actions antes da publicação do Worker.
+
+Migrations já compartilhadas não devem ser reescritas. Mudanças de schema entram sempre em uma migration nova.
+
+## Segurança
+
+O schema pode ser público; conhecer nomes de tabelas, colunas ou relações não concede acesso ao banco.
+
+O que deve permanecer privado são as **credenciais que autorizam operações**, tokens de sessão, chaves de API, códigos de recuperação e dados privados reais dos usuários.
