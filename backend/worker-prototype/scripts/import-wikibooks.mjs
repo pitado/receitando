@@ -274,17 +274,18 @@ async function main() {
 
   const sqlText = [
     "PRAGMA foreign_keys = ON;",
+    "DELETE FROM recipes WHERE COALESCE(external_source, '') <> 'wikibooks';",
     ...recipes.map((recipe) => recipeSql(recipe, category)),
   ].join("\n\n");
 
   const file = join(tmpdir(), `receitando-wikibooks-${Date.now()}.sql`);
   writeFileSync(file, sqlText, "utf8");
-  console.log(`Importando ${recipes.length} receitas no D1...`);
+  console.log(`Importando ${recipes.length} receitas no D1 e removendo receitas de outras fontes...`);
   execFileSync("npx", ["wrangler", "d1", "execute", "receitando", "--remote", `--file=${file}`, "--yes"], {
     stdio: "inherit",
     env: process.env,
   });
-  console.log(`Concluído: ${recipes.length} receitas importadas do Wikilivros.`);
+  console.log(`Concluído: catálogo mantido somente com receitas do Wikilivros.`);
 }
 
 main().catch((error) => {
