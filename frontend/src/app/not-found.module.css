@@ -1,19 +1,19 @@
 .page {
   align-items: center;
   background:
-    radial-gradient(circle at 14% 32%, color-mix(in srgb, var(--color-surface-secondary) 72%, transparent), transparent 27rem),
-    radial-gradient(circle at 88% 20%, color-mix(in srgb, var(--color-accent) 14%, transparent), transparent 24rem),
+    radial-gradient(circle at 14% 34%, color-mix(in srgb, var(--color-surface-secondary) 74%, transparent), transparent 28rem),
+    radial-gradient(circle at 88% 18%, color-mix(in srgb, var(--color-accent) 14%, transparent), transparent 24rem),
     var(--color-background);
   display: flex;
   min-height: clamp(38rem, 74vh, 52rem);
   overflow: hidden;
-  padding-block: clamp(4rem, 9vw, 7rem);
+  padding-block: clamp(3.5rem, 8vw, 6.5rem);
 }
 
 .layout {
   align-items: center;
   display: grid;
-  gap: clamp(3rem, 7vw, 6rem);
+  gap: clamp(2.5rem, 7vw, 6rem);
 }
 
 .copy {
@@ -21,7 +21,7 @@
 }
 
 .code {
-  color: color-mix(in srgb, var(--color-primary) 14%, transparent);
+  color: color-mix(in srgb, var(--color-primary) 13%, transparent);
   display: block;
   font-family: var(--font-editorial), Georgia, serif;
   font-size: clamp(6.5rem, 20vw, 12rem);
@@ -48,14 +48,15 @@
   letter-spacing: -0.055em;
   line-height: 0.95;
   margin: 0;
+  max-width: 36rem;
 }
 
 .description {
   color: var(--color-text-muted);
   font-size: clamp(1rem, 2vw, 1.12rem);
-  line-height: 1.65;
+  line-height: 1.6;
   margin: var(--space-5) 0 0;
-  max-width: 34rem;
+  max-width: 33rem;
 }
 
 .actions {
@@ -104,253 +105,35 @@
 }
 
 .visual {
-  aspect-ratio: 1 / 0.96;
   margin-inline: auto;
-  max-width: 34rem;
-  position: relative;
+  max-width: 38rem;
   width: 100%;
 }
 
-.plate {
-  background:
-    radial-gradient(circle at 46% 45%, rgba(255, 255, 255, 0.9), rgba(255, 253, 250, 0.96) 56%, rgba(248, 238, 229, 0.94) 57%, rgba(255, 253, 250, 0.98) 67%);
-  border: 1px solid var(--color-border);
-  border-radius: 48% 52% 50% 47% / 51% 48% 53% 49%;
-  box-shadow:
-    0 1.7rem 3rem color-mix(in srgb, var(--color-shadow-strong) 65%, transparent),
-    inset 0 0 0 0.4rem rgba(255, 255, 255, 0.4);
-  height: min(25.5rem, 76vw);
-  left: 42%;
-  position: absolute;
-  top: 49%;
-  transform: translate(-50%, -50%) rotate(-4deg);
-  width: min(25.5rem, 76vw);
-}
-
-.crumbOne,
-.crumbTwo,
-.crumbThree,
-.leaf {
+.plateArt {
   display: block;
-  position: absolute;
-}
-
-.crumbOne,
-.crumbTwo,
-.crumbThree {
-  border-radius: 50% 45% 52% 40%;
-}
-
-.crumbOne {
-  background: var(--color-highlight);
-  height: 0.85rem;
-  left: 58%;
-  top: 62%;
-  transform: rotate(28deg);
-  width: 0.7rem;
-}
-
-.crumbTwo {
-  background: var(--color-primary);
-  height: 0.7rem;
-  left: 51%;
-  top: 49%;
-  transform: rotate(-18deg);
-  width: 0.92rem;
-}
-
-.crumbThree {
-  background: #7c9a6e;
-  height: 0.55rem;
-  left: 45%;
-  top: 67%;
-  transform: rotate(48deg);
-  width: 0.55rem;
-}
-
-.leaf {
-  background: #7c9a6e;
-  border-radius: 70% 18% 70% 18%;
-  height: 1.55rem;
-  left: 34%;
-  top: 55%;
-  transform: rotate(-34deg);
-  width: 1rem;
-}
-
-.leaf::after {
-  background: rgba(255, 255, 255, 0.6);
-  content: "";
-  height: 1px;
-  left: 18%;
-  position: absolute;
-  top: 52%;
-  transform: rotate(-18deg);
-  width: 72%;
-}
-
-.note {
-  background: var(--color-card);
-  border: 1px solid var(--color-border);
-  box-shadow: var(--shadow-card);
-  display: grid;
-  gap: 0.25rem;
-  padding: 1.25rem 1.45rem 1.35rem;
-  position: absolute;
-  right: 1.8rem;
-  top: 17%;
-  transform: rotate(5deg);
-  width: min(15rem, 58vw);
-  z-index: 4;
-}
-
-.note::before {
-  background: color-mix(in srgb, var(--color-accent) 72%, transparent);
-  content: "";
-  height: 0.85rem;
-  left: 50%;
-  position: absolute;
-  top: -0.43rem;
-  transform: translateX(-50%) rotate(-2deg);
-  width: 4.2rem;
-}
-
-.note span {
-  color: var(--color-text-muted);
-  font-size: 0.78rem;
-  letter-spacing: 0.02em;
-}
-
-.note strong {
-  font-family: var(--font-editorial), Georgia, serif;
-  font-size: 1.9rem;
-  line-height: 1;
-}
-
-.fork {
-  bottom: 1.3rem;
-  height: 14.5rem;
-  position: absolute;
-  right: 0.2rem;
-  transform: rotate(28deg);
-  width: 4rem;
-  z-index: 3;
-}
-
-.forkHandle {
-  background: linear-gradient(90deg, #8d6c51 0%, #d8b38f 45%, #7d5e46 100%);
-  border-radius: 999px;
-  bottom: 0;
-  height: 10.6rem;
-  left: 50%;
-  position: absolute;
-  transform: translateX(-50%);
-  width: 0.62rem;
-}
-
-.forkHead {
-  height: 4rem;
-  left: 50%;
-  position: absolute;
-  top: 0;
-  transform: translateX(-50%);
-  width: 2.9rem;
-}
-
-.forkHead::after {
-  background: linear-gradient(90deg, #8d6c51, #c79d79, #7d5e46);
-  border-radius: 0 0 1.4rem 1.4rem;
-  bottom: 0;
-  content: "";
-  height: 1.25rem;
-  left: 50%;
-  position: absolute;
-  transform: translateX(-50%);
-  width: 2.45rem;
-}
-
-.forkHead i {
-  background: linear-gradient(90deg, #8d6c51, #d5ae89);
-  border-radius: 999px 999px 0 0;
-  height: 3.15rem;
-  position: absolute;
-  top: 0;
-  width: 0.32rem;
-}
-
-.forkHead i:nth-child(1) { left: 0.25rem; }
-.forkHead i:nth-child(2) { left: 0.93rem; }
-.forkHead i:nth-child(3) { right: 0.93rem; }
-.forkHead i:nth-child(4) { right: 0.25rem; }
-
-.leafGhostOne,
-.leafGhostTwo {
-  border: 1.2rem solid transparent;
-  border-left-color: color-mix(in srgb, var(--color-surface-secondary) 40%, transparent);
-  border-radius: 80% 20% 80% 20%;
-  height: 5rem;
-  position: absolute;
-  right: 1.5rem;
-  top: 20%;
-  transform: rotate(-34deg);
-  width: 2.8rem;
-}
-
-.leafGhostTwo {
-  right: 0;
-  top: 31%;
-  transform: rotate(18deg) scale(0.75);
-}
-
-.sparkle {
-  bottom: 3rem;
-  height: 1.6rem;
-  left: 0.8rem;
-  position: absolute;
-  width: 1.6rem;
-}
-
-.sparkle::before,
-.sparkle::after {
-  background: var(--color-highlight);
-  content: "";
-  left: 50%;
-  position: absolute;
-  top: 50%;
-  transform: translate(-50%, -50%);
-}
-
-.sparkle::before {
-  height: 1.6rem;
-  width: 0.18rem;
-}
-
-.sparkle::after {
-  height: 0.18rem;
-  width: 1.6rem;
+  height: auto;
+  object-fit: contain;
+  width: 100%;
 }
 
 @media (min-width: 48rem) {
   .layout {
-    grid-template-columns: minmax(0, 1.05fr) minmax(24rem, 0.95fr);
+    grid-template-columns: minmax(0, 1.02fr) minmax(24rem, 0.98fr);
   }
 }
 
 @media (max-width: 47.99rem) {
   .page {
     min-height: auto;
+    padding-block: 3.5rem;
   }
 
   .visual {
-    max-width: 23rem;
+    max-width: 25rem;
   }
 
   .code {
     font-size: clamp(6rem, 34vw, 9rem);
-  }
-
-  .fork {
-    right: -0.5rem;
-    transform: rotate(24deg) scale(0.82);
   }
 }
