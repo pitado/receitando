@@ -62,7 +62,8 @@ O frontend e a API são publicados separadamente. O frontend não acessa o banco
 - GitHub Actions
 - CI do frontend e da API Worker
 - deploy automático do frontend após mudanças relevantes na `main`
-- deploy manual da API com aplicação das migrations do D1
+- deploy automático da API quando `backend/worker-prototype/**` muda na `main`
+- aplicação das migrations do D1 antes do deploy da API
 - workflows manuais para importação de catálogos externos
 
 ## Funcionalidades atuais
@@ -86,7 +87,39 @@ O frontend e a API são publicados separadamente. O frontend não acessa o banco
 
 O modelo de dados aceita receitas próprias, receitas de usuários e fontes externas. O repositório também contém pipelines de importação usados em experimentos com catálogos públicos, incluindo **TheMealDB** e um dataset **CC0 de aproximadamente 64 mil receitas**.
 
+A primeira fonte externa estruturada usada pelo catálogo é o **Wikilivros em português**. As receitas importadas dessa fonte guardam:
+
+- URL original;
+- nome da fonte;
+- autoria/colaboradores;
+- licença;
+- URL da licença;
+- idioma;
+- data da importação;
+- texto original de cada ingrediente.
+
+As receitas do Wikilivros são identificadas como conteúdo externo e usam a licença **CC BY-SA 4.0**. A página de detalhe mostra a origem e a licença com links para a fonte original.
+
 Os scripts de importação ficam separados da lógica principal da aplicação. Conteúdo de terceiros só deve ser publicado quando sua licença ou autorização permitir o uso pretendido.
+
+### Importação do Wikilivros
+
+O workflow **Importar receitas do Wikilivros** é executado manualmente no GitHub Actions. Ele permite escolher uma categoria culinária e importar lotes de 5, 12, 25 ou 50 receitas.
+
+Categorias aceitas atualmente:
+
+- Salgados, Lanches e Sanduíches;
+- Doces;
+- Entradas;
+- Massas;
+- Quitandas;
+- Sobremesas.
+
+O importador usa a API MediaWiki, ignora páginas sem estrutura suficiente e só aceita receitas com pelo menos 3 ingredientes e 2 passos de preparo. Quando uma página contém várias versões de uma mesma receita, a primeira versão completa é usada.
+
+A importação remota grava o SQL via `wrangler d1 execute --remote`. O arquivo gerado **não deve conter `BEGIN TRANSACTION`, `COMMIT` ou `SAVEPOINT` explícitos**, porque o D1 remoto não aceita essas instruções nesse fluxo; a execução remota é coordenada pelo Wrangler/D1.
+
+As imagens do Wikimedia Commons não são importadas automaticamente nesta etapa, porque cada mídia pode ter uma licença diferente do texto da receita.
 
 ## API
 
@@ -102,11 +135,19 @@ Resumo das áreas disponíveis:
 - recuperação de senha;
 - ingredientes;
 - catálogo e detalhes de receitas;
+- fontes externas de receitas;
 - matching por ingredientes ou pela despensa;
 - despensa;
 - favoritos;
 - votos e comentários;
 - feed da home.
+
+Rotas relacionadas às fontes externas:
+
+```text
+GET /api/sources
+GET /api/recipes?source=wikibooks
+```
 
 A lista de rotas e exemplos está em [`docs/api.md`](docs/api.md).
 
@@ -190,7 +231,7 @@ npm run migrate:local
 npm run dev
 ```
 
-O deploy de produção é feito pelo workflow **Deploy API Cloudflare**, que aplica as migrations remotas antes de publicar o Worker.
+O deploy de produção é feito pelo workflow **Deploy API Cloudflare**. Em pushes na `main` que alterem o Worker, o workflow aplica as migrations remotas e publica a API automaticamente.
 
 ## Segurança e informações públicas
 
@@ -206,6 +247,21 @@ Este repositório pode documentar publicamente:
 **Nunca devem ser commitados** valores reais de tokens, chaves de API, credenciais, tokens de sessão, códigos de recuperação, senhas ou dados privados de usuários.
 
 Secrets de produção ficam no GitHub Actions ou na configuração segura da Cloudflare. Arquivos `.env.example` devem conter apenas valores locais ou placeholders.
+
+## Regra de documentação
+
+Toda alteração que mude a engrenagem do projeto deve atualizar este README no mesmo PR. Isso inclui mudanças em:
+
+- arquitetura;
+- API;
+- banco e migrations;
+- autenticação;
+- importadores e fontes externas;
+- deploy e CI;
+- integrações externas;
+- fluxos principais do produto.
+
+Mudanças apenas visuais, sem impacto no funcionamento ou na arquitetura, não exigem atualização do README.
 
 ## Documentação
 
