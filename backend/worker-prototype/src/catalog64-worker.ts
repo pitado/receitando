@@ -19,6 +19,12 @@ type RecipeRow = {
   difficulty: "FACIL" | "MEDIA" | "DIFICIL";
   sourceType: "OWN" | "OPEN_DATASET" | "USER";
   sourceName: string;
+  sourceUrl: string | null;
+  sourceAuthor: string | null;
+  sourceLicense: string | null;
+  sourceLicenseUrl: string | null;
+  sourceLanguage: string | null;
+  externalSource: string | null;
   imageUrl: string | null;
 };
 
@@ -31,6 +37,7 @@ type IngredientRow = {
   quantity: number | null;
   unit: string | null;
   optional: number;
+  rawText: string | null;
 };
 
 const encoder = new TextEncoder();
@@ -105,14 +112,17 @@ async function loadRecipesByIds(env: Env, ids: string[]) {
   const recipeResult = await env.db.prepare(`
     SELECT id, title, slug, description, instructions,
       prep_minutes AS prepMinutes, servings, meal_type AS mealType, difficulty,
-      source_type AS sourceType, source_name AS sourceName, image_url AS imageUrl
+      source_type AS sourceType, source_name AS sourceName, image_url AS imageUrl,
+      source_url AS sourceUrl, source_author AS sourceAuthor,
+      source_license AS sourceLicense, source_license_url AS sourceLicenseUrl,
+      source_language AS sourceLanguage, external_source AS externalSource
     FROM recipes WHERE id IN (${mark})
   `).bind(...limited).all<RecipeRow>();
 
   const ingredientResult = await env.db.prepare(`
     SELECT ri.recipe_id AS recipeId, i.id AS ingredientId, i.name,
       i.normalized_name AS normalizedName, i.category,
-      ri.quantity, ri.unit, ri.optional
+      ri.quantity, ri.unit, ri.optional, ri.raw_text AS rawText
     FROM recipe_ingredients ri
     JOIN ingredients i ON i.id = ri.ingredient_id
     WHERE ri.recipe_id IN (${mark})
@@ -139,7 +149,16 @@ async function loadRecipesByIds(env: Env, ids: string[]) {
   const order = new Map(limited.map((id, index) => [id, index]));
   return recipeResult.results.map((recipe) => ({
     ...recipe,
-    source: { type: recipe.sourceType, name: recipe.sourceName },
+    source: {
+      type: recipe.sourceType,
+      name: recipe.sourceName,
+      url: recipe.sourceUrl,
+      author: recipe.sourceAuthor,
+      license: recipe.sourceLicense,
+      licenseUrl: recipe.sourceLicenseUrl,
+      language: recipe.sourceLanguage,
+      externalSource: recipe.externalSource,
+    },
     tags: tagMap.get(recipe.id) ?? [],
     ingredients: (ingredientMap.get(recipe.id) ?? []).map((item) => ({
       ingredientId: item.ingredientId,
@@ -149,6 +168,7 @@ async function loadRecipesByIds(env: Env, ids: string[]) {
       quantity: item.quantity,
       unit: item.unit,
       optional: Boolean(item.optional),
+      rawText: item.rawText,
     })),
   })).sort((a, b) => (order.get(a.id) ?? 999) - (order.get(b.id) ?? 999));
 }
@@ -165,6 +185,29 @@ async function listCatalogIngredients(request: Request, env: Env): Promise<Respo
     LIMIT 1200
   `).all<{ id: string; name: string; normalizedName: string; category: string; usageCount: number }>();
   return json(request, env, rows.results);
+}
+
+async function listSources(request: Request, env: Env): Promise<Response> {
+  const rows = await env.db.prepare(`
+    SELECT external_source AS id, source_name AS name, COUNT(*) AS recipeCount
+    FROM recipes
+    WHERE external_source IS NOT NULL
+    GROUP BY external_source, source_name
+    ORDER BY source_name
+  `).all<{ id: string; name: string; recipeCount: number }>();
+
+  const imported = new Map(rows.results.map((row) => [row.id, Number(row.recipeCount)]));
+  return json(request, env, [
+    {
+      id: "wikibooks",
+      name: "Wikilivros",
+      homepage: "https://pt.wikibooks.org/wiki/Livro_de_receitas",
+      license: "CC BY-SA 4.0",
+      licenseUrl: "https://creativecommons.org/licenses/by-sa/4.0/",
+      language: "pt-BR",
+      recipeCount: imported.get("wikibooks") ?? 0,
+    },
+  ]);
 }
 
 async function canonicalIngredientIds(env: Env, values: string[]): Promise<string[]> {
@@ -237,9 +280,19 @@ async function listRecipes(request: Request, env: Env): Promise<Response> {
   const limit = Math.min(60, Math.max(1, Number(url.searchParams.get("limit")) || 36));
   const offset = Math.max(0, Number(url.searchParams.get("offset")) || 0);
   const search = normalizeIngredient(url.searchParams.get("q") ?? "");
-  const rows = search
-    ? await env.db.prepare(`SELECT id FROM recipes WHERE lower(title) LIKE ? ORDER BY title LIMIT ? OFFSET ?`).bind(`%${search}%`, limit, offset).all<{ id: string }>()
-    : await env.db.prepare(`SELECT id FROM recipes ORDER BY updated_at DESC, title LIMIT ? OFFSET ?`).bind(limit, offset).all<{ id: string }>();
+  const source = (url.searchParams.get("source") ?? "").trim().toLowerCase();
+
+  let rows: D1Result<{ id: string }>;
+  if (search && source) {
+    rows = await env.db.prepare(`SELECT id FROM recipes WHERE lower(title) LIKE ? AND lower(external_source) = ? ORDER BY title LIMIT ? OFFSET ?`).bind(`%${search}%`, source, limit, offset).all<{ id: string }>();
+  } else if (search) {
+    rows = await env.db.prepare(`SELECT id FROM recipes WHERE lower(title) LIKE ? ORDER BY title LIMIT ? OFFSET ?`).bind(`%${search}%`, limit, offset).all<{ id: string }>();
+  } else if (source) {
+    rows = await env.db.prepare(`SELECT id FROM recipes WHERE lower(external_source) = ? ORDER BY updated_at DESC, title LIMIT ? OFFSET ?`).bind(source, limit, offset).all<{ id: string }>();
+  } else {
+    rows = await env.db.prepare(`SELECT id FROM recipes ORDER BY updated_at DESC, title LIMIT ? OFFSET ?`).bind(limit, offset).all<{ id: string }>();
+  }
+
   return json(request, env, await loadRecipesByIds(env, rows.results.map((row) => row.id)));
 }
 
@@ -262,6 +315,7 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname.replace(/\/+$/, "") || "/";
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders(request, env) });
+    if (request.method === "GET" && path === "/api/sources") return listSources(request, env);
     if (request.method === "GET" && path === "/api/ingredients") return listCatalogIngredients(request, env);
     if (request.method === "POST" && path === "/api/recipes/match") return matchFromRequest(request, env);
     if (request.method === "GET" && path === "/api/recipes/match/pantry") return matchFromPantry(request, env);
