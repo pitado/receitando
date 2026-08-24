@@ -105,195 +105,263 @@
 }
 
 .visual {
-  aspect-ratio: 1 / 0.92;
+  aspect-ratio: 1 / 0.94;
   margin-inline: auto;
-  max-width: 35rem;
+  max-width: 37rem;
   position: relative;
   width: 100%;
 }
 
 .plate {
-  background: #fffdf8;
-  border: 1px solid color-mix(in srgb, var(--color-border) 85%, #c8a48d);
-  border-radius: 51% 49% 52% 48% / 48% 53% 47% 52%;
+  background:
+    radial-gradient(circle at 31% 28%, #ffffff 0 0.18rem, transparent 0.22rem),
+    radial-gradient(circle at 71% 68%, #eadfd2 0 0.12rem, transparent 0.16rem),
+    radial-gradient(circle at 58% 31%, #efe3d7 0 0.1rem, transparent 0.14rem),
+    #fffdf8;
+  border: 1px solid color-mix(in srgb, var(--color-border) 82%, #c6a48e);
+  border-radius: 49% 51% 47% 53% / 53% 48% 52% 47%;
   box-shadow:
-    inset 0 0 0 1.25rem #fff8ef,
-    inset 0 0 0 1.35rem color-mix(in srgb, var(--color-border) 55%, transparent),
-    0 2rem 3.5rem color-mix(in srgb, var(--color-shadow-strong) 65%, transparent);
-  height: min(26rem, 70vw);
+    inset 0 0 0 1.1rem #fffaf2,
+    inset 0 0 0 1.22rem color-mix(in srgb, var(--color-border) 52%, transparent),
+    inset -0.6rem -0.55rem 1.2rem color-mix(in srgb, #d8c3b2 18%, transparent),
+    0 1.7rem 2.8rem color-mix(in srgb, var(--color-shadow-strong) 58%, transparent);
+  height: min(27rem, 72vw);
   left: 44%;
   position: absolute;
   top: 49%;
-  transform: translate(-50%, -50%) rotate(-4deg);
-  width: min(26rem, 70vw);
+  transform: translate(-50%, -50%) rotate(-3deg);
+  width: min(27rem, 72vw);
 }
 
-.plate::after {
-  border: 1px solid color-mix(in srgb, var(--color-border) 45%, transparent);
-  border-radius: 50%;
+.plate::before {
+  border: 1px solid color-mix(in srgb, var(--color-border) 42%, transparent);
+  border-radius: 50% 48% 52% 49% / 49% 52% 48% 51%;
   content: "";
   inset: 2.35rem;
   position: absolute;
 }
 
-.note {
-  background: var(--color-card);
-  border: 1px solid var(--color-border);
-  box-shadow: 0 1rem 2rem var(--color-shadow);
-  display: grid;
-  gap: 0.3rem;
-  padding: 1.15rem 1.3rem 1.3rem;
+.plate::after {
+  background: radial-gradient(circle, color-mix(in srgb, #ffffff 68%, transparent), transparent 68%);
+  border-radius: inherit;
+  content: "";
+  inset: 0.35rem;
+  opacity: 0.58;
+  pointer-events: none;
   position: absolute;
-  right: -1.5rem;
-  top: 12%;
-  transform: rotate(5deg);
-  width: min(14.5rem, 58vw);
-  z-index: 2;
+}
+
+.note {
+  background: #fffaf4;
+  border: 1px solid color-mix(in srgb, var(--color-border) 88%, #c9aa94);
+  box-shadow: 0 0.85rem 1.75rem color-mix(in srgb, var(--color-shadow-strong) 44%, transparent);
+  display: grid;
+  gap: 0.28rem;
+  padding: 1rem 1.15rem 1.1rem;
+  position: absolute;
+  right: 7%;
+  top: 14%;
+  transform: rotate(4deg);
+  width: min(13.2rem, 54vw);
+  z-index: 3;
 }
 
 .note::before {
-  background: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 78%, #f6c39f);
   content: "";
-  height: 0.8rem;
-  left: 50%;
-  opacity: 0.68;
+  height: 0.72rem;
+  left: 52%;
+  opacity: 0.72;
   position: absolute;
-  top: -0.42rem;
+  top: -0.38rem;
   transform: translateX(-50%) rotate(-2deg);
-  width: 4.25rem;
+  width: 3.8rem;
 }
 
 .note span {
   color: var(--color-primary-dark);
-  font-size: 0.68rem;
+  font-size: 0.66rem;
   font-weight: 850;
   letter-spacing: 0.1em;
 }
 
 .note strong {
   font-family: var(--font-editorial), Georgia, serif;
-  font-size: clamp(1.35rem, 3vw, 1.85rem);
+  font-size: clamp(1.28rem, 2.6vw, 1.7rem);
   line-height: 1.02;
 }
 
 .crumb {
-  border-radius: 50% 43% 55% 38%;
   display: block;
   position: absolute;
-  z-index: 1;
+  z-index: 2;
 }
 
 .crumbOne {
   background: var(--color-primary);
-  height: 0.82rem;
-  left: 43%;
-  top: 57%;
-  transform: rotate(-24deg);
-  width: 1.05rem;
+  border-radius: 50%;
+  box-shadow: inset -0.16rem -0.12rem 0 color-mix(in srgb, var(--color-primary-dark) 35%, transparent);
+  height: 0.72rem;
+  left: 42%;
+  top: 58%;
+  width: 0.72rem;
 }
 
 .crumbTwo {
-  background: var(--color-highlight);
-  height: 0.7rem;
-  left: 34%;
-  top: 47%;
-  transform: rotate(31deg);
-  width: 0.78rem;
+  background: #7c9a6e;
+  border-radius: 100% 0 100% 0;
+  height: 1.15rem;
+  left: 31%;
+  top: 50%;
+  transform: rotate(-31deg);
+  width: 0.72rem;
 }
 
 .crumbThree {
-  background: #7c9a6e;
-  height: 0.62rem;
-  left: 52%;
+  background: #8caf76;
+  border-radius: 50%;
+  height: 0.48rem;
+  left: 50%;
   top: 68%;
-  transform: rotate(46deg);
-  width: 0.62rem;
+  width: 0.48rem;
 }
 
 .crumbFour {
-  background: color-mix(in srgb, var(--color-highlight) 72%, #c79b6f);
-  height: 0.5rem;
+  background: #e8c89d;
+  border-radius: 42% 56% 45% 58%;
+  height: 0.64rem;
   left: 39%;
-  top: 73%;
-  transform: rotate(-12deg);
-  width: 0.65rem;
+  top: 72%;
+  transform: rotate(17deg);
+  width: 0.72rem;
 }
 
 .fork {
-  bottom: 3%;
-  height: 15rem;
+  bottom: 1%;
+  filter: drop-shadow(0 0.7rem 0.6rem color-mix(in srgb, var(--color-shadow) 80%, transparent));
+  height: 15.5rem;
   position: absolute;
-  right: 1%;
-  transform: rotate(23deg);
-  width: 4rem;
+  right: 0;
+  transform: rotate(22deg);
+  width: 3.8rem;
   z-index: 2;
 }
 
 .forkHead {
   display: flex;
-  height: 4.4rem;
+  height: 4rem;
   justify-content: space-between;
   left: 50%;
   position: absolute;
   top: 0;
   transform: translateX(-50%);
-  width: 3rem;
+  width: 2.65rem;
+}
+
+.forkHead::after {
+  background: linear-gradient(90deg, #725344, #9e7b67 48%, #725344);
+  border-radius: 0 0 999px 999px;
+  bottom: 0.2rem;
+  content: "";
+  height: 0.72rem;
+  left: 50%;
+  position: absolute;
+  transform: translateX(-50%);
+  width: 2.6rem;
 }
 
 .forkHead i {
-  background: #8a6a58;
+  background: linear-gradient(90deg, #6e5143, #a3826e 55%, #705144);
   border-radius: 999px 999px 0 0;
   display: block;
-  height: 4.1rem;
-  width: 0.3rem;
+  height: 3.55rem;
+  width: 0.24rem;
 }
 
 .forkHandle {
-  background: linear-gradient(90deg, #725344, #a58470 48%, #6f5042);
-  border-radius: 999px;
-  height: 11.5rem;
+  background: linear-gradient(90deg, #684a3e, #9e7a67 46%, #b18d79 58%, #66493d);
+  border-radius: 55% 45% 52% 48% / 12% 12% 88% 88%;
+  height: 11.9rem;
   left: 50%;
   position: absolute;
-  top: 3.7rem;
+  top: 3.45rem;
   transform: translateX(-50%);
-  width: 0.62rem;
+  width: 0.6rem;
 }
 
-.leaf {
-  background: #7c9a6e;
-  border-radius: 100% 0 100% 0;
-  bottom: 5%;
-  height: 4rem;
+.herb {
+  bottom: 2.5%;
+  height: 5.4rem;
   position: absolute;
-  right: 13%;
-  transform: rotate(-22deg);
-  width: 2.1rem;
+  right: 10.5%;
+  transform: rotate(-19deg);
+  width: 5.6rem;
   z-index: 1;
 }
 
-.leaf::after {
-  background: color-mix(in srgb, #40532e 70%, transparent);
+.herb::before {
+  background: #607a50;
+  border-radius: 999px;
+  bottom: 0.4rem;
   content: "";
-  height: 0.12rem;
-  left: 14%;
+  height: 0.13rem;
+  left: 0.4rem;
   position: absolute;
-  top: 52%;
-  transform: rotate(-38deg);
+  transform: rotate(-32deg);
   transform-origin: left center;
-  width: 78%;
+  width: 5rem;
+}
+
+.herb i {
+  background: #789867;
+  border-radius: 100% 0 100% 0;
+  display: block;
+  height: 1.35rem;
+  position: absolute;
+  width: 0.82rem;
+}
+
+.herb i:nth-child(1) {
+  bottom: 0.2rem;
+  left: 1rem;
+  transform: rotate(-55deg);
+}
+
+.herb i:nth-child(2) {
+  bottom: 1.2rem;
+  left: 2.05rem;
+  transform: rotate(4deg);
+}
+
+.herb i:nth-child(3) {
+  bottom: 1.9rem;
+  left: 3rem;
+  transform: rotate(-46deg);
+}
+
+.herb i:nth-child(4) {
+  bottom: 2.8rem;
+  left: 3.9rem;
+  transform: rotate(11deg);
+}
+
+.herb i:nth-child(5) {
+  bottom: 3.5rem;
+  left: 4.65rem;
+  transform: rotate(-38deg);
 }
 
 .sparkle {
-  bottom: 12%;
-  height: 1.8rem;
+  bottom: 11%;
+  height: 1.65rem;
   left: 4%;
   position: absolute;
-  width: 1.8rem;
+  width: 1.65rem;
 }
 
 .sparkle::before,
 .sparkle::after {
-  background: color-mix(in srgb, var(--color-accent) 62%, transparent);
+  background: color-mix(in srgb, var(--color-accent) 58%, transparent);
   border-radius: 999px;
   content: "";
   left: 50%;
@@ -303,13 +371,13 @@
 }
 
 .sparkle::before {
-  height: 1.8rem;
-  width: 0.16rem;
+  height: 1.65rem;
+  width: 0.14rem;
 }
 
 .sparkle::after {
-  height: 0.16rem;
-  width: 1.8rem;
+  height: 0.14rem;
+  width: 1.65rem;
 }
 
 @media (min-width: 48rem) {
@@ -333,11 +401,16 @@
   }
 
   .plate {
-    left: 45%;
+    left: 46%;
   }
 
   .fork {
-    right: -3%;
-    transform: scale(0.82) rotate(23deg);
+    right: -4%;
+    transform: scale(0.8) rotate(22deg);
+  }
+
+  .herb {
+    right: 5%;
+    transform: scale(0.82) rotate(-19deg);
   }
 }

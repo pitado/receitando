@@ -47,7 +47,13 @@ export default function NotFoundPage() {
             <span className={styles.forkHandle} />
           </div>
 
-          <span className={styles.leaf} />
+          <span className={styles.herb}>
+            <i />
+            <i />
+            <i />
+            <i />
+            <i />
+          </span>
           <span className={styles.sparkle} />
         </div>
       </div>
