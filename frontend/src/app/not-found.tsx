@@ -31,90 +31,96 @@ export default function NotFoundPage() {
             xmlns="http://www.w3.org/2000/svg"
           >
             <defs>
-              <filter id="plate-shadow" x="-30%" y="-30%" width="160%" height="180%">
-                <feDropShadow dx="0" dy="18" floodColor="#6f4d3c" floodOpacity="0.14" stdDeviation="16" />
+              <filter id="plate-shadow-v3" x="-40%" y="-40%" width="180%" height="200%">
+                <feDropShadow dx="0" dy="20" floodColor="#8a5f4b" floodOpacity="0.18" stdDeviation="18" />
               </filter>
-              <filter id="fork-shadow" x="-50%" y="-50%" width="200%" height="200%">
-                <feDropShadow dx="0" dy="7" floodColor="#5a3d30" floodOpacity="0.16" stdDeviation="5" />
+              <filter id="paper-shadow-v3" x="-50%" y="-50%" width="200%" height="200%">
+                <feDropShadow dx="0" dy="10" floodColor="#8a5f4b" floodOpacity="0.18" stdDeviation="10" />
               </filter>
-              <linearGradient id="fork-metal" x1="0" x2="1">
-                <stop offset="0" stopColor="#725143" />
-                <stop offset="0.48" stopColor="#b08a73" />
-                <stop offset="1" stopColor="#68493c" />
+              <linearGradient id="plate-fill-v3" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stopColor="#fffefa" />
+                <stop offset="0.65" stopColor="#fff9f2" />
+                <stop offset="1" stopColor="#f1dfd1" />
               </linearGradient>
-              <linearGradient id="plate-glow" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0" stopColor="#ffffff" stopOpacity="0.96" />
-                <stop offset="0.62" stopColor="#fffaf3" stopOpacity="0.9" />
-                <stop offset="1" stopColor="#f3e5d8" stopOpacity="0.78" />
+              <linearGradient id="fork-fill-v3" x1="0" x2="1">
+                <stop offset="0" stopColor="#6f4f41" />
+                <stop offset="0.45" stopColor="#b08b76" />
+                <stop offset="0.65" stopColor="#d0b19f" />
+                <stop offset="1" stopColor="#6d4d40" />
               </linearGradient>
             </defs>
 
-            <g filter="url(#plate-shadow)" transform="rotate(-3 278 280)">
+            <g filter="url(#plate-shadow-v3)" transform="rotate(-2 300 280)">
               <path
-                d="M296 76C374 74 441 111 474 178C510 251 494 340 439 399C385 457 291 479 211 448C132 418 84 344 88 263C91 188 133 121 203 91C230 80 263 75 296 76Z"
-                fill="url(#plate-glow)"
-                stroke="#E4CFC0"
+                d="M300 93C382 91 451 136 477 207C504 279 480 366 419 417C356 470 254 478 180 431C110 387 79 307 99 232C119 157 197 96 300 93Z"
+                fill="url(#plate-fill-v3)"
+                stroke="#DCC4B3"
+                strokeWidth="2.4"
+              />
+              <path
+                d="M300 126C366 123 421 157 444 216C466 274 447 340 398 380C349 421 271 428 212 392C158 358 134 297 149 240C165 181 225 129 300 126Z"
+                fill="#fffdf9"
+                stroke="#E8D8CD"
                 strokeWidth="2"
               />
               <path
-                d="M290 103C358 102 416 134 445 190C477 251 464 326 417 376C370 426 293 444 227 419C159 393 117 330 120 263C123 199 159 145 216 119C238 109 264 103 290 103Z"
-                fill="#FFFCF7"
-                stroke="#EDDED3"
-                strokeWidth="2"
-              />
-              <path
-                d="M222 131C183 151 150 188 138 230"
+                d="M189 187C212 161 245 145 282 139"
                 fill="none"
                 opacity="0.75"
-                stroke="#FFFFFF"
+                stroke="#fff"
                 strokeLinecap="round"
-                strokeWidth="9"
+                strokeWidth="14"
               />
               <path
-                d="M392 385C365 408 333 421 300 425"
+                d="M390 373C361 397 328 407 294 408"
                 fill="none"
-                opacity="0.65"
-                stroke="#E9D9CD"
+                opacity="0.75"
+                stroke="#E7D3C5"
                 strokeLinecap="round"
                 strokeWidth="5"
               />
             </g>
 
+            <g opacity="0.95">
+              <ellipse cx="249" cy="321" fill="#C85A3D" rx="7" ry="6" transform="rotate(-17 249 321)" />
+              <ellipse cx="213" cy="286" fill="#7C9A6E" rx="5" ry="9" transform="rotate(-32 213 286)" />
+              <circle cx="287" cy="347" fill="#8CAA7A" r="5" />
+              <ellipse cx="235" cy="370" fill="#E2BC86" rx="7" ry="5" transform="rotate(14 235 370)" />
+              <circle cx="326" cy="307" fill="#D69A64" opacity="0.7" r="3" />
+            </g>
+
+            <g filter="url(#paper-shadow-v3)" transform="rotate(3 330 205)">
+              <rect x="245" y="155" width="184" height="118" rx="2" fill="#FFF8F0" stroke="#DCC2B1" />
+              <rect x="309" y="145" width="62" height="14" rx="1" fill="#F2B07D" opacity="0.8" />
+              <text x="267" y="183" fontFamily="Arial, sans-serif" fontSize="12" fontWeight="800" fill="#B44B33" letterSpacing="1">
+                404
+              </text>
+              <text x="267" y="214" fontFamily="Georgia, serif" fontSize="27" fontWeight="700" fill="#321E17">
+                pedido não
+              </text>
+              <text x="267" y="243" fontFamily="Georgia, serif" fontSize="27" fontWeight="700" fill="#321E17">
+                encontrado
+              </text>
+            </g>
+
+            <g filter="url(#plate-shadow-v3)" transform="rotate(17 501 337)">
+              <path d="M507 246V442" stroke="url(#fork-fill-v3)" strokeWidth="11" strokeLinecap="round" />
+              <path d="M484 232V287M497 228V287M510 228V287M523 232V287" stroke="url(#fork-fill-v3)" strokeWidth="6" strokeLinecap="round" />
+              <path d="M484 286C491 299 517 299 523 286" fill="none" stroke="url(#fork-fill-v3)" strokeWidth="9" strokeLinecap="round" />
+            </g>
+
             <g>
-              <ellipse cx="243" cy="301" fill="#C85A3D" rx="7" ry="6" transform="rotate(-20 243 301)" />
-              <ellipse cx="198" cy="266" fill="#7C9A6E" rx="5" ry="9" transform="rotate(-38 198 266)" />
-              <circle cx="278" cy="344" fill="#84A873" r="4.5" />
-              <ellipse cx="233" cy="371" fill="#E2BC86" rx="6.5" ry="4.5" transform="rotate(16 233 371)" />
-              <circle cx="323" cy="316" fill="#D9A26A" opacity="0.6" r="2.6" />
+              <path d="M432 434C459 418 478 398 494 374" fill="none" stroke="#688A59" strokeWidth="3" strokeLinecap="round" />
+              <ellipse cx="445" cy="424" rx="7" ry="14" fill="#7C9A6E" transform="rotate(-48 445 424)" />
+              <ellipse cx="462" cy="409" rx="7" ry="14" fill="#88A879" transform="rotate(-38 462 409)" />
+              <ellipse cx="479" cy="391" rx="7" ry="14" fill="#769664" transform="rotate(-30 479 391)" />
             </g>
 
-            <g filter="url(#fork-shadow)" transform="rotate(20 505 350)">
-              <path d="M510 211V412" stroke="url(#fork-metal)" strokeLinecap="round" strokeWidth="11" />
-              <path d="M488 207L488 258" stroke="url(#fork-metal)" strokeLinecap="round" strokeWidth="6" />
-              <path d="M501 204L501 258" stroke="url(#fork-metal)" strokeLinecap="round" strokeWidth="6" />
-              <path d="M514 204L514 258" stroke="url(#fork-metal)" strokeLinecap="round" strokeWidth="6" />
-              <path d="M527 207L527 258" stroke="url(#fork-metal)" strokeLinecap="round" strokeWidth="6" />
-              <path d="M488 257C493 267 522 267 527 257" fill="none" stroke="url(#fork-metal)" strokeLinecap="round" strokeWidth="8" />
-            </g>
-
-            <g fill="none" stroke="#6F8E5F" strokeLinecap="round">
-              <path d="M424 431C448 417 470 398 488 374" strokeWidth="3" />
-              <path d="M438 421C431 407 433 397 443 393C451 401 449 411 438 421Z" fill="#7C9A6E" stroke="none" />
-              <path d="M456 407C451 392 456 382 467 381C473 390 469 399 456 407Z" fill="#88A879" stroke="none" />
-              <path d="M472 391C468 378 473 368 484 368C489 377 485 385 472 391Z" fill="#7C9A6E" stroke="none" />
-              <path d="M445 417C452 421 459 421 464 416" strokeWidth="2" />
-            </g>
-
-            <g stroke="#E7B58E" strokeLinecap="round" strokeWidth="2.2">
-              <path d="M106 400V426" />
-              <path d="M93 413H119" />
+            <g stroke="#E4A779" strokeWidth="2.2" strokeLinecap="round" opacity="0.8">
+              <path d="M106 404V432" />
+              <path d="M92 418H120" />
             </g>
           </svg>
-
-          <div className={styles.note}>
-            <span>404</span>
-            <strong>pedido não encontrado</strong>
-          </div>
         </div>
       </div>
     </section>
