@@ -16,7 +16,7 @@ on:
           - Quitandas
           - Sobremesas
       limit:
-        description: Quantidade máxima de receitas válidas
+        description: Quantidade máxima de receitas com imagem livre
         required: true
         default: "12"
         type: choice
@@ -35,7 +35,7 @@ concurrency:
 
 jobs:
   import:
-    name: importar no D1
+    name: importar receitas com foto livre no D1
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -53,7 +53,7 @@ jobs:
       - run: npm ci
       - name: Aplicar migrations
         run: npm run migrate:remote
-      - name: Importar receitas
+      - name: Importar receitas com imagens livres
         run: node scripts/import-wikibooks.mjs --category "$CATEGORY" --limit "$LIMIT"
         env:
           CATEGORY: ${{ inputs.category }}
