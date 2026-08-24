@@ -1,10 +1,20 @@
 name: Deploy API Cloudflare
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - "backend/worker-prototype/**"
+      - ".github/workflows/deploy-api-cloudflare.yml"
   workflow_dispatch:
 
 permissions:
   contents: read
+
+concurrency:
+  group: cloudflare-api-production
+  cancel-in-progress: true
 
 jobs:
   api-production:
