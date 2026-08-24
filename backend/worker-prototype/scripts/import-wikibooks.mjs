@@ -274,15 +274,13 @@ async function main() {
 
   const sqlText = [
     "PRAGMA foreign_keys = ON;",
-    "BEGIN TRANSACTION;",
     ...recipes.map((recipe) => recipeSql(recipe, category)),
-    "COMMIT;",
   ].join("\n\n");
 
   const file = join(tmpdir(), `receitando-wikibooks-${Date.now()}.sql`);
   writeFileSync(file, sqlText, "utf8");
   console.log(`Importando ${recipes.length} receitas no D1...`);
-  execFileSync("npx", ["wrangler", "d1", "execute", "receitando", "--remote", `--file=${file}`], {
+  execFileSync("npx", ["wrangler", "d1", "execute", "receitando", "--remote", `--file=${file}`, "--yes"], {
     stdio: "inherit",
     env: process.env,
   });
