@@ -1,0 +1,60 @@
+name: Importar receitas do Wikilivros
+
+on:
+  workflow_dispatch:
+    inputs:
+      category:
+        description: Categoria culinária do Wikilivros
+        required: true
+        default: Salgados, Lanches e Sanduíches
+        type: choice
+        options:
+          - Salgados, Lanches e Sanduíches
+          - Doces
+          - Entradas
+          - Massas
+          - Quitandas
+          - Sobremesas
+      limit:
+        description: Quantidade máxima de receitas válidas
+        required: true
+        default: "12"
+        type: choice
+        options:
+          - "5"
+          - "12"
+          - "25"
+          - "50"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: wikibooks-import
+  cancel-in-progress: false
+
+jobs:
+  import:
+    name: importar no D1
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend/worker-prototype
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/worker-prototype/package-lock.json
+      - run: npm ci
+      - name: Aplicar migrations
+        run: npm run migrate:remote
+      - name: Importar receitas
+        run: node scripts/import-wikibooks.mjs --category "$CATEGORY" --limit "$LIMIT"
+        env:
+          CATEGORY: ${{ inputs.category }}
+          LIMIT: ${{ inputs.limit }}
