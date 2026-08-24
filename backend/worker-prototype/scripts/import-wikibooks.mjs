@@ -272,11 +272,11 @@ async function main() {
 
   if (!recipes.length) throw new Error("Nenhuma receita com estrutura suficiente foi encontrada.");
 
+  // O D1 remoto não aceita BEGIN TRANSACTION/COMMIT em arquivos enviados pelo
+  // `wrangler d1 execute`. O Wrangler/D1 coordena a execução remota das escritas.
   const sqlText = [
     "PRAGMA foreign_keys = ON;",
-    "BEGIN TRANSACTION;",
     ...recipes.map((recipe) => recipeSql(recipe, category)),
-    "COMMIT;",
   ].join("\n\n");
 
   const file = join(tmpdir(), `receitando-wikibooks-${Date.now()}.sql`);
