@@ -164,11 +164,13 @@ export function RecipesCatalog({ initialError = "", initialRecipes }: RecipesCat
         <div className={styles.grid}>
           {filteredRecipes.map((recipe) => {
             const match = "compatibility" in recipe ? recipe : null;
+            const catalogRecipe = recipes.find((item) => item.id === recipe.id);
             return (
               <RecipeCard
                 compatibility={match?.compatibility}
                 description={recipe.description}
                 difficulty={recipe.difficulty}
+                externalSource={catalogRecipe?.source.externalSource}
                 imageUrl={recipe.imageUrl}
                 initialFavorite={favoriteIds.has(recipe.id)}
                 key={recipe.id}
@@ -179,6 +181,7 @@ export function RecipesCatalog({ initialError = "", initialRecipes }: RecipesCat
                 recipeId={recipe.id}
                 servings={recipe.servings}
                 slug={recipe.slug}
+                sourceName={catalogRecipe?.source.name}
                 status={match?.status}
                 title={recipe.title}
               />

@@ -55,6 +55,7 @@ export default async function RecipeDetailPage({ params }: RecipeDetailPageProps
   }
 
   const instructionSteps = getInstructionSteps(recipe.instructions);
+  const isExternalRecipe = Boolean(recipe.source.externalSource || recipe.source.url);
 
   return (
     <article className={`container page-shell ${styles.page}`}>
@@ -66,18 +67,35 @@ export default async function RecipeDetailPage({ params }: RecipeDetailPageProps
 
       <header className={styles.header}>
         <div className={styles.intro}>
-          <p className={styles.eyebrow}>{recipe.mealType} · {difficultyLabels[recipe.difficulty]}</p>
+          <p className={styles.eyebrow}>{recipe.mealType} · {isExternalRecipe ? "Receita de fonte externa" : difficultyLabels[recipe.difficulty]}</p>
           <div className={styles.titleRow}>
             <h1>{recipe.title}</h1>
             <FavoriteButton recipeId={recipe.id} />
           </div>
           <p className={styles.description}>{recipe.description}</p>
           <dl className={styles.facts}>
-            <div><dt>Preparo</dt><dd>{formatPrepTime(recipe.prepMinutes)}</dd></div>
-            <div><dt>Rendimento</dt><dd>{recipe.servings} {recipe.servings === 1 ? "porção" : "porções"}</dd></div>
-            <div><dt>Dificuldade</dt><dd>{difficultyLabels[recipe.difficulty]}</dd></div>
-            <div><dt>Origem</dt><dd>{recipe.source.name}</dd></div>
+            {recipe.prepMinutes > 0 ? <div><dt>Preparo</dt><dd>{formatPrepTime(recipe.prepMinutes)}</dd></div> : null}
+            {recipe.servings > 0 ? <div><dt>Rendimento</dt><dd>{recipe.servings} {recipe.servings === 1 ? "porção" : "porções"}</dd></div> : null}
+            {!isExternalRecipe ? <div><dt>Dificuldade</dt><dd>{difficultyLabels[recipe.difficulty]}</dd></div> : null}
+            <div>
+              <dt>Origem</dt>
+              <dd>
+                {recipe.source.url ? (
+                  <a href={recipe.source.url} rel="noreferrer" target="_blank" style={{ color: "inherit", textDecoration: "underline", textUnderlineOffset: "0.2em" }}>
+                    {recipe.source.name} ↗
+                  </a>
+                ) : recipe.source.name}
+              </dd>
+            </div>
           </dl>
+          {recipe.source.license ? (
+            <p style={{ color: "var(--color-text-muted)", fontSize: "0.82rem", lineHeight: 1.5, margin: 0 }}>
+              Fonte atribuída a {recipe.source.author || recipe.source.name}. Conteúdo sob {recipe.source.license}
+              {recipe.source.licenseUrl ? (
+                <> · <a href={recipe.source.licenseUrl} rel="noreferrer" target="_blank" style={{ color: "inherit" }}>ver licença ↗</a></>
+              ) : null}.
+            </p>
+          ) : null}
           {recipe.tags.length > 0 ? (
             <div className={styles.tags}>{recipe.tags.map((tag) => <span key={tag}>{tag}</span>)}</div>
           ) : null}
@@ -113,7 +131,7 @@ export default async function RecipeDetailPage({ params }: RecipeDetailPageProps
                   <span className={styles.check} aria-hidden="true" />
                   <span>
                     <strong>{item.name}</strong>
-                    <small>{amount || "a gosto"}{item.optional ? " · opcional" : ""}</small>
+                    <small>{item.rawText || amount || "a gosto"}{item.optional ? " · opcional" : ""}</small>
                   </span>
                 </li>
               );

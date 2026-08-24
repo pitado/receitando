@@ -15,6 +15,7 @@ interface RecipeCardProps {
   compatibility?: number;
   description: string;
   difficulty?: RecipeDifficulty;
+  externalSource?: string | null;
   imageUrl?: string | null;
   initialFavorite?: boolean;
   mealType?: string;
@@ -24,6 +25,7 @@ interface RecipeCardProps {
   recipeId: string;
   servings?: number;
   slug: string;
+  sourceName?: string;
   status?: RecipeMatchStatus;
   title: string;
 }
@@ -56,6 +58,7 @@ export function RecipeCard({
   compatibility,
   description,
   difficulty,
+  externalSource,
   imageUrl,
   initialFavorite = false,
   mealType,
@@ -65,6 +68,7 @@ export function RecipeCard({
   recipeId,
   servings,
   slug,
+  sourceName,
   status,
   title,
 }: RecipeCardProps) {
@@ -72,6 +76,8 @@ export function RecipeCard({
   const imageStyle = imageUrl
     ? { backgroundImage: `linear-gradient(180deg, rgba(42, 22, 8, 0.02), rgba(42, 22, 8, 0.32)), url("${imageUrl.replaceAll('"', '%22')}")` }
     : undefined;
+  const hasPrepTime = typeof prepMinutes === "number" && prepMinutes > 0;
+  const hasServings = typeof servings === "number" && servings > 0;
 
   return (
     <article className={styles.card}>
@@ -98,17 +104,16 @@ export function RecipeCard({
 
         <p className={styles.description}>{description}</p>
 
-        {prepMinutes !== undefined || servings !== undefined || difficulty ? (
+        {hasPrepTime || hasServings || (difficulty && !externalSource) || (externalSource && sourceName) ? (
           <div className={styles.details}>
-            {prepMinutes !== undefined ? (
-              <span className={styles.detail}>◷ {formatPrepTime(prepMinutes)}</span>
-            ) : null}
-            {servings !== undefined ? (
+            {hasPrepTime ? <span className={styles.detail}>◷ {formatPrepTime(prepMinutes)}</span> : null}
+            {hasServings ? (
               <span className={styles.detail}>
                 ◌ {servings} {servings === 1 ? "porção" : "porções"}
               </span>
             ) : null}
-            {difficulty ? <span className={styles.detail}>◇ {difficultyLabels[difficulty]}</span> : null}
+            {difficulty && !externalSource ? <span className={styles.detail}>◇ {difficultyLabels[difficulty]}</span> : null}
+            {externalSource && sourceName ? <span className={styles.detail}>Fonte: {sourceName}</span> : null}
           </div>
         ) : null}
 
