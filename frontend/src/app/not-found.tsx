@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 import styles from "./not-found.module.css";
@@ -8,12 +9,10 @@ export default function NotFoundPage() {
       <div className={`container ${styles.layout}`}>
         <div className={styles.copy}>
           <span className={styles.code}>404</span>
-          <p className={styles.eyebrow}>ESSA PÁGINA NÃO ESTÁ NO CADERNO</p>
-          <h1>Essa receita se perdeu pela cozinha.</h1>
+          <p className={styles.eyebrow}>RECEITA FORA DO FORNO</p>
+          <h1>Ops... essa página saiu da receita.</h1>
           <p className={styles.description}>
-            O endereço pode ter mudado, ou talvez essa página nunca tenha saído
-            do rascunho. Volte para o Receitando e continue procurando algo bom
-            para fazer com o que você já tem em casa.
+            Mas calma: ainda dá para voltar pro começo e encontrar algo bom com o que já tem em casa.
           </p>
 
           <div className={styles.actions}>
@@ -27,15 +26,14 @@ export default function NotFoundPage() {
         </div>
 
         <div aria-hidden="true" className={styles.visual}>
-          <div className={styles.plate}>
-            <span className={styles.crumbOne} />
-            <span className={styles.crumbTwo} />
-            <span className={styles.crumbThree} />
-          </div>
-          <div className={styles.note}>
-            <span>faltou um ingrediente:</span>
-            <strong>a página.</strong>
-          </div>
+          <Image
+            alt=""
+            className={styles.plateArt}
+            height={780}
+            priority
+            src="/receitando-404-plate.webp"
+            width={780}
+          />
         </div>
       </div>
     </section>
