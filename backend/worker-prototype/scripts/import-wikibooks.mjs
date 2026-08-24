@@ -5,10 +5,12 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 const API_URL = "https://pt.wikibooks.org/w/api.php";
+const COMMONS_API_URL = "https://commons.wikimedia.org/w/api.php";
 const SOURCE_NAME = "Wikilivros";
 const SOURCE_ID = "wikibooks";
 const SOURCE_LICENSE = "CC BY-SA 4.0";
 const SOURCE_LICENSE_URL = "https://creativecommons.org/licenses/by-sa/4.0/";
+const IMAGE_SOURCE = "Wikimedia Commons";
 
 const ALLOWED_CATEGORIES = new Map([
   ["Doces", "sobremesa"],
@@ -69,6 +71,30 @@ function cleanWiki(value) {
     .replace(/&nbsp;/gi, " ")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+function cleanMetadata(value) {
+  if (!value) return null;
+  const cleaned = String(value)
+    .replace(/<br\s*\/?>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#0?39;|&apos;/gi, "'")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/\s+/g, " ")
+    .trim();
+  return cleaned || null;
+}
+
+function normalizedHttpUrl(value) {
+  if (!value) return null;
+  const raw = String(value).trim();
+  if (raw.startsWith("//")) return `https:${raw}`;
+  if (/^https?:\/\//i.test(raw)) return raw;
+  return null;
 }
 
 function isRecipeHeading(value) {
@@ -147,16 +173,24 @@ function ingredientName(raw) {
   return value.slice(0, 120);
 }
 
-async function mediaWiki(params) {
-  const url = new URL(API_URL);
+async function mediaWikiRequest(baseUrl, params, sourceLabel) {
+  const url = new URL(baseUrl);
   for (const [key, value] of Object.entries({ ...params, format: "json", formatversion: "2", origin: "*" })) {
     url.searchParams.set(key, String(value));
   }
   const response = await fetch(url, {
     headers: { "User-Agent": "ReceitandoAcademic/0.1 (https://receitando.miguelpita.com.br/)" },
   });
-  if (!response.ok) throw new Error(`Wikilivros respondeu ${response.status}`);
+  if (!response.ok) throw new Error(`${sourceLabel} respondeu ${response.status}`);
   return response.json();
+}
+
+function mediaWiki(params) {
+  return mediaWikiRequest(API_URL, params, "Wikilivros");
+}
+
+function commons(params) {
+  return mediaWikiRequest(COMMONS_API_URL, params, "Wikimedia Commons");
 }
 
 async function categoryMembers(category, desired) {
@@ -188,6 +222,82 @@ async function pageSource(title) {
   return { wikitext };
 }
 
+function embeddedImageNames(wikitext) {
+  const names = [];
+  const pattern = /\[\[(?:File|Ficheiro|Imagem):([^|\]\n]+)/gi;
+  for (const match of wikitext.matchAll(pattern)) {
+    const name = match[1]?.trim();
+    if (name) names.push(name);
+  }
+  return names;
+}
+
+async function pageImageName(title) {
+  const payload = await mediaWiki({
+    action: "query",
+    prop: "pageimages",
+    titles: title,
+    piprop: "name",
+    pilicense: "free",
+  });
+  const page = payload?.query?.pages?.[0];
+  return typeof page?.pageimage === "string" ? page.pageimage : null;
+}
+
+function acceptableCommonsImage(fileTitle, info) {
+  const mime = String(info?.mime ?? "").toLowerCase();
+  if (mime && !["image/jpeg", "image/png", "image/webp"].includes(mime)) return false;
+  const normalizedTitle = normalize(fileTitle);
+  if (/\b(?:icon|icone|logo|wikibooks|wikipedia|commons|book|livro)\b/.test(normalizedTitle)) return false;
+  return Boolean(info?.thumburl || info?.url);
+}
+
+async function commonsImage(fileName, recipeTitle) {
+  const fileTitle = /^(?:File|Ficheiro|Imagem):/i.test(fileName) ? fileName.replace(/^(?:Ficheiro|Imagem):/i, "File:") : `File:${fileName}`;
+  const payload = await commons({
+    action: "query",
+    prop: "imageinfo",
+    titles: fileTitle,
+    iiprop: "url|mime|extmetadata",
+    iiurlwidth: "1400",
+  });
+  const page = payload?.query?.pages?.[0];
+  const info = page?.imageinfo?.[0];
+  if (!info || !acceptableCommonsImage(fileTitle, info)) return null;
+
+  const meta = info.extmetadata ?? {};
+  const license = cleanMetadata(meta.LicenseShortName?.value || meta.UsageTerms?.value);
+  if (!license) return null;
+
+  const imageUrl = normalizedHttpUrl(info.thumburl || info.url);
+  const pageUrl = normalizedHttpUrl(info.descriptionurl);
+  if (!imageUrl || !pageUrl) return null;
+
+  return {
+    url: imageUrl,
+    source: IMAGE_SOURCE,
+    author: cleanMetadata(meta.Artist?.value || meta.Credit?.value || IMAGE_SOURCE)?.slice(0, 240) ?? IMAGE_SOURCE,
+    pageUrl,
+    license: license.slice(0, 160),
+    licenseUrl: normalizedHttpUrl(meta.LicenseUrl?.value),
+    alt: recipeTitle.slice(0, 240),
+  };
+}
+
+async function freeImageForPage(title, wikitext) {
+  const candidates = [];
+  const featured = await pageImageName(title);
+  if (featured) candidates.push(featured);
+  candidates.push(...embeddedImageNames(wikitext));
+
+  const unique = [...new Set(candidates.map((name) => name.trim()).filter(Boolean))].slice(0, 8);
+  for (const fileName of unique) {
+    const image = await commonsImage(fileName, title.replace(/^Livro de receitas\//, "").trim());
+    if (image) return image;
+  }
+  return null;
+}
+
 function recipeSql(recipe, category) {
   const id = `wikibooks-${recipe.pageid}`;
   const title = recipe.title.replace(/^Livro de receitas\//, "").trim();
@@ -202,12 +312,14 @@ function recipeSql(recipe, category) {
   statements.push(`INSERT INTO recipes (
     id, title, slug, description, instructions, prep_minutes, servings,
     meal_type, difficulty, source_type, source_name, image_url,
+    image_source, image_author, image_page_url, image_license, image_license_url, image_alt,
     external_source, external_id, external_category, external_subcategory,
     source_url, source_author, source_license, source_license_url, source_language, imported_at,
     created_at, updated_at
   ) VALUES (
     ${sql(id)}, ${sql(title)}, ${sql(slug)}, ${sql(description)}, ${sql(recipe.steps.join("\n"))}, 0, 0,
-    ${sql(mealType)}, 'FACIL', 'OPEN_DATASET', ${sql(SOURCE_NAME)}, NULL,
+    ${sql(mealType)}, 'FACIL', 'OPEN_DATASET', ${sql(SOURCE_NAME)}, ${sql(recipe.image.url)},
+    ${sql(recipe.image.source)}, ${sql(recipe.image.author)}, ${sql(recipe.image.pageUrl)}, ${sql(recipe.image.license)}, ${sql(recipe.image.licenseUrl)}, ${sql(recipe.image.alt)},
     ${sql(SOURCE_ID)}, ${sql(String(recipe.pageid))}, ${sql(category)}, NULL,
     ${sql(sourceUrl)}, ${sql("Colaboradores do Wikilivros")}, ${sql(SOURCE_LICENSE)}, ${sql(SOURCE_LICENSE_URL)}, 'pt-BR', ${sql(now)},
     CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
@@ -218,6 +330,13 @@ function recipeSql(recipe, category) {
     instructions = excluded.instructions,
     meal_type = excluded.meal_type,
     source_name = excluded.source_name,
+    image_url = excluded.image_url,
+    image_source = excluded.image_source,
+    image_author = excluded.image_author,
+    image_page_url = excluded.image_page_url,
+    image_license = excluded.image_license,
+    image_license_url = excluded.image_license_url,
+    image_alt = excluded.image_alt,
     external_source = excluded.external_source,
     external_id = excluded.external_id,
     external_category = excluded.external_category,
@@ -252,7 +371,7 @@ function recipeSql(recipe, category) {
 
 async function main() {
   const { category, limit } = args();
-  console.log(`Buscando até ${limit} receitas válidas em “${category}”...`);
+  console.log(`Buscando até ${limit} receitas com imagem livre em “${category}”...`);
   const members = await categoryMembers(category, limit);
   const recipes = [];
 
@@ -263,29 +382,37 @@ async function main() {
       if (!page) continue;
       const parsed = parseRecipe(page.wikitext);
       if (!parsed) continue;
-      recipes.push({ ...member, ...parsed });
-      console.log(`  ✓ ${member.title.replace(/^Livro de receitas\//, "")}`);
+
+      const image = await freeImageForPage(member.title, page.wikitext);
+      if (!image) {
+        console.log(`  - sem imagem livre: ${member.title.replace(/^Livro de receitas\//, "")}`);
+        continue;
+      }
+
+      recipes.push({ ...member, ...parsed, image });
+      console.log(`  ✓ ${member.title.replace(/^Livro de receitas\//, "")} · foto ${image.license}`);
     } catch (error) {
       console.warn(`  - ignorada ${member.title}: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
-  if (!recipes.length) throw new Error("Nenhuma receita com estrutura suficiente foi encontrada.");
+  if (!recipes.length) throw new Error("Nenhuma receita com estrutura suficiente e imagem livre foi encontrada.");
 
   const sqlText = [
     "PRAGMA foreign_keys = ON;",
     "DELETE FROM recipes WHERE COALESCE(external_source, '') <> 'wikibooks';",
+    "DELETE FROM recipes WHERE external_source = 'wikibooks' AND (image_url IS NULL OR TRIM(image_url) = '');",
     ...recipes.map((recipe) => recipeSql(recipe, category)),
   ].join("\n\n");
 
   const file = join(tmpdir(), `receitando-wikibooks-${Date.now()}.sql`);
   writeFileSync(file, sqlText, "utf8");
-  console.log(`Importando ${recipes.length} receitas no D1 e removendo receitas de outras fontes...`);
+  console.log(`Importando ${recipes.length} receitas com imagens livres no D1...`);
   execFileSync("npx", ["wrangler", "d1", "execute", "receitando", "--remote", `--file=${file}`, "--yes"], {
     stdio: "inherit",
     env: process.env,
   });
-  console.log(`Concluído: catálogo mantido somente com receitas do Wikilivros.`);
+  console.log(`Concluído: catálogo mantido somente com receitas do Wikilivros que têm imagem livre.`);
 }
 
 main().catch((error) => {
