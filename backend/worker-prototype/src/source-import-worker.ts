@@ -4,6 +4,7 @@ interface Env {
   db: D1Database;
   FRONTEND_URL: string;
   IMPORT_API_KEY?: string;
+  THEMEALDB_API_KEY?: string;
 }
 
 type ImportSource = "themealdb";
@@ -18,14 +19,27 @@ type MealDbMeal = {
   [key: string]: unknown;
 };
 
-function json(body: unknown, status = 200): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: {
-      "Content-Type": "application/json; charset=utf-8",
-      "Cache-Control": "no-store",
-    },
+function allowedOrigins(env: Env): string[] {
+  return env.FRONTEND_URL.split(",").map((value) => value.trim()).filter(Boolean);
+}
+
+function corsHeaders(request: Request, env: Env): Headers {
+  const headers = new Headers({
+    "Access-Control-Allow-Headers": "Content-Type, Accept, Authorization",
+    "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
+    "Access-Control-Max-Age": "86400",
+    Vary: "Origin",
   });
+  const origin = request.headers.get("Origin");
+  if (origin && allowedOrigins(env).includes(origin)) headers.set("Access-Control-Allow-Origin", origin);
+  return headers;
+}
+
+function json(request: Request, env: Env, body: unknown, status = 200): Response {
+  const headers = corsHeaders(request, env);
+  headers.set("Content-Type", "application/json; charset=utf-8");
+  headers.set("Cache-Control", "no-store");
+  return new Response(JSON.stringify(body), { status, headers });
 }
 
 function importKey(request: Request): string {
@@ -145,7 +159,9 @@ async function upsertMeal(env: Env, meal: MealDbMeal): Promise<{ id: string; slu
 }
 
 async function importTheMealDb(env: Env, query: string, limit: number) {
-  const url = `https://www.themealdb.com/api/json/v1/1/search.php?s=${encodeURIComponent(query)}`;
+  if (!env.THEMEALDB_API_KEY) throw new Error("THEMEALDB_API_KEY não configurada.");
+
+  const url = `https://www.themealdb.com/api/json/v1/${encodeURIComponent(env.THEMEALDB_API_KEY)}/search.php?s=${encodeURIComponent(query)}`;
   const response = await fetch(url, {
     headers: { Accept: "application/json", "User-Agent": "Receitando/1.0" },
   });
@@ -158,46 +174,63 @@ async function importTheMealDb(env: Env, query: string, limit: number) {
   return imported;
 }
 
-function handleSources(): Response {
-  return json({
+function sourcePayload() {
+  return {
     sources: [
       {
         id: "themealdb",
         name: "TheMealDB",
-        mode: "api",
+        mode: "official-api",
         enabled: true,
-        note: "Integração por API pública. Novas fontes só devem ser adicionadas quando a coleta e reutilização forem permitidas.",
+        stores: ["title", "description", "instructions", "ingredients", "image", "source"],
       },
     ],
-  });
+    policy: "O Receitando integra somente fontes cujo uso por API, licença ou autorização permita reutilização do conteúdo.",
+  };
 }
 
 async function handleImport(request: Request, env: Env): Promise<Response> {
   if (!env.IMPORT_API_KEY || importKey(request) !== env.IMPORT_API_KEY) {
-    return json({ statusCode: 401, message: "Chave de importação inválida." }, 401);
+    return json(request, env, { statusCode: 401, message: "Chave de importação inválida." }, 401);
   }
 
   let body: Record<string, unknown>;
   try {
     body = (await request.json()) as Record<string, unknown>;
   } catch {
-    return json({ statusCode: 400, message: "JSON inválido." }, 400);
+    return json(request, env, { statusCode: 400, message: "JSON inválido." }, 400);
   }
 
   const source = body.source as ImportSource;
   const query = typeof body.query === "string" ? body.query.trim() : "";
   const limit = Math.min(25, Math.max(1, Number(body.limit) || 10));
   if (source !== "themealdb") {
-    return json({ statusCode: 400, message: "Fonte não suportada." }, 400);
+    return json(request, env, { statusCode: 400, message: "Fonte não suportada." }, 400);
   }
 
   try {
     const imported = await importTheMealDb(env, query, limit);
-    return json({ source, query, imported: imported.length, recipes: imported }, 201);
+    return json(request, env, { source, query, imported: imported.length, recipes: imported }, 201);
   } catch (error) {
     console.error("Recipe import failed", error);
-    return json({ statusCode: 502, message: "Não foi possível importar receitas desta fonte agora." }, 502);
+    return json(request, env, { statusCode: 502, message: "Não foi possível importar receitas desta fonte agora." }, 502);
   }
+}
+
+function rewriteRequest(request: Request, pathname: string): Request {
+  const url = new URL(request.url);
+  url.pathname = pathname;
+  return new Request(url.toString(), request);
+}
+
+function publicApiPath(path: string): string | null {
+  if (path === "/api/v1/health") return "/api/health";
+  if (path === "/api/v1/home") return "/api/home-feed";
+  if (path === "/api/v1/ingredients") return "/api/ingredients";
+  if (path === "/api/v1/recipes") return "/api/recipes";
+  if (path === "/api/v1/match") return "/api/recipes/match";
+  if (path.startsWith("/api/v1/recipes/")) return `/api/recipes/${path.slice("/api/v1/recipes/".length)}`;
+  return null;
 }
 
 export default {
@@ -205,8 +238,19 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname.replace(/\/+$/, "") || "/";
 
-    if (request.method === "GET" && path === "/api/sources") return handleSources();
-    if (request.method === "POST" && path === "/api/internal/import-recipes") return handleImport(request, env);
+    if (request.method === "OPTIONS") {
+      return new Response(null, { status: 204, headers: corsHeaders(request, env) });
+    }
+
+    if (request.method === "GET" && (path === "/api/sources" || path === "/api/v1/sources")) {
+      return json(request, env, sourcePayload());
+    }
+    if (request.method === "POST" && path === "/api/internal/import-recipes") {
+      return handleImport(request, env);
+    }
+
+    const rewrittenPath = publicApiPath(path);
+    if (rewrittenPath) return homeWorker.fetch(rewriteRequest(request, rewrittenPath), env);
 
     return homeWorker.fetch(request, env);
   },
