@@ -124,30 +124,43 @@ export function HomeLiveSections() {
         </section>
       ) : null}
 
-      {feed?.recentComments.length ? (
+      {feed ? (
         <section className={`${styles.section} ${styles.vegetableSection} ${styles.withCarrots}`}>
           <div className="container">
             <div className={styles.sectionHeader}>
               <div>
                 <p className={styles.eyebrow}>A COZINHA ESTÁ CONVERSANDO</p>
-                <h2>Quem fez, deixou uma pitada.</h2>
+                <h2>O que estão falando por aqui.</h2>
               </div>
+              <Link href="/receitas" className={styles.textLink}>Entrar na conversa →</Link>
             </div>
-            <div className={styles.commentGrid}>
-              {feed.recentComments.map((comment) => (
-                <Link href={`/receitas/${comment.recipeSlug}`} className={styles.commentCard} key={comment.id}>
-                  <div className={styles.authorRow}>
-                    <FoodAvatar avatarKey={comment.avatarKey} className={styles.avatar} label={`Avatar de ${comment.authorName}`} />
-                    <div>
-                      <strong>{comment.authorName}</strong>
-                      <span>{comment.authorHandle ? `@${comment.authorHandle}` : "cozinheiro do Receitando"} · {formatDate(comment.createdAt)}</span>
+
+            {feed.recentComments.length > 0 ? (
+              <div className={styles.commentGrid}>
+                {feed.recentComments.slice(0, 3).map((comment) => (
+                  <Link href={`/receitas/${comment.recipeSlug}`} className={styles.commentCard} key={comment.id}>
+                    <div className={styles.authorRow}>
+                      <FoodAvatar avatarKey={comment.avatarKey} className={styles.avatar} label={`Avatar de ${comment.authorName}`} />
+                      <div>
+                        <strong>{comment.authorName}</strong>
+                        <span>{comment.authorHandle ? `@${comment.authorHandle}` : "cozinheiro do Receitando"} · {formatDate(comment.createdAt)}</span>
+                      </div>
                     </div>
-                  </div>
-                  <blockquote>“{comment.body}”</blockquote>
-                  <small>em {comment.recipeTitle} →</small>
-                </Link>
-              ))}
-            </div>
+                    <blockquote>“{comment.body}”</blockquote>
+                    <small>em {comment.recipeTitle} →</small>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className={styles.commentEmpty}>
+                <span aria-hidden="true">“</span>
+                <div>
+                  <strong>A cozinha ficou quietinha por enquanto.</strong>
+                  <p>Abra uma receita, conte como ficou e deixe a primeira pitada da conversa.</p>
+                </div>
+                <Link href="/receitas" className={styles.textLink}>Escolher uma receita →</Link>
+              </div>
+            )}
           </div>
         </section>
       ) : null}
