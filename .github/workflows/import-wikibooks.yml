@@ -58,7 +58,7 @@ jobs:
       - name: Aplicar migrations
         run: npm run migrate:remote
       - name: Importar receitas com imagens livres
-        run: node scripts/import-wikibooks.mjs --category "$CATEGORY" --limit "$LIMIT"
+        run: node scripts/import-wikibooks-v2.mjs --category "$CATEGORY" --limit "$LIMIT"
         env:
           CATEGORY: ${{ inputs.category }}
           LIMIT: ${{ inputs.limit }}
