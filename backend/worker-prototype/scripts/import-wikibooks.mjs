@@ -101,7 +101,7 @@ function parseRecipe(wikitext) {
         started = true;
         continue;
       }
-      if (started && ingredients.length >= 3 && steps.length >= 2 && /^receita\s+\d+/.test(normalizedHeading)) break;
+      if (started && ingredients.length >= 3 && steps.length >= 2) break;
       continue;
     }
 
@@ -192,7 +192,8 @@ function recipeSql(recipe, category) {
   const id = `wikibooks-${recipe.pageid}`;
   const title = recipe.title.replace(/^Livro de receitas\//, "").trim();
   const slug = `${slugify(title)}-wikilivros`;
-  const sourceUrl = `https://pt.wikibooks.org/wiki/${encodeURIComponent(recipe.title.replaceAll(" ", "_"))}`;
+  const encodedTitle = recipe.title.replaceAll(" ", "_").split("/").map((part) => encodeURIComponent(part)).join("/");
+  const sourceUrl = `https://pt.wikibooks.org/wiki/${encodedTitle}`;
   const mealType = ALLOWED_CATEGORIES.get(category) ?? "outros";
   const now = new Date().toISOString();
   const description = `Receita publicada no Wikilivros em português.`;
