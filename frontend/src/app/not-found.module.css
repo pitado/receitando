@@ -119,45 +119,6 @@
   width: 100%;
 }
 
-.note {
-  background: #fffaf4;
-  border: 1px solid color-mix(in srgb, var(--color-border) 88%, #c9aa94);
-  box-shadow: 0 0.9rem 2rem color-mix(in srgb, var(--color-shadow-strong) 38%, transparent);
-  display: grid;
-  gap: 0.28rem;
-  left: 48%;
-  padding: 1rem 1.2rem 1.12rem;
-  position: absolute;
-  top: 20%;
-  transform: rotate(3deg);
-  width: min(12.8rem, 46%);
-}
-
-.note::before {
-  background: color-mix(in srgb, var(--color-accent) 76%, #f6c39f);
-  content: "";
-  height: 0.7rem;
-  left: 53%;
-  opacity: 0.74;
-  position: absolute;
-  top: -0.38rem;
-  transform: translateX(-50%) rotate(-2deg);
-  width: 3.9rem;
-}
-
-.note span {
-  color: var(--color-primary-dark);
-  font-size: 0.66rem;
-  font-weight: 850;
-  letter-spacing: 0.1em;
-}
-
-.note strong {
-  font-family: var(--font-editorial), Georgia, serif;
-  font-size: clamp(1.2rem, 2.45vw, 1.65rem);
-  line-height: 1.02;
-}
-
 @media (min-width: 48rem) {
   .layout {
     grid-template-columns: minmax(0, 1.02fr) minmax(24rem, 0.98fr);
@@ -176,16 +137,5 @@
 
   .code {
     font-size: clamp(6rem, 34vw, 9rem);
-  }
-
-  .note {
-    left: 46%;
-    padding: 0.82rem 0.9rem 0.92rem;
-    top: 18%;
-    width: 48%;
-  }
-
-  .note strong {
-    font-size: clamp(1rem, 5vw, 1.35rem);
   }
 }
