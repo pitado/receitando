@@ -4,11 +4,12 @@ on:
   workflow_dispatch:
     inputs:
       category:
-        description: Categoria culinária do Wikilivros
+        description: Escopo de receitas do Wikilivros
         required: true
-        default: Salgados, Lanches e Sanduíches
+        default: Todas as categorias
         type: choice
         options:
+          - Todas as categorias
           - Salgados, Lanches e Sanduíches
           - Doces
           - Entradas
@@ -16,15 +17,17 @@ on:
           - Quitandas
           - Sobremesas
       limit:
-        description: Quantidade máxima de receitas com imagem livre
+        description: Meta de receitas com imagem livre
         required: true
-        default: "12"
+        default: "100"
         type: choice
         options:
-          - "5"
-          - "12"
           - "25"
           - "50"
+          - "100"
+          - "250"
+          - "500"
+          - "all"
 
 permissions:
   contents: read
@@ -35,8 +38,9 @@ concurrency:
 
 jobs:
   import:
-    name: importar receitas com foto livre no D1
+    name: descobrir e importar receitas com foto livre
     runs-on: ubuntu-latest
+    timeout-minutes: 180
     defaults:
       run:
         working-directory: backend/worker-prototype
