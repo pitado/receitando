@@ -2,11 +2,15 @@
 interface __BaseEnv_Env {
   db: D1Database;
   FRONTEND_URL: string;
+  RESEND_API_KEY?: string;
+  EMAIL_FROM?: string;
+  IMPORT_API_KEY?: string;
+  THEMEALDB_API_KEY?: string;
 }
 
 declare namespace Cloudflare {
   interface GlobalProps {
-    mainModule: typeof import("./src/index");
+    mainModule: typeof import("./src/source-import-worker");
   }
   interface Env extends __BaseEnv_Env {}
 }
