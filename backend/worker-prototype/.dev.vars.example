@@ -1,0 +1,10 @@
+# Copie para .dev.vars e mantenha .dev.vars fora do Git.
+# Chave interna usada para autorizar importações locais.
+IMPORT_API_KEY=troque-esta-chave-local
+
+# TheMealDB permite a chave 1 para desenvolvimento/uso educacional.
+# Em produção, configure sua própria chave via Cloudflare Secret.
+THEMEALDB_API_KEY=1
+
+# Opcional: necessário para testar recuperação de senha localmente.
+RESEND_API_KEY=
