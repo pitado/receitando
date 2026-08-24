@@ -19,6 +19,7 @@ export interface RecipeIngredient {
   quantity: number | null;
   unit: string | null;
   optional: boolean;
+  rawText?: string | null;
 }
 
 export interface Recipe {
@@ -34,6 +35,12 @@ export interface Recipe {
   source: {
     type: RecipeSourceType;
     name: string;
+    url?: string | null;
+    author?: string | null;
+    license?: string | null;
+    licenseUrl?: string | null;
+    language?: string | null;
+    externalSource?: string | null;
   };
   imageUrl: string | null;
   tags: string[];
