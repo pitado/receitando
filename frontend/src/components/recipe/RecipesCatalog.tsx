@@ -164,7 +164,7 @@ export function RecipesCatalog({ initialError = "", initialRecipes }: RecipesCat
         <div className={styles.grid}>
           {filteredRecipes.map((recipe) => {
             const match = "compatibility" in recipe ? recipe : null;
-            const catalogRecipe = match ? recipes.find((item) => item.id === recipe.id) : recipe;
+            const catalogRecipe = recipes.find((item) => item.id === recipe.id);
             return (
               <RecipeCard
                 compatibility={match?.compatibility}
