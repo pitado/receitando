@@ -55,6 +55,8 @@ jobs:
           cache: npm
           cache-dependency-path: backend/worker-prototype/package-lock.json
       - run: npm ci
+      - name: Validar importador
+        run: node --check scripts/import-wikibooks-v2.mjs
       - name: Aplicar migrations
         run: npm run migrate:remote
       - name: Importar receitas com imagens livres
