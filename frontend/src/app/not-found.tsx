@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 
 import styles from "./not-found.module.css";
@@ -9,10 +8,10 @@ export default function NotFoundPage() {
       <div className={`container ${styles.layout}`}>
         <div className={styles.copy}>
           <span className={styles.code}>404</span>
-          <p className={styles.eyebrow}>RECEITA FORA DO FORNO</p>
-          <h1>Ops... essa página saiu da receita.</h1>
+          <p className={styles.eyebrow}>FORA DO CARDÁPIO</p>
+          <h1>Essa página não entrou no menu.</h1>
           <p className={styles.description}>
-            Mas calma: ainda dá para voltar pro começo e encontrar algo bom com o que já tem em casa.
+            Mas ainda dá para voltar e encontrar alguma coisa boa por aqui.
           </p>
 
           <div className={styles.actions}>
@@ -26,14 +25,30 @@ export default function NotFoundPage() {
         </div>
 
         <div aria-hidden="true" className={styles.visual}>
-          <Image
-            alt=""
-            className={styles.plateArt}
-            height={780}
-            priority
-            src="/receitando-404-plate.webp"
-            width={780}
-          />
+          <div className={styles.plate}>
+            <span className={`${styles.crumb} ${styles.crumbOne}`} />
+            <span className={`${styles.crumb} ${styles.crumbTwo}`} />
+            <span className={`${styles.crumb} ${styles.crumbThree}`} />
+            <span className={`${styles.crumb} ${styles.crumbFour}`} />
+
+            <div className={styles.note}>
+              <span>404</span>
+              <strong>pedido não encontrado</strong>
+            </div>
+          </div>
+
+          <div className={styles.fork}>
+            <span className={styles.forkHead}>
+              <i />
+              <i />
+              <i />
+              <i />
+            </span>
+            <span className={styles.forkHandle} />
+          </div>
+
+          <span className={styles.leaf} />
+          <span className={styles.sparkle} />
         </div>
       </div>
     </section>
