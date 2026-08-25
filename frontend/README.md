@@ -24,21 +24,24 @@ Toda persistência é feita pela API. O frontend não acessa o D1 diretamente.
 
 ```text
 frontend/
-├── public/                arquivos públicos
+├── public/                 arquivos públicos
 ├── src/
-│   ├── app/               rotas e páginas do App Router
-│   ├── components/        componentes reutilizáveis
-│   ├── services/          acesso à API
-│   ├── types/             tipos TypeScript
+│   ├── app/                rotas e páginas do App Router
+│   ├── components/         componentes reutilizáveis e testes de UI
+│   ├── lib/                utilitários e testes de regras do cliente
+│   ├── services/           acesso à API e testes de contratos
+│   ├── test/               setup compartilhado do ambiente de testes
+│   ├── types/              tipos TypeScript
 │   └── ...
-├── next.config.ts         configuração do Next.js
-├── open-next.config.ts    integração OpenNext
-├── wrangler.jsonc         configuração do Worker
-├── package.json           scripts e dependências
-└── .env.example           exemplo de configuração local
+├── vitest.config.mts       configuração do Vitest e cobertura V8
+├── next.config.ts          configuração do Next.js
+├── open-next.config.ts     integração OpenNext
+├── wrangler.jsonc          configuração do Worker
+├── package.json            scripts e dependências
+└── .env.example            exemplo de configuração local
 ```
 
-A estrutura interna de `src/` pode evoluir, mas a regra é manter acesso à API concentrado na camada de serviços sempre que possível.
+A regra é manter acesso à API concentrado na camada de serviços sempre que possível e testar comportamento observável em vez de detalhes internos dos componentes.
 
 ## Requisitos
 
@@ -72,6 +75,32 @@ A aplicação fica disponível normalmente em:
 http://localhost:3000
 ```
 
+## Testes automatizados
+
+O frontend utiliza **Vitest**, **React Testing Library**, **jest-dom**, **jsdom** e cobertura pelo provider **V8**.
+
+Comandos disponíveis:
+
+```bash
+npm test
+npm run test:watch
+npm run test:coverage
+```
+
+A suíte cobre áreas como:
+
+- cliente HTTP e tratamento de erros;
+- autenticação e armazenamento de sessão;
+- cadastro, login, logout, perfil e recuperação de senha;
+- contratos de catálogo, matching, despensa e favoritos;
+- contratos de votos, comentários e feed da home;
+- normalização de ingredientes e formatadores;
+- componentes compartilhados de botão, loading, erro, estado vazio e títulos de seção.
+
+O relatório de cobertura é gerado por `npm run test:coverage`. A configuração mantém limites mínimos para linhas, statements, funções e branches; o CI falha se o piso definido for quebrado.
+
+A documentação detalhada da estratégia está em [`../docs/testes.md`](../docs/testes.md).
+
 ## Validação
 
 Antes de abrir ou concluir uma alteração relevante:
@@ -79,8 +108,11 @@ Antes de abrir ou concluir uma alteração relevante:
 ```bash
 npm run lint
 npm run typecheck
+npm run test:coverage
 npm run build
 ```
+
+Essas etapas também fazem parte do CI. O workflow de deploy repete as validações relevantes antes de publicar o frontend.
 
 ## API
 
@@ -120,3 +152,5 @@ Variáveis com prefixo `NEXT_PUBLIC_` são acessíveis ao navegador e, portanto,
 - [`../docs/escopo.md`](../docs/escopo.md)
 - [`../docs/architecture.md`](../docs/architecture.md)
 - [`../docs/api.md`](../docs/api.md)
+- [`../docs/testes.md`](../docs/testes.md)
+- [`../docs/deploy.md`](../docs/deploy.md)
