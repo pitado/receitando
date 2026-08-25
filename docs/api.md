@@ -62,6 +62,14 @@ A resposta de login/cadastro inclui um token de sessão. Esse valor é credencia
 
 Os códigos expiram e são armazenados apenas como hash. Tokens temporários de recuperação também não devem aparecer em logs ou documentação real.
 
+## Fontes do catálogo
+
+| Método | Rota | Acesso | Finalidade |
+| --- | --- | --- | --- |
+| `GET` | `/api/sources` | público | listar fontes externas conhecidas e quantidade importada |
+
+Atualmente a fonte publicada pelo catálogo é identificada por `wikibooks`. A resposta inclui metadados públicos como nome, página da fonte, licença, idioma e quantidade de receitas importadas.
+
 ## Ingredientes
 
 | Método | Rota | Acesso | Finalidade |
@@ -85,13 +93,17 @@ A resposta inclui identificador, nome, forma normalizada, categoria e uso no cat
 
 - `limit`: de 1 a 60, padrão 36;
 - `offset`: deslocamento para paginação;
-- `q`: busca simples pelo título.
+- `q`: busca simples pelo título;
+- `source`: filtra pelo identificador da fonte externa, por exemplo `wikibooks`.
 
-Exemplo:
+Exemplos:
 
 ```text
 /api/recipes?limit=24&offset=0&q=banana
+/api/recipes?source=wikibooks&limit=36
 ```
+
+A resposta de receita inclui os dados culinários, ingredientes, tags, `imageUrl` e um objeto `source` com a procedência da receita. Metadados detalhados de atribuição de imagem são persistidos no D1 para auditoria/licenciamento, mas ainda não fazem parte integral do contrato público retornado por esta rota.
 
 ### Matching
 
