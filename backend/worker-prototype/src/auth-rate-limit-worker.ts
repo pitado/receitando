@@ -1,4 +1,4 @@
-import baseWorker from "./index";
+import baseWorker from "./home-worker";
 import {
   clearRateLimitEvents,
   clientIp,
