@@ -18,6 +18,16 @@ Cloudflare Worker API
 
 O frontend nunca acessa o D1 diretamente.
 
+## Ponto de entrada
+
+O `wrangler.jsonc` aponta para:
+
+```text
+src/home-worker.ts
+```
+
+A partir dele, as camadas da API são encadeadas até `src/index.ts`. O arquivo `worker-configuration.d.ts` acompanha esse mesmo entrypoint para que tipos e configuração reflitam a aplicação realmente publicada.
+
 ## Execução local
 
 ```bash
@@ -39,28 +49,49 @@ npm run typecheck
 npm run dry-run
 ```
 
-Esses comandos também fazem parte da validação automatizada da API.
+O `typecheck` cobre todos os arquivos TypeScript em `src/`, e o `dry-run` valida o bundle/configuração do Worker sem publicar. Esses comandos também fazem parte da validação automatizada da API.
 
 ## Estrutura
 
 ```text
 worker-prototype/
 ├── migrations/        schema e evoluções do Cloudflare D1
-├── scripts/           importação e manutenção do catálogo
-├── src/               implementação da API
+├── scripts/           importador atual e scripts históricos documentados
+├── src/               implementação atual da API Worker
 ├── package.json       scripts e dependências
 ├── tsconfig.json      configuração TypeScript
-└── wrangler.jsonc     configuração do Worker e bindings
+├── worker-configuration.d.ts tipos do ambiente Cloudflare
+└── wrangler.jsonc     entrypoint, domínio, vars e binding D1
 ```
+
+Arquivos antigos de uma tentativa NestJS/Prisma/Hyperdrive que estavam misturados a `src/` foram removidos desta estrutura. O código NestJS preservado como histórico fica no diretório `backend/`, fora da API atual.
 
 ## Workers encadeados
 
 A implementação atual é dividida em camadas que atendem grupos de rotas e encaminham as demais para a próxima camada.
 
+```text
+home-worker
+   ↓
+catalog64-worker
+   ↓
+social-worker
+   ↓
+profile-worker
+   ↓
+password-reset-validation-worker
+   ↓
+password-reset-worker
+   ↓
+pantry-worker
+   ↓
+index
+```
+
 Arquivos principais:
 
-- `src/home-worker.ts`: ponto de entrada configurado no Wrangler e feed da home;
-- `src/catalog64-worker.ts`: catálogo, ingredientes, matching e leitura relacionada a receitas;
+- `src/home-worker.ts`: ponto de entrada e feed da home;
+- `src/catalog64-worker.ts`: fontes, catálogo, ingredientes e matching;
 - `src/social-worker.ts`: votos e comentários;
 - `src/profile-worker.ts`: perfil autenticado;
 - `src/password-reset-validation-worker.ts`: validações do fluxo de recuperação;
@@ -90,13 +121,13 @@ Aplicar remotamente:
 npm run migrate:remote
 ```
 
-O deploy da API aplica migrations remotas antes de publicar o Worker.
+Migrations já aplicadas não devem ser reescritas; mudanças de schema entram em novos arquivos numerados.
 
 ## Catálogo
 
 O catálogo oficial atual utiliza:
 
-- Wikilivros em português;
+- Wikilivros em português para conteúdo;
 - Wikimedia Commons para imagens livres.
 
 O importador operacional atual é:
@@ -117,15 +148,14 @@ A pasta `scripts/` também contém arquivos históricos de experimentos anterior
 
 Variáveis não secretas podem ficar em `wrangler.jsonc` ou em arquivos `.env.example` seguros.
 
-Secrets reais não devem ser commitados.
+Bindings/variáveis atuais relevantes:
 
-A recuperação de senha utiliza integração com Resend e espera secret de produção como:
+- `db`: banco Cloudflare D1;
+- `FRONTEND_URL`: origens permitidas do frontend;
+- `EMAIL_FROM`: remetente da recuperação de senha;
+- `RESEND_API_KEY`: secret da integração de e-mail.
 
-```text
-RESEND_API_KEY
-```
-
-Credenciais de Cloudflare utilizadas no GitHub Actions também ficam armazenadas como secrets do repositório.
+Secrets reais não devem ser commitados. Credenciais de Cloudflare utilizadas no GitHub Actions também ficam armazenadas como secrets do repositório.
 
 ## Deploy
 
@@ -134,9 +164,10 @@ O deploy da API é separado do frontend.
 A rotina de produção:
 
 1. instala dependências;
-2. valida o projeto;
-3. aplica migrations remotas;
-4. publica o Worker.
+2. executa o typecheck de toda a API;
+3. executa `dry-run` do Worker;
+4. aplica migrations remotas;
+5. publica o Worker.
 
 Mais detalhes em [`../../docs/deploy.md`](../../docs/deploy.md).
 
@@ -145,6 +176,7 @@ Mais detalhes em [`../../docs/deploy.md`](../../docs/deploy.md).
 - [`../../README.md`](../../README.md)
 - [`../../docs/README.md`](../../docs/README.md)
 - [`../../docs/escopo.md`](../../docs/escopo.md)
+- [`../../docs/funcionalidades.md`](../../docs/funcionalidades.md)
 - [`../../docs/architecture.md`](../../docs/architecture.md)
 - [`../../docs/api.md`](../../docs/api.md)
 - [`../../docs/database.md`](../../docs/database.md)
