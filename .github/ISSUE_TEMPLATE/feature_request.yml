@@ -1,0 +1,45 @@
+name: Sugerir melhoria
+description: Proponha uma funcionalidade ou evolução para o Receitando.
+title: "[Melhoria]: "
+labels: []
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Qual problema essa melhoria resolve?
+      description: Explique a necessidade antes da solução.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Solução proposta
+      description: Descreva como você imagina a melhoria.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Área principal
+      options:
+        - Experiência/Frontend
+        - API
+        - Matching/ingredientes
+        - Conta/autenticação
+        - Despensa/favoritos
+        - Comunidade
+        - Catálogo/importação
+        - Infraestrutura/CI
+        - Documentação
+        - Outra
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Como saber que está concluído?
+      description: Liste critérios de aceite objetivos, se possível.
+  - type: textarea
+    id: extra
+    attributes:
+      label: Contexto adicional
