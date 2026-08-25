@@ -11,14 +11,16 @@ flowchart TB
     A[API<br/>Cloudflare Worker]
     D[(Cloudflare D1)]
     E[Resend]
+    W[Wikilivros / Wikimedia Commons]
 
     U --> F
     F -->|HTTP + JSON| A
     A --> D
     A -->|recuperação de senha| E
+    W -->|importação controlada| D
 ```
 
-O frontend nunca acessa o banco diretamente. Estado persistente passa pela API.
+O frontend nunca acessa o banco diretamente. Estado persistente passa pela API. O catálogo externo é importado por scripts e workflows separados da aplicação em produção.
 
 ## Componentes
 
@@ -133,13 +135,18 @@ compatibilidade = encontrados / obrigatórios × 100
 
 O motor também usa aliases normalizados para aproximar variações conhecidas de nomes de ingredientes.
 
-## Catálogos externos
+## Catálogo externo
 
-O schema suporta proveniência de receitas por meio de campos de origem e identidade externa.
+O schema suporta proveniência de receitas por meio de campos de origem, identidade externa, licença e metadados de imagem.
 
-O repositório contém scripts/workflows de importação para fontes públicas usadas em experimentos, incluindo TheMealDB e um dataset CC0 de aproximadamente 64 mil receitas.
+A estratégia atual de catálogo utiliza:
 
-Importação de dados é tratada separadamente da experiência principal. Licença e autorização da fonte devem ser verificadas antes de publicar conteúdo de terceiros.
+- **Wikilivros em português** para conteúdo das receitas;
+- **Wikimedia Commons** para imagens livres.
+
+Os scripts de importação ficam em `backend/worker-prototype/scripts/` e são executados por workflows manuais do GitHub Actions. A importação valida a estrutura das receitas, associa imagens compatíveis, registra metadados de origem/licença e grava os resultados no D1.
+
+Esse fluxo é separado da experiência principal da aplicação: usuários acessam apenas o conteúdo já persistido no D1, sem depender de chamadas ao MediaWiki durante a navegação.
 
 ## Deploy e CI
 
@@ -150,11 +157,14 @@ flowchart LR
     FW[Frontend Worker]
     AW[API Worker]
     D1[(D1)]
+    WM[Wikilivros / Commons]
 
     G --> CI
     CI --> FW
     CI -->|workflow manual da API| D1
     CI -->|após migrations| AW
+    WM -->|workflow de importação| CI
+    CI -->|catálogo validado| D1
 ```
 
 O frontend possui deploy automatizado conforme os caminhos configurados no workflow. A API possui workflow de produção separado que valida o código, aplica migrations remotas e publica o Worker.
@@ -170,3 +180,9 @@ Credenciais da Cloudflare e outros valores secretos ficam em GitHub Secrets ou s
 | D1 | banco local gerenciado pelo Wrangler |
 
 A implementação antiga em `backend/` usa NestJS, Prisma e PostgreSQL e é mantida apenas como referência histórica; ela não representa a infraestrutura de produção atual.
+
+## Documentação relacionada
+
+- [`escopo.md`](escopo.md) — definição funcional e acadêmica do projeto;
+- [`api.md`](api.md) — rotas da API;
+- [`database.md`](database.md) — modelo de dados atual.
