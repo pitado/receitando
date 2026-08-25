@@ -7,6 +7,7 @@ Esta pasta reúne a documentação oficial do projeto, separando a visão acadê
 | Documento | Conteúdo |
 | --- | --- |
 | [`escopo.md`](escopo.md) | problema, objetivo, público-alvo, escopo funcional, requisitos, entregas e critérios de conclusão |
+| [`funcionalidades.md`](funcionalidades.md) | funcionalidades já implementadas e relação entre as áreas do sistema |
 | [`architecture.md`](architecture.md) | arquitetura atual, componentes, autenticação, matching, persistência e fluxo entre frontend/API/D1 |
 | [`api.md`](api.md) | rotas da API, autenticação, contratos e exemplos de uso |
 | [`database.md`](database.md) | modelo de dados, tabelas e persistência no Cloudflare D1 |
@@ -19,19 +20,21 @@ Esta pasta reúne a documentação oficial do projeto, separando a visão acadê
 ### Para avaliação acadêmica
 
 1. [`escopo.md`](escopo.md)
-2. [`architecture.md`](architecture.md)
-3. [`catalogo.md`](catalogo.md)
-4. [`database.md`](database.md)
-5. [`api.md`](api.md)
+2. [`funcionalidades.md`](funcionalidades.md)
+3. [`architecture.md`](architecture.md)
+4. [`catalogo.md`](catalogo.md)
+5. [`database.md`](database.md)
+6. [`api.md`](api.md)
 
 ### Para desenvolvimento
 
 1. [`estrutura-repositorio.md`](estrutura-repositorio.md)
 2. [`architecture.md`](architecture.md)
-3. [`api.md`](api.md)
-4. [`database.md`](database.md)
-5. [`deploy.md`](deploy.md)
-6. [`catalogo.md`](catalogo.md)
+3. [`funcionalidades.md`](funcionalidades.md)
+4. [`api.md`](api.md)
+5. [`database.md`](database.md)
+6. [`deploy.md`](deploy.md)
+7. [`catalogo.md`](catalogo.md)
 
 ## Organização resumida
 
@@ -54,7 +57,8 @@ receitando/
 
 - [`../frontend/README.md`](../frontend/README.md) — frontend;
 - [`../backend/README.md`](../backend/README.md) — diferença entre backend atual e implementação histórica;
-- [`../backend/worker-prototype/README.md`](../backend/worker-prototype/README.md) — API Worker atual.
+- [`../backend/worker-prototype/README.md`](../backend/worker-prototype/README.md) — API Worker atual;
+- [`../backend/worker-prototype/scripts/README.md`](../backend/worker-prototype/scripts/README.md) — scripts ativos e históricos.
 
 ## Regra de manutenção
 
@@ -63,6 +67,7 @@ A documentação deve acompanhar a implementação.
 Quando houver alteração relevante:
 
 - mudança de objetivo ou requisito → atualizar `escopo.md`;
+- nova funcionalidade ou alteração de comportamento → atualizar `funcionalidades.md`;
 - mudança de componentes ou fluxo → atualizar `architecture.md`;
 - mudança de rota → atualizar `api.md`;
 - mudança de schema → atualizar `database.md`;
