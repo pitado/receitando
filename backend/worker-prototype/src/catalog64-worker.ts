@@ -1,4 +1,5 @@
 import socialWorker from "./social-worker";
+import { compatibilityPercent, matchStatus, normalizeIngredient } from "./lib/recipe-utils";
 
 interface Env {
   db: D1Database;
@@ -41,10 +42,6 @@ type IngredientRow = {
 };
 
 const encoder = new TextEncoder();
-
-function normalizeIngredient(value: string): string {
-  return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase().replace(/[-_]+/g, " ").replace(/\s+/g, " ");
-}
 
 function allowedOrigins(env: Env): string[] {
   return env.FRONTEND_URL.split(",").map((value) => value.trim()).filter(Boolean);
@@ -237,7 +234,7 @@ async function efficientMatch(env: Env, ingredientIds: string[]) {
     const required = recipe.ingredients.filter((item) => !item.optional);
     const found = required.filter((item) => supplied.has(item.ingredientId));
     const missing = required.filter((item) => !supplied.has(item.ingredientId));
-    const compatibility = required.length ? Math.round((found.length / required.length) * 100) : 0;
+    const compatibility = compatibilityPercent(found.length, required.length);
     return {
       id: recipe.id,
       title: recipe.title,
@@ -250,7 +247,7 @@ async function efficientMatch(env: Env, ingredientIds: string[]) {
       imageUrl: recipe.imageUrl,
       tags: recipe.tags,
       compatibility,
-      status: compatibility === 100 ? "READY" : compatibility >= 70 ? "ALMOST_READY" : compatibility >= 40 ? "NEAR" : "EXPLORE",
+      status: matchStatus(compatibility),
       foundIngredients: found.map((item) => ({ id: item.ingredientId, name: item.name })),
       missingIngredients: missing.map((item) => ({ id: item.ingredientId, name: item.name })),
       optionalIngredients: recipe.ingredients.filter((item) => item.optional).map((item) => ({ id: item.ingredientId, name: item.name })),
