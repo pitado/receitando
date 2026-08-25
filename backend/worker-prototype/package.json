@@ -6,6 +6,8 @@
   "scripts": {
     "cf-typegen": "wrangler types worker-configuration.d.ts --include-runtime false",
     "typecheck": "tsc --noEmit",
+    "test:compile": "tsc -p tsconfig.tests.json",
+    "test": "npm run test:compile && node --test tests/*.test.cjs",
     "dev": "wrangler dev",
     "dry-run": "wrangler deploy --dry-run",
     "migrate:local": "wrangler d1 migrations apply receitando --local",
