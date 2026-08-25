@@ -2,7 +2,7 @@
   "$schema": "./node_modules/wrangler/config-schema.json",
   // Nome do serviço já publicado na Cloudflare. Mantido para preservar o Worker existente.
   "name": "round-mouse-8bbd",
-  "main": "src/home-worker.ts",
+  "main": "src/auth-rate-limit-worker.ts",
   "compatibility_date": "2026-08-17",
   "compatibility_flags": ["nodejs_compat"],
   "workers_dev": true,
