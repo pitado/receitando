@@ -102,6 +102,8 @@ O navegador recebe a sessão da API por cookie `HttpOnly`, e o cliente HTTP usa 
 
 O arquivo `auth-storage.ts` mantém apenas um indicador não sensível (`1`) para melhorar a experiência visual e sincronizar estado de login. Esse indicador não autentica nenhuma requisição; a autenticação real continua sendo validada pela API.
 
+Ao detectar o formato antigo, o frontend remove automaticamente qualquer token legado que ainda exista em `localStorage` ou `sessionStorage`, para que a migração não deixe credenciais antigas persistidas no navegador.
+
 A API complementa o cookie com `SameSite=Strict`, `Secure` em HTTPS, CORS com credenciais apenas para origens permitidas e verificação de origem em operações autenticadas que alteram dados.
 
 ## Imagens de receitas
