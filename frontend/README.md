@@ -94,6 +94,16 @@ A documentação de rotas está em:
 
 [`../docs/api.md`](../docs/api.md)
 
+## Autenticação no navegador
+
+A credencial de sessão não é persistida em `localStorage` nem em `sessionStorage`.
+
+O navegador recebe a sessão da API por cookie `HttpOnly`, e o cliente HTTP usa `credentials: "include"` para que o browser envie o cookie automaticamente. Como o cookie é `HttpOnly`, JavaScript executado no frontend não consegue ler o token da sessão.
+
+O arquivo `auth-storage.ts` mantém apenas um indicador não sensível (`1`) para melhorar a experiência visual e sincronizar estado de login. Esse indicador não autentica nenhuma requisição; a autenticação real continua sendo validada pela API.
+
+A API complementa o cookie com `SameSite=Strict`, `Secure` em HTTPS, CORS com credenciais apenas para origens permitidas e verificação de origem em operações autenticadas que alteram dados.
+
 ## Imagens de receitas
 
 O frontend aceita imagens remotas das fontes utilizadas pelo catálogo atual. A configuração de host remoto e política de conteúdo fica em `next.config.ts`.
