@@ -29,7 +29,10 @@ Os workflows ficam em `.github/workflows/`.
 1. `npm ci`;
 2. `npm run lint`;
 3. `npm run typecheck`;
-4. `npm run build`.
+4. `npm run test:coverage`;
+5. `npm run build`.
+
+A etapa de testes usa Vitest + React Testing Library. A cobertura V8 possui limites mínimos configurados em `frontend/vitest.config.mts`; se o piso for quebrado, o CI falha.
 
 ### Deploy do frontend
 
@@ -38,8 +41,9 @@ Os workflows ficam em `.github/workflows/`.
 1. instalação limpa de dependências;
 2. lint;
 3. typecheck;
-4. build com OpenNext;
-5. deploy do Worker.
+4. testes com cobertura;
+5. build com OpenNext;
+6. deploy do Worker.
 
 Essa validação dentro do próprio workflow de produção evita que um deploy dependa apenas do resultado de um job paralelo.
 
@@ -49,10 +53,12 @@ Essa validação dentro do próprio workflow de produção evita que um deploy d
 
 - instalação limpa de dependências;
 - `npm run typecheck` sobre todo `backend/worker-prototype/src/`;
-- `npm test` para regras críticas de matching e segurança;
+- `npm test` para helpers e contratos de rotas dos Workers;
 - `npm run dry-run`.
 
-Os testes usam o test runner nativo do Node.js. Antes da execução, os helpers TypeScript testados são compilados por `tsconfig.tests.json` para `.test-dist/`, diretório temporário ignorado pelo Git.
+Os testes usam o test runner nativo do Node.js. Antes da execução, a cadeia TypeScript atual é compilada por `tsconfig.tests.json` para `.test-dist/`, diretório temporário ignorado pelo Git.
+
+A suíte usa um D1 simulado para testar os métodos `fetch()` dos Workers sem tocar no banco de produção. Isso permite testar autenticação, despensa, perfil, comunidade, recuperação, catálogo, matching, feed e delegação entre as camadas.
 
 ### Deploy da API
 
@@ -112,6 +118,7 @@ Validação:
 ```bash
 npm run lint
 npm run typecheck
+npm run test:coverage
 npm run build
 ```
 
@@ -134,7 +141,9 @@ npm run dry-run
 
 O `tsconfig.json` da API inclui todos os arquivos TypeScript de `src/`, para que as camadas realmente utilizadas pelo entrypoint `src/home-worker.ts` sejam verificadas.
 
-A suíte inicial cobre normalização de ingredientes, compatibilidade/status do matching, hash PBKDF2, verificação de senhas, salt aleatório, rejeição de hashes inválidos e SHA-256 usado em tokens. Mudanças futuras em rotas e persistência devem ampliar a cobertura com testes de integração quando apropriado.
+A suíte combina testes de regras puras com testes de rota/contrato sobre os Workers compilados. O D1 usado nesses testes é simulado; testes end-to-end contra infraestrutura real não fazem parte desta etapa.
+
+A estratégia completa e seus limites estão em [`testes.md`](testes.md).
 
 ## Migrations
 
@@ -202,6 +211,8 @@ A API atual está em:
 backend/worker-prototype/
 ```
 
+O backend histórico não faz parte do CI principal porque não é implantado nem participa da arquitetura atual. Isso evita manter artificialmente uma segunda plataforma como se ainda fosse produto ativo.
+
 ## Segurança operacional
 
 O procedimento para relatar vulnerabilidades está em [`../SECURITY.md`](../SECURITY.md). Detalhes exploráveis não devem ser publicados em issues comuns.
@@ -212,6 +223,7 @@ O procedimento para relatar vulnerabilidades está em [`../SECURITY.md`](../SECU
 - [`api.md`](api.md)
 - [`database.md`](database.md)
 - [`catalogo.md`](catalogo.md)
+- [`testes.md`](testes.md)
 - [`estrutura-repositorio.md`](estrutura-repositorio.md)
 - [`../CONTRIBUTING.md`](../CONTRIBUTING.md)
 - [`../SECURITY.md`](../SECURITY.md)
