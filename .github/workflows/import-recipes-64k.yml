@@ -1,94 +1,17 @@
-name: Analyze 64K Recipe Dataset
+name: "[ARQUIVADO] Análise do dataset 64k"
 
 on:
   workflow_dispatch:
-    inputs:
-      offset:
-        description: "Índice inicial no dataset para análise"
-        required: true
-        default: "0"
-      limit:
-        description: "Quantidade de receitas para analisar"
-        required: true
-        default: "1000"
+
+permissions:
+  contents: read
 
 jobs:
-  analyze-catalog:
+  archived:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: backend/worker-prototype
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Install KaggleHub
-        run: python -m pip install --disable-pip-version-check kagglehub==1.0.2
-
-      - name: Download public CC0 dataset
+      - name: Workflow arquivado
         run: |
-          python - <<'PY'
-          import kagglehub
-          path = kagglehub.dataset_download(
-              "prashantsingh001/recipes-dataset-64k-dishes",
-              output_dir="dataset-64k",
-          )
-          print(f"Dataset baixado em: {path}")
-          PY
-
-      - name: Analyze ingredient and recipe diversity
-        run: |
-          python - <<'PY'
-          import ast
-          import csv
-          import json
-          from collections import Counter
-          from pathlib import Path
-
-          offset = int("${{ inputs.offset }}")
-          limit = int("${{ inputs.limit }}")
-          root = Path("dataset-64k")
-          csv_files = sorted(root.rglob("*.csv"), key=lambda p: p.stat().st_size, reverse=True)
-          preferred = [p for p in csv_files if p.name.lower() == "1_recipe_csv.csv"]
-          source = (preferred or csv_files)[0]
-
-          with source.open("r", encoding="utf-8-sig", newline="") as handle:
-              rows = list(csv.DictReader(handle))
-
-          selected = rows[offset:offset + limit]
-          categories = Counter()
-          ingredients = Counter()
-          for row in selected:
-              category = (row.get("category") or "sem categoria").strip()
-              categories[category] += 1
-              raw = row.get("ingredients") or ""
-              values = []
-              try:
-                  parsed = ast.literal_eval(raw)
-                  if isinstance(parsed, list):
-                      values = parsed
-              except Exception:
-                  values = [part.strip() for part in raw.split(";") if part.strip()]
-              for value in values:
-                  name = str(value).strip().lower()
-                  if name:
-                      ingredients[name] += 1
-
-          report = {
-              "source": str(source),
-              "offset": offset,
-              "requested": limit,
-              "analyzed": len(selected),
-              "total_dataset_rows": len(rows),
-              "top_categories": categories.most_common(30),
-              "top_ingredients": ingredients.most_common(100),
-          }
-          Path("dataset-64k/analysis-summary.json").write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
-          print(json.dumps(report, ensure_ascii=False, indent=2))
-          PY
-
-      - name: Important
-        run: echo "Este workflow é somente analítico e não grava receitas no D1."
+          echo "Este workflow pertence a um experimento antigo com um dataset CC0 de receitas."
+          echo "Ele não importa dados e não representa a fonte atual do catálogo."
+          echo "Use o workflow 'Importar receitas do Wikilivros' para a operação atual."
