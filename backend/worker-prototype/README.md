@@ -50,9 +50,11 @@ npm test
 npm run dry-run
 ```
 
-O `typecheck` cobre todos os arquivos TypeScript em `src/`. O `npm test` executa a suíte automatizada com o test runner nativo do Node.js, e o `dry-run` valida o bundle/configuração do Worker sem publicar.
+O `typecheck` cobre todos os arquivos TypeScript em `src/`. O `npm test` compila a cadeia atual dos Workers e executa a suíte com o test runner nativo do Node.js. O `dry-run` valida o bundle/configuração do Worker sem publicar.
 
-A cobertura inicial testa regras usadas pelo código real de produção:
+A suíte possui duas camadas.
+
+### Regras puras
 
 - normalização de ingredientes;
 - cálculo de compatibilidade;
@@ -60,28 +62,49 @@ A cobertura inicial testa regras usadas pelo código real de produção:
 - hash PBKDF2 de senhas;
 - verificação de senha;
 - salt aleatório;
-- hashes inválidos;
+- rejeição de hashes inválidos;
 - SHA-256 usado no tratamento de tokens.
 
-Os helpers testáveis ficam em `src/lib/`. A compilação específica dos testes é definida por `tsconfig.tests.json`, gera arquivos temporários em `.test-dist/` e é seguida pelos testes em `tests/*.test.cjs`.
+### Rotas dos Workers
 
-Essas validações fazem parte do CI e, para a API, também antecedem migrations e deploy de produção.
+Os testes carregam os Workers compilados e chamam seus métodos `fetch()` com objetos `Request`. Um D1 fake controlado pela suíte simula a interface usada pela aplicação, sem acessar dados de produção.
+
+Entre os fluxos validados estão:
+
+- healthcheck e CORS;
+- validação e criação de conta/sessão;
+- proteção de rotas autenticadas;
+- inclusão na despensa;
+- perfil autenticado;
+- votos e comentários;
+- recuperação de senha;
+- fonte Wikilivros e matching;
+- feed da home;
+- delegação de rotas através da cadeia completa dos Workers.
+
+Isso amplia a proteção para as camadas ativas `home-worker`, `catalog64-worker`, `social-worker`, `profile-worker`, `password-reset-validation-worker`, `password-reset-worker`, `pantry-worker` e `index`.
+
+Os testes de rota usam **D1 simulado**; não são testes end-to-end contra a infraestrutura real da Cloudflare. Essa distinção está detalhada em [`../../docs/testes.md`](../../docs/testes.md).
+
+A compilação específica dos testes é definida por `tsconfig.tests.json`, gera arquivos temporários em `.test-dist/` e é seguida pelos arquivos `tests/*.test.cjs`.
+
+Essas validações fazem parte do CI e também antecedem migrations e deploy de produção.
 
 ## Estrutura
 
 ```text
 worker-prototype/
-├── migrations/        schema e evoluções do Cloudflare D1
-├── scripts/           importador atual e scripts históricos documentados
+├── migrations/          schema e evoluções do Cloudflare D1
+├── scripts/             importador atual e scripts históricos documentados
 ├── src/
-│   ├── lib/           regras puras reutilizadas e testáveis
-│   └── ...            implementação atual da API Worker
-├── tests/             testes automatizados
-├── package.json       scripts e dependências
-├── tsconfig.json      configuração TypeScript da API
-├── tsconfig.tests.json compilação dos helpers testados
+│   ├── lib/             regras puras reutilizadas e testáveis
+│   └── ...              implementação atual da API Worker
+├── tests/               testes de helpers e contratos de rotas
+├── package.json         scripts e dependências
+├── tsconfig.json        configuração TypeScript da API
+├── tsconfig.tests.json  compilação da API para a suíte
 ├── worker-configuration.d.ts tipos do ambiente Cloudflare
-└── wrangler.jsonc     entrypoint, domínio, vars e binding D1
+└── wrangler.jsonc       entrypoint, domínio, vars e binding D1
 ```
 
 Arquivos antigos de uma tentativa NestJS/Prisma/Hyperdrive que estavam misturados a `src/` foram removidos desta estrutura. O código NestJS preservado como histórico fica no diretório `backend/`, fora da API atual.
@@ -212,4 +235,5 @@ O procedimento de reporte responsável está em [`../../SECURITY.md`](../../SECU
 - [`../../docs/api.md`](../../docs/api.md)
 - [`../../docs/database.md`](../../docs/database.md)
 - [`../../docs/catalogo.md`](../../docs/catalogo.md)
+- [`../../docs/testes.md`](../../docs/testes.md)
 - [`../../docs/deploy.md`](../../docs/deploy.md)
