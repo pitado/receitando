@@ -1,5 +1,9 @@
 # Receitando
 
+[![Frontend CI](https://github.com/pitado/receitando/actions/workflows/ci.yml/badge.svg)](https://github.com/pitado/receitando/actions/workflows/ci.yml)
+[![API Worker CI](https://github.com/pitado/receitando/actions/workflows/api-worker-ci.yml/badge.svg)](https://github.com/pitado/receitando/actions/workflows/api-worker-ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 O **Receitando** é um projeto acadêmico de aplicação web para descobrir receitas a partir dos ingredientes que a pessoa já possui.
 
 A proposta central é simples: o usuário informa ingredientes manualmente ou mantém uma despensa vinculada à conta, e o sistema compara esses itens com o catálogo para priorizar receitas por compatibilidade, mostrando o que já está disponível e o que ainda falta.
@@ -74,11 +78,15 @@ receitando/
 │   ├── worker-prototype/         API atual de produção
 │   │   ├── migrations/           migrations do Cloudflare D1
 │   │   ├── scripts/              importador atual + scripts históricos documentados
+│   │   ├── tests/                testes automatizados de regras críticas
 │   │   └── src/                  código atual da API Worker
 │   ├── src/                      backend NestJS histórico
 │   └── prisma/                   persistência Prisma histórica
 ├── docs/                         documentação oficial
-├── .github/workflows/            CI, deploy e automações
+├── .github/                      CI, deploy e templates do GitHub
+├── CONTRIBUTING.md               guia de contribuição
+├── SECURITY.md                   política de segurança
+├── LICENSE                       licença do código
 └── README.md                     visão geral
 ```
 
@@ -219,9 +227,24 @@ http://localhost:8787
 
 Guia específico: [`backend/worker-prototype/README.md`](backend/worker-prototype/README.md).
 
-## Qualidade
+## Variáveis de ambiente e secrets
 
-Frontend:
+O arquivo [`.env.example`](.env.example) documenta a configuração local sem armazenar credenciais reais.
+
+| Variável | Onde é usada | Tipo | Finalidade |
+| --- | --- | --- | --- |
+| `NEXT_PUBLIC_API_URL` | frontend | pública | endereço da API consumida pelo navegador; localmente `http://localhost:8787` |
+| `FRONTEND_URL` | API Worker | pública/configuração | lista de origens autorizadas pelo CORS |
+| `EMAIL_FROM` | API Worker | pública/configuração | remetente utilizado no fluxo de recuperação de senha |
+| `RESEND_API_KEY` | API Worker | **secret** | autenticação no serviço de envio de e-mail |
+| `CLOUDFLARE_API_TOKEN` | GitHub Actions | **secret** | autorização dos workflows de deploy/migrations |
+| `CLOUDFLARE_ACCOUNT_ID` | GitHub Actions | **secret operacional** | identifica a conta usada pelos workflows Cloudflare |
+
+Valores públicos da API ficam em `backend/worker-prototype/wrangler.jsonc` quando apropriado. Secrets reais devem permanecer no GitHub Actions/Cloudflare e nunca em `.env.example` ou commits.
+
+## Qualidade e testes automatizados
+
+### Frontend
 
 ```bash
 cd frontend
@@ -230,21 +253,36 @@ npm run typecheck
 npm run build
 ```
 
-API:
+### API
 
 ```bash
 cd backend/worker-prototype
 npm run typecheck
+npm test
 npm run dry-run
 ```
 
-O `typecheck` da API cobre a cadeia TypeScript atual em `backend/worker-prototype/src/`. O CI oficial valida frontend e API Worker atuais; o backend NestJS histórico não faz parte da validação principal de produção.
+A suíte automatizada usa o **test runner nativo do Node.js**, sem adicionar uma dependência de framework apenas para testes. O TypeScript dos helpers críticos é compilado para um diretório temporário antes da execução.
+
+Cobertura inicial automatizada:
+
+- normalização de ingredientes;
+- cálculo e faixas de compatibilidade do matching;
+- hash PBKDF2 de senhas;
+- verificação de senha correta/incorreta;
+- uso de salt aleatório;
+- rejeição de hashes inválidos;
+- SHA-256 utilizado no tratamento de tokens.
+
+Os helpers testados são usados pelo código real da API, evitando uma suíte desconectada da implementação de produção. Novas regras críticas devem receber testes de regressão. A próxima evolução natural da suíte é ampliar testes de integração das rotas e do acesso ao D1.
+
+O CI oficial executa essas validações antes do merge. O backend NestJS histórico não faz parte da validação principal de produção.
 
 ## Deploy
 
 O frontend e a API possuem workflows separados.
 
-Antes do deploy, o frontend passa por lint/typecheck/build e a API passa por typecheck/dry-run. A API aplica migrations remotas somente depois dessas validações. A importação de receitas é independente do deploy e é executada manualmente.
+Antes do deploy, o frontend passa por lint/typecheck/build e a API passa por typecheck, testes automatizados e dry-run. A API aplica migrations remotas somente depois dessas validações. A importação de receitas é independente do deploy e é executada manualmente.
 
 Guia operacional: [`docs/deploy.md`](docs/deploy.md).
 
@@ -271,6 +309,20 @@ Nunca devem ser commitados:
 
 Arquivos `.env.example` devem conter somente placeholders ou valores locais seguros.
 
+Vulnerabilidades não devem ser detalhadas em issues públicas. O procedimento de reporte responsável está em [`SECURITY.md`](SECURITY.md).
+
+## Contribuição
+
+O fluxo de branches, validações, testes, documentação, migrations e pull requests está descrito em [`CONTRIBUTING.md`](CONTRIBUTING.md).
+
+O repositório também possui templates para bugs, melhorias e pull requests em `.github/` para tornar contribuições e revisões mais consistentes.
+
+## Licença
+
+O código original do Receitando é disponibilizado sob a **MIT License**. Consulte [`LICENSE`](LICENSE).
+
+Essa licença **não substitui as licenças do conteúdo de terceiros**. Receitas provenientes do Wikilivros e imagens provenientes do Wikimedia Commons continuam sujeitas às licenças indicadas em suas respectivas fontes e aos metadados de atribuição armazenados pelo projeto.
+
 ## Documentação
 
 O índice completo está em [`docs/README.md`](docs/README.md).
@@ -288,7 +340,9 @@ Principais documentos:
 - [`frontend/README.md`](frontend/README.md) — guia do frontend;
 - [`backend/README.md`](backend/README.md) — backend atual versus histórico;
 - [`backend/worker-prototype/README.md`](backend/worker-prototype/README.md) — guia da API atual;
-- [`backend/worker-prototype/scripts/README.md`](backend/worker-prototype/scripts/README.md) — scripts atuais e históricos.
+- [`backend/worker-prototype/scripts/README.md`](backend/worker-prototype/scripts/README.md) — scripts atuais e históricos;
+- [`CONTRIBUTING.md`](CONTRIBUTING.md) — regras de contribuição;
+- [`SECURITY.md`](SECURITY.md) — política de segurança.
 
 ---
 

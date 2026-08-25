@@ -12,8 +12,14 @@ Esta pasta reúne a documentação oficial do projeto, separando a visão acadê
 | [`api.md`](api.md) | rotas da API, autenticação, contratos e exemplos de uso |
 | [`database.md`](database.md) | modelo de dados, tabelas e persistência no Cloudflare D1 |
 | [`catalogo.md`](catalogo.md) | origem das receitas, Wikilivros, Wikimedia Commons, imagens, licenças e importação |
-| [`deploy.md`](deploy.md) | CI, deploy, migrations, operação e ambientes |
-| [`estrutura-repositorio.md`](estrutura-repositorio.md) | função de cada pasta, código atual e código histórico |
+| [`deploy.md`](deploy.md) | CI, testes automatizados, deploy, migrations, operação e ambientes |
+| [`estrutura-repositorio.md`](estrutura-repositorio.md) | função de cada pasta, código atual, testes e código histórico |
+
+Arquivos de governança na raiz:
+
+- [`../CONTRIBUTING.md`](../CONTRIBUTING.md) — fluxo de contribuição e validações;
+- [`../SECURITY.md`](../SECURITY.md) — reporte responsável de vulnerabilidades;
+- [`../LICENSE`](../LICENSE) — licença MIT do código original.
 
 ## Ordem recomendada de leitura
 
@@ -25,6 +31,7 @@ Esta pasta reúne a documentação oficial do projeto, separando a visão acadê
 4. [`catalogo.md`](catalogo.md)
 5. [`database.md`](database.md)
 6. [`api.md`](api.md)
+7. [`deploy.md`](deploy.md)
 
 ### Para desenvolvimento
 
@@ -35,6 +42,7 @@ Esta pasta reúne a documentação oficial do projeto, separando a visão acadê
 5. [`database.md`](database.md)
 6. [`deploy.md`](deploy.md)
 7. [`catalogo.md`](catalogo.md)
+8. [`../CONTRIBUTING.md`](../CONTRIBUTING.md)
 
 ## Organização resumida
 
@@ -45,11 +53,15 @@ receitando/
 │   ├── worker-prototype/         API atual em Cloudflare Workers
 │   │   ├── migrations/           migrations do Cloudflare D1
 │   │   ├── scripts/              importador atual + scripts históricos documentados
-│   │   └── src/                  código atual da API
+│   │   ├── src/                  código atual da API
+│   │   └── tests/                testes automatizados de regras críticas
 │   ├── src/                      backend NestJS histórico
 │   └── prisma/                   schema Prisma histórico
 ├── docs/                         documentação oficial
-├── .github/workflows/            CI, deploy e automações
+├── .github/                      CI, deploy, Dependabot e templates
+├── CONTRIBUTING.md               guia de contribuição
+├── SECURITY.md                   política de segurança
+├── LICENSE                       licença MIT
 └── README.md                     visão geral
 ```
 
@@ -57,8 +69,14 @@ receitando/
 
 - [`../frontend/README.md`](../frontend/README.md) — frontend;
 - [`../backend/README.md`](../backend/README.md) — diferença entre backend atual e implementação histórica;
-- [`../backend/worker-prototype/README.md`](../backend/worker-prototype/README.md) — API Worker atual;
+- [`../backend/worker-prototype/README.md`](../backend/worker-prototype/README.md) — API Worker atual e suíte de testes;
 - [`../backend/worker-prototype/scripts/README.md`](../backend/worker-prototype/scripts/README.md) — script operacional e scripts históricos.
+
+## Qualidade
+
+A API possui testes automatizados para regras críticas de matching e segurança, executados por `npm test` no CI e antes do deploy da API. O frontend continua validado por lint, typecheck e build.
+
+Detalhes operacionais e ordem das validações estão em [`deploy.md`](deploy.md).
 
 ## Regra de manutenção
 
@@ -72,7 +90,9 @@ Quando houver alteração relevante:
 - mudança de rota → atualizar `api.md`;
 - mudança de schema → atualizar `database.md`;
 - mudança de fonte/importação → atualizar `catalogo.md`;
-- mudança de deploy/CI → atualizar `deploy.md`;
-- mudança estrutural no repositório → atualizar `estrutura-repositorio.md`.
+- mudança de testes/deploy/CI → atualizar `deploy.md`;
+- mudança estrutural no repositório → atualizar `estrutura-repositorio.md`;
+- mudança no fluxo de colaboração → atualizar `CONTRIBUTING.md`;
+- mudança no procedimento de segurança → atualizar `SECURITY.md`.
 
 O README principal deve continuar sendo uma visão geral e um ponto de entrada, sem duplicar toda a documentação detalhada desta pasta.

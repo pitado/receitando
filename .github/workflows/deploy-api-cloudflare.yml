@@ -34,6 +34,7 @@ jobs:
           cache-dependency-path: backend/worker-prototype/package-lock.json
       - run: npm ci
       - run: npm run typecheck
+      - run: npm test
       - name: Validate Worker build
         run: npm run dry-run
       - name: Apply D1 migrations

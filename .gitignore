@@ -16,6 +16,7 @@ build/
 out/
 .turbo/
 .cache/
+.test-dist/
 *.tsbuildinfo
 
 # Cobertura e resultados de testes

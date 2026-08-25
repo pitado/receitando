@@ -49,7 +49,10 @@ Essa validação dentro do próprio workflow de produção evita que um deploy d
 
 - instalação limpa de dependências;
 - `npm run typecheck` sobre todo `backend/worker-prototype/src/`;
+- `npm test` para regras críticas de matching e segurança;
 - `npm run dry-run`.
+
+Os testes usam o test runner nativo do Node.js. Antes da execução, os helpers TypeScript testados são compilados por `tsconfig.tests.json` para `.test-dist/`, diretório temporário ignorado pelo Git.
 
 ### Deploy da API
 
@@ -57,11 +60,12 @@ Essa validação dentro do próprio workflow de produção evita que um deploy d
 
 1. `npm ci`;
 2. `npm run typecheck`;
-3. `npm run dry-run`;
-4. `npm run migrate:remote`;
-5. `npm run deploy`.
+3. `npm test`;
+4. `npm run dry-run`;
+5. `npm run migrate:remote`;
+6. `npm run deploy`.
 
-Assim a configuração/bundle do Worker é validada antes de qualquer migration remota ser aplicada.
+Assim código, testes e configuração/bundle do Worker são validados antes de qualquer migration remota ser aplicada.
 
 ### Catálogo
 
@@ -124,10 +128,13 @@ Validação:
 
 ```bash
 npm run typecheck
+npm test
 npm run dry-run
 ```
 
 O `tsconfig.json` da API inclui todos os arquivos TypeScript de `src/`, para que as camadas realmente utilizadas pelo entrypoint `src/home-worker.ts` sejam verificadas.
+
+A suíte inicial cobre normalização de ingredientes, compatibilidade/status do matching, hash PBKDF2, verificação de senhas, salt aleatório, rejeição de hashes inválidos e SHA-256 usado em tokens. Mudanças futuras em rotas e persistência devem ampliar a cobertura com testes de integração quando apropriado.
 
 ## Migrations
 
@@ -155,11 +162,12 @@ Migrations devem ser versionadas e nunca alteradas retroativamente depois de apl
 
 1. instalar dependências a partir do lockfile;
 2. validar TypeScript;
-3. executar dry-run do Worker;
-4. aplicar migrations;
-5. publicar o Worker;
-6. verificar o healthcheck;
-7. testar rotas críticas.
+3. executar testes automatizados;
+4. executar dry-run do Worker;
+5. aplicar migrations;
+6. publicar o Worker;
+7. verificar o healthcheck;
+8. testar rotas críticas.
 
 ## Healthcheck
 
@@ -182,6 +190,8 @@ As atualizações automáticas de dependências acompanham apenas os componentes
 
 A implementação histórica em NestJS não recebe atualizações automáticas.
 
+PRs automáticos de dependências devem ser revisados com CI verde e atenção especial a atualizações major. Dependências ou PRs obsoletos não devem permanecer indefinidamente abertos apenas para aumentar ruído operacional.
+
 ## Histórico no repositório
 
 Existe uma implementação antiga em NestJS/Prisma dentro de `backend/`. Ela é mantida apenas como referência histórica e não deve ser confundida com a API de produção.
@@ -192,6 +202,10 @@ A API atual está em:
 backend/worker-prototype/
 ```
 
+## Segurança operacional
+
+O procedimento para relatar vulnerabilidades está em [`../SECURITY.md`](../SECURITY.md). Detalhes exploráveis não devem ser publicados em issues comuns.
+
 ## Documentos relacionados
 
 - [`architecture.md`](architecture.md)
@@ -199,3 +213,5 @@ backend/worker-prototype/
 - [`database.md`](database.md)
 - [`catalogo.md`](catalogo.md)
 - [`estrutura-repositorio.md`](estrutura-repositorio.md)
+- [`../CONTRIBUTING.md`](../CONTRIBUTING.md)
+- [`../SECURITY.md`](../SECURITY.md)
