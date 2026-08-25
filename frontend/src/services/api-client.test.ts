@@ -6,7 +6,7 @@ vi.mock("@/services/auth-storage", () => ({
 
 import { getAuthToken } from "@/services/auth-storage";
 
-import { ApiError, apiRequest } from "./api-client";
+import { apiRequest } from "./api-client";
 
 const getAuthTokenMock = vi.mocked(getAuthToken);
 const originalApiUrl = process.env.NEXT_PUBLIC_API_URL;
@@ -108,12 +108,12 @@ describe("apiRequest", () => {
       json: vi.fn().mockRejectedValue(new SyntaxError("invalid json")),
     } as unknown as Response);
 
-    await expect(apiRequest("/api/test")).rejects.toEqual(
-      expect.objectContaining<ApiError>({
-        kind: "invalid-response",
-        status: 200,
-      }),
-    );
+    await expect(apiRequest("/api/test")).rejects.toMatchObject({
+      name: "ApiError",
+      kind: "invalid-response",
+      status: 200,
+      message: "A API retornou uma resposta inesperada.",
+    });
   });
 
   it("classifica falhas de rede como connection", async () => {
