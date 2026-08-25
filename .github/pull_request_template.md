@@ -8,7 +8,7 @@
 
 ## Como validar
 
-- [ ] frontend: lint/typecheck/build, quando aplicável
+- [ ] frontend: lint/typecheck/test:coverage/build, quando aplicável
 - [ ] API: typecheck/test/dry-run, quando aplicável
 - [ ] fluxo alterado foi testado manualmente, quando necessário
 
@@ -18,6 +18,7 @@
 - [ ] altera API
 - [ ] altera banco/migrations
 - [ ] altera catálogo/importação
+- [ ] altera testes/cobertura
 - [ ] altera CI/deploy
 - [ ] altera documentação
 
@@ -25,7 +26,8 @@
 
 - [ ] não inclui secrets, tokens ou dados privados
 - [ ] documentação foi atualizada quando necessário
-- [ ] testes foram adicionados/atualizados quando a regra de negócio mudou
+- [ ] testes foram adicionados/atualizados quando a regra ou contrato mudou
+- [ ] cobertura do frontend não foi reduzida artificialmente
 - [ ] migrations existentes não foram reescritas
 - [ ] conteúdo externo mantém origem/licença aplicável
 
