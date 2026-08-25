@@ -37,6 +37,27 @@ Evite incluir dados reais de terceiros. Use contas e valores de teste.
 - CORS e políticas de segurança do frontend;
 - importadores que escrevem dados no banco.
 
+## Sessão no navegador
+
+A sessão de autenticação é entregue ao navegador por cookie `HttpOnly`, em vez de ser armazenada em `localStorage` ou `sessionStorage`.
+
+Em produção o cookie usa:
+
+- `HttpOnly` — JavaScript do frontend não consegue ler a credencial;
+- `Secure` — o cookie só é enviado por HTTPS;
+- `SameSite=Strict` — reduz o risco de envio em contexto cross-site;
+- prefixo `__Host-` e `Path=/` — evita escopo de domínio mais amplo do que o necessário.
+
+O frontend utiliza `credentials: "include"` nas chamadas à API. CORS com credenciais só é liberado para origens configuradas explicitamente, e operações autenticadas que alteram dados também validam a origem da requisição como defesa adicional contra CSRF.
+
+A API persiste somente o hash SHA-256 do token na tabela de sessões. O token bruto é usado apenas para compor o cookie e não é devolvido no contrato público final de login/cadastro.
+
+## Proteção contra abuso de autenticação
+
+Login e cadastro possuem limitação de tentativas no próprio Worker/D1. A proteção diferencia buckets de e-mail e IP no login e bucket de IP no cadastro, respondendo com `429` e `Retry-After` ao atingir os limites configurados.
+
+Essa proteção em código pode ser complementada por regras de Rate Limiting/WAF na Cloudflare para bloquear tráfego abusivo antes que ele consuma Worker ou D1.
+
 ## Secrets e credenciais
 
 Nunca devem ser commitados:
