@@ -1,5 +1,6 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
+  // Nome do serviço já publicado na Cloudflare. Mantido para preservar o Worker existente.
   "name": "round-mouse-8bbd",
   "main": "src/home-worker.ts",
   "compatibility_date": "2026-08-17",
@@ -13,6 +14,7 @@
     }
   ],
   "vars": {
+    // Produção e desenvolvimento local autorizados pelo CORS da API.
     "FRONTEND_URL": "https://receitando.miguelpita.com.br,http://localhost:3000",
     "EMAIL_FROM": "Receitando <noreply@mail.miguelpita.com.br>"
   },
