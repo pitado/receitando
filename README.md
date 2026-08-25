@@ -1,143 +1,181 @@
 # Receitando
 
-O **Receitando** é um projeto acadêmico que ajuda a responder uma pergunta simples: **o que dá para cozinhar com o que já existe em casa?**
+O **Receitando** é um projeto acadêmico de aplicação web para descobrir receitas a partir dos ingredientes que a pessoa já possui.
 
-A pessoa pode informar ingredientes manualmente ou manter uma despensa vinculada à conta. O sistema compara esses ingredientes com o catálogo e prioriza receitas pela compatibilidade, mostrando o que já está disponível e o que ainda falta.
+A proposta central é simples: o usuário informa ingredientes manualmente ou mantém uma despensa vinculada à conta, e o sistema compara esses itens com o catálogo para priorizar receitas por compatibilidade, mostrando o que já está disponível e o que ainda falta.
 
-> O objetivo, problema, público-alvo, funcionalidades, requisitos, entregas e critérios de conclusão estão definidos em [`docs/escopo.md`](docs/escopo.md).
+> A definição formal do projeto está em [`docs/escopo.md`](docs/escopo.md).
 
 ## Acesso
 
 - Site: **https://receitando.miguelpita.com.br**
 - API: **https://api.receitando.miguelpita.com.br**
 
-## Escopo acadêmico
+## Visão do projeto
 
-O projeto concentra-se em uma experiência web de descoberta de receitas a partir dos ingredientes disponíveis. As áreas principais são:
+O Receitando reúne quatro áreas principais:
 
-- catálogo e detalhes de receitas;
-- busca e compatibilidade por ingredientes;
-- despensa pessoal;
-- autenticação e recuperação de senha;
-- favoritos, avaliações e comentários;
-- catálogo proveniente de fontes abertas com identificação de origem e licença.
+1. **descoberta de receitas** por catálogo e busca;
+2. **matching por ingredientes**, incluindo uso da despensa do usuário;
+3. **conta e personalização**, com autenticação, perfil, favoritos e recuperação de senha;
+4. **interação da comunidade**, com avaliações, comentários e feed.
 
-A definição completa do projeto está em **[Escopo do Receitando](docs/escopo.md)**.
+O catálogo atual utiliza conteúdo aberto do **Wikilivros em português** e imagens livres do **Wikimedia Commons**, preservando informações de origem e licença quando aplicável.
 
-## Arquitetura atual
-
-```text
-Navegador
-   │
-   ▼
-Next.js + React
-OpenNext / Cloudflare Worker
-   │  HTTP + JSON
-   ▼
-API em Cloudflare Worker
-   │
-   ├── Cloudflare D1
-   └── Resend (recuperação de senha)
-```
-
-O frontend e a API são publicados separadamente. O frontend não acessa o banco diretamente; toda leitura e escrita passa pela API.
-
-### Pastas principais
-
-- `frontend/`: aplicação Next.js, React e TypeScript;
-- `backend/worker-prototype/`: API atualmente usada em produção, apesar do nome histórico da pasta;
-- `backend/worker-prototype/migrations/`: migrations do Cloudflare D1;
-- `backend/worker-prototype/scripts/`: utilitários de importação e manutenção do catálogo;
-- `.github/workflows/`: CI, deploys e importações manuais;
-- `backend/`: implementação inicial em NestJS, Prisma e PostgreSQL, mantida apenas como referência histórica;
-- `docs/`: documentação de escopo, arquitetura, API e modelo de dados.
-
-## Stack
-
-### Frontend
-
-- Next.js 16
-- React 19
-- TypeScript
-- App Router
-- OpenNext
-- Cloudflare Workers
-
-### API e persistência
-
-- Cloudflare Workers
-- TypeScript
-- Wrangler
-- Cloudflare D1
-- Web Crypto API para senhas, sessões e tokens
-- Resend para e-mails de recuperação de senha
-
-### Automação
-
-- GitHub Actions
-- CI do frontend e da API Worker
-- deploy automático do frontend após mudanças relevantes na `main`
-- deploy manual da API com aplicação das migrations do D1
-- workflows manuais para importação e manutenção do catálogo
-
-## Funcionalidades atuais
+## Funcionalidades implementadas
 
 - catálogo e detalhes de receitas;
 - busca de receitas por ingredientes;
-- cálculo de compatibilidade e ingredientes faltantes;
-- combinação usando diretamente a despensa do usuário;
+- cálculo de compatibilidade;
+- indicação de ingredientes encontrados e faltantes;
+- combinação usando a despensa do usuário;
 - cadastro, login, logout e sessão persistente;
 - perfil editável com nome, `@` e avatar;
 - recuperação de senha por código enviado por e-mail;
-- despensa persistente por usuário;
+- despensa persistente;
 - quantidades e unidades opcionais na despensa;
 - favoritos persistentes;
 - avaliações de receita com gostei/não gostei;
 - comentários por receita;
 - feed da home com dados da comunidade;
-- página 404 personalizada e estados de erro/carregamento no frontend.
+- página 404 personalizada;
+- estados de loading e erro;
+- importação de receitas abertas com imagem e atribuição de origem.
+
+## Arquitetura atual
+
+```text
+Usuário / navegador
+        │
+        ▼
+Next.js + React
+OpenNext / Cloudflare Worker
+        │
+        │ HTTP + JSON
+        ▼
+API Cloudflare Worker
+        │
+        ├── Cloudflare D1
+        └── Resend
+```
+
+O frontend e a API são publicados separadamente. O frontend não acessa o banco diretamente: leitura e escrita persistente passam pela API.
+
+Mais detalhes em [`docs/architecture.md`](docs/architecture.md).
+
+## Estrutura do repositório
+
+```text
+receitando/
+├── frontend/                     aplicação web Next.js
+├── backend/
+│   ├── worker-prototype/         API atual de produção
+│   │   ├── migrations/           migrations do Cloudflare D1
+│   │   ├── scripts/              importação e manutenção do catálogo
+│   │   └── src/                  código da API Worker
+│   ├── src/                      backend NestJS histórico
+│   └── prisma/                   persistência Prisma histórica
+├── docs/                         documentação oficial
+├── .github/workflows/            CI, deploy e automações
+└── README.md                     visão geral
+```
+
+**Importante:** apesar do nome `worker-prototype`, esse diretório contém a API atual de produção. Os arquivos NestJS/Prisma diretamente em `backend/` são históricos.
+
+A explicação completa está em [`docs/estrutura-repositorio.md`](docs/estrutura-repositorio.md).
+
+## Stack
+
+### Frontend
+
+- Next.js 16;
+- React 19;
+- TypeScript;
+- App Router;
+- OpenNext;
+- Cloudflare Workers.
+
+### API e persistência
+
+- Cloudflare Workers;
+- TypeScript;
+- Wrangler;
+- Cloudflare D1;
+- Web Crypto API;
+- Resend para recuperação de senha.
+
+### Automação e infraestrutura
+
+- GitHub Actions;
+- Cloudflare Workers;
+- Cloudflare D1;
+- CI separado para frontend e API;
+- deploy separado de frontend e API;
+- workflow manual para importação do catálogo.
 
 ## Catálogo de receitas
 
-O catálogo atual utiliza conteúdo aberto e mantém informações de procedência para que a origem dos dados possa ser identificada.
+A fonte oficial atual do catálogo é:
 
-A estratégia adotada atualmente é:
+- **Wikilivros em português** para texto e estrutura das receitas;
+- **Wikimedia Commons** para imagens livres.
 
-- **Wikilivros em português** para o conteúdo das receitas;
-- **Wikimedia Commons** para imagens livres associadas às receitas.
+O importador atual:
 
-Os importadores ficam em `backend/worker-prototype/scripts/` e são executados separadamente da aplicação principal. Quando uma imagem externa é utilizada, o sistema pode registrar dados como fonte, autor, licença e página original.
+- descobre páginas de receitas;
+- interpreta ingredientes e modo de preparo;
+- procura imagens relacionadas;
+- usa busca controlada no Commons como fallback;
+- preserva metadados de origem, autoria e licença;
+- respeita rate limits e trata respostas `429`/`5xx`;
+- grava dados no D1 em lotes.
 
-Conteúdo de terceiros só deve ser publicado quando sua licença ou autorização permitir o uso pretendido.
+Documentação completa: [`docs/catalogo.md`](docs/catalogo.md).
 
 ## API
 
-A API usa JSON e prefixo `/api`. Algumas rotas são públicas e outras exigem autenticação por:
+A API usa JSON e prefixo `/api`.
+
+Rotas autenticadas utilizam:
 
 ```text
 Authorization: Bearer <token-da-sessao>
 ```
 
-Resumo das áreas disponíveis:
+Áreas principais:
 
 - autenticação e perfil;
 - recuperação de senha;
 - ingredientes;
-- catálogo e detalhes de receitas;
-- matching por ingredientes ou pela despensa;
+- catálogo;
+- matching;
 - despensa;
 - favoritos;
-- votos e comentários;
+- avaliações e comentários;
 - feed da home.
 
-A lista de rotas e exemplos está em [`docs/api.md`](docs/api.md).
+Rotas e exemplos: [`docs/api.md`](docs/api.md).
+
+## Banco de dados
+
+A produção utiliza **Cloudflare D1**.
+
+As migrations ficam em:
+
+```text
+backend/worker-prototype/migrations/
+```
+
+O modelo inclui contas, sessões, ingredientes, receitas, relações entre receitas e ingredientes, aliases, despensa, favoritos, recuperação de senha, perfis, votos, comentários e metadados de fontes externas.
+
+Detalhes: [`docs/database.md`](docs/database.md).
 
 ## Desenvolvimento local
 
 ### Pré-requisitos
 
-- Node.js 20.9 ou superior
-- npm 10 ou superior
+- Node.js 20.9 ou superior;
+- npm 10 ou superior.
 
 ### Frontend
 
@@ -147,19 +185,21 @@ npm ci
 npm run dev
 ```
 
-Crie `frontend/.env.local` apontando para a API local:
+Crie `frontend/.env.local`:
 
 ```dotenv
 NEXT_PUBLIC_API_URL=http://localhost:8787
 ```
 
-Frontend local:
+A aplicação fica normalmente em:
 
 ```text
 http://localhost:3000
 ```
 
-### API Worker + D1 local
+Guia específico: [`frontend/README.md`](frontend/README.md).
+
+### API Worker + D1
 
 ```bash
 cd backend/worker-prototype
@@ -168,11 +208,13 @@ npm run migrate:local
 npm run dev
 ```
 
-Por padrão, o Wrangler disponibiliza a API local em:
+A API local fica normalmente em:
 
 ```text
 http://localhost:8787
 ```
+
+Guia específico: [`backend/worker-prototype/README.md`](backend/worker-prototype/README.md).
 
 ## Qualidade
 
@@ -185,7 +227,7 @@ npm run typecheck
 npm run build
 ```
 
-API Worker:
+API:
 
 ```bash
 cd backend/worker-prototype
@@ -193,52 +235,56 @@ npm run typecheck
 npm run dry-run
 ```
 
+O CI oficial valida o frontend e a API Worker atuais. O backend NestJS histórico não faz parte da validação principal de produção.
+
 ## Deploy
 
-### Frontend
+O frontend e a API possuem workflows separados.
 
-A configuração está em `frontend/wrangler.jsonc`. O workflow de produção compila o Next.js com OpenNext e publica o Worker na Cloudflare.
+A API aplica migrations remotas antes de ser publicada. A importação de receitas é independente do deploy e é executada manualmente.
 
-### API
+Guia operacional: [`docs/deploy.md`](docs/deploy.md).
 
-A configuração está em `backend/worker-prototype/wrangler.jsonc`.
+## Segurança
 
-Para validar ou executar localmente:
-
-```bash
-cd backend/worker-prototype
-npm run typecheck
-npm run migrate:local
-npm run dev
-```
-
-O deploy de produção é feito pelo workflow **Deploy API Cloudflare**, que aplica as migrations remotas antes de publicar o Worker.
-
-## Segurança e informações públicas
-
-Este repositório pode documentar publicamente:
+Podem ser documentados publicamente:
 
 - arquitetura e stack;
-- URLs que já são públicas;
+- URLs públicas;
 - rotas da API;
-- estrutura do banco e migrations;
-- nomes de bindings e variáveis de ambiente;
-- nomes dos secrets usados pelo CI.
+- schema e migrations;
+- nomes de bindings;
+- nomes de variáveis de ambiente e secrets.
 
-**Nunca devem ser commitados** valores reais de tokens, chaves de API, credenciais, tokens de sessão, códigos de recuperação, senhas ou dados privados de usuários.
+Nunca devem ser commitados:
 
-Secrets de produção ficam no GitHub Actions ou na configuração segura da Cloudflare. Arquivos `.env.example` devem conter apenas valores locais ou placeholders.
+- tokens reais;
+- chaves de API;
+- senhas;
+- tokens de sessão;
+- códigos de recuperação;
+- credenciais de produção;
+- dados privados de usuários.
+
+Arquivos `.env.example` devem conter somente placeholders ou valores locais seguros.
 
 ## Documentação
 
-A documentação está organizada em [`docs/README.md`](docs/README.md).
+O índice completo está em [`docs/README.md`](docs/README.md).
 
-- [`docs/escopo.md`](docs/escopo.md) — escopo funcional e acadêmico do projeto;
+Principais documentos:
+
+- [`docs/escopo.md`](docs/escopo.md) — definição acadêmica e funcional;
 - [`docs/architecture.md`](docs/architecture.md) — arquitetura atual;
-- [`docs/api.md`](docs/api.md) — rotas e autenticação;
-- [`docs/database.md`](docs/database.md) — modelo atual do D1;
-- [`backend/worker-prototype/README.md`](backend/worker-prototype/README.md) — execução da API Worker.
+- [`docs/api.md`](docs/api.md) — rotas da API;
+- [`docs/database.md`](docs/database.md) — modelo do D1;
+- [`docs/catalogo.md`](docs/catalogo.md) — receitas, imagens e licenças;
+- [`docs/deploy.md`](docs/deploy.md) — CI, deploy e operação;
+- [`docs/estrutura-repositorio.md`](docs/estrutura-repositorio.md) — organização do código;
+- [`frontend/README.md`](frontend/README.md) — guia do frontend;
+- [`backend/README.md`](backend/README.md) — backend atual versus histórico;
+- [`backend/worker-prototype/README.md`](backend/worker-prototype/README.md) — guia da API atual.
 
 ---
 
-Projeto acadêmico em evolução. A infraestrutura atual usa **GitHub Actions + Cloudflare Workers + D1**.
+Projeto acadêmico em evolução, com infraestrutura atual baseada em **GitHub Actions + Cloudflare Workers + Cloudflare D1**.

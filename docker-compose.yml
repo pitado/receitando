@@ -1,3 +1,9 @@
+# ARQUIVO HISTÓRICO
+#
+# Este Docker Compose pertence à implementação antiga NestJS + Prisma + PostgreSQL.
+# A arquitetura atual de produção usa Cloudflare Worker + Cloudflare D1 e não depende deste serviço.
+# Consulte backend/README.md e docs/estrutura-repositorio.md antes de utilizá-lo.
+
 services:
   postgres:
     image: postgres:16-alpine

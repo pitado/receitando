@@ -1,6 +1,11 @@
 name: API Worker CI
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - "backend/worker-prototype/**"
+      - ".github/workflows/api-worker-ci.yml"
   pull_request:
     branches: [main]
     paths:
@@ -12,7 +17,7 @@ permissions:
   contents: read
 
 jobs:
-  validate:
+  validate-api-worker:
     runs-on: ubuntu-latest
     defaults:
       run:
