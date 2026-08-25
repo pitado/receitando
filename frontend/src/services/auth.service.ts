@@ -1,5 +1,5 @@
 import { apiRequest } from "@/services/api-client";
-import { clearAuthToken, saveAuthToken } from "@/services/auth-storage";
+import { clearAuthSession, markAuthSession } from "@/services/auth-storage";
 
 export interface AuthUser {
   id: string;
@@ -12,7 +12,6 @@ export interface AuthUser {
 
 interface AuthSession {
   user: AuthUser;
-  token: string;
   expiresAt: string;
 }
 
@@ -37,10 +36,10 @@ export async function register(
 ): Promise<AuthUser> {
   const session = await apiRequest<AuthSession>("/api/auth/register", {
     method: "POST",
-    body: JSON.stringify({ name, email, password }),
+    body: JSON.stringify({ name, email, password, remember }),
   });
 
-  saveAuthToken(session.token, remember);
+  markAuthSession(remember);
   return session.user;
 }
 
@@ -51,10 +50,10 @@ export async function login(
 ): Promise<AuthUser> {
   const session = await apiRequest<AuthSession>("/api/auth/login", {
     method: "POST",
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ email, password, remember }),
   });
 
-  saveAuthToken(session.token, remember);
+  markAuthSession(remember);
   return session.user;
 }
 
@@ -105,6 +104,6 @@ export async function logout(): Promise<void> {
   try {
     await apiRequest<void>("/api/auth/logout", { method: "POST" });
   } finally {
-    clearAuthToken();
+    clearAuthSession();
   }
 }
