@@ -10,7 +10,8 @@ Leia, nesta ordem:
 2. [`docs/escopo.md`](docs/escopo.md)
 3. [`docs/estrutura-repositorio.md`](docs/estrutura-repositorio.md)
 4. [`docs/architecture.md`](docs/architecture.md)
-5. a documentação específica da área que será alterada.
+5. [`docs/testes.md`](docs/testes.md)
+6. a documentação específica da área que será alterada.
 
 ## Arquitetura atual
 
@@ -35,6 +36,7 @@ Sugestões de nomes de branch:
 ```text
 feat/nome-da-funcionalidade
 fix/resumo-do-problema
+test/area-coberta
 docs/assunto
 chore/manutencao
 ```
@@ -48,8 +50,11 @@ cd frontend
 npm ci
 npm run lint
 npm run typecheck
+npm run test:coverage
 npm run build
 ```
+
+Mudanças no frontend não devem ser mescladas se lint, typecheck, testes/cobertura ou build falharem.
 
 ### API Worker
 
@@ -65,15 +70,33 @@ Mudanças na API não devem ser mescladas se os testes, o typecheck ou o dry-run
 
 ## Testes
 
-A suíte automatizada da API cobre regras críticas e deve crescer junto com o produto.
+Os dois componentes ativos possuem suíte automatizada e os testes devem crescer junto com o produto.
+
+### Frontend
+
+Ao alterar:
+
+- cliente HTTP → teste status, headers, autenticação, erros e cancelamento quando aplicável;
+- `services/` → valide rota, método, payload e parâmetros relevantes;
+- autenticação no cliente → valide armazenamento e limpeza da sessão;
+- componentes compartilhados → teste comportamento observável e acessibilidade, não classes CSS internas;
+- normalização/formatação → mantenha casos de borda como testes de regressão.
+
+Use Vitest + React Testing Library. O comando oficial do CI é `npm run test:coverage`, que também aplica os limites mínimos definidos em `vitest.config.mts`.
+
+### API Worker
 
 Ao alterar:
 
 - matching/normalização de ingredientes → atualize testes de `recipe-utils`;
 - autenticação/criptografia → atualize testes de `security`;
-- rotas ou persistência → prefira adicionar testes de integração quando o comportamento justificar.
+- rotas dos Workers → atualize `worker-routes.test.cjs` com o cenário afetado;
+- acesso ao D1 → use o fake controlado para validar o contrato sem tocar em produção;
+- comportamento que depende realmente da infraestrutura → considere uma camada de integração isolada em vez de usar recursos de produção em testes.
 
 Evite testes que apenas reproduzam a implementação sem validar comportamento observável.
+
+A estratégia completa está em [`docs/testes.md`](docs/testes.md).
 
 ## Banco de dados
 
@@ -92,6 +115,7 @@ A documentação deve mudar junto com o código.
 - rota → `docs/api.md`;
 - schema → `docs/database.md`;
 - catálogo/importação → `docs/catalogo.md`;
+- estratégia/cobertura de testes → `docs/testes.md`;
 - CI/deploy → `docs/deploy.md`;
 - estrutura → `docs/estrutura-repositorio.md`.
 
@@ -123,6 +147,7 @@ Um PR deve explicar:
 - qual problema resolve;
 - o que mudou;
 - como foi validado;
+- quais testes foram adicionados ou atualizados;
 - se altera banco, API, deploy ou documentação;
 - riscos e passos adicionais, quando existirem.
 
