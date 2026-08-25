@@ -3,6 +3,7 @@
   "compilerOptions": {
     "noEmit": false,
     "outDir": ".test-dist",
+    "rootDir": "src/lib",
     "module": "CommonJS",
     "moduleResolution": "Node",
     "types": [],
