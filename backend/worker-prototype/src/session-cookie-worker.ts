@@ -94,6 +94,10 @@ async function attachSessionCookie(
 
   const headers = new Headers(response.headers);
   headers.append("Set-Cookie", buildSessionCookie(request, payload.token, remember));
+
+  // Durante a fase de migração o corpo original é preservado para manter
+  // compatibilidade com o frontend anterior. A etapa seguinte deixa de usar
+  // o token em JavaScript antes de ele ser removido do contrato público.
   const decorated = new Response(response.body, {
     status: response.status,
     statusText: response.statusText,
