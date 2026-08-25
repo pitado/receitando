@@ -1,39 +1,69 @@
-name: Sync frontend test dependencies
+name: Validate test expansion branch
 
 on:
   push:
     branches: [test/frontend-worker-coverage]
     paths:
       - ".github/workflows/sync-frontend-test-deps.yml"
+      - "frontend/package.json"
+      - "frontend/vitest.config.ts"
+      - "frontend/src/**"
+      - "backend/worker-prototype/src/**"
+      - "backend/worker-prototype/tests/**"
+      - "backend/worker-prototype/tsconfig.tests.json"
 
 permissions:
   contents: write
 
 jobs:
-  sync-lockfile:
+  validate-and-sync:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: frontend
     steps:
       - uses: actions/checkout@v4
         with:
           ref: test/frontend-worker-coverage
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: frontend/package-lock.json
-      - name: Install test dependencies and refresh lockfile
+          cache-dependency-path: |
+            frontend/package-lock.json
+            backend/worker-prototype/package-lock.json
+
+      - name: Install frontend test dependencies and refresh lockfile
+        working-directory: frontend
         run: npm install --save-dev vitest @vitest/coverage-v8 @testing-library/react @testing-library/jest-dom jsdom
-      - name: Typecheck
+
+      - name: Frontend typecheck
+        working-directory: frontend
         run: npm run typecheck
-      - name: Lint
+
+      - name: Frontend lint
+        working-directory: frontend
         run: npm run lint
-      - name: Tests with coverage
+
+      - name: Frontend tests with coverage
+        working-directory: frontend
         run: npm run test:coverage
-      - name: Commit synchronized package files
-        working-directory: .
+
+      - name: Install API dependencies
+        working-directory: backend/worker-prototype
+        run: npm ci
+
+      - name: API typecheck
+        working-directory: backend/worker-prototype
+        run: npm run typecheck
+
+      - name: API tests
+        working-directory: backend/worker-prototype
+        run: npm test
+
+      - name: API dry-run
+        working-directory: backend/worker-prototype
+        run: npm run dry-run
+
+      - name: Commit synchronized frontend package files
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
