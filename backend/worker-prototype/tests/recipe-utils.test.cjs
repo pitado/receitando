@@ -18,6 +18,8 @@ test("calcula compatibilidade com limites seguros", () => {
   assert.equal(compatibilityPercent(1, 3), 33);
   assert.equal(compatibilityPercent(0, 0), 0);
   assert.equal(compatibilityPercent(8, 4), 100);
+  assert.equal(compatibilityPercent(Number.NaN, 4), 0);
+  assert.equal(compatibilityPercent(2, Number.POSITIVE_INFINITY), 0);
 });
 
 test("classifica o resultado do matching nos limites esperados", () => {
