@@ -3,14 +3,11 @@
   "compilerOptions": {
     "noEmit": false,
     "outDir": ".test-dist",
-    "rootDir": "src/lib",
+    "rootDir": "src",
     "module": "CommonJS",
     "moduleResolution": "Node",
-    "types": [],
-    "lib": ["ES2022", "DOM"]
+    "types": ["@cloudflare/workers-types"],
+    "lib": ["ES2022"]
   },
-  "include": [
-    "src/lib/recipe-utils.ts",
-    "src/lib/security.ts"
-  ]
+  "include": ["src/**/*.ts"]
 }
