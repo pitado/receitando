@@ -12,6 +12,7 @@ Esta pasta reúne a documentação oficial do projeto, separando a visão acadê
 | [`api.md`](api.md) | rotas da API, autenticação, contratos e exemplos de uso |
 | [`database.md`](database.md) | modelo de dados, tabelas e persistência no Cloudflare D1 |
 | [`catalogo.md`](catalogo.md) | origem das receitas, Wikilivros, Wikimedia Commons, imagens, licenças e importação |
+| [`testes.md`](testes.md) | estratégia de testes, ferramentas, cobertura, cenários e limites atuais |
 | [`deploy.md`](deploy.md) | CI, testes automatizados, deploy, migrations, operação e ambientes |
 | [`estrutura-repositorio.md`](estrutura-repositorio.md) | função de cada pasta, código atual, testes e código histórico |
 
@@ -31,7 +32,8 @@ Arquivos de governança na raiz:
 4. [`catalogo.md`](catalogo.md)
 5. [`database.md`](database.md)
 6. [`api.md`](api.md)
-7. [`deploy.md`](deploy.md)
+7. [`testes.md`](testes.md)
+8. [`deploy.md`](deploy.md)
 
 ### Para desenvolvimento
 
@@ -40,21 +42,22 @@ Arquivos de governança na raiz:
 3. [`funcionalidades.md`](funcionalidades.md)
 4. [`api.md`](api.md)
 5. [`database.md`](database.md)
-6. [`deploy.md`](deploy.md)
-7. [`catalogo.md`](catalogo.md)
-8. [`../CONTRIBUTING.md`](../CONTRIBUTING.md)
+6. [`testes.md`](testes.md)
+7. [`deploy.md`](deploy.md)
+8. [`catalogo.md`](catalogo.md)
+9. [`../CONTRIBUTING.md`](../CONTRIBUTING.md)
 
 ## Organização resumida
 
 ```text
 receitando/
-├── frontend/                     aplicação web em Next.js
+├── frontend/                     aplicação web em Next.js + testes Vitest/RTL
 ├── backend/
 │   ├── worker-prototype/         API atual em Cloudflare Workers
 │   │   ├── migrations/           migrations do Cloudflare D1
 │   │   ├── scripts/              importador atual + scripts históricos documentados
 │   │   ├── src/                  código atual da API
-│   │   └── tests/                testes automatizados de regras críticas
+│   │   └── tests/                helpers + testes de rotas dos Workers
 │   ├── src/                      backend NestJS histórico
 │   └── prisma/                   schema Prisma histórico
 ├── docs/                         documentação oficial
@@ -67,16 +70,16 @@ receitando/
 
 ## Guias por componente
 
-- [`../frontend/README.md`](../frontend/README.md) — frontend;
+- [`../frontend/README.md`](../frontend/README.md) — frontend, testes e cobertura;
 - [`../backend/README.md`](../backend/README.md) — diferença entre backend atual e implementação histórica;
 - [`../backend/worker-prototype/README.md`](../backend/worker-prototype/README.md) — API Worker atual e suíte de testes;
 - [`../backend/worker-prototype/scripts/README.md`](../backend/worker-prototype/scripts/README.md) — script operacional e scripts históricos.
 
 ## Qualidade
 
-A API possui testes automatizados para regras críticas de matching e segurança, executados por `npm test` no CI e antes do deploy da API. O frontend continua validado por lint, typecheck e build.
+Os dois componentes ativos possuem testes automatizados. O frontend utiliza Vitest + React Testing Library, mede cobertura com V8 e executa `test:coverage` no CI e antes do deploy. A API usa `node:test` para helpers e para contratos de rotas dos Workers com D1 simulado, além de typecheck e dry-run.
 
-Detalhes operacionais e ordem das validações estão em [`deploy.md`](deploy.md).
+A estratégia completa está em [`testes.md`](testes.md). A ordem operacional das validações está em [`deploy.md`](deploy.md).
 
 ## Regra de manutenção
 
@@ -90,7 +93,8 @@ Quando houver alteração relevante:
 - mudança de rota → atualizar `api.md`;
 - mudança de schema → atualizar `database.md`;
 - mudança de fonte/importação → atualizar `catalogo.md`;
-- mudança de testes/deploy/CI → atualizar `deploy.md`;
+- mudança de estratégia/cobertura de testes → atualizar `testes.md`;
+- mudança de deploy/CI → atualizar `deploy.md`;
 - mudança estrutural no repositório → atualizar `estrutura-repositorio.md`;
 - mudança no fluxo de colaboração → atualizar `CONTRIBUTING.md`;
 - mudança no procedimento de segurança → atualizar `SECURITY.md`.
