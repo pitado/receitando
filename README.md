@@ -4,10 +4,25 @@ O **Receitando** é um projeto acadêmico que ajuda a responder uma pergunta sim
 
 A pessoa pode informar ingredientes manualmente ou manter uma despensa vinculada à conta. O sistema compara esses ingredientes com o catálogo e prioriza receitas pela compatibilidade, mostrando o que já está disponível e o que ainda falta.
 
+> O objetivo, problema, público-alvo, funcionalidades, requisitos, entregas e critérios de conclusão estão definidos em [`docs/escopo.md`](docs/escopo.md).
+
 ## Acesso
 
 - Site: **https://receitando.miguelpita.com.br**
 - API: **https://api.receitando.miguelpita.com.br**
+
+## Escopo acadêmico
+
+O projeto concentra-se em uma experiência web de descoberta de receitas a partir dos ingredientes disponíveis. As áreas principais são:
+
+- catálogo e detalhes de receitas;
+- busca e compatibilidade por ingredientes;
+- despensa pessoal;
+- autenticação e recuperação de senha;
+- favoritos, avaliações e comentários;
+- catálogo proveniente de fontes abertas com identificação de origem e licença.
+
+A definição completa do projeto está em **[Escopo do Receitando](docs/escopo.md)**.
 
 ## Arquitetura atual
 
@@ -32,10 +47,10 @@ O frontend e a API são publicados separadamente. O frontend não acessa o banco
 - `frontend/`: aplicação Next.js, React e TypeScript;
 - `backend/worker-prototype/`: API atualmente usada em produção, apesar do nome histórico da pasta;
 - `backend/worker-prototype/migrations/`: migrations do Cloudflare D1;
-- `backend/worker-prototype/scripts/`: utilitários de importação de catálogos externos;
+- `backend/worker-prototype/scripts/`: utilitários de importação e manutenção do catálogo;
 - `.github/workflows/`: CI, deploys e importações manuais;
 - `backend/`: implementação inicial em NestJS, Prisma e PostgreSQL, mantida apenas como referência histórica;
-- `docs/`: documentação técnica da arquitetura, API e modelo de dados atuais.
+- `docs/`: documentação de escopo, arquitetura, API e modelo de dados.
 
 ## Stack
 
@@ -63,7 +78,7 @@ O frontend e a API são publicados separadamente. O frontend não acessa o banco
 - CI do frontend e da API Worker
 - deploy automático do frontend após mudanças relevantes na `main`
 - deploy manual da API com aplicação das migrations do D1
-- workflows manuais para importação de catálogos externos
+- workflows manuais para importação e manutenção do catálogo
 
 ## Funcionalidades atuais
 
@@ -84,9 +99,16 @@ O frontend e a API são publicados separadamente. O frontend não acessa o banco
 
 ## Catálogo de receitas
 
-O modelo de dados aceita receitas próprias, receitas de usuários e fontes externas. O repositório também contém pipelines de importação usados em experimentos com catálogos públicos, incluindo **TheMealDB** e um dataset **CC0 de aproximadamente 64 mil receitas**.
+O catálogo atual utiliza conteúdo aberto e mantém informações de procedência para que a origem dos dados possa ser identificada.
 
-Os scripts de importação ficam separados da lógica principal da aplicação. Conteúdo de terceiros só deve ser publicado quando sua licença ou autorização permitir o uso pretendido.
+A estratégia adotada atualmente é:
+
+- **Wikilivros em português** para o conteúdo das receitas;
+- **Wikimedia Commons** para imagens livres associadas às receitas.
+
+Os importadores ficam em `backend/worker-prototype/scripts/` e são executados separadamente da aplicação principal. Quando uma imagem externa é utilizada, o sistema pode registrar dados como fonte, autor, licença e página original.
+
+Conteúdo de terceiros só deve ser publicado quando sua licença ou autorização permitir o uso pretendido.
 
 ## API
 
@@ -209,6 +231,9 @@ Secrets de produção ficam no GitHub Actions ou na configuração segura da Clo
 
 ## Documentação
 
+A documentação está organizada em [`docs/README.md`](docs/README.md).
+
+- [`docs/escopo.md`](docs/escopo.md) — escopo funcional e acadêmico do projeto;
 - [`docs/architecture.md`](docs/architecture.md) — arquitetura atual;
 - [`docs/api.md`](docs/api.md) — rotas e autenticação;
 - [`docs/database.md`](docs/database.md) — modelo atual do D1;
