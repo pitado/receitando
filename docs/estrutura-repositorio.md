@@ -16,13 +16,14 @@ receitando/
 │   │   ├── migrations/             migrations do Cloudflare D1
 │   │   ├── scripts/                importador atual + scripts históricos documentados
 │   │   ├── src/                    implementação da API Worker
-│   │   └── tests/                  testes automatizados de regras críticas
+│   │   └── tests/                  helpers + contratos de rotas dos Workers
 │   ├── prisma/                     implementação histórica
 │   └── src/                        implementação histórica em NestJS
 ├── docs/                           documentação funcional e técnica
 ├── frontend/
 │   ├── public/                     arquivos públicos
-│   └── src/                        aplicação Next.js
+│   ├── src/                        aplicação Next.js + arquivos .test.ts(x)
+│   └── vitest.config.mts           configuração dos testes e cobertura
 ├── CONTRIBUTING.md                 guia de contribuição
 ├── SECURITY.md                     política de segurança
 ├── LICENSE                         licença MIT do código original
@@ -57,7 +58,29 @@ Responsabilidades:
 - comentários e avaliações;
 - consumo da API.
 
-Mais detalhes em [`../frontend/README.md`](../frontend/README.md).
+### Testes do frontend
+
+O frontend possui testes próximos do código que protegem:
+
+- `src/lib/`: regras de normalização e formatação;
+- `src/services/`: cliente HTTP e contratos com a API;
+- `src/components/ui/`: comportamento de componentes compartilhados;
+- `src/test/setup.ts`: setup comum do ambiente jsdom.
+
+Ferramentas:
+
+- Vitest;
+- React Testing Library;
+- jest-dom;
+- jsdom;
+- V8 coverage.
+
+A configuração fica em `vitest.config.mts`. O CI executa `npm run test:coverage` e aplica limites mínimos de cobertura antes do build.
+
+Mais detalhes em:
+
+- [`../frontend/README.md`](../frontend/README.md)
+- [`testes.md`](testes.md)
 
 ## `backend/worker-prototype/`
 
@@ -83,15 +106,16 @@ O ponto de entrada de produção é `src/home-worker.ts`. Os Workers atuais são
 
 ### Testes da API
 
-As regras puras reutilizadas pela API ficam em `src/lib/` para poderem ser exercitadas pela suíte automatizada sem duplicar a implementação.
-
 A estrutura atual inclui:
 
 - `src/lib/recipe-utils.ts`: normalização, percentual e status do matching;
 - `src/lib/security.ts`: hash PBKDF2, verificação de senha e SHA-256;
-- `tests/recipe-utils.test.cjs`: testes do matching;
-- `tests/security.test.cjs`: testes de segurança/autenticação;
-- `tsconfig.tests.json`: compilação isolada dos helpers para `.test-dist/`.
+- `tests/recipe-utils.test.cjs`: testes das regras de matching;
+- `tests/security.test.cjs`: testes das regras de segurança;
+- `tests/worker-routes.test.cjs`: testes de contratos das rotas e da cadeia de Workers;
+- `tsconfig.tests.json`: compilação da API atual para `.test-dist/`.
+
+`worker-routes.test.cjs` chama os Workers compilados com objetos `Request` e usa um D1 fake controlado para exercitar comportamento de rotas sem depender de produção.
 
 O comando oficial é:
 
@@ -105,6 +129,7 @@ Mais detalhes em:
 
 - [`../backend/worker-prototype/README.md`](../backend/worker-prototype/README.md)
 - [`../backend/worker-prototype/scripts/README.md`](../backend/worker-prototype/scripts/README.md)
+- [`testes.md`](testes.md)
 
 ## Código histórico em `backend/`
 
@@ -115,6 +140,8 @@ Eles permanecem no repositório apenas como referência da evolução técnica e
 Ao desenvolver novas funcionalidades, a API correta é `backend/worker-prototype/`.
 
 O `docker-compose.yml` da raiz também pertence a esse ambiente histórico PostgreSQL e não é necessário para executar a API Worker atual.
+
+O backend histórico não entra no CI principal. Isso é intencional: ele não é implantado e não deve ser tratado como uma segunda implementação ativa.
 
 Mais detalhes em [`../backend/README.md`](../backend/README.md).
 
@@ -130,6 +157,7 @@ Os documentos são divididos entre visão acadêmica, funcional e técnica:
 - `api.md`: rotas e contratos da API;
 - `database.md`: modelo de dados;
 - `catalogo.md`: origem, licenças e importação das receitas;
+- `testes.md`: estratégia, cobertura e limites dos testes;
 - `deploy.md`: CI, testes, deploy e operação;
 - `estrutura-repositorio.md`: este documento;
 - `README.md`: índice e ordem recomendada de leitura.
@@ -150,9 +178,9 @@ Contém as automações do GitHub Actions.
 
 ### Workflows atuais
 
-- `ci.yml`: valida o frontend;
-- `api-worker-ci.yml`: executa typecheck, testes e dry-run da API Worker;
-- `deploy-cloudflare.yml`: publica o frontend;
+- `ci.yml`: lint, typecheck, testes com cobertura e build do frontend;
+- `api-worker-ci.yml`: typecheck, testes e dry-run da API Worker;
+- `deploy-cloudflare.yml`: valida e publica o frontend;
 - `deploy-api-cloudflare.yml`: valida, testa, aplica migrations e publica a API;
 - `import-wikibooks.yml`: importa manualmente o catálogo do Wikilivros/Commons.
 
@@ -167,7 +195,7 @@ O Dependabot acompanha apenas os componentes em uso:
 - `frontend/`;
 - `backend/worker-prototype/`.
 
-Atualizações `minor` e `patch` são agrupadas por componente para reduzir ruído. Atualizações major continuam exigindo revisão individual e não devem ser mescladas automaticamente apenas por estarem disponíveis.
+Atualizações `minor` e `patch` são agrupadas por componente para reduzir ruído. Atualizações major exigem planejamento e validação específica, em vez de merge automático.
 
 O backend NestJS histórico não recebe atualizações automáticas para não gerar a impressão de que ele ainda faz parte da arquitetura ativa.
 
@@ -204,8 +232,8 @@ Ao adicionar uma funcionalidade:
 1. alterar o código no componente correto;
 2. criar migration nova se o banco precisar mudar;
 3. atualizar API e tipos quando necessário;
-4. adicionar ou atualizar testes para regras críticas;
-5. atualizar `funcionalidades.md` e os documentos técnicos relacionados;
+4. adicionar ou atualizar testes para regras, contratos ou componentes afetados;
+5. atualizar `funcionalidades.md`, `testes.md` e documentos técnicos relacionados quando necessário;
 6. manter o README principal como visão geral, sem duplicar toda a documentação técnica;
 7. abrir PR usando o template e aguardar CI verde.
 
@@ -220,6 +248,7 @@ Se um arquivo histórico permanecer, ele deve estar claramente identificado para
 - [`README.md`](README.md)
 - [`funcionalidades.md`](funcionalidades.md)
 - [`architecture.md`](architecture.md)
+- [`testes.md`](testes.md)
 - [`deploy.md`](deploy.md)
 - [`../CONTRIBUTING.md`](../CONTRIBUTING.md)
 - [`../SECURITY.md`](../SECURITY.md)
