@@ -20,7 +20,7 @@ O Receitando reúne quatro áreas principais:
 3. **conta e personalização**, com autenticação, perfil, favoritos e recuperação de senha;
 4. **interação da comunidade**, com avaliações, comentários e feed.
 
-O catálogo atual utiliza conteúdo aberto do **Wikilivros em português** e imagens livres do **Wikimedia Commons**, preservando informações de origem e licença quando aplicável.
+O catálogo atual utiliza conteúdo aberto do **Wikilivros em português** e imagens livres do **Wikimedia Commons**, preservando no backend informações de origem e licença quando aplicável.
 
 ## Funcionalidades implementadas
 
@@ -40,7 +40,9 @@ O catálogo atual utiliza conteúdo aberto do **Wikilivros em português** e ima
 - feed da home com dados da comunidade;
 - página 404 personalizada;
 - estados de loading e erro;
-- importação de receitas abertas com imagem e atribuição de origem.
+- importação de receitas abertas com imagem e procedência registrada.
+
+O mapa detalhado do que já existe está em [`docs/funcionalidades.md`](docs/funcionalidades.md).
 
 ## Arquitetura atual
 
@@ -71,8 +73,8 @@ receitando/
 ├── backend/
 │   ├── worker-prototype/         API atual de produção
 │   │   ├── migrations/           migrations do Cloudflare D1
-│   │   ├── scripts/              importação e manutenção do catálogo
-│   │   └── src/                  código da API Worker
+│   │   ├── scripts/              importador atual + scripts históricos documentados
+│   │   └── src/                  código atual da API Worker
 │   ├── src/                      backend NestJS histórico
 │   └── prisma/                   persistência Prisma histórica
 ├── docs/                         documentação oficial
@@ -126,7 +128,7 @@ O importador atual:
 - interpreta ingredientes e modo de preparo;
 - procura imagens relacionadas;
 - usa busca controlada no Commons como fallback;
-- preserva metadados de origem, autoria e licença;
+- preserva metadados de origem, autoria e licença no D1;
 - respeita rate limits e trata respostas `429`/`5xx`;
 - grava dados no D1 em lotes.
 
@@ -146,6 +148,7 @@ Authorization: Bearer <token-da-sessao>
 
 - autenticação e perfil;
 - recuperação de senha;
+- fontes do catálogo;
 - ingredientes;
 - catálogo;
 - matching;
@@ -166,7 +169,7 @@ As migrations ficam em:
 backend/worker-prototype/migrations/
 ```
 
-O modelo inclui contas, sessões, ingredientes, receitas, relações entre receitas e ingredientes, aliases, despensa, favoritos, recuperação de senha, perfis, votos, comentários e metadados de fontes externas.
+O modelo inclui contas, sessões, ingredientes, receitas, relações entre receitas e ingredientes, aliases, despensa, favoritos, recuperação de senha, perfis, votos, comentários e metadados de fontes e imagens externas.
 
 Detalhes: [`docs/database.md`](docs/database.md).
 
@@ -235,13 +238,13 @@ npm run typecheck
 npm run dry-run
 ```
 
-O CI oficial valida o frontend e a API Worker atuais. O backend NestJS histórico não faz parte da validação principal de produção.
+O `typecheck` da API cobre a cadeia TypeScript atual em `backend/worker-prototype/src/`. O CI oficial valida frontend e API Worker atuais; o backend NestJS histórico não faz parte da validação principal de produção.
 
 ## Deploy
 
 O frontend e a API possuem workflows separados.
 
-A API aplica migrations remotas antes de ser publicada. A importação de receitas é independente do deploy e é executada manualmente.
+Antes do deploy, o frontend passa por lint/typecheck/build e a API passa por typecheck/dry-run. A API aplica migrations remotas somente depois dessas validações. A importação de receitas é independente do deploy e é executada manualmente.
 
 Guia operacional: [`docs/deploy.md`](docs/deploy.md).
 
@@ -275,15 +278,17 @@ O índice completo está em [`docs/README.md`](docs/README.md).
 Principais documentos:
 
 - [`docs/escopo.md`](docs/escopo.md) — definição acadêmica e funcional;
+- [`docs/funcionalidades.md`](docs/funcionalidades.md) — funcionalidades já implementadas;
 - [`docs/architecture.md`](docs/architecture.md) — arquitetura atual;
-- [`docs/api.md`](docs/api.md) — rotas da API;
+- [`docs/api.md`](docs/api.md) — rotas e contratos da API;
 - [`docs/database.md`](docs/database.md) — modelo do D1;
 - [`docs/catalogo.md`](docs/catalogo.md) — receitas, imagens e licenças;
 - [`docs/deploy.md`](docs/deploy.md) — CI, deploy e operação;
 - [`docs/estrutura-repositorio.md`](docs/estrutura-repositorio.md) — organização do código;
 - [`frontend/README.md`](frontend/README.md) — guia do frontend;
 - [`backend/README.md`](backend/README.md) — backend atual versus histórico;
-- [`backend/worker-prototype/README.md`](backend/worker-prototype/README.md) — guia da API atual.
+- [`backend/worker-prototype/README.md`](backend/worker-prototype/README.md) — guia da API atual;
+- [`backend/worker-prototype/scripts/README.md`](backend/worker-prototype/scripts/README.md) — scripts atuais e históricos.
 
 ---
 
