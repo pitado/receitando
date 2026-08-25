@@ -92,9 +92,16 @@ async function attachSessionCookie(
     return withCredentialCors(request, env, response);
   }
 
+  const token = payload.token;
+  const { token: _hiddenToken, ...safePayload } = payload as Record<string, unknown>;
+  void _hiddenToken;
+
   const headers = new Headers(response.headers);
-  headers.append("Set-Cookie", buildSessionCookie(request, payload.token, remember));
-  const decorated = new Response(response.body, {
+  headers.append("Set-Cookie", buildSessionCookie(request, token, remember));
+  headers.set("Content-Type", "application/json; charset=utf-8");
+  headers.set("Cache-Control", "no-store");
+
+  const decorated = new Response(JSON.stringify(safePayload), {
     status: response.status,
     statusText: response.statusText,
     headers,
