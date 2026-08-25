@@ -1,6 +1,6 @@
 import { getAuthToken } from "@/services/auth-storage";
 
-const DEFAULT_API_URL = "http://localhost:3333";
+const DEFAULT_API_URL = "http://localhost:8787";
 
 export type ApiErrorKind = "connection" | "http" | "invalid-response";
 

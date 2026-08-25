@@ -73,12 +73,15 @@ Cada camada atende um grupo de rotas e encaminha o restante para a próxima.
 Áreas principais:
 
 - `home-worker`: feed da home;
-- `catalog64-worker`: catálogo eficiente, ingredientes e matching;
+- `catalog64-worker`: fontes do catálogo, receitas, ingredientes e matching;
 - `social-worker`: votos e comentários;
 - `profile-worker`: perfil autenticado;
-- `password-reset-worker`: recuperação de senha;
+- `password-reset-validation-worker`: validação do fluxo de recuperação;
+- `password-reset-worker`: recuperação de senha e integração com Resend;
 - `pantry-worker`: despensa e favoritos;
 - `index`: autenticação e rotas-base.
+
+O `tsconfig.json` da API valida todo `src/**/*.ts`, alinhando o typecheck ao código realmente alcançado pelo entrypoint de produção.
 
 ## Persistência
 
@@ -90,7 +93,7 @@ As migrations ficam em:
 backend/worker-prototype/migrations/
 ```
 
-Elas definem contas, sessões, catálogo, aliases de ingredientes, despensa, favoritos, recuperação de senha, perfis, votos, comentários e metadados de fontes externas.
+Elas definem contas, sessões, catálogo, aliases de ingredientes, despensa, favoritos, recuperação de senha, perfis, votos, comentários e metadados de fontes e imagens externas.
 
 A API usa SQL preparado diretamente pela API do D1.
 
@@ -144,7 +147,7 @@ A estratégia atual de catálogo utiliza:
 - **Wikilivros em português** para conteúdo das receitas;
 - **Wikimedia Commons** para imagens livres.
 
-Os scripts de importação ficam em `backend/worker-prototype/scripts/` e são executados por workflows manuais do GitHub Actions. A importação valida a estrutura das receitas, associa imagens compatíveis, registra metadados de origem/licença e grava os resultados no D1.
+O script operacional é `backend/worker-prototype/scripts/import-wikibooks-v2.mjs`, executado manualmente pelo workflow `import-wikibooks.yml`. A importação valida a estrutura das receitas, associa imagens compatíveis, registra metadados de origem/licença e grava os resultados no D1.
 
 Esse fluxo é separado da experiência principal da aplicação: usuários acessam apenas o conteúdo já persistido no D1, sem depender de chamadas ao MediaWiki durante a navegação.
 
@@ -156,18 +159,21 @@ flowchart LR
     CI[GitHub Actions]
     FW[Frontend Worker]
     AW[API Worker]
-    D1[(D1)]
+    D1[(Cloudflare D1)]
     WM[Wikilivros / Commons]
 
     G --> CI
-    CI --> FW
-    CI -->|workflow manual da API| D1
-    CI -->|após migrations| AW
-    WM -->|workflow de importação| CI
+    CI -->|lint + typecheck + build| FW
+    CI -->|typecheck + dry-run| ADEP[Deploy da API]
+    ADEP -->|migrations| D1
+    ADEP -->|deploy| AW
+    WM -->|workflow manual de importação| CI
     CI -->|catálogo validado| D1
 ```
 
-O frontend possui deploy automatizado conforme os caminhos configurados no workflow. A API possui workflow de produção separado que valida o código, aplica migrations remotas e publica o Worker.
+O frontend possui CI e deploy automatizados para mudanças relevantes. O deploy do frontend repete lint, typecheck e build antes da publicação.
+
+A API possui CI separado e um workflow de produção que executa typecheck, dry-run, migrations remotas e deploy, nessa ordem. Assim, a validação do bundle acontece antes de alterar o banco remoto.
 
 Credenciais da Cloudflare e outros valores secretos ficam em GitHub Secrets ou secrets do ambiente, nunca na documentação.
 
@@ -184,5 +190,8 @@ A implementação antiga em `backend/` usa NestJS, Prisma e PostgreSQL e é mant
 ## Documentação relacionada
 
 - [`escopo.md`](escopo.md) — definição funcional e acadêmica do projeto;
+- [`funcionalidades.md`](funcionalidades.md) — funcionalidades implementadas;
 - [`api.md`](api.md) — rotas da API;
-- [`database.md`](database.md) — modelo de dados atual.
+- [`database.md`](database.md) — modelo de dados atual;
+- [`catalogo.md`](catalogo.md) — origem/importação do catálogo;
+- [`deploy.md`](deploy.md) — CI, deploy e operação.

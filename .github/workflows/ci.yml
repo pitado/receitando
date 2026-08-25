@@ -6,11 +6,13 @@ on:
     paths:
       - "frontend/**"
       - ".github/workflows/ci.yml"
+      - ".github/workflows/deploy-cloudflare.yml"
   pull_request:
     branches: [main]
     paths:
       - "frontend/**"
       - ".github/workflows/ci.yml"
+      - ".github/workflows/deploy-cloudflare.yml"
   workflow_dispatch:
 
 permissions:

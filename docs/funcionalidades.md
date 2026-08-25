@@ -15,10 +15,9 @@ Cada receita pode possuir:
 - categoria;
 - dificuldade;
 - imagem;
-- origem externa;
-- metadados de fonte e licença.
+- origem externa.
 
-O catálogo atual é alimentado principalmente pelo fluxo Wikilivros + Wikimedia Commons.
+O catálogo atual é alimentado principalmente pelo fluxo Wikilivros + Wikimedia Commons. O backend também persiste metadados de fonte, autoria e licença para manter a procedência do conteúdo. Nem todos os campos detalhados de atribuição da imagem são exibidos atualmente na interface; eles permanecem registrados no D1 para auditoria e evolução do frontend.
 
 ## 2. Busca por ingredientes
 
@@ -118,6 +117,8 @@ O fluxo atual:
 6. grava no D1;
 7. disponibiliza o conteúdo pela API.
 
+A rotina operacional usa `backend/worker-prototype/scripts/import-wikibooks-v2.mjs`. Scripts de bases anteriores permanecem identificados como históricos e não representam o catálogo de produção.
+
 ## 13. Proveniência e licenças
 
 O banco possui campos para registrar origem de receitas e imagens.
@@ -130,7 +131,10 @@ Isso permite manter informações como:
 - licença;
 - URL da licença;
 - idioma;
-- data de importação.
+- data de importação;
+- fonte, autor, página e licença específicos da imagem.
+
+A API pública já retorna a procedência da receita e a URL da imagem. A exposição visual completa dos créditos específicos da imagem ainda pode ser ampliada sem necessidade de alterar a estrutura de persistência já existente.
 
 ## 14. API
 
@@ -139,6 +143,7 @@ As funcionalidades acima são expostas por rotas agrupadas em áreas:
 - autenticação;
 - perfil;
 - recuperação de senha;
+- fontes do catálogo;
 - ingredientes;
 - receitas;
 - matching;

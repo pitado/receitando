@@ -6,11 +6,13 @@ on:
     paths:
       - "backend/worker-prototype/**"
       - ".github/workflows/api-worker-ci.yml"
+      - ".github/workflows/deploy-api-cloudflare.yml"
   pull_request:
     branches: [main]
     paths:
       - "backend/worker-prototype/**"
       - ".github/workflows/api-worker-ci.yml"
+      - ".github/workflows/deploy-api-cloudflare.yml"
   workflow_dispatch:
 
 permissions:

@@ -159,6 +159,7 @@ Usuário abre a receita e consulta o preparo
 | RNF06 | Credenciais e chaves privadas não devem ser versionadas no repositório. |
 | RNF07 | Conteúdo externo publicado deve possuir origem identificável e licença compatível com o uso. |
 | RNF08 | A aplicação deve disponibilizar estados de carregamento e erro para as operações principais. |
+| RNF09 | Os componentes atuais devem passar pelas validações automatizadas definidas no CI antes de serem considerados prontos para publicação. |
 
 ## 11. Entregas do projeto
 
@@ -174,7 +175,7 @@ As principais entregas previstas são:
 8. banco de dados persistente;
 9. processo de importação de receitas de fontes abertas;
 10. publicação do frontend e da API em ambiente de produção;
-11. documentação de escopo, arquitetura, API e banco de dados.
+11. documentação de escopo, funcionalidades, arquitetura, API, banco de dados, catálogo, deploy e estrutura do repositório.
 
 ## 12. Critérios de conclusão
 
@@ -189,6 +190,8 @@ O projeto atende ao seu objetivo quando um usuário consegue realizar o seguinte
 7. criar uma conta e manter seus dados persistentes;
 8. salvar uma receita favorita e interagir com o conteúdo.
 
+Além do fluxo funcional, o código dos componentes atuais deve concluir com sucesso as validações automatizadas de frontend e API utilizadas pelo projeto.
+
 ## 13. Tecnologias adotadas
 
 A implementação atual utiliza:
@@ -200,10 +203,12 @@ A implementação atual utiliza:
 - **Resend** para envio de códigos de recuperação de senha;
 - APIs do **MediaWiki/Wikimedia** para obtenção de receitas e imagens livres.
 
-Os detalhes técnicos ficam documentados separadamente em [`architecture.md`](architecture.md), [`api.md`](api.md) e [`database.md`](database.md).
+Os detalhes técnicos ficam documentados separadamente em [`architecture.md`](architecture.md), [`api.md`](api.md), [`database.md`](database.md), [`catalogo.md`](catalogo.md) e [`deploy.md`](deploy.md).
 
 ## 14. Situação atual
 
 O Receitando encontra-se em desenvolvimento acadêmico contínuo. As funções principais de catálogo, matching por ingredientes, autenticação, despensa, favoritos e interação social já possuem implementação, enquanto o catálogo de receitas e a experiência de uso continuam sendo refinados.
+
+A documentação funcional do estado implementado está em [`funcionalidades.md`](funcionalidades.md).
 
 Este documento define o escopo funcional e acadêmico utilizado como referência para desenvolvimento, validação e apresentação do projeto.

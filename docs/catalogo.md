@@ -93,19 +93,27 @@ O schema do D1 possui campos específicos para a imagem e sua atribuição, incl
 
 Também são armazenados metadados da própria receita, como origem externa, URL da fonte, autor da fonte, licença, idioma e data de importação.
 
+Esses campos preservam a procedência necessária para auditoria e atribuição. **No contrato atual da API, a receita já expõe a origem do conteúdo e `imageUrl`, mas os campos detalhados de autoria/licença da imagem ainda não são todos retornados ao frontend.** Por isso, a persistência está preparada para a atribuição completa mesmo antes de existir uma apresentação visual específica desses créditos na interface.
+
 ## Licenças
 
 Conteúdo livre não significa conteúdo sem autoria.
 
 Quando uma receita ou imagem exige atribuição, os metadados necessários devem ser preservados. O projeto evita tratar conteúdo Creative Commons como se fosse domínio público.
 
-O código deve continuar armazenando e expondo informações suficientes para identificar a fonte e a licença aplicável.
+A regra do projeto é manter no banco informações suficientes para identificar fonte, autor e licença aplicável. Quando esses dados forem apresentados no frontend, devem ser consumidos a partir desse registro, sem inventar ou remover atribuições exigidas pela fonte.
 
 ## Fonte única atual
 
 A estratégia atual do projeto é manter o catálogo publicado com **Wikilivros + Wikimedia Commons**.
 
 Importadores experimentais de bases anteriores não representam a fonte atual de produção e não devem ser usados para repopular o catálogo sem uma decisão explícita do projeto.
+
+## Scripts históricos
+
+A pasta `backend/worker-prototype/scripts/` também conserva scripts de experimentos anteriores, como bases de 64 mil receitas, TheMealDB e a primeira versão do importador do Wikilivros.
+
+Eles não são a rotina operacional atual. O arquivo [`../backend/worker-prototype/scripts/README.md`](../backend/worker-prototype/scripts/README.md) identifica explicitamente o que é atual e o que é histórico.
 
 ## Operação
 
@@ -125,5 +133,6 @@ A rotina:
 
 - [`escopo.md`](escopo.md)
 - [`architecture.md`](architecture.md)
+- [`api.md`](api.md)
 - [`database.md`](database.md)
 - [`deploy.md`](deploy.md)

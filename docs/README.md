@@ -44,8 +44,8 @@ receitando/
 ├── backend/
 │   ├── worker-prototype/         API atual em Cloudflare Workers
 │   │   ├── migrations/           migrations do Cloudflare D1
-│   │   ├── scripts/              importador atual e utilitários
-│   │   └── src/                  código da API
+│   │   ├── scripts/              importador atual + scripts históricos documentados
+│   │   └── src/                  código atual da API
 │   ├── src/                      backend NestJS histórico
 │   └── prisma/                   schema Prisma histórico
 ├── docs/                         documentação oficial
@@ -58,7 +58,7 @@ receitando/
 - [`../frontend/README.md`](../frontend/README.md) — frontend;
 - [`../backend/README.md`](../backend/README.md) — diferença entre backend atual e implementação histórica;
 - [`../backend/worker-prototype/README.md`](../backend/worker-prototype/README.md) — API Worker atual;
-- [`../backend/worker-prototype/scripts/README.md`](../backend/worker-prototype/scripts/README.md) — scripts ativos e históricos.
+- [`../backend/worker-prototype/scripts/README.md`](../backend/worker-prototype/scripts/README.md) — script operacional e scripts históricos.
 
 ## Regra de manutenção
 

@@ -22,27 +22,58 @@ O frontend e a API são publicados separadamente.
 
 Os workflows ficam em `.github/workflows/`.
 
-### Frontend
+### Frontend CI
 
-`deploy-cloudflare.yml` é responsável pelo deploy do frontend na Cloudflare.
+`ci.yml` valida o frontend em alterações de `frontend/`:
 
-O frontend também é validado por lint, typecheck e build antes de ser considerado saudável.
+1. `npm ci`;
+2. `npm run lint`;
+3. `npm run typecheck`;
+4. `npm run build`.
 
-### API
+### Deploy do frontend
+
+`deploy-cloudflare.yml` publica o frontend na Cloudflare. Antes do deploy ele executa novamente:
+
+1. instalação limpa de dependências;
+2. lint;
+3. typecheck;
+4. build com OpenNext;
+5. deploy do Worker.
+
+Essa validação dentro do próprio workflow de produção evita que um deploy dependa apenas do resultado de um job paralelo.
+
+### API CI
 
 `api-worker-ci.yml` valida a API Worker com:
 
 - instalação limpa de dependências;
-- `npm run typecheck`;
+- `npm run typecheck` sobre todo `backend/worker-prototype/src/`;
 - `npm run dry-run`.
 
-`deploy-api-cloudflare.yml` é o fluxo de publicação da API e aplica as migrations remotas antes de publicar o Worker.
+### Deploy da API
+
+`deploy-api-cloudflare.yml` segue a ordem:
+
+1. `npm ci`;
+2. `npm run typecheck`;
+3. `npm run dry-run`;
+4. `npm run migrate:remote`;
+5. `npm run deploy`.
+
+Assim a configuração/bundle do Worker é validada antes de qualquer migration remota ser aplicada.
 
 ### Catálogo
 
 `import-wikibooks.yml` executa a importação manual do catálogo proveniente do Wikilivros e Wikimedia Commons.
 
+O workflow valida a sintaxe do importador, aplica migrations necessárias e então executa `scripts/import-wikibooks-v2.mjs`.
+
 Mais detalhes estão em [`catalogo.md`](catalogo.md).
+
+### Workflow histórico
+
+`import-recipes-64k.yml` está arquivado. Ele não importa dados para o D1 e apenas informa que o experimento de 64 mil receitas não representa a fonte atual do catálogo.
 
 ## Secrets
 
@@ -50,9 +81,13 @@ Credenciais reais nunca devem ser commitadas.
 
 Secrets de CI/deploy ficam no GitHub Actions e/ou no ambiente seguro da Cloudflare.
 
-Entre os valores sensíveis utilizados pelo projeto estão credenciais de Cloudflare e integrações como a chave do Resend.
+Entre os valores sensíveis utilizados pelo projeto estão:
 
-O repositório pode manter apenas nomes de variáveis e exemplos sem valores reais.
+- `CLOUDFLARE_API_TOKEN`;
+- `CLOUDFLARE_ACCOUNT_ID`;
+- `RESEND_API_KEY`.
+
+O repositório pode manter apenas nomes de variáveis, bindings públicos e exemplos sem valores reais.
 
 ## Frontend local
 
@@ -92,6 +127,8 @@ npm run typecheck
 npm run dry-run
 ```
 
+O `tsconfig.json` da API inclui todos os arquivos TypeScript de `src/`, para que as camadas realmente utilizadas pelo entrypoint `src/home-worker.ts` sejam verificadas.
+
 ## Migrations
 
 As migrations do banco ficam em:
@@ -112,16 +149,17 @@ Ambiente remoto:
 npm run migrate:remote
 ```
 
-Migrations devem ser versionadas e nunca alteradas retroativamente depois de aplicadas em produção.
+Migrations devem ser versionadas e nunca alteradas retroativamente depois de aplicadas em produção. Uma mudança de schema deve entrar em uma migration nova.
 
 ## Ordem segura de publicação da API
 
-1. validar TypeScript;
-2. validar configuração do Worker;
-3. aplicar migrations;
-4. publicar o Worker;
-5. verificar o healthcheck;
-6. testar rotas críticas.
+1. instalar dependências a partir do lockfile;
+2. validar TypeScript;
+3. executar dry-run do Worker;
+4. aplicar migrations;
+5. publicar o Worker;
+6. verificar o healthcheck;
+7. testar rotas críticas.
 
 ## Healthcheck
 
@@ -134,6 +172,15 @@ Ela pode ser usada para confirmar se o Worker está respondendo após um deploy.
 O deploy da aplicação e a importação de receitas são processos diferentes.
 
 Publicar frontend ou API não significa repopular o catálogo. A importação do Wikilivros é acionada manualmente pelo workflow específico.
+
+## Dependabot
+
+As atualizações automáticas de dependências acompanham apenas os componentes atuais:
+
+- `frontend/`;
+- `backend/worker-prototype/`.
+
+A implementação histórica em NestJS não recebe atualizações automáticas.
 
 ## Histórico no repositório
 
