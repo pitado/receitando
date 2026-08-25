@@ -23,10 +23,10 @@ O frontend nunca acessa o D1 diretamente.
 O `wrangler.jsonc` aponta para:
 
 ```text
-src/home-worker.ts
+src/auth-rate-limit-worker.ts
 ```
 
-A partir dele, as camadas da API são encadeadas até `src/index.ts`. O arquivo `worker-configuration.d.ts` acompanha esse mesmo entrypoint para que tipos e configuração reflitam a aplicação realmente publicada.
+Essa camada aplica proteção contra abuso nas rotas de login e cadastro e, quando a requisição pode continuar, encaminha para `src/home-worker.ts`. A partir daí, as camadas funcionais da API são encadeadas até `src/index.ts`.
 
 ## Execução local
 
@@ -52,7 +52,7 @@ npm run dry-run
 
 O `typecheck` cobre todos os arquivos TypeScript em `src/`. O `npm test` executa a suíte automatizada com o test runner nativo do Node.js, e o `dry-run` valida o bundle/configuração do Worker sem publicar.
 
-A cobertura inicial testa regras usadas pelo código real de produção:
+A cobertura automatizada inclui regras usadas pelo código real de produção:
 
 - normalização de ingredientes;
 - cálculo de compatibilidade;
@@ -61,11 +61,29 @@ A cobertura inicial testa regras usadas pelo código real de produção:
 - verificação de senha;
 - salt aleatório;
 - hashes inválidos;
-- SHA-256 usado no tratamento de tokens.
+- SHA-256 usado no tratamento de tokens;
+- políticas de rate limiting de autenticação;
+- expiração da janela de bloqueio;
+- limpeza de tentativas de login após autenticação bem-sucedida;
+- armazenamento apenas de hash do e-mail/IP usado pelos buckets de limitação.
 
 Os helpers testáveis ficam em `src/lib/`. A compilação específica dos testes é definida por `tsconfig.tests.json`, gera arquivos temporários em `.test-dist/` e é seguida pelos testes em `tests/*.test.cjs`.
 
 Essas validações fazem parte do CI e, para a API, também antecedem migrations e deploy de produção.
+
+## Proteção de autenticação
+
+A API mantém uma defesa versionada no próprio Worker para reduzir força bruta e criação automatizada de contas.
+
+Políticas atuais:
+
+- login por e-mail: até **5 falhas em 15 minutos**;
+- login por IP: até **20 falhas em 15 minutos**;
+- cadastro por IP: até **5 tentativas válidas em 1 hora**.
+
+Quando o limite é atingido, a API responde com HTTP `429` e `Retry-After`. As chaves de limitação são persistidas no D1 apenas como SHA-256; e-mails e IPs não são gravados em texto puro nessa tabela. Eventos antigos são removidos de forma oportunista.
+
+O IP usado é `CF-Connecting-IP`, fornecido pela Cloudflare em produção. Uma regra de Rate Limiting/WAF na borda da Cloudflare continua recomendada como segunda camada de defesa, porque ela pode barrar tráfego antes de chegar ao Worker e ao D1.
 
 ## Estrutura
 
@@ -91,6 +109,8 @@ Arquivos antigos de uma tentativa NestJS/Prisma/Hyperdrive que estavam misturado
 A implementação atual é dividida em camadas que atendem grupos de rotas e encaminham as demais para a próxima camada.
 
 ```text
+auth-rate-limit-worker
+   ↓
 home-worker
    ↓
 catalog64-worker
@@ -110,7 +130,8 @@ index
 
 Arquivos principais:
 
-- `src/home-worker.ts`: ponto de entrada e feed da home;
+- `src/auth-rate-limit-worker.ts`: proteção de login/cadastro e entrypoint publicado;
+- `src/home-worker.ts`: feed da home;
 - `src/catalog64-worker.ts`: fontes, catálogo, ingredientes e matching;
 - `src/social-worker.ts`: votos e comentários;
 - `src/profile-worker.ts`: perfil autenticado;
@@ -118,6 +139,7 @@ Arquivos principais:
 - `src/password-reset-worker.ts`: recuperação de senha e integração de e-mail;
 - `src/pantry-worker.ts`: despensa e favoritos;
 - `src/index.ts`: autenticação e rotas-base;
+- `src/lib/auth-rate-limit.ts`: regras e persistência dos buckets de limitação;
 - `src/lib/recipe-utils.ts`: normalização e regras puras de matching;
 - `src/lib/security.ts`: hash/verificação de senha e SHA-256 reutilizáveis.
 
@@ -193,6 +215,8 @@ A rotina de produção:
 4. executa `dry-run` do Worker;
 5. aplica migrations remotas;
 6. publica o Worker.
+
+A migration de rate limiting é aplicada antes de o novo entrypoint ser publicado, evitando que o Worker novo seja ativado sem a tabela necessária.
 
 Mais detalhes em [`../../docs/deploy.md`](../../docs/deploy.md).
 

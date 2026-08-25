@@ -10,6 +10,7 @@
     "lib": ["ES2022", "DOM"]
   },
   "include": [
+    "src/lib/auth-rate-limit.ts",
     "src/lib/recipe-utils.ts",
     "src/lib/security.ts"
   ]
