@@ -12,11 +12,11 @@ const securityHeaders = [
       "base-uri 'self'",
       "form-action 'self'",
       "frame-ancestors 'none'",
-      "img-src 'self' data: blob: https://www.themealdb.com https://upload.wikimedia.org",
+      "img-src 'self' data: blob: https://upload.wikimedia.org",
       "font-src 'self' data:",
       "style-src 'self' 'unsafe-inline'",
       "script-src 'self' 'unsafe-inline'",
-      "connect-src 'self' https://api.receitando.miguelpita.com.br http://localhost:3333",
+      "connect-src 'self' https://api.receitando.miguelpita.com.br http://localhost:8787",
       "object-src 'none'",
     ].join("; "),
   },
@@ -26,11 +26,6 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   images: {
     remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "www.themealdb.com",
-        pathname: "/images/media/meals/**",
-      },
       {
         protocol: "https",
         hostname: "upload.wikimedia.org",
