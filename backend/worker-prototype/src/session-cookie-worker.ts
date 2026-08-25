@@ -124,11 +124,13 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname.replace(/\/+$/, "") || "/";
     const cookieToken = sessionTokenFromCookie(request);
+    const origin = request.headers.get("Origin");
 
-    // Cookies autenticados não podem executar mutações vindas de uma origem
-    // diferente do frontend explicitamente configurado. Isso complementa
-    // SameSite=Strict e evita trocar um risco de XSS por um risco de CSRF.
-    if (cookieToken && isUnsafeMethod(request.method) && !isAllowedOrigin(request, env)) {
+    // Requisições de navegador que alteram estado só são aceitas quando a
+    // origem é explicitamente permitida. Isso cobre inclusive login/cadastro
+    // (evitando login CSRF) e complementa SameSite=Strict nas sessões ativas.
+    // Clientes não-browser sem Origin continuam podendo usar a API por Bearer.
+    if (isUnsafeMethod(request.method) && origin && !isAllowedOrigin(request, env)) {
       return forbiddenOrigin(request, env);
     }
 
