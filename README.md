@@ -73,12 +73,12 @@ Mais detalhes em [`docs/architecture.md`](docs/architecture.md).
 
 ```text
 receitando/
-├── frontend/                     aplicação web Next.js
+├── frontend/                     aplicação web Next.js + testes Vitest/RTL
 ├── backend/
 │   ├── worker-prototype/         API atual de produção
 │   │   ├── migrations/           migrations do Cloudflare D1
 │   │   ├── scripts/              importador atual + scripts históricos documentados
-│   │   ├── tests/                testes automatizados de regras críticas
+│   │   ├── tests/                helpers + testes de rotas dos Workers
 │   │   └── src/                  código atual da API Worker
 │   ├── src/                      backend NestJS histórico
 │   └── prisma/                   persistência Prisma histórica
@@ -103,7 +103,10 @@ A explicação completa está em [`docs/estrutura-repositorio.md`](docs/estrutur
 - TypeScript;
 - App Router;
 - OpenNext;
-- Cloudflare Workers.
+- Cloudflare Workers;
+- Vitest;
+- React Testing Library;
+- V8 coverage.
 
 ### API e persistência
 
@@ -112,7 +115,8 @@ A explicação completa está em [`docs/estrutura-repositorio.md`](docs/estrutur
 - Wrangler;
 - Cloudflare D1;
 - Web Crypto API;
-- Resend para recuperação de senha.
+- Resend para recuperação de senha;
+- `node:test` para testes automatizados.
 
 ### Automação e infraestrutura
 
@@ -250,8 +254,13 @@ Valores públicos da API ficam em `backend/worker-prototype/wrangler.jsonc` quan
 cd frontend
 npm run lint
 npm run typecheck
+npm run test:coverage
 npm run build
 ```
+
+O frontend usa **Vitest + React Testing Library + jsdom**. A cobertura é calculada pelo V8 e possui limites mínimos configurados em `frontend/vitest.config.mts`.
+
+A suíte cobre cliente HTTP, autenticação no cliente, contratos dos serviços de catálogo/matching/despensa/favoritos/comunidade, normalização/formatação e componentes compartilhados de interface.
 
 ### API
 
@@ -262,27 +271,19 @@ npm test
 npm run dry-run
 ```
 
-A suíte automatizada usa o **test runner nativo do Node.js**, sem adicionar uma dependência de framework apenas para testes. O TypeScript dos helpers críticos é compilado para um diretório temporário antes da execução.
+A API usa o test runner nativo do Node.js. Além de regras puras de matching e segurança, a suíte chama os `fetch()` dos Workers compilados com um D1 simulado para testar contratos e fluxos de autenticação, despensa, perfil, comunidade, recuperação de senha, catálogo, matching e feed.
 
-Cobertura inicial automatizada:
+Os testes de Worker não acessam produção e não são apresentados como E2E real contra Cloudflare.
 
-- normalização de ingredientes;
-- cálculo e faixas de compatibilidade do matching;
-- hash PBKDF2 de senhas;
-- verificação de senha correta/incorreta;
-- uso de salt aleatório;
-- rejeição de hashes inválidos;
-- SHA-256 utilizado no tratamento de tokens.
+O CI oficial executa essas validações antes do merge. O backend NestJS histórico não faz parte da validação principal porque não é a implementação implantada.
 
-Os helpers testados são usados pelo código real da API, evitando uma suíte desconectada da implementação de produção. Novas regras críticas devem receber testes de regressão. A próxima evolução natural da suíte é ampliar testes de integração das rotas e do acesso ao D1.
-
-O CI oficial executa essas validações antes do merge. O backend NestJS histórico não faz parte da validação principal de produção.
+Estratégia completa, cenários e limites: [`docs/testes.md`](docs/testes.md).
 
 ## Deploy
 
 O frontend e a API possuem workflows separados.
 
-Antes do deploy, o frontend passa por lint/typecheck/build e a API passa por typecheck, testes automatizados e dry-run. A API aplica migrations remotas somente depois dessas validações. A importação de receitas é independente do deploy e é executada manualmente.
+Antes do deploy, o frontend passa por lint, typecheck, testes com cobertura e build. A API passa por typecheck, testes automatizados e dry-run. A API aplica migrations remotas somente depois dessas validações. A importação de receitas é independente do deploy e é executada manualmente.
 
 Guia operacional: [`docs/deploy.md`](docs/deploy.md).
 
@@ -335,11 +336,12 @@ Principais documentos:
 - [`docs/api.md`](docs/api.md) — rotas e contratos da API;
 - [`docs/database.md`](docs/database.md) — modelo do D1;
 - [`docs/catalogo.md`](docs/catalogo.md) — receitas, imagens e licenças;
+- [`docs/testes.md`](docs/testes.md) — estratégia, cobertura e limites dos testes;
 - [`docs/deploy.md`](docs/deploy.md) — CI, deploy e operação;
 - [`docs/estrutura-repositorio.md`](docs/estrutura-repositorio.md) — organização do código;
-- [`frontend/README.md`](frontend/README.md) — guia do frontend;
+- [`frontend/README.md`](frontend/README.md) — guia do frontend e testes;
 - [`backend/README.md`](backend/README.md) — backend atual versus histórico;
-- [`backend/worker-prototype/README.md`](backend/worker-prototype/README.md) — guia da API atual;
+- [`backend/worker-prototype/README.md`](backend/worker-prototype/README.md) — guia da API atual e testes;
 - [`backend/worker-prototype/scripts/README.md`](backend/worker-prototype/scripts/README.md) — scripts atuais e históricos;
 - [`CONTRIBUTING.md`](CONTRIBUTING.md) — regras de contribuição;
 - [`SECURITY.md`](SECURITY.md) — política de segurança.
