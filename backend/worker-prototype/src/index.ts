@@ -1,3 +1,6 @@
+import { compatibilityPercent, normalizeIngredient } from "./lib/recipe-utils";
+import { bytesToBase64Url, hashPassword, sha256, verifyPassword } from "./lib/security";
+
 interface Env {
   db: D1Database;
   FRONTEND_URL: string;
@@ -36,8 +39,6 @@ type RecipeJoinRow = {
 };
 
 const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
-const PASSWORD_ITERATIONS = 100_000;
-const encoder = new TextEncoder();
 
 function allowedOrigins(env: Env): string[] {
   return env.FRONTEND_URL.split(",").map((value) => value.trim()).filter(Boolean);
@@ -70,64 +71,6 @@ function empty(request: Request, env: Env, status = 204): Response {
 
 function apiError(request: Request, env: Env, status: number, message: string): Response {
   return json(request, env, { statusCode: status, message }, status);
-}
-
-function normalizeIngredient(value: string): string {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, " ");
-}
-
-function bytesToBase64Url(bytes: Uint8Array): string {
-  let binary = "";
-  for (const byte of bytes) binary += String.fromCharCode(byte);
-  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
-}
-
-function base64UrlToBytes(value: string): Uint8Array {
-  const padded = value.replace(/-/g, "+").replace(/_/g, "/").padEnd(Math.ceil(value.length / 4) * 4, "=");
-  const binary = atob(padded);
-  return Uint8Array.from(binary, (char) => char.charCodeAt(0));
-}
-
-async function sha256(value: string): Promise<string> {
-  const digest = await crypto.subtle.digest("SHA-256", encoder.encode(value));
-  return bytesToBase64Url(new Uint8Array(digest));
-}
-
-async function hashPassword(password: string): Promise<string> {
-  const salt = crypto.getRandomValues(new Uint8Array(16));
-  const key = await crypto.subtle.importKey("raw", encoder.encode(password), "PBKDF2", false, ["deriveBits"]);
-  const derived = await crypto.subtle.deriveBits(
-    { name: "PBKDF2", hash: "SHA-256", salt, iterations: PASSWORD_ITERATIONS },
-    key,
-    256,
-  );
-  return `pbkdf2$${PASSWORD_ITERATIONS}$${bytesToBase64Url(salt)}$${bytesToBase64Url(new Uint8Array(derived))}`;
-}
-
-async function verifyPassword(password: string, encoded: string): Promise<boolean> {
-  const [algorithm, iterationsValue, saltValue, hashValue] = encoded.split("$");
-  if (algorithm !== "pbkdf2" || !iterationsValue || !saltValue || !hashValue) return false;
-  const iterations = Number(iterationsValue);
-  if (!Number.isInteger(iterations) || iterations < 100_000) return false;
-
-  const expected = base64UrlToBytes(hashValue);
-  const key = await crypto.subtle.importKey("raw", encoder.encode(password), "PBKDF2", false, ["deriveBits"]);
-  const derived = new Uint8Array(
-    await crypto.subtle.deriveBits(
-      { name: "PBKDF2", hash: "SHA-256", salt: base64UrlToBytes(saltValue), iterations },
-      key,
-      expected.byteLength * 8,
-    ),
-  );
-  if (expected.length !== derived.length) return false;
-  let difference = 0;
-  for (let index = 0; index < expected.length; index += 1) difference |= expected[index] ^ derived[index];
-  return difference === 0;
 }
 
 function publicUser(user: UserRow) {
@@ -346,7 +289,7 @@ async function handleMatch(request: Request, env: Env): Promise<Response> {
       description: recipe.description,
       prepMinutes: recipe.prepMinutes,
       servings: recipe.servings,
-      compatibility: required.length === 0 ? 0 : Math.round((found.length / required.length) * 100),
+      compatibility: compatibilityPercent(found.length, required.length),
       requiredIngredients: required,
       foundIngredients: found,
       missingIngredients: missing,
