@@ -7,16 +7,16 @@ import { RecipeCard } from "@/components/recipe/RecipeCard";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { LoadingState } from "@/components/ui/LoadingState";
-import { AUTH_CHANGED_EVENT, getAuthToken } from "@/services/auth-storage";
+import { AUTH_CHANGED_EVENT, hasAuthSessionHint } from "@/services/auth-storage";
 import { listFavorites } from "@/services/favorites.service";
 import type { Recipe } from "@/types/recipe";
 
 import styles from "./page.module.css";
 
 export function FavoritesClient() {
-  const [authenticated, setAuthenticated] = useState(() => Boolean(getAuthToken()));
+  const [authenticated, setAuthenticated] = useState(() => hasAuthSessionHint());
   const [recipes, setRecipes] = useState<Recipe[]>([]);
-  const [loading, setLoading] = useState(() => Boolean(getAuthToken()));
+  const [loading, setLoading] = useState(() => hasAuthSessionHint());
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -28,7 +28,7 @@ export function FavoritesClient() {
     }
 
     function handleAuthChange() {
-      const nextAuthenticated = Boolean(getAuthToken());
+      const nextAuthenticated = hasAuthSessionHint();
       setAuthenticated(nextAuthenticated);
       if (!nextAuthenticated) {
         setRecipes([]);
