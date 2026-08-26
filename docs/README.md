@@ -16,10 +16,11 @@ Esta pasta reúne a documentação oficial do projeto, separando escopo acadêmi
 | [`deploy.md`](deploy.md) | CI, deploy, migrations, operação e ambientes |
 | [`estrutura-repositorio.md`](estrutura-repositorio.md) | função de cada pasta, código atual e histórico |
 
-Arquivos de governança na raiz:
+Arquivos de governança/histórico na raiz:
 
 - [`../CONTRIBUTING.md`](../CONTRIBUTING.md) — contribuição e validações;
 - [`../SECURITY.md`](../SECURITY.md) — reporte responsável de vulnerabilidades;
+- [`../CHANGELOG.md`](../CHANGELOG.md) — decisões estruturais e correções históricas relevantes;
 - [`../LICENSE`](../LICENSE) — MIT para o código original.
 
 ## Ordem recomendada
@@ -61,6 +62,7 @@ receitando/
 │   └── prisma/                     Prisma histórico
 ├── docs/                           documentação oficial
 ├── .github/                        CI, deploy, Dependabot e templates
+├── CHANGELOG.md                    histórico técnico relevante
 ├── CONTRIBUTING.md
 ├── SECURITY.md
 ├── LICENSE
@@ -100,6 +102,7 @@ Quando houver alteração relevante:
 - importador/licença → `catalogo.md`;
 - teste/cobertura → `testes.md`;
 - CI/deploy → `deploy.md`;
+- decisão estrutural ou correção histórica não óbvia → `CHANGELOG.md`;
 - segurança → `SECURITY.md`.
 
 Documentação e implementação devem ser alteradas no mesmo PR quando a mudança tornar o texto anterior incorreto.
