@@ -17,10 +17,10 @@ Leia:
 
 - frontend: `frontend/` — Next.js/React;
 - API: `backend/worker-prototype/` — Cloudflare Workers + D1;
-- backend NestJS/Prisma diretamente em `backend/`: histórico;
-- catálogo: Wikilivros + Wikimedia Commons.
+- catálogo: Wikilivros + Wikimedia Commons;
+- implementação anterior NestJS/Prisma/PostgreSQL: arquivada na branch `legacy/nest-prisma`, fora da árvore principal.
 
-Não implemente funcionalidades novas no backend histórico.
+Toda funcionalidade nova de backend deve ser implementada em `backend/worker-prototype/`.
 
 ## Fluxo
 
@@ -72,88 +72,88 @@ Não faça merge com validação obrigatória falhando.
 
 Mudanças em serviços, utilitários ou componentes com comportamento relevante devem atualizar/adicionar testes Vitest/Testing Library.
 
-Exemplos:
-
-- contrato HTTP → teste de `services/`;
-- autenticação no cliente → teste de serviço/armazenamento;
-- normalização/formatação → teste unitário;
-- estado reutilizável de UI → teste de componente.
-
 ### API
 
 Ao alterar:
 
-- matching → atualizar testes de `recipe-utils` e/ou rota;
+- normalização/canonicalização/matching → atualizar `recipe-utils` e teste de rota correspondente;
+- staples → testar que não reduzem a compatibilidade;
+- busca textual → testar o contrato FTS5 e evitar regressão para `%LIKE%`;
 - autenticação/criptografia → `security` + regressão de rota quando aplicável;
-- rate limiting → `auth-rate-limit`;
-- rota/persistência/autorização → atualizar `worker-routes.test.cjs`;
-- recuperação de senha → testar resposta genérica, validação e autorização sem enviar e-mail real;
-- catálogo/licença → testar o contrato público de procedência/atribuição.
+- rate limiting → `auth-rate-limit` e entrypoint;
+- rota/persistência/autorização → teste de Worker com D1 simulado;
+- recuperação de senha → testar resposta genérica e limites sem enviar e-mail real;
+- catálogo/licença → testar procedência e atribuição.
 
-Rotas críticas e persistência **não devem depender apenas de testes de helpers**. Quando o comportamento atravessa Worker + D1, inclua teste de integração com o D1 simulado.
-
-Evite testes acoplados à implementação interna quando é possível validar um comportamento observável.
+Rotas críticas e persistência **não devem depender apenas de testes de helpers**.
 
 ## Banco de dados
 
 - nunca reescreva migration já aplicada;
 - mudanças de schema entram em migration nova;
 - migrations ficam em `backend/worker-prototype/migrations/`;
-- documente migrations incomuns ou correções históricas em `docs/database.md`;
+- documente índices, FTS e migrations incomuns em `docs/database.md`;
+- preserve chaves estrangeiras e relações existentes;
 - valide localmente antes de aplicação remota.
+
+Valores de requisição devem chegar ao D1 por statements preparados com `.bind()`. SQL estrutural dinâmico só pode ser construído a partir de valores controlados internamente, como a quantidade de placeholders `?`.
+
+## Catálogo e ingredientes
+
+O fluxo operacional atual usa:
+
+```text
+import-wikibooks-v2.mjs
+        ↓
+canonicalize-ingredients.mjs
+```
+
+Ao alterar normalização:
+
+- preserve `raw_text` da receita;
+- preserve aliases úteis;
+- não transforme equivalência semântica em simples substring;
+- adicione teste para evitar falsos positivos;
+- mantenha a política de `is_staple` documentada.
+
+## Conteúdo externo e segurança
+
+O fluxo atual persiste conteúdo culinário como texto e não renderiza HTML bruto do Wikilivros.
+
+Não introduza `dangerouslySetInnerHTML` para conteúdo externo sem uma etapa explícita e testada de sanitização.
+
+Nunca versione chaves, tokens, senhas, códigos de recuperação ou dados privados reais. Falhas de segurança devem seguir [`SECURITY.md`](SECURITY.md).
 
 ## Documentação
 
 - objetivo/requisito → `docs/escopo.md`;
-- comportamento implementado → `docs/funcionalidades.md`;
-- arquitetura/entrypoint → `docs/architecture.md`;
+- comportamento → `docs/funcionalidades.md`;
+- arquitetura → `docs/architecture.md`;
 - rota/contrato → `docs/api.md`;
-- schema/migration → `docs/database.md`;
+- schema/migration/índice → `docs/database.md`;
 - catálogo/importação/licença → `docs/catalogo.md`;
 - testes → `docs/testes.md`;
 - CI/deploy → `docs/deploy.md`;
 - estrutura → `docs/estrutura-repositorio.md`.
 
-README e documentos específicos não devem contradizer o código. Se uma mudança altera uma afirmação documentada, corrija o texto no mesmo PR.
+README e documentos específicos não devem contradizer o código.
 
 ## Código substituído
 
-Evite manter implementações antigas executáveis apenas “por garantia”.
-
-Quando uma versão é substituída e o histórico já está no Git:
+Quando uma implementação for substituída e o histórico já estiver preservado pelo Git:
 
 - remova código morto da árvore ativa;
-- remova scripts/workflows que não possuem função operacional;
-- mantenha somente o que ainda é usado ou possui motivo explícito de preservação.
-
-## Segurança e secrets
-
-Nunca versione:
-
-- chaves de API;
-- tokens Cloudflare/GitHub;
-- senhas;
-- tokens de sessão;
-- códigos de recuperação;
-- dados privados reais.
-
-Falhas de segurança devem seguir [`SECURITY.md`](SECURITY.md).
+- remova scripts/workflows sem função operacional;
+- mantenha apenas o que é executado ou possui justificativa explícita.
 
 ## Conteúdo e licenças
 
 MIT cobre o código original do projeto; não substitui licenças de terceiros.
 
-Não remova fonte, autoria, licença ou URL de atribuição de conteúdo importado. Alterações no contrato de receita devem preservar os campos necessários para atribuição do Wikilivros/Wikimedia Commons.
+Não remova fonte, autoria, licença ou URL de atribuição de conteúdo importado.
 
 ## Pull requests
 
-Todo PR deve explicar:
-
-- problema;
-- solução;
-- validação;
-- testes adicionados/alterados;
-- impacto em API/banco/deploy/documentação;
-- riscos ou passos adicionais.
+Todo PR deve explicar problema, solução, validação, testes, impacto em API/banco/deploy/documentação e eventuais riscos/passos adicionais.
 
 Prefira mudanças revisáveis e com CI verde.
