@@ -2,7 +2,7 @@
 
 Este diretório contém a **API atual de produção** do Receitando.
 
-O nome `worker-prototype` é histórico. Hoje o diretório concentra autenticação, catálogo, matching, despensa, favoritos, perfil, recuperação de senha, feed, votos, comentários, rate limiting e persistência no Cloudflare D1.
+O nome `worker-prototype` é histórico. Hoje o diretório concentra autenticação, catálogo, busca, matching, despensa, favoritos, perfil, recuperação de senha, feed, votos, comentários, rate limiting e persistência no Cloudflare D1.
 
 ## Entrypoint
 
@@ -12,7 +12,7 @@ O nome `worker-prototype` é histórico. Hoje o diretório concentra autenticaç
 src/auth-rate-limit-worker.ts
 ```
 
-Essa camada protege login/cadastro contra abuso e delega as demais requisições pela cadeia funcional.
+Essa camada protege login, cadastro e solicitação de recuperação de senha contra abuso e delega as demais requisições pela cadeia funcional.
 
 ## Cadeia atual
 
@@ -36,34 +36,54 @@ index
 
 Responsabilidades:
 
-- `auth-rate-limit-worker.ts`: limite de tentativas de autenticação/cadastro;
+- `auth-rate-limit-worker.ts`: rate limiting de login/cadastro/reset;
 - `home-worker.ts`: `/api/home-feed`;
-- `catalog64-worker.ts`: fontes, ingredientes, receitas, detalhe, matching e favoritos;
+- `catalog64-worker.ts`: fontes, ingredientes, FTS5, receitas, detalhe, matching e favoritos;
 - `social-worker.ts`: votos e comentários;
 - `profile-worker.ts`: `/api/auth/me`;
 - `password-reset-worker.ts`: recuperação de senha e Resend;
 - `pantry-worker.ts`: despensa;
 - `index.ts`: healthcheck, cadastro, login, logout e fallback final.
 
-As implementações antigas de catálogo/matching que existiam também em `index.ts` foram removidas. A rota de detalhe canônica é `/api/recipes/:slug` e o matching manual possui um único limite de 40 ingredientes.
+As implementações duplicadas de catálogo/matching que existiam em `index.ts` foram removidas. A rota de detalhe canônica é `/api/recipes/:slug`.
 
-## Infraestrutura compartilhada
+## Bibliotecas compartilhadas
 
-`src/lib/worker-http.ts` concentra:
+`src/lib/worker-http.ts` centraliza CORS, respostas JSON/erro, Bearer token, sessão e parsing de JSON.
 
-- interface `Env`;
-- origens autorizadas;
-- headers de CORS;
-- respostas JSON;
-- respostas de erro;
-- respostas vazias;
-- extração do Bearer token;
-- resolução básica de sessão;
-- parsing seguro de JSON.
+`src/lib/security.ts` centraliza PBKDF2, verificação de senha, SHA-256 e conversões usadas por autenticação/recuperação.
 
-`src/lib/security.ts` concentra PBKDF2, verificação em tempo constante, SHA-256 e conversões utilizadas por autenticação/recuperação.
+`src/lib/recipe-utils.ts` centraliza normalização, canonicalização conservadora de ingredientes, geração de candidatos de lookup, percentual e classificação do matching.
 
-Essa centralização reduz divergências entre Workers.
+## Matching canônico
+
+`ingredients` funciona como catálogo canônico e `ingredient_aliases` relaciona formas alternativas ao mesmo `ingredient_id`.
+
+A API resolve o nome completo normalizado e a forma canônica por igualdade. Ela **não usa substring para decidir equivalência**.
+
+Exemplos:
+
+```text
+cebolas picadas → cebola
+ovos            → ovo
+```
+
+Enquanto isso:
+
+```text
+óleo ≠ óleo de gergelim torrado
+açúcar ≠ açúcar de confeiteiro
+```
+
+A migration `0015_matching_search_hardening.sql` adiciona `ingredients.is_staple`. Ingredientes básicos marcados com essa flag não entram no denominador da compatibilidade nem na lista principal de faltantes.
+
+A regra desta versão é booleano (`tem` / `não tem`). Quantidades e unidades são persistidas, mas ainda não participam da porcentagem.
+
+## Busca textual
+
+A listagem de receitas usa a tabela virtual FTS5 `recipe_search` quando o parâmetro `q` é informado.
+
+A consulta usa `MATCH` e `bm25()` em vez de `LIKE '%termo%'`. Triggers no D1 mantêm título e descrição sincronizados com a tabela `recipes`.
 
 ## Execução local
 
@@ -73,11 +93,7 @@ npm run migrate:local
 npm run dev
 ```
 
-API padrão:
-
-```text
-http://localhost:8787
-```
+API padrão: `http://localhost:8787`.
 
 ## Validação
 
@@ -87,57 +103,35 @@ npm test
 npm run dry-run
 ```
 
-- `typecheck`: valida todo `src/**/*.ts`;
-- `test`: compila os Workers/bibliotecas para `.test-dist/` e executa `tests/*.test.cjs`;
-- `dry-run`: valida o bundle/configuração do Wrangler sem publicar.
+A suíte cobre regras puras e rotas/persistência simulada, incluindo:
 
-## Testes
-
-A suíte possui duas camadas.
-
-### Regras puras
-
-- normalização de ingredientes;
-- percentual/status do matching;
-- PBKDF2;
-- verificação de senha;
-- salt aleatório;
-- SHA-256;
-- políticas de rate limiting.
-
-### Rotas e persistência simulada
-
-`tests/worker-routes.test.cjs` executa `fetch()` dos Workers reais usando um D1 fake controlado.
-
-Entre os casos cobertos:
-
-- entrypoint real e healthcheck;
-- cadastro/sessão;
-- ausência das rotas duplicadas antigas em `index.ts`;
-- despensa autenticada;
-- catálogo como dono canônico das rotas de receita;
-- limite de 40 ingredientes;
-- não colisão de detalhe por slug com rotas sociais;
-- atribuição completa de imagem;
-- favoritos;
+- normalização e canonicalização;
+- staples no matching;
+- uso de FTS5 na busca;
+- limite de entrada do matching;
+- PBKDF2/SHA-256;
+- cadastro e sessões;
+- despensa/favoritos;
 - perfil;
 - votos/comentários;
-- recuperação sem enumeração de e-mail;
+- recuperação sem enumeração de conta;
+- rate limiting;
+- atribuição de imagem;
 - feed da home.
 
-Esses testes não acessam o D1 remoto nem enviam e-mail real.
+Os testes não acessam D1 remoto nem enviam e-mail real.
 
 ## Rate limiting
 
-Políticas versionadas no Worker:
+Políticas atuais:
 
 - login por e-mail: **5 falhas / 15 minutos**;
 - login por IP: **20 falhas / 15 minutos**;
-- cadastro por IP: **5 tentativas / 1 hora**.
+- cadastro por IP: **5 tentativas / 1 hora**;
+- recuperação por e-mail: **3 solicitações / 15 minutos**;
+- recuperação por IP: **10 solicitações / 15 minutos**.
 
-Ao atingir o limite, a API responde `429` com `Retry-After`.
-
-E-mail/IP usados nos buckets são persistidos apenas como SHA-256. Em produção, o IP vem de `CF-Connecting-IP`.
+Ao atingir o limite, a API responde `429` com `Retry-After`. E-mails/IP usados nos buckets são persistidos apenas como SHA-256.
 
 Uma regra adicional no WAF/Rate Limiting da Cloudflare pode ser usada como defesa de borda complementar.
 
@@ -145,10 +139,11 @@ Uma regra adicional no WAF/Rate Limiting da Cloudflare pode ser usada como defes
 
 ```text
 worker-prototype/
-├── migrations/              histórico versionado do D1
+├── migrations/                       histórico versionado do D1
 ├── scripts/
 │   ├── README.md
-│   └── import-wikibooks-v2.mjs
+│   ├── import-wikibooks-v2.mjs
+│   └── canonicalize-ingredients.mjs
 ├── src/
 │   ├── lib/
 │   └── ... workers atuais
@@ -157,17 +152,12 @@ worker-prototype/
 ├── package-lock.json
 ├── tsconfig.json
 ├── tsconfig.tests.json
-├── worker-configuration.d.ts
 └── wrangler.jsonc
 ```
 
 Importadores experimentais substituídos foram removidos da árvore atual; o histórico permanece no Git.
 
-## Dependências
-
-A API atual usa D1 diretamente. Dependências antigas de PostgreSQL/Prisma (`pg`, `@prisma/adapter-pg`, `@types/pg`) foram removidas deste pacote porque não eram importadas pelo código de produção.
-
-## Banco
+## Banco e integridade
 
 Binding:
 
@@ -175,11 +165,7 @@ Binding:
 db → Cloudflare D1 / receitando
 ```
 
-Migrations:
-
-```text
-migrations/
-```
+Migrations são aplicadas por ordem e nunca reescritas depois de compartilhadas. O schema usa chaves estrangeiras com políticas de cascata/restrição e índices explícitos para acessos frequentes.
 
 Comandos:
 
@@ -188,7 +174,7 @@ npm run migrate:local
 npm run migrate:remote
 ```
 
-Migrations já aplicadas não são reescritas. `0008b_prepare_catalog_v3b.sql` é uma etapa histórica intencional e está explicada em [`../../docs/database.md`](../../docs/database.md).
+Detalhes: [`../../docs/database.md`](../../docs/database.md).
 
 ## Catálogo
 
@@ -197,32 +183,19 @@ Fonte operacional:
 - Wikilivros em português;
 - Wikimedia Commons.
 
-Script:
-
-```text
-scripts/import-wikibooks-v2.mjs
-```
-
-Workflow:
-
-```text
-.github/workflows/import-wikibooks.yml
-```
+O workflow de catálogo executa o importador e depois `canonicalize-ingredients.mjs`, que consolida variações para IDs canônicos, preserva aliases e marca staples.
 
 A API retorna procedência da receita em `source` e procedência específica da imagem em `image`.
 
+## Conteúdo externo
+
+O importador converte o conteúdo culinário usado pela aplicação para texto. A página de receita não renderiza HTML bruto do Wikilivros. Se futuramente houver HTML rico externo, ele deverá ser sanitizado antes da renderização.
+
 ## Recuperação de senha
 
-A solicitação utiliza uma resposta genérica para e-mails válidos, exista ou não uma conta. Isso evita enumeração de usuários.
+A solicitação usa resposta genérica para e-mails válidos, exista ou não uma conta, e passa pelo rate limiting antes de alcançar o Resend.
 
-Códigos:
-
-- expiram;
-- possuem limite de tentativas;
-- são armazenados por PBKDF2;
-- geram um token temporário persistido somente como hash.
-
-Depois da troca de senha, sessões existentes do usuário são invalidadas.
+Códigos expiram, possuem limite de tentativas e são armazenados de forma derivada. Depois da troca de senha, sessões existentes são invalidadas.
 
 ## Variáveis e secrets
 
@@ -244,11 +217,9 @@ O workflow de produção executa:
 5. migrations remotas;
 6. deploy do Worker.
 
-Detalhes: [`../../docs/deploy.md`](../../docs/deploy.md).
-
 ## Backend histórico
 
-O NestJS/Prisma/PostgreSQL diretamente em `backend/` é uma implementação anterior preservada apenas como referência. Ele não é chamado, compilado nem publicado por esta API.
+A implementação antiga NestJS/Prisma/PostgreSQL foi removida da árvore principal e preservada na branch `legacy/nest-prisma`.
 
 ## Documentação
 
