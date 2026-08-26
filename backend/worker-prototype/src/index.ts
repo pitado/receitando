@@ -33,35 +33,13 @@ async function createSession(env: Env, userId: string) {
   const now = new Date().toISOString();
 
   await env.db
-    .prepare("INSERT INTO sessions (id, user_id, token_hash, expires_at, created_at, last_seen_at) VALUES (?, ?, ?, ?, ?, ?)")
+    .prepare(
+      "INSERT INTO sessions (id, user_id, token_hash, expires_at, created_at, last_seen_at) VALUES (?, ?, ?, ?, ?, ?)",
+    )
     .bind(crypto.randomUUID(), userId, tokenHash, expiresAt, now, now)
     .run();
 
   return { token, expiresAt };
-}
-
-async function authenticatedUser(request: Request, env: Env): Promise<UserRow | null> {
-  const token = bearerToken(request);
-  if (!token) return null;
-
-  const tokenHash = await sha256(token);
-  const now = new Date().toISOString();
-  const user = await env.db
-    .prepare(
-      `SELECT u.* FROM sessions s JOIN users u ON u.id = s.user_id
-       WHERE s.token_hash = ? AND s.expires_at > ? LIMIT 1`,
-    )
-    .bind(tokenHash, now)
-    .first<UserRow>();
-
-  if (user) {
-    await env.db
-      .prepare("UPDATE sessions SET last_seen_at = ? WHERE token_hash = ?")
-      .bind(now, tokenHash)
-      .run();
-  }
-
-  return user ?? null;
 }
 
 async function handleRegister(request: Request, env: Env): Promise<Response> {
@@ -98,7 +76,9 @@ async function handleRegister(request: Request, env: Env): Promise<Response> {
   };
 
   await env.db
-    .prepare("INSERT INTO users (id, name, email, password_hash, role, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)")
+    .prepare(
+      "INSERT INTO users (id, name, email, password_hash, role, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+    )
     .bind(user.id, user.name, user.email, user.password_hash, user.role, now, now)
     .run();
 
@@ -126,12 +106,6 @@ async function handleLogin(request: Request, env: Env): Promise<Response> {
 
   const session = await createSession(env, user.id);
   return json(request, env, { user: publicUser(user), ...session });
-}
-
-async function handleMe(request: Request, env: Env): Promise<Response> {
-  const user = await authenticatedUser(request, env);
-  if (!user) return apiError(request, env, 401, "Sessão inválida ou expirada.");
-  return json(request, env, publicUser(user));
 }
 
 async function handleLogout(request: Request, env: Env): Promise<Response> {
@@ -162,9 +136,6 @@ async function route(request: Request, env: Env): Promise<Response> {
   }
   if (request.method === "POST" && path === "/api/auth/login") {
     return handleLogin(request, env);
-  }
-  if (request.method === "GET" && path === "/api/auth/me") {
-    return handleMe(request, env);
   }
   if (request.method === "POST" && path === "/api/auth/logout") {
     return handleLogout(request, env);
