@@ -1,6 +1,6 @@
 # Catálogo de receitas e licenças
 
-Este documento descreve a origem das receitas exibidas no Receitando, o processo de importação e os cuidados com procedência, autoria, licença e imagens.
+Este documento descreve a origem das receitas exibidas no Receitando, o processo de importação e os cuidados com procedência, autoria, licença, imagens e normalização de ingredientes.
 
 ## Fonte operacional atual
 
@@ -17,14 +17,15 @@ O objetivo é que cada receita importada possua estrutura culinária útil e pro
 flowchart LR
     A[GitHub Actions] --> B[API do Wikilivros]
     B --> C[Descoberta de páginas]
-    C --> D[Ingredientes e preparo]
+    C --> D[Extração de ingredientes e preparo]
     D --> E[Busca de imagem]
     E --> F[Wikimedia Commons]
     F --> G[Licença + atribuição]
     G --> H[SQL em lotes]
-    H --> I[(Cloudflare D1)]
-    I --> J[API do Receitando]
-    J --> K[Frontend]
+    H --> I[Canonicalização de ingredientes]
+    I --> J[(Cloudflare D1)]
+    J --> K[API do Receitando]
+    K --> L[Frontend]
 ```
 
 Workflow:
@@ -33,13 +34,16 @@ Workflow:
 .github/workflows/import-wikibooks.yml
 ```
 
-Importador operacional:
+Scripts operacionais:
 
 ```text
 backend/worker-prototype/scripts/import-wikibooks-v2.mjs
+backend/worker-prototype/scripts/canonicalize-ingredients.mjs
 ```
 
-Importadores substituídos foram removidos da árvore ativa. O histórico continua disponível pelo Git, sem confundir experimentos antigos com a rotina de produção.
+O primeiro importa receitas/imagens. O segundo consolida variações textuais de ingredientes para o modelo canônico usado pelo matching.
+
+Importadores substituídos foram removidos da árvore ativa. O histórico continua disponível pelo Git.
 
 ## Critérios de entrada
 
@@ -48,6 +52,54 @@ O importador exige estrutura mínima suficiente para interpretar a página como 
 Na política atual, também é exigida uma imagem livre adequada. Páginas auxiliares, índices, textos sem estrutura suficiente e receitas sem imagem compatível podem ser ignorados.
 
 Por isso, quantidade de páginas do Wikilivros e quantidade de receitas aceitas pelo Receitando não são equivalentes.
+
+## Sanitização do conteúdo importado
+
+O Receitando **não renderiza HTML bruto vindo do Wikilivros**.
+
+Durante a importação, `cleanWiki()` remove comentários, referências, templates simples e tags HTML, convertendo o conteúdo aproveitado em texto. O frontend recebe strings e as renderiza como nós de texto React, sem `dangerouslySetInnerHTML` nas telas de receita.
+
+Essa combinação reduz o risco de XSS armazenado proveniente da fonte externa. Se futuramente a aplicação passar a aceitar ou renderizar HTML rico importado, deverá existir sanitização específica antes da renderização; o comportamento atual não deve ser substituído por HTML bruto sem essa proteção.
+
+## Canonicalização dos ingredientes
+
+O texto cru do Wikilivros continua preservado em `recipe_ingredients.raw_text`, mas o matching não depende dele diretamente.
+
+Após a importação, `canonicalize-ingredients.mjs`:
+
+1. normaliza caixa, acentos e separadores;
+2. remove descrições conservadoras de preparo e tamanho;
+3. trata algumas formas plurais conhecidas;
+4. cria ou reutiliza um ingrediente canônico em `ingredients`;
+5. registra a forma original em `ingredient_aliases` quando necessário;
+6. redireciona relações de receitas e despensa ao mesmo `ingredient_id`;
+7. marca ingredientes básicos pela flag `is_staple`.
+
+Exemplos de intenção:
+
+```text
+cebola
+cebolas
+cebolas picadas
+cebola média
+        ↓
+      cebola
+```
+
+O processo é deliberadamente conservador: nomes compostos que mudam o significado não são reduzidos apenas por conter a mesma palavra. Assim, `óleo de gergelim torrado` permanece diferente de `óleo`, e `açúcar de confeiteiro` permanece diferente de `açúcar`.
+
+## Ingredientes básicos
+
+A política atual permite marcar como básicos itens triviais, como:
+
+- água;
+- sal;
+- pimenta;
+- óleo genérico.
+
+Quando `is_staple = 1`, o ingrediente continua aparecendo na receita, mas não reduz a porcentagem de compatibilidade nem entra na lista principal de faltantes.
+
+Açúcar não é marcado como básico por padrão porque, em muitas receitas, é ingrediente estrutural e não apenas um item trivial de despensa.
 
 ## Imagens
 
@@ -91,35 +143,9 @@ A API expõe essas informações no objeto `source` da receita.
 
 ## Metadados da imagem
 
-A migration `0013_recipe_image_attribution.sql` adicionou:
+A migration `0013_recipe_image_attribution.sql` adicionou campos próprios de procedência da imagem. O contrato público os retorna no objeto `image`, enquanto `imageUrl` permanece por compatibilidade.
 
-- `image_url`;
-- `image_source`;
-- `image_author`;
-- `image_page_url`;
-- `image_license`;
-- `image_license_url`;
-- `image_alt`.
-
-O contrato público atual retorna esses campos em um objeto `image`:
-
-```json
-{
-  "image": {
-    "url": "https://upload.wikimedia.org/...",
-    "source": "Wikimedia Commons",
-    "author": "Autor informado pelo Commons",
-    "pageUrl": "https://commons.wikimedia.org/wiki/File:...",
-    "license": "CC BY-SA 4.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
-    "alt": "Descrição da imagem"
-  }
-}
-```
-
-`imageUrl` continua no contrato por compatibilidade com telas existentes, enquanto `image` concentra a atribuição completa.
-
-A página de detalhes utiliza `image.alt` quando disponível e apresenta fonte/autor/licença da imagem com links para a página do arquivo e para a licença. Assim, o requisito de procedência não fica apenas armazenado no banco: ele pode ser verificado pelo usuário na interface.
+A página de detalhes apresenta fonte/autor/licença da imagem e links para a página do arquivo e para a licença quando disponíveis.
 
 ## Licenças
 
@@ -129,15 +155,17 @@ Receitas e imagens continuam sujeitas às condições definidas em suas fontes. 
 
 A aplicação deve preservar, sem inventar ou apagar, os metadados de atribuição disponibilizados pela fonte.
 
-## Fonte única operacional
-
-O fluxo operacional atual é Wikilivros + Wikimedia Commons. Bases testadas anteriormente não são utilizadas pelo importador de produção.
-
 ## Operação
 
-A importação é acionada manualmente no GitHub Actions. A rotina aplica migrations, descobre páginas candidatas, interpreta receitas, valida imagens/licenças e grava dados em lotes no D1.
+A importação é acionada manualmente no GitHub Actions. A sequência atual é:
 
-O importador também mantém o catálogo alinhado à política atual de fonte, removendo conteúdo de fontes antigas conforme definido na rotina operacional.
+1. instalar dependências;
+2. validar a sintaxe dos dois scripts de catálogo;
+3. aplicar migrations;
+4. importar receitas e imagens;
+5. limpar conteúdo de fontes antigas conforme a política do importador;
+6. canonicalizar os ingredientes e aliases;
+7. otimizar índices/estatísticas do D1.
 
 ## Documentos relacionados
 
