@@ -1,11 +1,12 @@
 import pantryWorker from "./pantry-worker";
-
-interface Env {
-  db: D1Database;
-  FRONTEND_URL: string;
-  RESEND_API_KEY?: string;
-  EMAIL_FROM?: string;
-}
+import { bytesToBase64Url, hashPassword, sha256, verifyPassword } from "./lib/security";
+import {
+  apiError,
+  corsHeaders,
+  type Env,
+  json,
+  readJson,
+} from "./lib/worker-http";
 
 type UserRow = {
   id: string;
@@ -24,104 +25,11 @@ type ResetRow = {
   created_at: string;
 };
 
-const encoder = new TextEncoder();
-const PASSWORD_ITERATIONS = 100_000;
 const RESET_TTL_MS = 10 * 60 * 1000;
 const RESEND_COOLDOWN_MS = 60 * 1000;
 const MAX_CODE_ATTEMPTS = 5;
 const GENERIC_REQUEST_MESSAGE =
   "Se este e-mail estiver cadastrado, você receberá um código de recuperação.";
-
-function allowedOrigins(env: Env): string[] {
-  return env.FRONTEND_URL.split(",").map((value) => value.trim()).filter(Boolean);
-}
-
-function corsHeaders(request: Request, env: Env): Headers {
-  const headers = new Headers({
-    "Access-Control-Allow-Headers": "Content-Type, Accept, Authorization",
-    "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
-    "Access-Control-Max-Age": "86400",
-    Vary: "Origin",
-  });
-  const origin = request.headers.get("Origin");
-  if (origin && allowedOrigins(env).includes(origin)) {
-    headers.set("Access-Control-Allow-Origin", origin);
-  }
-  return headers;
-}
-
-function json(request: Request, env: Env, body: unknown, status = 200): Response {
-  const headers = corsHeaders(request, env);
-  headers.set("Content-Type", "application/json; charset=utf-8");
-  headers.set("Cache-Control", "no-store");
-  return new Response(JSON.stringify(body), { status, headers });
-}
-
-function apiError(request: Request, env: Env, status: number, message: string): Response {
-  return json(request, env, { statusCode: status, message }, status);
-}
-
-async function readJson(request: Request): Promise<Record<string, unknown> | null> {
-  try {
-    const value = await request.json();
-    return typeof value === "object" && value !== null && !Array.isArray(value)
-      ? (value as Record<string, unknown>)
-      : null;
-  } catch {
-    return null;
-  }
-}
-
-function bytesToBase64Url(bytes: Uint8Array): string {
-  let binary = "";
-  for (const byte of bytes) binary += String.fromCharCode(byte);
-  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
-}
-
-function base64UrlToBytes(value: string): Uint8Array {
-  const padded = value.replace(/-/g, "+").replace(/_/g, "/").padEnd(Math.ceil(value.length / 4) * 4, "=");
-  const binary = atob(padded);
-  return Uint8Array.from(binary, (char) => char.charCodeAt(0));
-}
-
-async function sha256(value: string): Promise<string> {
-  const digest = await crypto.subtle.digest("SHA-256", encoder.encode(value));
-  return bytesToBase64Url(new Uint8Array(digest));
-}
-
-async function hashSecret(value: string): Promise<string> {
-  const salt = crypto.getRandomValues(new Uint8Array(16));
-  const key = await crypto.subtle.importKey("raw", encoder.encode(value), "PBKDF2", false, ["deriveBits"]);
-  const derived = await crypto.subtle.deriveBits(
-    { name: "PBKDF2", hash: "SHA-256", salt, iterations: PASSWORD_ITERATIONS },
-    key,
-    256,
-  );
-  return `pbkdf2$${PASSWORD_ITERATIONS}$${bytesToBase64Url(salt)}$${bytesToBase64Url(new Uint8Array(derived))}`;
-}
-
-async function verifySecret(value: string, encoded: string): Promise<boolean> {
-  const [algorithm, iterationsValue, saltValue, hashValue] = encoded.split("$");
-  if (algorithm !== "pbkdf2" || !iterationsValue || !saltValue || !hashValue) return false;
-  const iterations = Number(iterationsValue);
-  if (!Number.isInteger(iterations) || iterations < 100_000) return false;
-
-  const expected = base64UrlToBytes(hashValue);
-  const key = await crypto.subtle.importKey("raw", encoder.encode(value), "PBKDF2", false, ["deriveBits"]);
-  const derived = new Uint8Array(
-    await crypto.subtle.deriveBits(
-      { name: "PBKDF2", hash: "SHA-256", salt: base64UrlToBytes(saltValue), iterations },
-      key,
-      expected.byteLength * 8,
-    ),
-  );
-  if (expected.length !== derived.length) return false;
-  let difference = 0;
-  for (let index = 0; index < expected.length; index += 1) {
-    difference |= expected[index] ^ derived[index];
-  }
-  return difference === 0;
-}
 
 function generateCode(): string {
   const random = crypto.getRandomValues(new Uint32Array(1))[0] % 1_000_000;
@@ -253,7 +161,7 @@ async function requestReset(request: Request, env: Env): Promise<Response> {
   const code = generateCode();
   const now = new Date().toISOString();
   const expiresAt = new Date(Date.now() + RESET_TTL_MS).toISOString();
-  const codeHash = await hashSecret(code);
+  const codeHash = await hashPassword(code);
 
   await env.db
     .prepare(
@@ -297,7 +205,7 @@ async function verifyResetCode(request: Request, env: Env): Promise<Response> {
     return apiError(request, env, 400, "Código inválido ou expirado. Solicite um novo código.");
   }
 
-  const matches = await verifySecret(code, row.code_hash);
+  const matches = await verifyPassword(code, row.code_hash);
   if (!matches) {
     await env.db
       .prepare("UPDATE password_reset_codes SET attempts = attempts + 1 WHERE id = ?")
@@ -309,9 +217,7 @@ async function verifyResetCode(request: Request, env: Env): Promise<Response> {
   const resetToken = bytesToBase64Url(crypto.getRandomValues(new Uint8Array(32)));
   const resetTokenHash = await sha256(resetToken);
   await env.db
-    .prepare(
-      "UPDATE password_reset_codes SET verified_at = ?, reset_token_hash = ? WHERE id = ?",
-    )
+    .prepare("UPDATE password_reset_codes SET verified_at = ?, reset_token_hash = ? WHERE id = ?")
     .bind(new Date().toISOString(), resetTokenHash, resetId)
     .run();
 
@@ -346,13 +252,12 @@ async function resetPassword(request: Request, env: Env): Promise<Response> {
     return apiError(request, env, 400, "A recuperação expirou. Solicite um novo código.");
   }
 
-  const suppliedTokenHash = await sha256(resetToken);
-  if (suppliedTokenHash !== row.reset_token_hash) {
+  if ((await sha256(resetToken)) !== row.reset_token_hash) {
     return apiError(request, env, 400, "A recuperação é inválida. Solicite um novo código.");
   }
 
   const now = new Date().toISOString();
-  const passwordHash = await hashSecret(password);
+  const passwordHash = await hashPassword(password);
 
   await env.db.batch([
     env.db
