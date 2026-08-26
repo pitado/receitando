@@ -3,7 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 
 import { FoodAvatar } from "@/components/profile/FoodAvatar";
-import { getAuthToken } from "@/services/auth-storage";
+import { hasAuthSessionHint } from "@/services/auth-storage";
 import {
   createRecipeComment,
   deleteRecipeComment,
@@ -55,7 +55,7 @@ export function RecipeCommunity({ recipeId }: RecipeCommunityProps) {
   const [isBusy, setIsBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
-  const loggedIn = Boolean(getAuthToken());
+  const loggedIn = hasAuthSessionHint();
 
   useEffect(() => {
     let cancelled = false;
