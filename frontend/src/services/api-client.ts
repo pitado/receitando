@@ -1,5 +1,7 @@
 const DEFAULT_API_URL = "http://localhost:8787";
 
+let transientBearerToken: string | null = null;
+
 export type ApiErrorKind = "connection" | "http" | "invalid-response";
 
 export class ApiError extends Error {
@@ -11,6 +13,10 @@ export class ApiError extends Error {
     super(message);
     this.name = "ApiError";
   }
+}
+
+export function setTransientBearerToken(token: string | null): void {
+  transientBearerToken = token;
 }
 
 function getApiBaseUrl(): string {
@@ -53,6 +59,7 @@ export async function apiRequest<T>(
       headers: {
         Accept: "application/json",
         ...(init.body ? { "Content-Type": "application/json" } : {}),
+        ...(transientBearerToken ? { Authorization: `Bearer ${transientBearerToken}` } : {}),
         ...init.headers,
       },
     });
