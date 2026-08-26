@@ -7,7 +7,7 @@ const {
   ingredientLookupCandidates,
   matchStatus,
   normalizeIngredient,
-} = require("../.test-dist/recipe-utils.js");
+} = require("../.test-dist/lib/recipe-utils.js");
 
 test("normaliza acentos, caixa, hífen, underscore e espaços", () => {
   assert.equal(normalizeIngredient("  Farinha-de_TRIGO   "), "farinha de trigo");
