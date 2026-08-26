@@ -7,7 +7,7 @@ const {
   clientIp,
   getRateLimitStatus,
   recordRateLimitEvent,
-} = require("../.test-dist/auth-rate-limit.js");
+} = require("../.test-dist/lib/auth-rate-limit.js");
 
 class FakeStatement {
   constructor(db, sql) {
