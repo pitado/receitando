@@ -1,29 +1,30 @@
 # Documentação do Receitando
 
-Esta pasta reúne a documentação oficial do projeto, separando a visão acadêmica da documentação técnica e operacional.
+Esta pasta reúne a documentação oficial do projeto, separando escopo acadêmico, estado funcional, arquitetura, contratos e operação.
 
 ## Índice
 
 | Documento | Conteúdo |
 | --- | --- |
-| [`escopo.md`](escopo.md) | problema, objetivo, público-alvo, escopo funcional, requisitos, entregas e critérios de conclusão |
-| [`funcionalidades.md`](funcionalidades.md) | funcionalidades já implementadas e relação entre as áreas do sistema |
-| [`architecture.md`](architecture.md) | arquitetura atual, componentes, autenticação, matching, persistência e fluxo entre frontend/API/D1 |
-| [`api.md`](api.md) | rotas da API, autenticação, contratos e exemplos de uso |
-| [`database.md`](database.md) | modelo de dados, tabelas e persistência no Cloudflare D1 |
-| [`catalogo.md`](catalogo.md) | origem das receitas, Wikilivros, Wikimedia Commons, imagens, licenças e importação |
-| [`deploy.md`](deploy.md) | CI, testes automatizados, deploy, migrations, operação e ambientes |
-| [`estrutura-repositorio.md`](estrutura-repositorio.md) | função de cada pasta, código atual, testes e código histórico |
+| [`escopo.md`](escopo.md) | problema, objetivo, público-alvo, requisitos, entregas e critérios de conclusão |
+| [`funcionalidades.md`](funcionalidades.md) | funcionalidades efetivamente implementadas |
+| [`architecture.md`](architecture.md) | arquitetura atual, entrypoint, cadeia de Workers e fluxo frontend/API/D1 |
+| [`api.md`](api.md) | mapa completo de rotas, autenticação e contratos |
+| [`database.md`](database.md) | tabelas, migrations e histórico do D1 |
+| [`catalogo.md`](catalogo.md) | Wikilivros, Wikimedia Commons, imagens, licenças e importação |
+| [`testes.md`](testes.md) | estratégia, ferramentas, cobertura e testes de integração |
+| [`deploy.md`](deploy.md) | CI, deploy, migrations, operação e ambientes |
+| [`estrutura-repositorio.md`](estrutura-repositorio.md) | função de cada pasta, código atual e histórico |
 
 Arquivos de governança na raiz:
 
-- [`../CONTRIBUTING.md`](../CONTRIBUTING.md) — fluxo de contribuição e validações;
+- [`../CONTRIBUTING.md`](../CONTRIBUTING.md) — contribuição e validações;
 - [`../SECURITY.md`](../SECURITY.md) — reporte responsável de vulnerabilidades;
-- [`../LICENSE`](../LICENSE) — licença MIT do código original.
+- [`../LICENSE`](../LICENSE) — MIT para o código original.
 
-## Ordem recomendada de leitura
+## Ordem recomendada
 
-### Para avaliação acadêmica
+### Avaliação acadêmica
 
 1. [`escopo.md`](escopo.md)
 2. [`funcionalidades.md`](funcionalidades.md)
@@ -31,68 +32,74 @@ Arquivos de governança na raiz:
 4. [`catalogo.md`](catalogo.md)
 5. [`database.md`](database.md)
 6. [`api.md`](api.md)
-7. [`deploy.md`](deploy.md)
+7. [`testes.md`](testes.md)
+8. [`deploy.md`](deploy.md)
 
-### Para desenvolvimento
+### Desenvolvimento
 
 1. [`estrutura-repositorio.md`](estrutura-repositorio.md)
 2. [`architecture.md`](architecture.md)
-3. [`funcionalidades.md`](funcionalidades.md)
-4. [`api.md`](api.md)
-5. [`database.md`](database.md)
+3. [`api.md`](api.md)
+4. [`database.md`](database.md)
+5. [`testes.md`](testes.md)
 6. [`deploy.md`](deploy.md)
 7. [`catalogo.md`](catalogo.md)
 8. [`../CONTRIBUTING.md`](../CONTRIBUTING.md)
 
-## Organização resumida
+## Estrutura resumida
 
 ```text
 receitando/
-├── frontend/                     aplicação web em Next.js
+├── frontend/                       aplicação Next.js + testes
 ├── backend/
-│   ├── worker-prototype/         API atual em Cloudflare Workers
-│   │   ├── migrations/           migrations do Cloudflare D1
-│   │   ├── scripts/              importador atual + scripts históricos documentados
-│   │   ├── src/                  código atual da API
-│   │   └── tests/                testes automatizados de regras críticas
-│   ├── src/                      backend NestJS histórico
-│   └── prisma/                   schema Prisma histórico
-├── docs/                         documentação oficial
-├── .github/                      CI, deploy, Dependabot e templates
-├── CONTRIBUTING.md               guia de contribuição
-├── SECURITY.md                   política de segurança
-├── LICENSE                       licença MIT
-└── README.md                     visão geral
+│   ├── worker-prototype/           API atual em Cloudflare Workers
+│   │   ├── migrations/             histórico do D1
+│   │   ├── scripts/                importador Wikilivros/Commons
+│   │   ├── src/                    Workers e bibliotecas
+│   │   └── tests/                  regras + integração de rotas
+│   ├── src/                        NestJS histórico
+│   └── prisma/                     Prisma histórico
+├── docs/                           documentação oficial
+├── .github/                        CI, deploy, Dependabot e templates
+├── CONTRIBUTING.md
+├── SECURITY.md
+├── LICENSE
+└── README.md
 ```
 
 ## Guias por componente
 
 - [`../frontend/README.md`](../frontend/README.md) — frontend;
-- [`../backend/README.md`](../backend/README.md) — diferença entre backend atual e implementação histórica;
-- [`../backend/worker-prototype/README.md`](../backend/worker-prototype/README.md) — API Worker atual e suíte de testes;
-- [`../backend/worker-prototype/scripts/README.md`](../backend/worker-prototype/scripts/README.md) — script operacional e scripts históricos.
+- [`../backend/README.md`](../backend/README.md) — backend atual versus histórico;
+- [`../backend/worker-prototype/README.md`](../backend/worker-prototype/README.md) — API Worker;
+- [`../backend/worker-prototype/scripts/README.md`](../backend/worker-prototype/scripts/README.md) — importador operacional.
 
-## Qualidade
+## Fonte de verdade
 
-A API possui testes automatizados para regras críticas de matching e segurança, executados por `npm test` no CI e antes do deploy da API. O frontend continua validado por lint, typecheck e build.
+Cada documento possui uma responsabilidade:
 
-Detalhes operacionais e ordem das validações estão em [`deploy.md`](deploy.md).
+- comportamento implementado → `funcionalidades.md`;
+- contrato HTTP → `api.md`;
+- entrypoint/fluxo técnico → `architecture.md`;
+- schema/histórico de dados → `database.md`;
+- fonte/licenças → `catalogo.md`;
+- qualidade → `testes.md`;
+- CI/operação → `deploy.md`.
+
+O README da raiz é a visão consolidada, mas detalhes técnicos devem continuar nos documentos específicos para evitar versões contraditórias do mesmo fato.
 
 ## Regra de manutenção
 
-A documentação deve acompanhar a implementação.
-
 Quando houver alteração relevante:
 
-- mudança de objetivo ou requisito → atualizar `escopo.md`;
-- nova funcionalidade ou alteração de comportamento → atualizar `funcionalidades.md`;
-- mudança de componentes ou fluxo → atualizar `architecture.md`;
-- mudança de rota → atualizar `api.md`;
-- mudança de schema → atualizar `database.md`;
-- mudança de fonte/importação → atualizar `catalogo.md`;
-- mudança de testes/deploy/CI → atualizar `deploy.md`;
-- mudança estrutural no repositório → atualizar `estrutura-repositorio.md`;
-- mudança no fluxo de colaboração → atualizar `CONTRIBUTING.md`;
-- mudança no procedimento de segurança → atualizar `SECURITY.md`.
+- objetivo/requisito → atualizar `escopo.md`;
+- funcionalidade → `funcionalidades.md`;
+- componente/entrypoint/fluxo → `architecture.md` e `estrutura-repositorio.md`;
+- rota/contrato → `api.md`;
+- schema/migration → `database.md`;
+- importador/licença → `catalogo.md`;
+- teste/cobertura → `testes.md`;
+- CI/deploy → `deploy.md`;
+- segurança → `SECURITY.md`.
 
-O README principal deve continuar sendo uma visão geral e um ponto de entrada, sem duplicar toda a documentação detalhada desta pasta.
+Documentação e implementação devem ser alteradas no mesmo PR quando a mudança tornar o texto anterior incorreto.
