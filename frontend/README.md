@@ -111,6 +111,14 @@ GET /api/recipes/:slug
 
 Contrato: [`../docs/api.md`](../docs/api.md).
 
+## Autenticação no navegador
+
+A credencial da sessão não é persistida em `localStorage` nem em `sessionStorage`.
+
+A API entrega a sessão em cookie `HttpOnly`; o cliente HTTP usa `credentials: "include"` para que o navegador envie esse cookie automaticamente. O JavaScript do frontend mantém apenas um indicador não sensível para sincronização de UX e remove tokens legados que ainda possam existir no Web Storage.
+
+Em produção, a API usa cookie `__Host-` com `HttpOnly`, `Secure`, `SameSite=Strict` e `Path=/`, além de CORS credenciado restrito às origens configuradas e validação de `Origin` em operações mutáveis do navegador.
+
 ## Imagens e atribuição
 
 O tipo `Recipe` recebe:
@@ -127,7 +135,9 @@ A configuração do Next.js restringe os hosts remotos de imagem às fontes nece
 
 Nunca coloque secrets em variáveis `NEXT_PUBLIC_*`: elas são entregues ao navegador.
 
-A autenticação atualmente publicada deve seguir o contrato descrito em `docs/api.md`. A migração para cookie `HttpOnly` é tratada em PRs de segurança separados para evitar quebra durante deploy gradual.
+A autenticação no navegador usa cookie `HttpOnly`; o token bruto de sessão não faz parte do contrato público consumido pelo frontend e não fica disponível ao JavaScript.
+
+Detalhes: [`../SECURITY.md`](../SECURITY.md).
 
 ## Deploy
 

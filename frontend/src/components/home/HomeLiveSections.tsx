@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { FoodAvatar } from "@/components/profile/FoodAvatar";
-import { getAuthToken } from "@/services/auth-storage";
+import { hasAuthSessionHint } from "@/services/auth-storage";
 import { getCurrentUser, type AuthUser } from "@/services/auth.service";
 import { getHomeFeed, type HomeFeed } from "@/services/home.service";
 import { getPantry } from "@/services/pantry.service";
@@ -37,7 +37,7 @@ export function HomeLiveSections() {
         setFeed(feedResult[0].value);
       }
 
-      if (getAuthToken()) {
+      if (hasAuthSessionHint()) {
         const accountResult = await Promise.allSettled([
           getCurrentUser(),
           getPantry(),

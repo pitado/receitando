@@ -2,12 +2,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   AUTH_CHANGED_EVENT,
-  clearAuthToken,
-  getAuthToken,
-  saveAuthToken,
+  clearAuthSession,
+  hasAuthSessionHint,
+  markAuthSession,
 } from "./auth-storage";
 
-const TOKEN_KEY = "receitando.auth.token";
+const SESSION_HINT_KEY = "receitando.auth.session";
+const LEGACY_TOKEN_KEY = "receitando.auth.token";
 
 describe("auth-storage", () => {
   beforeEach(() => {
@@ -15,40 +16,44 @@ describe("auth-storage", () => {
     window.sessionStorage.clear();
   });
 
-  it("salva sessão persistente no localStorage quando lembrar está ativo", () => {
+  it("guarda apenas um indicador não sensível no localStorage quando lembrar está ativo", () => {
     const dispatch = vi.spyOn(window, "dispatchEvent");
 
-    saveAuthToken("token-local", true);
+    markAuthSession(true);
 
-    expect(window.localStorage.getItem(TOKEN_KEY)).toBe("token-local");
-    expect(window.sessionStorage.getItem(TOKEN_KEY)).toBeNull();
-    expect(getAuthToken()).toBe("token-local");
+    expect(window.localStorage.getItem(SESSION_HINT_KEY)).toBe("1");
+    expect(window.sessionStorage.getItem(SESSION_HINT_KEY)).toBeNull();
+    expect(window.localStorage.getItem(LEGACY_TOKEN_KEY)).toBeNull();
+    expect(hasAuthSessionHint()).toBe(true);
     expect(dispatch).toHaveBeenCalledWith(expect.objectContaining({ type: AUTH_CHANGED_EVENT }));
   });
 
-  it("salva sessão temporária no sessionStorage", () => {
-    saveAuthToken("token-session", false);
+  it("usa sessionStorage apenas para o indicador quando a sessão não deve persistir", () => {
+    markAuthSession(false);
 
-    expect(window.localStorage.getItem(TOKEN_KEY)).toBeNull();
-    expect(window.sessionStorage.getItem(TOKEN_KEY)).toBe("token-session");
-    expect(getAuthToken()).toBe("token-session");
+    expect(window.localStorage.getItem(SESSION_HINT_KEY)).toBeNull();
+    expect(window.sessionStorage.getItem(SESSION_HINT_KEY)).toBe("1");
+    expect(hasAuthSessionHint()).toBe(true);
   });
 
-  it("prioriza token persistente quando os dois storages possuem valor", () => {
-    window.localStorage.setItem(TOKEN_KEY, "persistente");
-    window.sessionStorage.setItem(TOKEN_KEY, "temporario");
+  it("remove automaticamente tokens legados ao consultar o estado da sessão", () => {
+    window.localStorage.setItem(LEGACY_TOKEN_KEY, "token-antigo");
+    window.sessionStorage.setItem(LEGACY_TOKEN_KEY, "outro-token-antigo");
 
-    expect(getAuthToken()).toBe("persistente");
+    expect(hasAuthSessionHint()).toBe(false);
+    expect(window.localStorage.getItem(LEGACY_TOKEN_KEY)).toBeNull();
+    expect(window.sessionStorage.getItem(LEGACY_TOKEN_KEY)).toBeNull();
   });
 
-  it("remove tokens e avisa a aplicação ao sair", () => {
+  it("limpa indicadores e credenciais legadas ao sair", () => {
     const dispatch = vi.spyOn(window, "dispatchEvent");
-    window.localStorage.setItem(TOKEN_KEY, "persistente");
-    window.sessionStorage.setItem(TOKEN_KEY, "temporario");
+    window.localStorage.setItem(SESSION_HINT_KEY, "1");
+    window.localStorage.setItem(LEGACY_TOKEN_KEY, "token-antigo");
 
-    clearAuthToken();
+    clearAuthSession();
 
-    expect(getAuthToken()).toBeNull();
+    expect(hasAuthSessionHint()).toBe(false);
+    expect(window.localStorage.getItem(LEGACY_TOKEN_KEY)).toBeNull();
     expect(dispatch).toHaveBeenCalledWith(expect.objectContaining({ type: AUTH_CHANGED_EVENT }));
   });
 });

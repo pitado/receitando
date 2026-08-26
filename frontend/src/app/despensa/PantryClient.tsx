@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { normalizeIngredientName } from "@/lib/normalize-ingredient";
 import { ApiError } from "@/services/api-client";
-import { getAuthToken } from "@/services/auth-storage";
+import { hasAuthSessionHint } from "@/services/auth-storage";
 import {
   getIngredients,
   getPantry,
@@ -24,7 +24,7 @@ export function PantryClient() {
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [authenticated] = useState(() => Boolean(getAuthToken()));
+  const [authenticated] = useState(() => hasAuthSessionHint());
 
   useEffect(() => {
     let cancelled = false;

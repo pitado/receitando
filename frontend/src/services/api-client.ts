@@ -1,6 +1,6 @@
-import { getAuthToken } from "@/services/auth-storage";
-
 const DEFAULT_API_URL = "http://localhost:8787";
+
+let transientBearerToken: string | null = null;
 
 export type ApiErrorKind = "connection" | "http" | "invalid-response";
 
@@ -13,6 +13,10 @@ export class ApiError extends Error {
     super(message);
     this.name = "ApiError";
   }
+}
+
+export function setTransientBearerToken(token: string | null): void {
+  transientBearerToken = token;
 }
 
 function getApiBaseUrl(): string {
@@ -46,16 +50,16 @@ export async function apiRequest<T>(
   init: RequestInit = {},
 ): Promise<T> {
   let response: Response;
-  const authToken = getAuthToken();
 
   try {
     response = await fetch(buildUrl(path), {
       ...init,
       cache: "no-store",
+      credentials: "include",
       headers: {
         Accept: "application/json",
         ...(init.body ? { "Content-Type": "application/json" } : {}),
-        ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+        ...(transientBearerToken ? { Authorization: `Bearer ${transientBearerToken}` } : {}),
         ...init.headers,
       },
     });

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { addFavorite, listFavorites, removeFavorite } from "@/services/favorites.service";
-import { AUTH_CHANGED_EVENT, getAuthToken } from "@/services/auth-storage";
+import { AUTH_CHANGED_EVENT, hasAuthSessionHint } from "@/services/auth-storage";
 
 import styles from "./FavoriteButton.module.css";
 
@@ -24,7 +24,7 @@ export function FavoriteButton({
   syncFavorite = true,
 }: FavoriteButtonProps) {
   const router = useRouter();
-  const [authenticated, setAuthenticated] = useState(() => Boolean(getAuthToken()));
+  const [authenticated, setAuthenticated] = useState(() => hasAuthSessionHint());
   const [favorite, setFavorite] = useState(initialFavorite);
   const [saving, setSaving] = useState(false);
 
@@ -36,7 +36,7 @@ export function FavoriteButton({
     }
 
     function handleAuthChange() {
-      const nextAuthenticated = Boolean(getAuthToken());
+      const nextAuthenticated = hasAuthSessionHint();
       setAuthenticated(nextAuthenticated);
       if (!nextAuthenticated) {
         setFavorite(false);

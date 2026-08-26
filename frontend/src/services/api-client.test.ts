@@ -1,14 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("@/services/auth-storage", () => ({
-  getAuthToken: vi.fn(),
-}));
+import { apiRequest, setTransientBearerToken } from "./api-client";
 
-import { getAuthToken } from "@/services/auth-storage";
-
-import { apiRequest } from "./api-client";
-
-const getAuthTokenMock = vi.mocked(getAuthToken);
 const originalApiUrl = process.env.NEXT_PUBLIC_API_URL;
 
 function mockResponse(
@@ -25,17 +18,18 @@ function mockResponse(
 describe("apiRequest", () => {
   beforeEach(() => {
     process.env.NEXT_PUBLIC_API_URL = "https://api.example.test/";
-    getAuthTokenMock.mockReturnValue(null);
+    setTransientBearerToken(null);
     vi.stubGlobal("fetch", vi.fn());
   });
 
   afterEach(() => {
     process.env.NEXT_PUBLIC_API_URL = originalApiUrl;
+    setTransientBearerToken(null);
     vi.unstubAllGlobals();
     vi.clearAllMocks();
   });
 
-  it("monta a URL, desabilita cache e envia headers JSON", async () => {
+  it("monta a URL, desabilita cache e envia cookies com credentials include", async () => {
     const fetchMock = vi.mocked(fetch);
     fetchMock.mockResolvedValue(mockResponse({ ok: true }));
 
@@ -50,6 +44,7 @@ describe("apiRequest", () => {
       expect.objectContaining({
         method: "POST",
         cache: "no-store",
+        credentials: "include",
         headers: expect.objectContaining({
           Accept: "application/json",
           "Content-Type": "application/json",
@@ -58,21 +53,26 @@ describe("apiRequest", () => {
     );
   });
 
-  it("adiciona Bearer token quando existe sessão", async () => {
-    getAuthTokenMock.mockReturnValue("session-token");
+  it("não injeta Authorization quando não há fallback transitório", async () => {
     const fetchMock = vi.mocked(fetch);
     fetchMock.mockResolvedValue(mockResponse({ id: "1" }));
 
     await apiRequest("/api/auth/me");
 
-    expect(fetchMock).toHaveBeenCalledWith(
-      "https://api.example.test/api/auth/me",
-      expect.objectContaining({
-        headers: expect.objectContaining({
-          Authorization: "Bearer session-token",
-        }),
-      }),
-    );
+    const [, init] = fetchMock.mock.calls[0];
+    expect(init?.credentials).toBe("include");
+    expect(new Headers(init?.headers).has("Authorization")).toBe(false);
+  });
+
+  it("usa Bearer apenas em memória durante compatibilidade de deploy", async () => {
+    setTransientBearerToken("token-transitorio");
+    const fetchMock = vi.mocked(fetch);
+    fetchMock.mockResolvedValue(mockResponse({ id: "1" }));
+
+    await apiRequest("/api/auth/me");
+
+    const [, init] = fetchMock.mock.calls[0];
+    expect(new Headers(init?.headers).get("Authorization")).toBe("Bearer token-transitorio");
   });
 
   it("retorna undefined em respostas 204", async () => {

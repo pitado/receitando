@@ -37,7 +37,7 @@ O usuário pode informar ingredientes manualmente ou manter uma despensa vincula
 
 - cadastro;
 - login e logout;
-- sessão persistente;
+- sessão persistente por cookie `HttpOnly`;
 - perfil com nome, `@` e avatar;
 - recuperação de senha por código enviado por e-mail;
 - PBKDF2 via Web Crypto para senhas;
@@ -75,7 +75,7 @@ Navegador
 Next.js + React
 OpenNext / Cloudflare Worker
    │
-   │ HTTP + JSON
+   │ HTTP + JSON + cookie HttpOnly
    ▼
 API Cloudflare Worker
    │
@@ -92,12 +92,14 @@ A API atual fica em `backend/worker-prototype/`. Apesar do nome histórico do di
 O `wrangler.jsonc` aponta para:
 
 ```text
-src/auth-rate-limit-worker.ts
+src/session-cookie-worker.ts
 ```
 
 A cadeia atual é:
 
 ```text
+session-cookie-worker
+        ↓
 auth-rate-limit-worker
         ↓
 home-worker
@@ -187,19 +189,19 @@ A implementação atual inclui:
 
 - PBKDF2 com salt aleatório para senhas;
 - tokens de sessão aleatórios, com somente SHA-256 persistido no D1;
+- sessão do navegador em cookie `HttpOnly`, `Secure` e `SameSite=Strict` em produção;
+- token bruto fora do `localStorage`/`sessionStorage` e fora do JSON público de autenticação;
+- validação de `Origin` em mutações do navegador e CORS credenciado restrito;
 - queries de requisição parametrizadas com `.bind()`;
 - autorização por usuário em despensa, favoritos, votos e comentários;
 - resposta genérica na recuperação de senha;
 - limite de tentativas no código de recuperação;
 - invalidação das sessões após troca de senha;
 - rate limiting por e-mail/IP em login e solicitação de recuperação e por IP em cadastro;
-- CORS restrito a origens configuradas;
 - secrets fora do repositório;
 - conteúdo externo culinário convertido para texto e renderizado pelo React como texto, sem HTML bruto do Wikilivros.
 
 Reporte responsável: [`SECURITY.md`](SECURITY.md).
-
-> A migração de sessão para cookie `HttpOnly` está isolada nos PRs de segurança #99–#101, para permitir deploy gradual sem quebrar o frontend atual.
 
 ## Catálogo, imagens e licenças
 
@@ -360,7 +362,7 @@ npm test
 npm run dry-run
 ```
 
-A suíte combina testes de regras puras com testes de `fetch()` dos Workers usando D1 simulado. Matching canônico, staples, FTS5, autenticação, rate limiting e rotas críticas possuem testes de regressão.
+A suíte combina testes de regras puras com testes de `fetch()` dos Workers usando D1 simulado. Matching canônico, staples, FTS5, autenticação, rate limiting, sessão por cookie e rotas críticas possuem testes de regressão.
 
 CI/deploy falham se as validações obrigatórias falharem.
 
