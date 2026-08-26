@@ -8,7 +8,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { LoadingState } from "@/components/ui/LoadingState";
 import { normalizeIngredientName } from "@/lib/normalize-ingredient";
-import { AUTH_CHANGED_EVENT, getAuthToken } from "@/services/auth-storage";
+import { AUTH_CHANGED_EVENT, hasAuthSessionHint } from "@/services/auth-storage";
 import { listFavorites } from "@/services/favorites.service";
 import { listRecipes, matchRecipesFromPantry } from "@/services/recipes.service";
 import type { MatchRecipeResult, Recipe } from "@/types/recipe";
@@ -26,7 +26,7 @@ export function RecipesCatalog({ initialError = "", initialRecipes }: RecipesCat
   const [query, setQuery] = useState("");
   const [error, setError] = useState(initialError);
   const [isLoading, setIsLoading] = useState(false);
-  const [authenticated, setAuthenticated] = useState(() => Boolean(getAuthToken()));
+  const [authenticated, setAuthenticated] = useState(() => hasAuthSessionHint());
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
@@ -37,7 +37,7 @@ export function RecipesCatalog({ initialError = "", initialRecipes }: RecipesCat
     }
 
     function handleAuthChange() {
-      const nextAuthenticated = Boolean(getAuthToken());
+      const nextAuthenticated = hasAuthSessionHint();
       setAuthenticated(nextAuthenticated);
       if (!nextAuthenticated) {
         setFavoriteIds(new Set());
