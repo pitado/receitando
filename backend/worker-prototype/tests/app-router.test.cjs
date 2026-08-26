@@ -59,6 +59,11 @@ test("roteador central envia matching ao catálogo e preserva limite de 40 itens
   assert.equal((await body(response)).message, "Informe entre 1 e 40 ingredientes.");
 });
 
+test("roteador central envia matching da despensa ao catálogo", async () => {
+  const response = await appRouter.fetch(request("/api/recipes/match/pantry"), env());
+  assert.equal(response.status, 401);
+});
+
 test("roteador central prioriza rotas sociais antes do detalhe de receita", async () => {
   const response = await appRouter.fetch(
     request("/api/recipes/recipe-1/vote", {
