@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { FoodAvatar } from "@/components/profile/FoodAvatar";
-import { AUTH_CHANGED_EVENT, clearAuthToken, getAuthToken } from "@/services/auth-storage";
+import { AUTH_CHANGED_EVENT, clearAuthSession, hasAuthSessionHint } from "@/services/auth-storage";
 import { getCurrentUser, logout, type AuthUser } from "@/services/auth.service";
 
 import styles from "./Header.module.css";
@@ -23,9 +23,7 @@ export function AuthControls() {
       await Promise.resolve();
       if (cancelled) return;
 
-      const token = getAuthToken();
-
-      if (!token) {
+      if (!hasAuthSessionHint()) {
         setUser(null);
         setIsLoading(false);
         return;
@@ -36,7 +34,7 @@ export function AuthControls() {
         if (!cancelled) setUser(currentUser);
       } catch {
         if (!cancelled) {
-          clearAuthToken();
+          clearAuthSession();
           setUser(null);
         }
       } finally {
