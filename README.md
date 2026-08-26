@@ -95,29 +95,25 @@ O `wrangler.jsonc` aponta para:
 src/session-cookie-worker.ts
 ```
 
-A cadeia atual é:
+O entrypoint trata cookie `HttpOnly`, CORS credenciado e proteção de `Origin`. Depois disso, `src/app-router.ts` escolhe diretamente o Worker responsável pela rota:
 
 ```text
 session-cookie-worker
         ↓
-auth-rate-limit-worker
-        ↓
-home-worker
-        ↓
-catalog64-worker
-        ↓
-social-worker
-        ↓
-profile-worker
-        ↓
-password-reset-worker
-        ↓
-pantry-worker
-        ↓
-index
+app-router
+   ├── auth-rate-limit-worker → index / password-reset-worker
+   ├── home-worker
+   ├── catalog64-worker
+   ├── social-worker
+   ├── profile-worker
+   ├── password-reset-worker
+   ├── pantry-worker
+   └── index
 ```
 
-Infraestrutura compartilhada de HTTP/CORS/autenticação fica em `src/lib/worker-http.ts`; normalização e regras puras de matching ficam em `src/lib/recipe-utils.ts`.
+Assim, uma requisição comum não precisa atravessar todos os Workers em sequência até encontrar o handler correto.
+
+Infraestrutura compartilhada de HTTP/CORS/autenticação fica em `src/lib/worker-http.ts`; política do cookie em `src/lib/session-cookie.ts`; normalização e regras puras de matching ficam em `src/lib/recipe-utils.ts`.
 
 Detalhes: [`docs/architecture.md`](docs/architecture.md).
 
@@ -362,7 +358,7 @@ npm test
 npm run dry-run
 ```
 
-A suíte combina testes de regras puras com testes de `fetch()` dos Workers usando D1 simulado. Matching canônico, staples, FTS5, autenticação, rate limiting, sessão por cookie e rotas críticas possuem testes de regressão.
+A suíte combina testes de regras puras com testes de `fetch()` dos Workers usando D1 simulado. Matching canônico, staples, FTS5, autenticação, rate limiting, sessão por cookie, roteamento central e rotas críticas possuem testes de regressão.
 
 CI/deploy falham se as validações obrigatórias falharem.
 
