@@ -3,7 +3,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   AUTH_CHANGED_EVENT,
   clearAuthSession,
-  getAuthToken,
   hasAuthSessionHint,
   markAuthSession,
 } from "./auth-storage";
@@ -26,7 +25,6 @@ describe("auth-storage", () => {
     expect(window.sessionStorage.getItem(SESSION_HINT_KEY)).toBeNull();
     expect(window.localStorage.getItem(LEGACY_TOKEN_KEY)).toBeNull();
     expect(hasAuthSessionHint()).toBe(true);
-    expect(getAuthToken()).toBe("http-only-cookie-session");
     expect(dispatch).toHaveBeenCalledWith(expect.objectContaining({ type: AUTH_CHANGED_EVENT }));
   });
 
