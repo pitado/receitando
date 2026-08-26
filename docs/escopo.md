@@ -53,7 +53,7 @@ O sistema deve disponibilizar um catálogo navegável de receitas contendo, quan
 - origem do conteúdo;
 - informações de licença da receita e da imagem quando aplicável.
 
-### 6.2 Busca por ingredientes
+### 6.2 Busca e compatibilidade por ingredientes
 
 O usuário deve poder informar ingredientes e solicitar ao sistema receitas compatíveis.
 
@@ -64,7 +64,11 @@ Para cada resultado, o sistema deve apresentar:
 - ingredientes faltantes;
 - acesso aos detalhes da receita.
 
-A compatibilidade é calculada considerando os ingredientes obrigatórios da receita.
+A aplicação trabalha com um catálogo **canônico de ingredientes**. A tabela `ingredients` representa o ingrediente-base e `ingredient_aliases` associa variações textuais ao mesmo identificador. A normalização considera caixa, acentos, formas plurais conhecidas e descrições comuns de preparo, como `cebolas picadas` → `cebola`. A resolução utiliza nomes/aliases normalizados de forma exata, sem depender de `LIKE '%termo%'`, evitando que itens semanticamente diferentes sejam tratados como equivalentes apenas por conterem a mesma palavra.
+
+A compatibilidade é calculada considerando apenas ingredientes obrigatórios que não estejam marcados como básicos (`is_staple`). Itens de uso trivial, como água, sal, pimenta e óleo, podem ser classificados como básicos no catálogo e, nesse caso, não diminuem a pontuação nem entram na lista principal de faltantes.
+
+**Regra de quantidade nesta versão:** o matching é booleano (`tem` / `não tem`). Quantidade e unidade podem ser registradas na despensa e exibidas na interface, mas ainda não participam do cálculo. Portanto, possuir `1 ovo` é considerado presença do ingrediente `ovo`, mesmo que uma receita peça mais unidades. Essa limitação deve permanecer explícita na interface enquanto não houver comparação quantitativa.
 
 ### 6.3 Despensa
 
@@ -117,9 +121,11 @@ Usuário acessa o Receitando
         ↓
 Informa ingredientes ou utiliza sua despensa
         ↓
-Sistema normaliza e identifica os ingredientes
+Sistema normaliza e resolve nomes/aliases para ingredientes canônicos
         ↓
-Sistema compara os ingredientes com as receitas
+Sistema desconsidera ingredientes básicos no denominador do matching
+        ↓
+Sistema compara presença dos ingredientes com as receitas
         ↓
 Receitas são ordenadas por compatibilidade
         ↓
@@ -146,6 +152,8 @@ Usuário abre a receita e consulta o preparo
 | RF12 | O sistema deve permitir publicar comentários em receitas. |
 | RF13 | O sistema deve armazenar a origem das receitas importadas. |
 | RF14 | O sistema deve exibir imagens de receitas quando houver uma imagem livre válida associada. |
+| RF15 | O sistema deve resolver variações textuais conhecidas para um ingrediente canônico antes do matching. |
+| RF16 | O sistema deve permitir classificar ingredientes básicos para que eles não penalizem a compatibilidade. |
 
 ## 10. Requisitos não funcionais
 
