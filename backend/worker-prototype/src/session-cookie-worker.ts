@@ -1,4 +1,4 @@
-import authRateLimitWorker from "./auth-rate-limit-worker";
+import appRouter from "./app-router";
 import {
   buildExpiredSessionCookies,
   buildSessionCookie,
@@ -131,7 +131,7 @@ export default {
     const remember = isSessionCreation ? await rememberPreference(request) : false;
 
     const authenticatedRequest = requestWithCookieAuthorization(request, cookieToken);
-    const response = await authRateLimitWorker.fetch(authenticatedRequest, env);
+    const response = await appRouter.fetch(authenticatedRequest, env);
 
     if (isSessionCreation) {
       return attachSessionCookie(request, env, response, remember);
