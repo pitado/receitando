@@ -22,11 +22,11 @@ http://localhost:8787
 - o contrato publicado nesta branch ainda utiliza `Authorization: Bearer <token>` nas rotas autenticadas;
 - CORS aceita apenas origens declaradas em `FRONTEND_URL`;
 - respostas sensíveis usam `Cache-Control: no-store`;
-- login e cadastro passam por rate limiting antes de chegar às rotas de autenticação.
+- login, cadastro e solicitação de recuperação de senha passam por rate limiting no entrypoint.
 
 > A migração para cookie `HttpOnly` está sendo tratada separadamente nos PRs de segurança #99–#101 e não faz parte desta refatoração estrutural.
 
-## Mapa completo de rotas
+## Mapa de rotas
 
 | Método | Rota | Acesso | Finalidade |
 | --- | --- | --- | --- |
@@ -42,7 +42,7 @@ http://localhost:8787
 | `POST` | `/api/auth/reset-password` | público | definir nova senha |
 | `GET` | `/api/sources` | público | listar fontes do catálogo |
 | `GET` | `/api/ingredients` | público | listar ingredientes do catálogo |
-| `GET` | `/api/recipes` | público | listar receitas |
+| `GET` | `/api/recipes` | público | listar/buscar receitas |
 | `GET` | `/api/recipes/:slug` | público | detalhe por slug |
 | `POST` | `/api/recipes/match` | público | matching por ingredientes |
 | `GET` | `/api/recipes/match/pantry` | autenticado | matching usando a despensa |
@@ -83,42 +83,29 @@ Nome, e-mail e senha são validados antes da persistência. A senha precisa ter 
 
 `POST /api/auth/login`
 
-```json
-{
-  "email": "pessoa@example.com",
-  "password": "uma-senha-de-exemplo"
-}
-```
-
-Credenciais inválidas retornam a mesma mensagem genérica. O entrypoint aplica limite por e-mail e por IP para reduzir força bruta.
+Credenciais inválidas retornam uma mensagem genérica. O entrypoint aplica limite por e-mail e por IP para reduzir força bruta.
 
 ### Rate limiting
 
-A proteção atual inclui políticas independentes para:
+A proteção atual possui buckets independentes:
 
-- tentativas de login por e-mail;
-- tentativas de login por IP;
-- criação de contas por IP.
+| Ação | Limite atual |
+| --- | --- |
+| falhas de login por e-mail | 5 em 15 minutos |
+| falhas de login por IP | 20 em 15 minutos |
+| cadastro por IP | 5 em 1 hora |
+| solicitação de recuperação por e-mail | 3 em 15 minutos |
+| solicitação de recuperação por IP | 10 em 15 minutos |
 
-Quando o limite é atingido, a API retorna `429` e `Retry-After`.
+Quando um limite é atingido, a API retorna HTTP `429` e `Retry-After`.
 
-Os identificadores usados no rate limiting são armazenados no D1 apenas como hash.
+E-mails e IPs usados nesses buckets não são persistidos em texto puro: o D1 recebe apenas uma chave SHA-256 derivada.
 
 ## Perfil
 
 `GET /api/auth/me` retorna o perfil autenticado.
 
-`PATCH /api/auth/me` aceita:
-
-```json
-{
-  "name": "Novo Nome",
-  "handle": "meu_usuario",
-  "avatarKey": "lemon"
-}
-```
-
-Handles possuem validação, unicidade e nomes reservados.
+`PATCH /api/auth/me` aceita nome, handle e avatar. Handles possuem validação, unicidade e nomes reservados.
 
 ## Recuperação de senha
 
@@ -132,41 +119,17 @@ Handles possuem validação, unicidade e nomes reservados.
 }
 ```
 
-Para e-mails sintaticamente válidos, a resposta é deliberadamente genérica exista ou não uma conta:
-
-```json
-{
-  "message": "Se este e-mail estiver cadastrado, você receberá um código de recuperação.",
-  "resetId": "..."
-}
-```
-
-Isso evita enumeração de contas.
+Para e-mails sintaticamente válidos, a resposta é deliberadamente genérica exista ou não uma conta. Isso evita enumeração de usuários. A solicitação também passa pelo rate limiting por e-mail e IP antes de chegar ao fluxo que pode disparar o Resend.
 
 ### Validar código
 
 `POST /api/auth/verify-reset-code`
 
-```json
-{
-  "resetId": "...",
-  "code": "123456"
-}
-```
-
-O código expira, possui limite de tentativas e é persistido somente de forma derivada.
+O código possui seis dígitos, expira, tem limite de tentativas e é persistido somente de forma derivada.
 
 ### Trocar senha
 
 `POST /api/auth/reset-password`
-
-```json
-{
-  "resetId": "...",
-  "resetToken": "...",
-  "password": "nova-senha-segura"
-}
-```
 
 Uma troca bem-sucedida invalida as sessões existentes do usuário.
 
@@ -176,11 +139,20 @@ Uma troca bem-sucedida invalida as sessões existentes do usuário.
 
 ## Ingredientes
 
-`GET /api/ingredients` retorna ingredientes usados pelo catálogo, incluindo forma normalizada, categoria e contagem de uso quando aplicável.
+`GET /api/ingredients` retorna ingredientes usados pelo catálogo, incluindo:
+
+- `id`;
+- `name`;
+- `normalizedName`;
+- `category`;
+- `isStaple`;
+- `usageCount`.
+
+`isStaple` identifica ingredientes básicos que não penalizam a compatibilidade.
 
 ## Receitas
 
-### Listagem
+### Listagem e busca
 
 `GET /api/recipes`
 
@@ -188,49 +160,20 @@ Parâmetros:
 
 - `limit`: 1–60; padrão 36;
 - `offset`: paginação;
-- `q`: busca por título;
+- `q`: busca textual;
 - `source`: filtro de fonte, como `wikibooks`.
+
+Quando `q` é informado, a API consulta a tabela virtual FTS5 `recipe_search`, com suporte a termos múltiplos e prefixos, e ordena os resultados por relevância com `bm25()`. A busca não depende mais de `LIKE '%termo%'` sobre todos os títulos.
 
 ### Detalhe
 
 `GET /api/recipes/:slug`
 
-Exemplo:
-
-```text
-/api/recipes/bolo-de-banana
-```
-
 O detalhe retorna conteúdo culinário, ingredientes, tags, procedência da receita e atribuição da imagem.
 
-Exemplo resumido:
+Cada ingrediente pode incluir `isStaple`, além de quantidade, unidade, forma normalizada e `rawText` quando disponível.
 
-```json
-{
-  "id": "...",
-  "title": "...",
-  "slug": "...",
-  "imageUrl": "https://upload.wikimedia.org/...",
-  "source": {
-    "name": "Wikilivros",
-    "url": "https://pt.wikibooks.org/...",
-    "author": "...",
-    "license": "CC BY-SA 4.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
-  },
-  "image": {
-    "url": "https://upload.wikimedia.org/...",
-    "source": "Wikimedia Commons",
-    "author": "...",
-    "pageUrl": "https://commons.wikimedia.org/wiki/File:...",
-    "license": "...",
-    "licenseUrl": "...",
-    "alt": "..."
-  }
-}
-```
-
-`imageUrl` é mantido por compatibilidade. O objeto `image` é a fonte canônica para atribuição específica da fotografia/ilustração.
+`imageUrl` é mantido por compatibilidade. O objeto `image` concentra a atribuição específica da fotografia/ilustração.
 
 ## Matching
 
@@ -238,11 +181,30 @@ Exemplo resumido:
 
 ```json
 {
-  "ingredients": ["ovo", "banana", "farinha de trigo", "leite"]
+  "ingredients": ["ovos", "cebolas picadas", "farinha de trigo"]
 }
 ```
 
-São aceitos **1 a 40 ingredientes**. A API normaliza nomes, consulta aliases e retorna receitas candidatas ordenadas por compatibilidade.
+São aceitos **1 a 40 ingredientes**.
+
+O fluxo atual:
+
+1. normaliza caixa, acentos e separadores;
+2. gera candidatos textuais exatos e uma forma canônica conservadora;
+3. consulta `ingredients.normalized_name` e `ingredient_aliases.normalized_alias` por igualdade;
+4. converte os valores para IDs canônicos;
+5. exclui opcionais e ingredientes `isStaple` do denominador;
+6. calcula a porcentagem e ordena os resultados.
+
+Não há equivalência por substring. Por exemplo, informar `óleo` não faz o sistema assumir automaticamente que o usuário possui `óleo de gergelim torrado`.
+
+### Quantidades
+
+Nesta versão, o matching é **booleano**: considera presença ou ausência do ingrediente. Quantidade e unidade podem existir na despensa e na receita, mas não participam da porcentagem.
+
+Assim, `1 ovo` representa presença do ingrediente `ovo`; a API ainda não verifica se a quantidade atende uma receita que exija várias unidades.
+
+### Resultado
 
 Cada resultado pode incluir:
 
@@ -250,7 +212,10 @@ Cada resultado pode incluir:
 - `status`;
 - `foundIngredients`;
 - `missingIngredients`;
-- `optionalIngredients`.
+- `optionalIngredients`;
+- `stapleIngredients`.
+
+Ingredientes básicos continuam disponíveis em `stapleIngredients`, mas não reduzem a pontuação nem aparecem como faltantes principais.
 
 Estados:
 
@@ -261,45 +226,17 @@ NEAR
 EXPLORE
 ```
 
-`GET /api/recipes/match/pantry` usa os ingredientes persistidos da conta autenticada.
+`GET /api/recipes/match/pantry` aplica a mesma regra aos ingredientes persistidos da conta autenticada.
 
 ## Despensa
 
 `GET /api/pantry`, `POST /api/pantry` e `DELETE /api/pantry/:itemId` exigem autenticação.
 
-Exemplo de inclusão:
+Quantidade e unidade são opcionais e atualmente informativas para o matching.
 
-```json
-{
-  "ingredientId": "id-do-ingrediente",
-  "quantity": 2,
-  "unit": "unidade"
-}
-```
+## Favoritos e comunidade
 
-Remoções usam simultaneamente o ID do item e o `user_id` autenticado, impedindo exclusão de itens de outra conta.
-
-## Favoritos
-
-`GET /api/favorites`, `POST /api/favorites` e `DELETE /api/favorites/:recipeId` exigem sessão. A relação é sempre vinculada ao usuário autenticado.
-
-## Comunidade
-
-### Votos
-
-`PUT /api/recipes/:recipeId/vote` aceita:
-
-```json
-{
-  "vote": "LIKE"
-}
-```
-
-Também aceita `DISLIKE`. A combinação usuário/receita é única.
-
-### Comentários
-
-Comentários possuem entre 2 e 1200 caracteres. Edição/exclusão validam o dono do comentário antes da mutação.
+Favoritos, votos e comentários são sempre vinculados ao usuário autenticado nas operações de escrita. Edição/exclusão de comentários validam o dono antes da mutação.
 
 ## Home
 
@@ -309,19 +246,8 @@ Comentários possuem entre 2 e 1200 caracteres. Edição/exclusão validam o don
 
 A suíte da API chama `fetch()` dos Workers reais com um D1 simulado para validar roteamento, autenticação, autorização e persistência sem tocar no banco de produção.
 
-Ela cobre, entre outros:
-
-- cadastro e sessão;
-- despensa;
-- favoritos;
-- perfil;
-- votos e comentários;
-- recuperação sem enumeração de e-mail;
-- matching e limite de entrada;
-- detalhe de receita e atribuição de imagem;
-- feed da home;
-- delegação pela cadeia de Workers.
+Além dos fluxos de conta, despensa, favoritos e comunidade, os testes cobrem normalização canônica, rate limiting e regras críticas do matching.
 
 ## Implementação histórica
 
-`backend/` contém a primeira versão em NestJS/Prisma/PostgreSQL. Ela é referência histórica e não define o contrato publicado. A API atual está em `backend/worker-prototype/`.
+A versão anterior em NestJS/Prisma/PostgreSQL não fica mais na árvore principal. Ela foi preservada na branch `legacy/nest-prisma`. O contrato publicado é exclusivamente o da API em `backend/worker-prototype/`.
