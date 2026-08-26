@@ -15,6 +15,7 @@ test("home carrega e leva ao combinador", async ({ page }) => {
 
   await page.goto("/");
 
+  await expect(page).toHaveURL(/\/$/);
   await expect(
     page.getByRole("heading", {
       level: 1,
