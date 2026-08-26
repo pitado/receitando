@@ -10,7 +10,7 @@ receitando/
 │   ├── ISSUE_TEMPLATE/             templates de bugs e melhorias
 │   ├── dependabot.yml              atualizações dos componentes ativos
 │   ├── pull_request_template.md    checklist padrão de PR
-│   └── workflows/                  CI, deploy e importação de receitas
+│   └── workflows/                  CI, E2E, deploy e importação de receitas
 ├── backend/
 │   ├── README.md
 │   └── worker-prototype/           API atual de produção
@@ -20,6 +20,9 @@ receitando/
 │       └── tests/                  testes automatizados da API
 ├── docs/                           documentação funcional e técnica
 ├── frontend/                       aplicação Next.js
+│   ├── e2e/                        Playwright + testes de navegador
+│   ├── public/
+│   └── src/
 ├── CONTRIBUTING.md                 guia de contribuição
 ├── SECURITY.md                     política de segurança
 ├── LICENSE                         GNU AGPLv3 do código original
@@ -42,7 +45,9 @@ Responsabilidades principais:
 - comentários e avaliações;
 - consumo da API.
 
-Mais detalhes em [`../frontend/README.md`](../frontend/README.md).
+`frontend/src/` contém o produto e os testes Vitest/Testing Library. `frontend/e2e/` contém uma instalação isolada do Playwright, configuração do navegador, mocks determinísticos da API e jornadas E2E.
+
+Mais detalhes em [`../frontend/README.md`](../frontend/README.md) e [`../frontend/e2e/README.md`](../frontend/e2e/README.md).
 
 ## `backend/worker-prototype/`
 
@@ -88,7 +93,9 @@ Responsabilidades:
 
 Rotas de catálogo/matching que eram duplicadas em `index.ts` foram removidas. A implementação canônica dessas rotas é `catalog64-worker.ts`.
 
-## Testes da API
+## Testes
+
+### API
 
 A suíte fica em `backend/worker-prototype/tests/` e é executada com:
 
@@ -97,6 +104,20 @@ npm test
 ```
 
 Ela cobre matching, normalização de ingredientes, segurança, rate limiting, roteamento central e rotas críticas do Worker.
+
+### Frontend
+
+Os testes unitários/componentes ficam em `frontend/src/**/*.test.ts(x)` e usam Vitest + React Testing Library.
+
+Os E2E ficam em:
+
+```text
+frontend/e2e/
+```
+
+O Playwright inicia o Next.js localmente e intercepta uma URL de API exclusiva da suíte. Ele não usa D1 de produção, contas reais nem Resend.
+
+Detalhes: [`testes.md`](testes.md).
 
 ## Catálogo e scripts
 
@@ -139,7 +160,8 @@ Documentação oficial:
 
 Workflows ativos:
 
-- `ci.yml`: valida o frontend;
+- `ci.yml`: lint, typecheck, Vitest/cobertura e build do frontend;
+- `e2e.yml`: jornadas de navegador em Chromium com Playwright;
 - `api-worker-ci.yml`: valida a API Worker;
 - `deploy-cloudflare.yml`: publica o frontend;
 - `deploy-api-cloudflare.yml`: valida, aplica migrations e publica a API;
@@ -151,6 +173,8 @@ O `dependabot.yml` acompanha somente:
 
 - `frontend/`;
 - `backend/worker-prototype/`.
+
+A dependência do Playwright fica isolada em `frontend/e2e/`; atualizações dessa ferramenta devem ser feitas de forma planejada junto com o lockfile da suíte.
 
 ## Governança
 
@@ -169,9 +193,10 @@ Ao adicionar uma funcionalidade:
 3. criar migration nova quando o schema mudar;
 4. atualizar contrato da API e tipos do frontend;
 5. incluir teste de regressão/integração adequado ao risco;
-6. atualizar a documentação relacionada;
-7. remover implementações substituídas em vez de manter código morto;
-8. abrir PR e aguardar os checks de CI.
+6. avaliar E2E quando a mudança afetar uma jornada completa de usuário;
+7. atualizar a documentação relacionada;
+8. remover implementações substituídas em vez de manter código morto;
+9. abrir PR e aguardar os checks de CI.
 
 ## Documentos relacionados
 
@@ -180,6 +205,8 @@ Ao adicionar uma funcionalidade:
 - [`architecture.md`](architecture.md)
 - [`api.md`](api.md)
 - [`database.md`](database.md)
+- [`testes.md`](testes.md)
 - [`deploy.md`](deploy.md)
+- [`../frontend/e2e/README.md`](../frontend/e2e/README.md)
 - [`../CONTRIBUTING.md`](../CONTRIBUTING.md)
 - [`../SECURITY.md`](../SECURITY.md)
