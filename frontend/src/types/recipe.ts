@@ -22,6 +22,16 @@ export interface RecipeIngredient {
   rawText?: string | null;
 }
 
+export interface RecipeImageAttribution {
+  url: string | null;
+  source: string | null;
+  author: string | null;
+  pageUrl: string | null;
+  license: string | null;
+  licenseUrl: string | null;
+  alt: string | null;
+}
+
 export interface Recipe {
   id: string;
   title: string;
@@ -43,6 +53,7 @@ export interface Recipe {
     externalSource?: string | null;
   };
   imageUrl: string | null;
+  image?: RecipeImageAttribution;
   tags: string[];
   ingredients: RecipeIngredient[];
 }
@@ -62,6 +73,7 @@ export interface MatchRecipeResult {
   mealType: string;
   difficulty: RecipeDifficulty;
   imageUrl: string | null;
+  image?: RecipeImageAttribution;
   tags: string[];
   compatibility: number;
   status: RecipeMatchStatus;
