@@ -20,98 +20,99 @@ flowchart TB
     W -->|importação controlada| D
 ```
 
-O frontend nunca acessa o banco diretamente. Estado persistente passa pela API. O catálogo externo é importado por scripts e workflows separados da aplicação em produção.
+O frontend nunca acessa o banco diretamente. Estado persistente passa pela API. O catálogo externo é importado por scripts/workflows separados da navegação em produção.
 
-## Componentes
+## Frontend
 
-### Frontend
-
-Diretório: `frontend/`
+Diretório: `frontend/`.
 
 Responsabilidades principais:
 
 - navegação e layout;
 - autenticação no cliente;
 - catálogo e detalhes de receitas;
-- experiência de matching em `/combinar`;
+- matching em `/combinar`;
 - despensa e favoritos;
-- perfil do usuário;
-- recuperação de senha;
-- interação social nas receitas;
+- perfil e recuperação de senha;
+- interação social;
 - estados de loading, erro e 404.
 
-A camada em `frontend/src/services/` concentra as chamadas HTTP para evitar espalhar detalhes da API pelos componentes visuais.
+A camada `frontend/src/services/` concentra as chamadas HTTP e os tipos em `frontend/src/types/` descrevem o contrato consumido pela interface.
 
-### API
+## API
 
-Diretório: `backend/worker-prototype/`
+Diretório: `backend/worker-prototype/`.
 
-Apesar do nome histórico, esta é a API usada pela arquitetura atual.
+Apesar do nome histórico, esta é a API atual de produção.
 
-O ponto de entrada configurado no Wrangler é `src/home-worker.ts`. A implementação é dividida em Workers encadeados:
+### Entrypoint real
+
+O entrypoint é definido por `backend/worker-prototype/wrangler.jsonc`:
 
 ```text
+src/auth-rate-limit-worker.ts
+```
+
+A API utiliza uma cadeia de Workers especializados:
+
+```text
+auth-rate-limit-worker
+        ↓
 home-worker
-   ↓
+        ↓
 catalog64-worker
-   ↓
+        ↓
 social-worker
-   ↓
+        ↓
 profile-worker
-   ↓
-password-reset-validation-worker
-   ↓
+        ↓
 password-reset-worker
-   ↓
+        ↓
 pantry-worker
-   ↓
+        ↓
 index
 ```
 
-Cada camada atende um grupo de rotas e encaminha o restante para a próxima.
+Cada camada trata apenas as rotas de sua responsabilidade e encaminha o restante.
 
-Áreas principais:
-
-- `home-worker`: feed da home;
-- `catalog64-worker`: fontes do catálogo, receitas, ingredientes e matching;
+- `auth-rate-limit-worker`: rate limiting de login/cadastro;
+- `home-worker`: `/api/home-feed`;
+- `catalog64-worker`: fontes, ingredientes, catálogo, detalhe de receita, favoritos lidos pelo catálogo e matching;
 - `social-worker`: votos e comentários;
-- `profile-worker`: perfil autenticado;
-- `password-reset-validation-worker`: validação do fluxo de recuperação;
-- `password-reset-worker`: recuperação de senha e integração com Resend;
-- `pantry-worker`: despensa e favoritos;
-- `index`: autenticação e rotas-base.
+- `profile-worker`: leitura e atualização do perfil;
+- `password-reset-worker`: solicitação, validação e conclusão da recuperação de senha;
+- `pantry-worker`: despensa e mutações de favoritos;
+- `index`: healthcheck, cadastro, login, sessão atual, logout e fallback final.
 
-O `tsconfig.json` da API valida todo `src/**/*.ts`, alinhando o typecheck ao código realmente alcançado pelo entrypoint de produção.
+Rotas antigas de catálogo/matching que existiam também em `index.ts` foram removidas para existir **uma única implementação canônica** em `catalog64-worker.ts`.
+
+### Infraestrutura HTTP compartilhada
+
+`src/lib/worker-http.ts` centraliza o contrato `Env` e helpers usados por várias camadas, incluindo CORS, respostas JSON/erro, leitura de Bearer token e resolução de sessão. Isso evita divergências entre cópias de `corsHeaders()`, `json()`, `apiError()` e `bearerToken()` espalhadas pelos Workers.
+
+O `tsconfig.json` valida todo `src/**/*.ts`.
 
 ## Persistência
 
-O banco de produção é **Cloudflare D1**.
-
-As migrations ficam em:
+O banco de produção é **Cloudflare D1**. As migrations ficam em:
 
 ```text
 backend/worker-prototype/migrations/
 ```
 
-Elas definem contas, sessões, catálogo, aliases de ingredientes, despensa, favoritos, recuperação de senha, perfis, votos, comentários e metadados de fontes e imagens externas.
+Elas definem contas, sessões, catálogo, aliases de ingredientes, despensa, favoritos, recuperação de senha, perfis, votos, comentários, rate limiting e metadados de fontes/imagens externas.
 
-A API usa SQL preparado diretamente pela API do D1.
+A API usa statements preparados e `.bind()` do D1; o frontend nunca envia SQL nem acessa o D1 diretamente.
 
 ## Autenticação
 
-O login cria um token aleatório de sessão. O cliente recebe o token, enquanto o banco armazena somente seu hash.
+No contrato atualmente publicado, o login cria um token aleatório de sessão e o banco guarda somente seu SHA-256. Rotas autenticadas validam a sessão antes de acessar dados do usuário.
 
-Requisições autenticadas usam:
+Senhas são derivadas com PBKDF2 via Web Crypto. Recuperações usam código temporário, limite de tentativas e token de reset armazenados apenas de forma derivada/hash.
 
-```text
-Authorization: Bearer <token>
-```
-
-Senhas são derivadas com PBKDF2 usando Web Crypto. Recuperações de senha usam códigos temporários e tokens que também são armazenados de forma derivada/hash.
+O entrypoint de rate limiting limita tentativas de login/cadastro antes de delegar ao restante da API.
 
 ## Matching
-
-O fluxo principal é:
 
 ```mermaid
 sequenceDiagram
@@ -127,29 +128,27 @@ sequenceDiagram
     DB-->>API: receitas + relações
     API->>API: calcula compatibilidade
     API-->>Web: resultados ordenados
-    Web-->>Usuario: mostra o que combina e o que falta
+    Web-->>Usuario: mostra encontrados e faltantes
 ```
 
-O cálculo principal considera ingredientes obrigatórios:
+A implementação canônica limita a entrada manual a até **40 ingredientes**, resolve nomes canônicos/aliases e calcula:
 
 ```text
 compatibilidade = encontrados / obrigatórios × 100
 ```
 
-O motor também usa aliases normalizados para aproximar variações conhecidas de nomes de ingredientes.
+## Catálogo externo e atribuição
 
-## Catálogo externo
-
-O schema suporta proveniência de receitas por meio de campos de origem, identidade externa, licença e metadados de imagem.
-
-A estratégia atual de catálogo utiliza:
+A estratégia operacional usa:
 
 - **Wikilivros em português** para conteúdo das receitas;
-- **Wikimedia Commons** para imagens livres.
+- **Wikimedia Commons** para imagens com licença livre.
 
-O script operacional é `backend/worker-prototype/scripts/import-wikibooks-v2.mjs`, executado manualmente pelo workflow `import-wikibooks.yml`. A importação valida a estrutura das receitas, associa imagens compatíveis, registra metadados de origem/licença e grava os resultados no D1.
+O script ativo é `backend/worker-prototype/scripts/import-wikibooks-v2.mjs`, chamado manualmente por `.github/workflows/import-wikibooks.yml`.
 
-Esse fluxo é separado da experiência principal da aplicação: usuários acessam apenas o conteúdo já persistido no D1, sem depender de chamadas ao MediaWiki durante a navegação.
+O D1 mantém metadados separados para a receita e para sua imagem. O contrato público expõe procedência da receita e os créditos/licença da imagem para que a página de detalhes possa apresentar a atribuição exigida pelo escopo.
+
+Importadores substituídos foram removidos da árvore ativa; o histórico permanece disponível no Git.
 
 ## Deploy e CI
 
@@ -164,18 +163,16 @@ flowchart LR
 
     G --> CI
     CI -->|lint + typecheck + build| FW
-    CI -->|typecheck + dry-run| ADEP[Deploy da API]
+    CI -->|typecheck + testes + dry-run| ADEP[Deploy da API]
     ADEP -->|migrations| D1
     ADEP -->|deploy| AW
-    WM -->|workflow manual de importação| CI
+    WM -->|workflow manual| CI
     CI -->|catálogo validado| D1
 ```
 
-O frontend possui CI e deploy automatizados para mudanças relevantes. O deploy do frontend repete lint, typecheck e build antes da publicação.
+Frontend e API possuem validações e deploys separados. Migrations remotas da API são aplicadas somente depois das validações definidas no workflow.
 
-A API possui CI separado e um workflow de produção que executa typecheck, dry-run, migrations remotas e deploy, nessa ordem. Assim, a validação do bundle acontece antes de alterar o banco remoto.
-
-Credenciais da Cloudflare e outros valores secretos ficam em GitHub Secrets ou secrets do ambiente, nunca na documentação.
+Credenciais ficam em GitHub Secrets/Cloudflare Secrets, nunca no repositório.
 
 ## Desenvolvimento local
 
@@ -185,13 +182,14 @@ Credenciais da Cloudflare e outros valores secretos ficam em GitHub Secrets ou s
 | API Worker | `http://localhost:8787` |
 | D1 | banco local gerenciado pelo Wrangler |
 
-A implementação antiga em `backend/` usa NestJS, Prisma e PostgreSQL e é mantida apenas como referência histórica; ela não representa a infraestrutura de produção atual.
+A implementação NestJS/Prisma/PostgreSQL diretamente em `backend/` é histórica e não representa a infraestrutura publicada.
 
 ## Documentação relacionada
 
-- [`escopo.md`](escopo.md) — definição funcional e acadêmica do projeto;
-- [`funcionalidades.md`](funcionalidades.md) — funcionalidades implementadas;
-- [`api.md`](api.md) — rotas da API;
-- [`database.md`](database.md) — modelo de dados atual;
-- [`catalogo.md`](catalogo.md) — origem/importação do catálogo;
-- [`deploy.md`](deploy.md) — CI, deploy e operação.
+- [`escopo.md`](escopo.md)
+- [`funcionalidades.md`](funcionalidades.md)
+- [`api.md`](api.md)
+- [`database.md`](database.md)
+- [`catalogo.md`](catalogo.md)
+- [`deploy.md`](deploy.md)
+- [`estrutura-repositorio.md`](estrutura-repositorio.md)
