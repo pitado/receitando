@@ -35,8 +35,8 @@ test("recuperação percorre e-mail, código e nova senha", async ({ page }) => 
   await page.getByRole("button", { name: "Validar código" }).click();
   await expect(page.getByRole("heading", { name: "Crie uma nova senha" })).toBeVisible();
 
-  await page.getByLabel("Nova senha").fill("nova-senha-segura-123");
-  await page.getByLabel("Confirmar nova senha").fill("nova-senha-segura-123");
+  await page.getByLabel("Nova senha", { exact: true }).fill("nova-senha-segura-123");
+  await page.getByLabel("Confirmar nova senha", { exact: true }).fill("nova-senha-segura-123");
   await page.getByRole("button", { name: "Salvar nova senha" }).click();
 
   await expect(page.getByRole("heading", { name: "Senha alterada." })).toBeVisible();
