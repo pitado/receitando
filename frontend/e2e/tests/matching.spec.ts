@@ -63,9 +63,7 @@ test("combinador valida lista vazia sem chamar a API", async ({ page }) => {
 
   await page.getByRole("button", { name: "Encontrar receitas" }).click();
 
-  await expect(
-    page.getByRole("alert", {
-      name: "Adicione pelo menos um ingrediente para buscar receitas.",
-    }),
-  ).toBeVisible();
+  await expect(page.getByRole("alert")).toHaveText(
+    "Adicione pelo menos um ingrediente para buscar receitas.",
+  );
 });
