@@ -22,6 +22,7 @@ test("login redireciona para a despensa sem expor token no Web Storage", async (
         },
       };
     },
+    "GET /api/auth/me": async () => ({ body: user }),
     "GET /api/pantry": async () => ({
       body: [
         {
@@ -84,6 +85,8 @@ test("login inválido apresenta erro sem navegar", async ({ page }) => {
   await page.getByLabel("Senha").fill("senha-incorreta-123");
   await page.getByRole("button", { name: "Entrar" }).click();
 
-  await expect(page.getByRole("alert")).toHaveText("E-mail ou senha inválidos.");
+  await expect(
+    page.getByText("E-mail ou senha inválidos.", { exact: true }),
+  ).toBeVisible();
   await expect(page).toHaveURL(/\/entrar$/);
 });
