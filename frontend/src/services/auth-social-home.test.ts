@@ -2,12 +2,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/services/api-client", () => ({ apiRequest: vi.fn() }));
 vi.mock("@/services/auth-storage", () => ({
-  saveAuthToken: vi.fn(),
-  clearAuthToken: vi.fn(),
+  markAuthSession: vi.fn(),
+  clearAuthSession: vi.fn(),
 }));
 
 import { apiRequest } from "@/services/api-client";
-import { clearAuthToken, saveAuthToken } from "@/services/auth-storage";
+import { clearAuthSession, markAuthSession } from "@/services/auth-storage";
 
 import {
   getCurrentUser,
@@ -31,8 +31,8 @@ import {
 } from "./recipe-social.service";
 
 const apiRequestMock = vi.mocked(apiRequest);
-const saveAuthTokenMock = vi.mocked(saveAuthToken);
-const clearAuthTokenMock = vi.mocked(clearAuthToken);
+const markAuthSessionMock = vi.mocked(markAuthSession);
+const clearAuthSessionMock = vi.mocked(clearAuthSession);
 
 const user = {
   id: "user-1",
@@ -43,18 +43,17 @@ const user = {
 
 const session = {
   user,
-  token: "token-123",
   expiresAt: "2026-09-25T00:00:00.000Z",
 };
 
 describe("auth.service", () => {
   beforeEach(() => {
     apiRequestMock.mockReset();
-    saveAuthTokenMock.mockReset();
-    clearAuthTokenMock.mockReset();
+    markAuthSessionMock.mockReset();
+    clearAuthSessionMock.mockReset();
   });
 
-  it("registra usuário, salva a sessão e devolve o perfil", async () => {
+  it("registra usuário, marca a sessão e devolve o perfil", async () => {
     apiRequestMock.mockResolvedValueOnce(session);
 
     await expect(register("Pessoa Teste", "pessoa@example.com", "senha-segura-123", false)).resolves.toEqual(user);
@@ -65,16 +64,25 @@ describe("auth.service", () => {
         name: "Pessoa Teste",
         email: "pessoa@example.com",
         password: "senha-segura-123",
+        remember: false,
       }),
     });
-    expect(saveAuthTokenMock).toHaveBeenCalledWith("token-123", false);
+    expect(markAuthSessionMock).toHaveBeenCalledWith(false);
   });
 
-  it("faz login e respeita a opção lembrar", async () => {
+  it("faz login e respeita a opção lembrar sem receber token no JSON", async () => {
     apiRequestMock.mockResolvedValueOnce(session);
 
     await expect(login("pessoa@example.com", "senha-segura-123", true)).resolves.toEqual(user);
-    expect(saveAuthTokenMock).toHaveBeenCalledWith("token-123", true);
+    expect(apiRequestMock).toHaveBeenCalledWith("/api/auth/login", {
+      method: "POST",
+      body: JSON.stringify({
+        email: "pessoa@example.com",
+        password: "senha-segura-123",
+        remember: true,
+      }),
+    });
+    expect(markAuthSessionMock).toHaveBeenCalledWith(true);
   });
 
   it("usa os contratos corretos de recuperação de senha", async () => {
@@ -114,11 +122,11 @@ describe("auth.service", () => {
     });
   });
 
-  it("sempre limpa o token ao sair, mesmo se a API falhar", async () => {
+  it("sempre limpa a sessão ao sair, mesmo se a API falhar", async () => {
     apiRequestMock.mockRejectedValueOnce(new Error("API indisponível"));
 
     await expect(logout()).rejects.toThrow("API indisponível");
-    expect(clearAuthTokenMock).toHaveBeenCalledTimes(1);
+    expect(clearAuthSessionMock).toHaveBeenCalledTimes(1);
   });
 });
 
