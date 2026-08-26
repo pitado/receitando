@@ -8,7 +8,7 @@ Base de produção:
 https://api.receitando.miguelpita.com.br
 ```
 
-Base local padrão:
+Base local:
 
 ```text
 http://localhost:8787
@@ -16,116 +16,208 @@ http://localhost:8787
 
 ## Convenções
 
-- rotas da aplicação usam prefixo `/api`;
-- corpos de requisição usam `Content-Type: application/json`;
+- rotas da aplicação usam `/api`;
+- corpos usam JSON;
 - erros seguem, em geral, `{ "statusCode": number, "message": string }`;
-- rotas autenticadas usam `Authorization: Bearer <token>`;
-- o token de sessão nunca deve ser commitado, logado em documentação ou compartilhado publicamente;
-- CORS aceita apenas origens configuradas pelo ambiente do Worker.
+- o contrato publicado nesta branch ainda utiliza `Authorization: Bearer <token>` nas rotas autenticadas;
+- CORS aceita apenas origens declaradas em `FRONTEND_URL`;
+- respostas sensíveis usam `Cache-Control: no-store`;
+- login, cadastro e solicitação de recuperação de senha passam por rate limiting no entrypoint.
 
-## Healthcheck
+> A migração para cookie `HttpOnly` está sendo tratada separadamente nos PRs de segurança #99–#101 e não faz parte desta refatoração estrutural.
+
+## Mapa de rotas
 
 | Método | Rota | Acesso | Finalidade |
 | --- | --- | --- | --- |
-| `GET` | `/` | público | identificação simples da API |
+| `GET` | `/` | público | identificação da API |
 | `GET` | `/api/health` | público | healthcheck |
-
-## Autenticação e perfil
-
-| Método | Rota | Acesso | Finalidade |
-| --- | --- | --- | --- |
 | `POST` | `/api/auth/register` | público | criar conta e sessão |
-| `POST` | `/api/auth/login` | público | autenticar usuário |
-| `GET` | `/api/auth/me` | autenticado | consultar perfil atual |
+| `POST` | `/api/auth/login` | público | autenticar |
+| `GET` | `/api/auth/me` | autenticado | consultar perfil |
 | `PATCH` | `/api/auth/me` | autenticado | alterar nome, `@` e avatar |
 | `POST` | `/api/auth/logout` | autenticado | encerrar sessão atual |
+| `POST` | `/api/auth/forgot-password` | público | solicitar recuperação |
+| `POST` | `/api/auth/verify-reset-code` | público | validar código |
+| `POST` | `/api/auth/reset-password` | público | definir nova senha |
+| `GET` | `/api/sources` | público | listar fontes do catálogo |
+| `GET` | `/api/ingredients` | público | listar ingredientes do catálogo |
+| `GET` | `/api/recipes` | público | listar/buscar receitas |
+| `GET` | `/api/recipes/:slug` | público | detalhe por slug |
+| `POST` | `/api/recipes/match` | público | matching por ingredientes |
+| `GET` | `/api/recipes/match/pantry` | autenticado | matching usando a despensa |
+| `GET` | `/api/pantry` | autenticado | listar despensa |
+| `POST` | `/api/pantry` | autenticado | adicionar/atualizar item |
+| `DELETE` | `/api/pantry/:itemId` | autenticado | remover item próprio |
+| `GET` | `/api/favorites` | autenticado | listar favoritos |
+| `POST` | `/api/favorites` | autenticado | favoritar receita |
+| `DELETE` | `/api/favorites/:recipeId` | autenticado | remover favorito |
+| `GET` | `/api/recipes/:recipeId/social` | público | resumo de votos |
+| `PUT` | `/api/recipes/:recipeId/vote` | autenticado | registrar/alterar voto |
+| `DELETE` | `/api/recipes/:recipeId/vote` | autenticado | remover voto |
+| `GET` | `/api/recipes/:recipeId/comments` | público | listar comentários |
+| `POST` | `/api/recipes/:recipeId/comments` | autenticado | criar comentário |
+| `PATCH` | `/api/recipe-comments/:commentId` | dono | editar comentário próprio |
+| `DELETE` | `/api/recipe-comments/:commentId` | dono | excluir comentário próprio |
+| `GET` | `/api/home-feed` | público | feed e totais da home |
 
-Exemplo de cadastro:
+A rota correta de detalhe é **`GET /api/recipes/:slug`**. Não existe contrato público `/api/recipes/slug/:slug`.
+
+## Autenticação
+
+### Cadastro
+
+`POST /api/auth/register`
 
 ```json
 {
   "name": "Pessoa Exemplo",
   "email": "pessoa@example.com",
-  "password": "uma-senha-local-de-exemplo"
+  "password": "uma-senha-de-exemplo"
 }
 ```
 
-A resposta de login/cadastro inclui um token de sessão. Esse valor é credencial e deve permanecer privado.
+Nome, e-mail e senha são validados antes da persistência. A senha precisa ter entre 10 e 128 caracteres.
+
+### Login
+
+`POST /api/auth/login`
+
+Credenciais inválidas retornam uma mensagem genérica. O entrypoint aplica limite por e-mail e por IP para reduzir força bruta.
+
+### Rate limiting
+
+A proteção atual possui buckets independentes:
+
+| Ação | Limite atual |
+| --- | --- |
+| falhas de login por e-mail | 5 em 15 minutos |
+| falhas de login por IP | 20 em 15 minutos |
+| cadastro por IP | 5 em 1 hora |
+| solicitação de recuperação por e-mail | 3 em 15 minutos |
+| solicitação de recuperação por IP | 10 em 15 minutos |
+
+Quando um limite é atingido, a API retorna HTTP `429` e `Retry-After`.
+
+E-mails e IPs usados nesses buckets não são persistidos em texto puro: o D1 recebe apenas uma chave SHA-256 derivada.
+
+## Perfil
+
+`GET /api/auth/me` retorna o perfil autenticado.
+
+`PATCH /api/auth/me` aceita nome, handle e avatar. Handles possuem validação, unicidade e nomes reservados.
 
 ## Recuperação de senha
 
-| Método | Rota | Acesso | Finalidade |
-| --- | --- | --- | --- |
-| `POST` | `/api/auth/forgot-password` | público | solicitar código por e-mail |
-| `POST` | `/api/auth/verify-reset-code` | público | validar código de seis dígitos |
-| `POST` | `/api/auth/reset-password` | público | definir nova senha após validação |
+### Solicitar
 
-Os códigos expiram e são armazenados apenas como hash. Tokens temporários de recuperação também não devem aparecer em logs ou documentação real.
-
-## Fontes do catálogo
-
-| Método | Rota | Acesso | Finalidade |
-| --- | --- | --- | --- |
-| `GET` | `/api/sources` | público | listar fontes externas conhecidas e quantidade importada |
-
-Atualmente a fonte publicada pelo catálogo é identificada por `wikibooks`. A resposta inclui metadados públicos como nome, página da fonte, licença, idioma e quantidade de receitas importadas.
-
-## Ingredientes
-
-| Método | Rota | Acesso | Finalidade |
-| --- | --- | --- | --- |
-| `GET` | `/api/ingredients` | público | listar ingredientes usados pelo catálogo |
-
-A resposta inclui identificador, nome, forma normalizada, categoria e uso no catálogo quando disponível.
-
-## Receitas
-
-| Método | Rota | Acesso | Finalidade |
-| --- | --- | --- | --- |
-| `GET` | `/api/recipes` | público | listar catálogo |
-| `GET` | `/api/recipes/:slug` | público | buscar receita por slug |
-| `POST` | `/api/recipes/match` | público | calcular compatibilidade por ingredientes |
-| `GET` | `/api/recipes/match/pantry` | autenticado | calcular compatibilidade usando a despensa |
-
-### Listagem
-
-`GET /api/recipes` aceita:
-
-- `limit`: de 1 a 60, padrão 36;
-- `offset`: deslocamento para paginação;
-- `q`: busca simples pelo título;
-- `source`: filtra pelo identificador da fonte externa, por exemplo `wikibooks`.
-
-Exemplos:
-
-```text
-/api/recipes?limit=24&offset=0&q=banana
-/api/recipes?source=wikibooks&limit=36
-```
-
-A resposta de receita inclui os dados culinários, ingredientes, tags, `imageUrl` e um objeto `source` com a procedência da receita. Metadados detalhados de atribuição de imagem são persistidos no D1 para auditoria/licenciamento, mas ainda não fazem parte integral do contrato público retornado por esta rota.
-
-### Matching
-
-Requisição:
+`POST /api/auth/forgot-password`
 
 ```json
 {
-  "ingredients": ["ovo", "banana", "farinha de trigo", "leite"]
+  "email": "pessoa@example.com"
 }
 ```
 
-Exemplo com cURL:
+Para e-mails sintaticamente válidos, a resposta é deliberadamente genérica exista ou não uma conta. Isso evita enumeração de usuários. A solicitação também passa pelo rate limiting por e-mail e IP antes de chegar ao fluxo que pode disparar o Resend.
 
-```bash
-curl -X POST https://api.receitando.miguelpita.com.br/api/recipes/match \
-  -H "Content-Type: application/json" \
-  -d '{"ingredients":["ovo","banana","farinha de trigo","leite"]}'
+### Validar código
+
+`POST /api/auth/verify-reset-code`
+
+O código possui seis dígitos, expira, tem limite de tentativas e é persistido somente de forma derivada.
+
+### Trocar senha
+
+`POST /api/auth/reset-password`
+
+Uma troca bem-sucedida invalida as sessões existentes do usuário.
+
+## Fontes
+
+`GET /api/sources` publica as fontes operacionais conhecidas. Para `wikibooks`, a resposta inclui nome, homepage, licença, URL da licença, idioma e quantidade importada.
+
+## Ingredientes
+
+`GET /api/ingredients` retorna ingredientes usados pelo catálogo, incluindo:
+
+- `id`;
+- `name`;
+- `normalizedName`;
+- `category`;
+- `isStaple`;
+- `usageCount`.
+
+`isStaple` identifica ingredientes básicos que não penalizam a compatibilidade.
+
+## Receitas
+
+### Listagem e busca
+
+`GET /api/recipes`
+
+Parâmetros:
+
+- `limit`: 1–60; padrão 36;
+- `offset`: paginação;
+- `q`: busca textual;
+- `source`: filtro de fonte, como `wikibooks`.
+
+Quando `q` é informado, a API consulta a tabela virtual FTS5 `recipe_search`, com suporte a termos múltiplos e prefixos, e ordena os resultados por relevância com `bm25()`. A busca não depende mais de `LIKE '%termo%'` sobre todos os títulos.
+
+### Detalhe
+
+`GET /api/recipes/:slug`
+
+O detalhe retorna conteúdo culinário, ingredientes, tags, procedência da receita e atribuição da imagem.
+
+Cada ingrediente pode incluir `isStaple`, além de quantidade, unidade, forma normalizada e `rawText` quando disponível.
+
+`imageUrl` é mantido por compatibilidade. O objeto `image` concentra a atribuição específica da fotografia/ilustração.
+
+## Matching
+
+`POST /api/recipes/match`
+
+```json
+{
+  "ingredients": ["ovos", "cebolas picadas", "farinha de trigo"]
+}
 ```
 
-O motor normaliza nomes, resolve aliases conhecidos, identifica ingredientes obrigatórios encontrados e faltantes e ordena os resultados pela compatibilidade.
+São aceitos **1 a 40 ingredientes**.
 
-Estados usados pelo frontend:
+O fluxo atual:
+
+1. normaliza caixa, acentos e separadores;
+2. gera candidatos textuais exatos e uma forma canônica conservadora;
+3. consulta `ingredients.normalized_name` e `ingredient_aliases.normalized_alias` por igualdade;
+4. converte os valores para IDs canônicos;
+5. exclui opcionais e ingredientes `isStaple` do denominador;
+6. calcula a porcentagem e ordena os resultados.
+
+Não há equivalência por substring. Por exemplo, informar `óleo` não faz o sistema assumir automaticamente que o usuário possui `óleo de gergelim torrado`.
+
+### Quantidades
+
+Nesta versão, o matching é **booleano**: considera presença ou ausência do ingrediente. Quantidade e unidade podem existir na despensa e na receita, mas não participam da porcentagem.
+
+Assim, `1 ovo` representa presença do ingrediente `ovo`; a API ainda não verifica se a quantidade atende uma receita que exija várias unidades.
+
+### Resultado
+
+Cada resultado pode incluir:
+
+- `compatibility`;
+- `status`;
+- `foundIngredients`;
+- `missingIngredients`;
+- `optionalIngredients`;
+- `stapleIngredients`.
+
+Ingredientes básicos continuam disponíveis em `stapleIngredients`, mas não reduzem a pontuação nem aparecem como faltantes principais.
+
+Estados:
 
 ```text
 READY
@@ -134,84 +226,28 @@ NEAR
 EXPLORE
 ```
 
+`GET /api/recipes/match/pantry` aplica a mesma regra aos ingredientes persistidos da conta autenticada.
+
 ## Despensa
 
-Todas as rotas exigem autenticação.
+`GET /api/pantry`, `POST /api/pantry` e `DELETE /api/pantry/:itemId` exigem autenticação.
 
-| Método | Rota | Finalidade |
-| --- | --- | --- |
-| `GET` | `/api/pantry` | listar itens da despensa |
-| `POST` | `/api/pantry` | adicionar ou atualizar ingrediente |
-| `DELETE` | `/api/pantry/:itemId` | remover item |
+Quantidade e unidade são opcionais e atualmente informativas para o matching.
 
-Exemplo de inclusão:
+## Favoritos e comunidade
 
-```json
-{
-  "ingredientId": "id-do-ingrediente",
-  "quantity": 2,
-  "unit": "unidade"
-}
-```
-
-Quantidade e unidade são opcionais para o matching; a presença do ingrediente é o dado principal.
-
-## Favoritos
-
-Todas as rotas exigem autenticação.
-
-| Método | Rota | Finalidade |
-| --- | --- | --- |
-| `GET` | `/api/favorites` | listar receitas favoritas |
-| `POST` | `/api/favorites` | salvar receita |
-| `DELETE` | `/api/favorites/:recipeId` | remover dos favoritos |
-
-## Comunidade
-
-### Votos
-
-| Método | Rota | Acesso | Finalidade |
-| --- | --- | --- | --- |
-| `GET` | `/api/recipes/:recipeId/social` | público | contagens e voto atual quando autenticado |
-| `PUT` | `/api/recipes/:recipeId/vote` | autenticado | registrar `LIKE` ou `DISLIKE` |
-| `DELETE` | `/api/recipes/:recipeId/vote` | autenticado | remover voto |
-
-Corpo do voto:
-
-```json
-{
-  "vote": "LIKE"
-}
-```
-
-### Comentários
-
-| Método | Rota | Acesso | Finalidade |
-| --- | --- | --- | --- |
-| `GET` | `/api/recipes/:recipeId/comments` | público | listar comentários |
-| `POST` | `/api/recipes/:recipeId/comments` | autenticado | comentar |
-| `PATCH` | `/api/recipe-comments/:commentId` | dono do comentário | editar |
-| `DELETE` | `/api/recipe-comments/:commentId` | dono do comentário | excluir |
-
-Comentários aceitam texto entre 2 e 1200 caracteres.
+Favoritos, votos e comentários são sempre vinculados ao usuário autenticado nas operações de escrita. Edição/exclusão de comentários validam o dono antes da mutação.
 
 ## Home
 
-| Método | Rota | Acesso | Finalidade |
-| --- | --- | --- | --- |
-| `GET` | `/api/home-feed` | público | receitas populares, comentários recentes e totais da comunidade |
+`GET /api/home-feed` retorna receitas populares, comentários recentes e totais usados pela página inicial.
 
-## Autenticação em requisições
+## Testes do contrato
 
-Exemplo de rota protegida:
+A suíte da API chama `fetch()` dos Workers reais com um D1 simulado para validar roteamento, autenticação, autorização e persistência sem tocar no banco de produção.
 
-```bash
-curl https://api.receitando.miguelpita.com.br/api/pantry \
-  -H "Authorization: Bearer SEU_TOKEN_LOCAL"
-```
+Além dos fluxos de conta, despensa, favoritos e comunidade, os testes cobrem normalização canônica, rate limiting e regras críticas do matching.
 
-`SEU_TOKEN_LOCAL` é apenas um placeholder. Nunca coloque tokens reais em commits, issues, screenshots públicos ou documentação.
+## Implementação histórica
 
-## Observação sobre a implementação antiga
-
-A pasta `backend/` contém a primeira versão em NestJS/Prisma/PostgreSQL. Ela não representa o contrato atualmente publicado. A referência de produção é o código em `backend/worker-prototype/` e esta documentação.
+A versão anterior em NestJS/Prisma/PostgreSQL não fica mais na árvore principal. Ela foi preservada na branch `legacy/nest-prisma`. O contrato publicado é exclusivamente o da API em `backend/worker-prototype/`.

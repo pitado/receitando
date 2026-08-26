@@ -56,6 +56,14 @@ export default async function RecipeDetailPage({ params }: RecipeDetailPageProps
 
   const instructionSteps = getInstructionSteps(recipe.instructions);
   const isExternalRecipe = Boolean(recipe.source.externalSource || recipe.source.url);
+  const imageAttribution = recipe.image;
+  const hasImageCredit = Boolean(
+    recipe.imageUrl &&
+      (imageAttribution?.author ||
+        imageAttribution?.source ||
+        imageAttribution?.license ||
+        imageAttribution?.pageUrl),
+  );
 
   return (
     <article className={`container page-shell ${styles.page}`}>
@@ -103,13 +111,27 @@ export default async function RecipeDetailPage({ params }: RecipeDetailPageProps
 
         <div aria-label={`Foto de ${recipe.title}`} className={styles.visual}>
           {recipe.imageUrl ? (
-            <Image
-              alt={recipe.title}
-              className={styles.recipeImage}
-              fill
-              sizes="(min-width: 800px) 45vw, 100vw"
-              src={recipe.imageUrl}
-            />
+            <>
+              <Image
+                alt={imageAttribution?.alt || recipe.title}
+                className={styles.recipeImage}
+                fill
+                sizes="(min-width: 800px) 45vw, 100vw"
+                src={recipe.imageUrl}
+              />
+              {hasImageCredit ? (
+                <p className={styles.imageCredit}>
+                  Imagem: {imageAttribution?.author || imageAttribution?.source || "Wikimedia Commons"}
+                  {imageAttribution?.pageUrl ? (
+                    <> · <a href={imageAttribution.pageUrl} rel="noreferrer" target="_blank">fonte ↗</a></>
+                  ) : null}
+                  {imageAttribution?.license ? <> · {imageAttribution.license}</> : null}
+                  {imageAttribution?.licenseUrl ? (
+                    <> · <a href={imageAttribution.licenseUrl} rel="noreferrer" target="_blank">licença ↗</a></>
+                  ) : null}
+                </p>
+              ) : null}
+            </>
           ) : (
             <>
               <span className={styles.plate}><span /></span>

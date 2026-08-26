@@ -1,6 +1,11 @@
 import { sha256 } from "./security";
 
-export type AuthRateLimitAction = "login_email" | "login_ip" | "register_ip";
+export type AuthRateLimitAction =
+  | "login_email"
+  | "login_ip"
+  | "register_ip"
+  | "password_reset_email"
+  | "password_reset_ip";
 
 type RateLimitStatement = {
   bind: (...values: unknown[]) => RateLimitStatement;
@@ -27,6 +32,8 @@ export const AUTH_RATE_LIMIT_POLICIES: Record<AuthRateLimitAction, RateLimitPoli
   login_email: { maxAttempts: 5, windowMs: 15 * 60 * 1000 },
   login_ip: { maxAttempts: 20, windowMs: 15 * 60 * 1000 },
   register_ip: { maxAttempts: 5, windowMs: 60 * 60 * 1000 },
+  password_reset_email: { maxAttempts: 3, windowMs: 15 * 60 * 1000 },
+  password_reset_ip: { maxAttempts: 10, windowMs: 15 * 60 * 1000 },
 };
 
 const RETENTION_MS = 2 * 60 * 60 * 1000;

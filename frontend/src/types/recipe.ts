@@ -7,6 +7,7 @@ export interface Ingredient {
   name: string;
   normalizedName: string;
   category: string;
+  isStaple?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -19,7 +20,18 @@ export interface RecipeIngredient {
   quantity: number | null;
   unit: string | null;
   optional: boolean;
+  isStaple?: boolean;
   rawText?: string | null;
+}
+
+export interface RecipeImageAttribution {
+  url: string | null;
+  source: string | null;
+  author: string | null;
+  pageUrl: string | null;
+  license: string | null;
+  licenseUrl: string | null;
+  alt: string | null;
 }
 
 export interface Recipe {
@@ -43,6 +55,7 @@ export interface Recipe {
     externalSource?: string | null;
   };
   imageUrl: string | null;
+  image?: RecipeImageAttribution;
   tags: string[];
   ingredients: RecipeIngredient[];
 }
@@ -62,12 +75,14 @@ export interface MatchRecipeResult {
   mealType: string;
   difficulty: RecipeDifficulty;
   imageUrl: string | null;
+  image?: RecipeImageAttribution;
   tags: string[];
   compatibility: number;
   status: RecipeMatchStatus;
   foundIngredients: MatchIngredient[];
   missingIngredients: MatchIngredient[];
   optionalIngredients: MatchIngredient[];
+  stapleIngredients?: MatchIngredient[];
 }
 
 export interface MatchRecipesPayload {

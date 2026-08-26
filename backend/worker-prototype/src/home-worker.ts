@@ -1,11 +1,5 @@
 import catalog64Worker from "./catalog64-worker";
-
-interface Env {
-  db: D1Database;
-  FRONTEND_URL: string;
-  RESEND_API_KEY?: string;
-  EMAIL_FROM?: string;
-}
+import { corsHeaders, type Env, json } from "./lib/worker-http";
 
 type PopularRecipe = {
   id: string;
@@ -31,29 +25,6 @@ type RecentComment = {
   authorHandle: string | null;
   avatarKey: string;
 };
-
-function allowedOrigins(env: Env): string[] {
-  return env.FRONTEND_URL.split(",").map((value) => value.trim()).filter(Boolean);
-}
-
-function corsHeaders(request: Request, env: Env): Headers {
-  const headers = new Headers({
-    "Access-Control-Allow-Headers": "Content-Type, Accept, Authorization",
-    "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
-    "Access-Control-Max-Age": "86400",
-    Vary: "Origin",
-  });
-  const origin = request.headers.get("Origin");
-  if (origin && allowedOrigins(env).includes(origin)) headers.set("Access-Control-Allow-Origin", origin);
-  return headers;
-}
-
-function json(request: Request, env: Env, body: unknown, status = 200): Response {
-  const headers = corsHeaders(request, env);
-  headers.set("Content-Type", "application/json; charset=utf-8");
-  headers.set("Cache-Control", "no-store");
-  return new Response(JSON.stringify(body), { status, headers });
-}
 
 async function loadPopular(env: Env): Promise<PopularRecipe[]> {
   try {
@@ -169,8 +140,12 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname.replace(/\/+$/, "") || "/";
 
-    if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders(request, env) });
-    if (request.method === "GET" && path === "/api/home-feed") return homeFeed(request, env);
+    if (request.method === "OPTIONS") {
+      return new Response(null, { status: 204, headers: corsHeaders(request, env) });
+    }
+    if (request.method === "GET" && path === "/api/home-feed") {
+      return homeFeed(request, env);
+    }
 
     return catalog64Worker.fetch(request, env);
   },

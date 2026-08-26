@@ -1,11 +1,13 @@
-import passwordResetWorker from "./password-reset-validation-worker";
-
-interface Env {
-  db: D1Database;
-  FRONTEND_URL: string;
-  RESEND_API_KEY?: string;
-  EMAIL_FROM?: string;
-}
+import passwordResetWorker from "./password-reset-worker";
+import { sha256 } from "./lib/security";
+import {
+  apiError,
+  bearerToken,
+  corsHeaders,
+  type Env,
+  json,
+  readJson,
+} from "./lib/worker-http";
 
 type UserRole = "USER" | "ADMIN";
 
@@ -18,7 +20,6 @@ type ProfileRow = {
   avatarKey: string;
 };
 
-const encoder = new TextEncoder();
 const AVATAR_KEYS = new Set([
   "tomato",
   "lemon",
@@ -31,55 +32,10 @@ const AVATAR_KEYS = new Set([
 ]);
 const RESERVED_HANDLES = new Set(["admin", "api", "receitando", "suporte", "contato"]);
 
-function allowedOrigins(env: Env): string[] {
-  return env.FRONTEND_URL.split(",").map((value) => value.trim()).filter(Boolean);
-}
-
-function corsHeaders(request: Request, env: Env): Headers {
-  const headers = new Headers({
-    "Access-Control-Allow-Headers": "Content-Type, Accept, Authorization",
-    "Access-Control-Allow-Methods": "GET, POST, PATCH, DELETE, OPTIONS",
-    "Access-Control-Max-Age": "86400",
-    Vary: "Origin",
-  });
-  const origin = request.headers.get("Origin");
-  if (origin && allowedOrigins(env).includes(origin)) {
-    headers.set("Access-Control-Allow-Origin", origin);
-  }
-  return headers;
-}
-
-function json(request: Request, env: Env, body: unknown, status = 200): Response {
-  const headers = corsHeaders(request, env);
-  headers.set("Content-Type", "application/json; charset=utf-8");
-  headers.set("Cache-Control", "no-store");
-  return new Response(JSON.stringify(body), { status, headers });
-}
-
-function apiError(request: Request, env: Env, status: number, message: string): Response {
-  return json(request, env, { statusCode: status, message }, status);
-}
-
-function bearerToken(request: Request): string | undefined {
-  const authorization = request.headers.get("Authorization");
-  if (!authorization?.startsWith("Bearer ")) return undefined;
-  return authorization.slice(7).trim() || undefined;
-}
-
-function bytesToBase64Url(bytes: Uint8Array): string {
-  let binary = "";
-  for (const byte of bytes) binary += String.fromCharCode(byte);
-  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
-}
-
-async function sha256(value: string): Promise<string> {
-  const digest = await crypto.subtle.digest("SHA-256", encoder.encode(value));
-  return bytesToBase64Url(new Uint8Array(digest));
-}
-
 async function authenticatedProfile(request: Request, env: Env): Promise<ProfileRow | null> {
   const token = bearerToken(request);
   if (!token) return null;
+
   const tokenHash = await sha256(token);
   const now = new Date().toISOString();
   const user = await env.db
@@ -94,20 +50,12 @@ async function authenticatedProfile(request: Request, env: Env): Promise<Profile
     .first<ProfileRow>();
 
   if (user) {
-    await env.db.prepare("UPDATE sessions SET last_seen_at = ? WHERE token_hash = ?").bind(now, tokenHash).run();
+    await env.db
+      .prepare("UPDATE sessions SET last_seen_at = ? WHERE token_hash = ?")
+      .bind(now, tokenHash)
+      .run();
   }
   return user ?? null;
-}
-
-async function readJson(request: Request): Promise<Record<string, unknown> | null> {
-  try {
-    const value = await request.json();
-    return typeof value === "object" && value !== null && !Array.isArray(value)
-      ? (value as Record<string, unknown>)
-      : null;
-  } catch {
-    return null;
-  }
 }
 
 function normalizeHandle(value: string): string {

@@ -36,6 +36,12 @@ export default async function CombinePage({ searchParams }: CombinePageProps) {
             Conte o que tem na cozinha. A gente junta os pontos e organiza as
             receitas da maior compatibilidade para a menor.
           </p>
+          <p className={styles.description}>
+            Nesta versão, a compatibilidade considera se você tem ou não cada
+            ingrediente, sem comparar quantidades ou unidades. Itens básicos como
+            água, sal, pimenta e óleo não reduzem a pontuação quando estiverem
+            marcados como básicos no catálogo.
+          </p>
         </div>
       </section>
 

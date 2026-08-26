@@ -1,184 +1,166 @@
 # Funcionalidades do Receitando
 
-Este documento resume o que já existe no sistema do ponto de vista do usuário e como cada área se relaciona com a arquitetura.
+Este documento registra o que existe atualmente no sistema do ponto de vista do usuário e relaciona cada área à implementação de produção.
 
 ## 1. Catálogo de receitas
 
-O usuário pode navegar por receitas disponíveis e abrir uma página de detalhes.
+O usuário pode navegar pelo catálogo e abrir detalhes de cada receita.
 
-Cada receita pode possuir:
+Cada receita pode apresentar título, descrição, ingredientes/quantidades, modo de preparo, categoria, dificuldade, imagem, tags e informações de procedência/licença.
 
-- título;
-- descrição;
-- ingredientes;
-- modo de preparo;
-- categoria;
-- dificuldade;
-- imagem;
-- origem externa.
+O catálogo operacional é alimentado pelo fluxo **Wikilivros + Wikimedia Commons**.
 
-O catálogo atual é alimentado principalmente pelo fluxo Wikilivros + Wikimedia Commons. O backend também persiste metadados de fonte, autoria e licença para manter a procedência do conteúdo. Nem todos os campos detalhados de atribuição da imagem são exibidos atualmente na interface; eles permanecem registrados no D1 para auditoria e evolução do frontend.
+## 2. Busca textual
 
-## 2. Busca por ingredientes
+A listagem de receitas permite pesquisa textual por `q`.
 
-O sistema permite informar ingredientes para encontrar receitas compatíveis.
+A API utiliza SQLite **FTS5** sobre título e descrição, com busca por termos/prefixos e ordenação por relevância. A busca principal não depende mais de `LIKE '%termo%'` em toda a tabela de receitas.
 
-O backend normaliza nomes e utiliza aliases quando necessário para aproximar variações conhecidas.
+## 3. Matching por ingredientes
 
-O resultado pode informar:
+O usuário informa de 1 a 40 ingredientes. A API:
+
+1. normaliza o texto;
+2. gera a forma completa e uma forma canônica conservadora;
+3. resolve nomes e aliases exatos para `ingredient_id`;
+4. busca receitas candidatas;
+5. ignora opcionais e ingredientes básicos no denominador;
+6. calcula compatibilidade.
+
+Variações comuns podem apontar para o mesmo ingrediente:
+
+```text
+cebola / cebolas / cebolas picadas → cebola
+```
+
+A regra evita inferência por substring. Portanto, compostos semanticamente distintos continuam separados, como `óleo` e `óleo de gergelim torrado`.
+
+O resultado informa:
 
 - percentual de compatibilidade;
-- ingredientes encontrados;
+- status (`READY`, `ALMOST_READY`, `NEAR` ou `EXPLORE`);
+- ingredientes obrigatórios encontrados;
 - ingredientes faltantes;
-- receitas ordenadas por aderência.
+- ingredientes opcionais;
+- ingredientes básicos (`stapleIngredients`);
+- acesso ao detalhe da receita.
 
-## 3. Despensa
+### Ingredientes básicos
 
-Usuários autenticados podem manter uma despensa persistente.
+Ingredientes marcados `is_staple = true` — como água, sal, pimenta e óleo genérico na política atual — continuam fazendo parte da receita, mas não reduzem a compatibilidade nem entram na lista principal de faltantes.
 
-Itens podem possuir quantidade e unidade opcionais.
+### Quantidades
 
-A despensa pode ser usada diretamente como entrada do matching, evitando que a pessoa precise informar os mesmos ingredientes novamente.
+O matching atual é booleano (`tem` / `não tem`). Quantidade e unidade são armazenadas e exibidas, porém ainda não alteram a porcentagem de compatibilidade.
 
-## 4. Autenticação e sessão
+## 4. Despensa
 
-O sistema possui:
+Usuários autenticados possuem uma despensa persistente no D1.
 
-- cadastro;
-- login;
-- logout;
-- consulta da sessão atual;
-- sessão persistente por token.
+É possível listar, adicionar, atualizar quantidade/unidade, remover itens e usar a despensa diretamente no matching. Toda operação é vinculada ao `user_id` autenticado.
 
-A API armazena apenas representação derivada/hash do token de sessão no banco.
+## 5. Autenticação e sessão
 
-## 5. Perfil
+O sistema possui cadastro, login, logout, consulta da sessão atual e sessão persistente.
 
-Usuários autenticados podem manter informações de perfil como:
+Senhas são derivadas com PBKDF2 e o D1 guarda somente o hash do token de sessão.
 
-- nome;
-- identificador `@`;
-- avatar.
+## 6. Rate limiting
 
-## 6. Recuperação de senha
+O entrypoint da API reduz abuso em:
 
-O fluxo de recuperação utiliza código temporário enviado por e-mail.
+- login por e-mail;
+- login por IP;
+- cadastro por IP;
+- solicitação de recuperação por e-mail;
+- solicitação de recuperação por IP.
 
-A integração de envio usa Resend.
+Os identificadores dos buckets são persistidos apenas como SHA-256. Limites atingidos retornam `429` com `Retry-After`.
 
-Códigos e tokens sensíveis são tratados de forma derivada/hash no backend.
+## 7. Perfil
 
-## 7. Favoritos
+Usuários autenticados podem consultar e editar nome, identificador `@` único e avatar predefinido. Handles reservados e duplicados são rejeitados.
 
-Usuários autenticados podem salvar e remover receitas favoritas.
+## 8. Recuperação de senha
 
-Os favoritos são persistidos no D1 e ficam associados ao usuário.
+O fluxo utiliza código de seis dígitos enviado via Resend.
 
-## 8. Avaliações
+Proteções implementadas:
 
-Receitas podem receber avaliação simples de gostei/não gostei.
+- resposta genérica para não enumerar contas;
+- rate limiting antes do fluxo de envio;
+- cooldown de reenvio;
+- validade limitada;
+- limite de tentativas;
+- código armazenado de forma derivada;
+- token temporário armazenado apenas como hash;
+- invalidação de sessões depois da troca de senha.
 
-A API mantém o voto associado ao usuário e à receita.
+## 9. Favoritos, avaliações e comentários
 
-## 9. Comentários
+Usuários autenticados podem salvar/remover favoritos e registrar/remover `LIKE` ou `DISLIKE`.
 
-Usuários podem comentar em receitas.
-
-Os comentários alimentam a área social e podem aparecer em contextos de feed.
+Comentários podem ser listados publicamente. Criação exige autenticação e edição/exclusão validam o dono do registro.
 
 ## 10. Feed da home
 
-A página inicial pode exibir dados derivados da atividade da comunidade e do catálogo.
-
-O backend possui uma camada própria para montar esse feed.
+`GET /api/home-feed` consolida receitas populares, comentários recentes e totais usados pela página inicial.
 
 ## 11. Estados de interface
 
-O frontend possui tratamento para:
+O frontend possui tratamento de carregamento, erro, conteúdo vazio, página 404 e feedback de ações autenticadas.
 
-- carregamento;
-- erro;
-- ausência de conteúdo;
-- página 404 personalizada.
+A tela `/combinar` também explica que a versão atual usa presença/ausência e não quantidade, e que ingredientes básicos não penalizam a compatibilidade.
 
-## 12. Importação de receitas
+## 12. Importação e canonicalização
 
-A importação é independente da navegação do usuário.
-
-Ela ocorre por GitHub Actions e grava o catálogo no D1.
+A operação de catálogo é separada da navegação do usuário.
 
 O fluxo atual:
 
 1. consulta o Wikilivros;
-2. identifica páginas de receitas;
-3. interpreta ingredientes e preparo;
-4. procura imagem livre;
-5. valida metadados;
-6. grava no D1;
-7. disponibiliza o conteúdo pela API.
+2. descobre páginas candidatas;
+3. interpreta ingredientes/preparo como texto;
+4. procura imagem no Wikimedia Commons;
+5. valida relevância/licença;
+6. registra procedência;
+7. grava receitas em lotes;
+8. canonicaliza variações de ingredientes;
+9. preserva aliases;
+10. marca staples e otimiza o banco.
 
-A rotina operacional usa `backend/worker-prototype/scripts/import-wikibooks-v2.mjs`. Scripts de bases anteriores permanecem identificados como históricos e não representam o catálogo de produção.
+Scripts ativos:
 
-## 13. Proveniência e licenças
+```text
+backend/worker-prototype/scripts/import-wikibooks-v2.mjs
+backend/worker-prototype/scripts/canonicalize-ingredients.mjs
+```
 
-O banco possui campos para registrar origem de receitas e imagens.
+## 13. Tratamento de conteúdo externo
 
-Isso permite manter informações como:
+O conteúdo culinário aproveitado do Wikilivros é convertido para texto pelo importador. A tela de receita renderiza strings React e não HTML bruto da fonte externa.
 
-- fonte;
-- URL original;
-- autor;
-- licença;
-- URL da licença;
-- idioma;
-- data de importação;
-- fonte, autor, página e licença específicos da imagem.
+Metadados da receita e da imagem são preservados separadamente para atribuição.
 
-A API pública já retorna a procedência da receita e a URL da imagem. A exposição visual completa dos créditos específicos da imagem ainda pode ser ampliada sem necessidade de alterar a estrutura de persistência já existente.
+## 14. API e persistência
 
-## 14. API
+A API é organizada em autenticação/perfil, recuperação, fontes, ingredientes, receitas/matching, despensa, favoritos, votos, comentários e home.
 
-As funcionalidades acima são expostas por rotas agrupadas em áreas:
+A produção usa Cloudflare D1 para usuários, sessões, catálogo canônico, aliases, FTS5, despensa, favoritos, recuperação, comunidade, procedência e rate limiting.
 
-- autenticação;
-- perfil;
-- recuperação de senha;
-- fontes do catálogo;
-- ingredientes;
-- receitas;
-- matching;
-- despensa;
-- favoritos;
-- votos;
-- comentários;
-- feed.
+Detalhes:
 
-A lista detalhada está em [`api.md`](api.md).
+- [`api.md`](api.md)
+- [`database.md`](database.md)
 
-## 15. Persistência
+## 15. Qualidade
 
-A produção usa Cloudflare D1.
+O frontend possui testes com Vitest/Testing Library.
 
-Principais entidades:
+A API possui testes de regras puras e testes de rota com D1 simulado, incluindo canonicalização, staples, FTS5, autenticação, autorização, rate limiting, catálogo, matching, recuperação e interação social.
 
-- usuários;
-- sessões;
-- ingredientes;
-- aliases de ingredientes;
-- receitas;
-- ingredientes das receitas;
-- tags;
-- despensa;
-- favoritos;
-- perfis;
-- recuperação de senha;
-- votos;
-- comentários.
-
-Detalhes em [`database.md`](database.md).
+CI também executa lint/typecheck/build/dry-run conforme o componente.
 
 ## 16. Relação com o escopo
 
-Este documento descreve o que existe na implementação atual.
-
-A definição formal do projeto, seus objetivos, requisitos e critérios de conclusão está em [`escopo.md`](escopo.md).
+Este documento descreve **o que existe na implementação**. [`escopo.md`](escopo.md) define objetivos, requisitos e critérios acadêmicos usados como referência para o projeto.

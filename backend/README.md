@@ -1,44 +1,58 @@
 # Backend do Receitando
 
-Este diretório contém duas gerações da API do projeto.
+Este diretório contém apenas a implementação oficial atual da API do Receitando.
 
-## API atual de produção
+## API de produção
 
-A API utilizada atualmente está em:
+A API está em:
 
 ```text
 backend/worker-prototype/
 ```
 
-Ela roda em **Cloudflare Workers** e usa **Cloudflare D1**.
+Ela roda em **Cloudflare Workers** e usa **Cloudflare D1** para persistência.
 
 Novas funcionalidades de backend devem ser implementadas nessa estrutura.
 
-Documentação:
+## Estrutura
 
-- [`worker-prototype/README.md`](worker-prototype/README.md)
-- [`../docs/api.md`](../docs/api.md)
-- [`../docs/architecture.md`](../docs/architecture.md)
-- [`../docs/database.md`](../docs/database.md)
+```text
+backend/
+├── README.md
+└── worker-prototype/
+    ├── migrations/    migrations do D1
+    ├── scripts/       importador do Wikilivros/Commons
+    ├── src/           Workers e bibliotecas da API
+    ├── tests/         testes automatizados
+    ├── package.json
+    └── wrangler.jsonc
+```
 
-## Implementação histórica
+## Código NestJS/Prisma antigo
 
-Os arquivos localizados diretamente neste diretório, como:
+A primeira implementação do projeto em **NestJS + Prisma + PostgreSQL** foi retirada da árvore principal para não confundir desenvolvimento, CI ou avaliação acadêmica.
 
-- `src/`;
-- `prisma/`;
-- `nest-cli.json`;
-- `Dockerfile`;
-- configurações de Jest/ESLint/Prettier;
-- `package.json` e `package-lock.json` desta raiz;
+Ela permanece preservada na branch:
 
-pertencem à primeira implementação do backend em **NestJS + Prisma + PostgreSQL**.
+```text
+legacy/nest-prisma
+```
 
-Essa versão é mantida como referência histórica da evolução do projeto, mas **não é a API usada em produção**.
+A branch `main` deve representar apenas a arquitetura atual depois que esta limpeza for mesclada.
 
-## Importante para desenvolvimento
+## Ambiente de produção
 
-Não implemente novas rotas no backend NestJS histórico.
+```text
+Frontend Next.js / Cloudflare Worker
+            │
+            ▼
+      API Cloudflare Worker
+            │
+            ▼
+       Cloudflare D1
+```
+
+## Desenvolvimento
 
 Use:
 
@@ -58,27 +72,10 @@ Scripts de catálogo atuais:
 backend/worker-prototype/scripts/
 ```
 
-## Ambiente de produção
+## Documentação
 
-A arquitetura atual é:
-
-```text
-Frontend Next.js / Cloudflare Worker
-            │
-            ▼
-      API Cloudflare Worker
-            │
-            ▼
-       Cloudflare D1
-```
-
-## Por que o código antigo ainda existe?
-
-Ele registra uma etapa anterior do desenvolvimento e pode ajudar a entender decisões tomadas durante a evolução do projeto.
-
-Enquanto permanecer no repositório, deve ser tratado apenas como histórico e não como fonte oficial da arquitetura atual.
-
-## Referências
-
-- [`../README.md`](../README.md)
+- [`worker-prototype/README.md`](worker-prototype/README.md)
+- [`../docs/api.md`](../docs/api.md)
+- [`../docs/architecture.md`](../docs/architecture.md)
+- [`../docs/database.md`](../docs/database.md)
 - [`../docs/estrutura-repositorio.md`](../docs/estrutura-repositorio.md)

@@ -1,12 +1,18 @@
 import socialWorker from "./social-worker";
-import { compatibilityPercent, matchStatus, normalizeIngredient } from "./lib/recipe-utils";
-
-interface Env {
-  db: D1Database;
-  FRONTEND_URL: string;
-  RESEND_API_KEY?: string;
-  EMAIL_FROM?: string;
-}
+import {
+  compatibilityPercent,
+  ingredientLookupCandidates,
+  matchStatus,
+  normalizeIngredient,
+} from "./lib/recipe-utils";
+import {
+  apiError,
+  authenticatedUserId,
+  corsHeaders,
+  type Env,
+  json,
+  readJson,
+} from "./lib/worker-http";
 
 type RecipeRow = {
   id: string;
@@ -27,6 +33,12 @@ type RecipeRow = {
   sourceLanguage: string | null;
   externalSource: string | null;
   imageUrl: string | null;
+  imageSource: string | null;
+  imageAuthor: string | null;
+  imagePageUrl: string | null;
+  imageLicense: string | null;
+  imageLicenseUrl: string | null;
+  imageAlt: string | null;
 };
 
 type IngredientRow = {
@@ -38,92 +50,49 @@ type IngredientRow = {
   quantity: number | null;
   unit: string | null;
   optional: number;
+  isStaple: number;
   rawText: string | null;
 };
-
-const encoder = new TextEncoder();
-
-function allowedOrigins(env: Env): string[] {
-  return env.FRONTEND_URL.split(",").map((value) => value.trim()).filter(Boolean);
-}
-
-function corsHeaders(request: Request, env: Env): Headers {
-  const headers = new Headers({
-    "Access-Control-Allow-Headers": "Content-Type, Accept, Authorization",
-    "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
-    "Access-Control-Max-Age": "86400",
-    Vary: "Origin",
-  });
-  const origin = request.headers.get("Origin");
-  if (origin && allowedOrigins(env).includes(origin)) headers.set("Access-Control-Allow-Origin", origin);
-  return headers;
-}
-
-function json(request: Request, env: Env, body: unknown, status = 200): Response {
-  const headers = corsHeaders(request, env);
-  headers.set("Content-Type", "application/json; charset=utf-8");
-  headers.set("Cache-Control", "no-store");
-  return new Response(JSON.stringify(body), { status, headers });
-}
-
-function apiError(request: Request, env: Env, status: number, message: string): Response {
-  return json(request, env, { statusCode: status, message }, status);
-}
-
-function bearerToken(request: Request): string | undefined {
-  const value = request.headers.get("Authorization");
-  return value?.startsWith("Bearer ") ? value.slice(7).trim() || undefined : undefined;
-}
-
-function bytesToBase64Url(bytes: Uint8Array): string {
-  let binary = "";
-  for (const byte of bytes) binary += String.fromCharCode(byte);
-  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
-}
-
-async function sha256(value: string): Promise<string> {
-  const digest = await crypto.subtle.digest("SHA-256", encoder.encode(value));
-  return bytesToBase64Url(new Uint8Array(digest));
-}
-
-async function authenticatedUserId(request: Request, env: Env): Promise<string | null> {
-  const token = bearerToken(request);
-  if (!token) return null;
-  const row = await env.db.prepare(`
-    SELECT s.user_id AS userId
-    FROM sessions s
-    WHERE s.token_hash = ? AND s.expires_at > ?
-    LIMIT 1
-  `).bind(await sha256(token), new Date().toISOString()).first<{ userId: string }>();
-  return row?.userId ?? null;
-}
 
 function placeholders(count: number): string {
   return Array.from({ length: count }, () => "?").join(",");
 }
 
+function ftsRecipeQuery(value: string): string {
+  const tokens = normalizeIngredient(value).match(/[a-z0-9]+/g) ?? [];
+  return [...new Set(tokens)]
+    .slice(0, 8)
+    .map((token) => `"${token.replaceAll('"', '""')}"*`)
+    .join(" AND ");
+}
+
 async function loadRecipesByIds(env: Env, ids: string[]) {
   if (!ids.length) return [];
+
   const limited = ids.slice(0, 80);
   const mark = placeholders(limited.length);
   const recipeResult = await env.db.prepare(`
     SELECT id, title, slug, description, instructions,
       prep_minutes AS prepMinutes, servings, meal_type AS mealType, difficulty,
-      source_type AS sourceType, source_name AS sourceName, image_url AS imageUrl,
+      source_type AS sourceType, source_name AS sourceName,
       source_url AS sourceUrl, source_author AS sourceAuthor,
       source_license AS sourceLicense, source_license_url AS sourceLicenseUrl,
-      source_language AS sourceLanguage, external_source AS externalSource
+      source_language AS sourceLanguage, external_source AS externalSource,
+      image_url AS imageUrl, image_source AS imageSource,
+      image_author AS imageAuthor, image_page_url AS imagePageUrl,
+      image_license AS imageLicense, image_license_url AS imageLicenseUrl,
+      image_alt AS imageAlt
     FROM recipes WHERE id IN (${mark})
   `).bind(...limited).all<RecipeRow>();
 
   const ingredientResult = await env.db.prepare(`
     SELECT ri.recipe_id AS recipeId, i.id AS ingredientId, i.name,
-      i.normalized_name AS normalizedName, i.category,
+      i.normalized_name AS normalizedName, i.category, i.is_staple AS isStaple,
       ri.quantity, ri.unit, ri.optional, ri.raw_text AS rawText
     FROM recipe_ingredients ri
     JOIN ingredients i ON i.id = ri.ingredient_id
     WHERE ri.recipe_id IN (${mark})
-    ORDER BY ri.optional, i.name
+    ORDER BY ri.optional, i.is_staple, i.name
   `).bind(...limited).all<IngredientRow>();
 
   const tagResult = await env.db.prepare(`
@@ -137,15 +106,25 @@ async function loadRecipesByIds(env: Env, ids: string[]) {
     list.push(row);
     ingredientMap.set(row.recipeId, list);
   }
+
   const tagMap = new Map<string, string[]>();
   for (const row of tagResult.results) {
     const list = tagMap.get(row.recipeId) ?? [];
     list.push(row.tag);
     tagMap.set(row.recipeId, list);
   }
+
   const order = new Map(limited.map((id, index) => [id, index]));
   return recipeResult.results.map((recipe) => ({
-    ...recipe,
+    id: recipe.id,
+    title: recipe.title,
+    slug: recipe.slug,
+    description: recipe.description,
+    instructions: recipe.instructions,
+    prepMinutes: recipe.prepMinutes,
+    servings: recipe.servings,
+    mealType: recipe.mealType,
+    difficulty: recipe.difficulty,
     source: {
       type: recipe.sourceType,
       name: recipe.sourceName,
@@ -156,6 +135,16 @@ async function loadRecipesByIds(env: Env, ids: string[]) {
       language: recipe.sourceLanguage,
       externalSource: recipe.externalSource,
     },
+    imageUrl: recipe.imageUrl,
+    image: {
+      url: recipe.imageUrl,
+      source: recipe.imageSource,
+      author: recipe.imageAuthor,
+      pageUrl: recipe.imagePageUrl,
+      license: recipe.imageLicense,
+      licenseUrl: recipe.imageLicenseUrl,
+      alt: recipe.imageAlt,
+    },
     tags: tagMap.get(recipe.id) ?? [],
     ingredients: (ingredientMap.get(recipe.id) ?? []).map((item) => ({
       ingredientId: item.ingredientId,
@@ -165,6 +154,7 @@ async function loadRecipesByIds(env: Env, ids: string[]) {
       quantity: item.quantity,
       unit: item.unit,
       optional: Boolean(item.optional),
+      isStaple: Boolean(item.isStaple),
       rawText: item.rawText,
     })),
   })).sort((a, b) => (order.get(a.id) ?? 999) - (order.get(b.id) ?? 999));
@@ -173,15 +163,27 @@ async function loadRecipesByIds(env: Env, ids: string[]) {
 async function listCatalogIngredients(request: Request, env: Env): Promise<Response> {
   const rows = await env.db.prepare(`
     SELECT i.id, i.name, i.normalized_name AS normalizedName, i.category,
-      COUNT(DISTINCT ri.recipe_id) AS usageCount
+      i.is_staple AS isStaple, COUNT(DISTINCT ri.recipe_id) AS usageCount
     FROM ingredients i
     JOIN recipe_ingredients ri ON ri.ingredient_id = i.id
     JOIN recipes r ON r.id = ri.recipe_id
-    GROUP BY i.id, i.name, i.normalized_name, i.category
+    GROUP BY i.id, i.name, i.normalized_name, i.category, i.is_staple
     ORDER BY usageCount DESC, i.name ASC
     LIMIT 1200
-  `).all<{ id: string; name: string; normalizedName: string; category: string; usageCount: number }>();
-  return json(request, env, rows.results);
+  `).all<{
+    id: string;
+    name: string;
+    normalizedName: string;
+    category: string;
+    isStaple: number;
+    usageCount: number;
+  }>();
+
+  return json(
+    request,
+    env,
+    rows.results.map((row) => ({ ...row, isStaple: Boolean(row.isStaple) })),
+  );
 }
 
 async function listSources(request: Request, env: Env): Promise<Response> {
@@ -208,21 +210,35 @@ async function listSources(request: Request, env: Env): Promise<Response> {
 }
 
 async function canonicalIngredientIds(env: Env, values: string[]): Promise<string[]> {
-  const normalized = [...new Set(values.map(normalizeIngredient).filter(Boolean))].slice(0, 40);
+  const normalized = [
+    ...new Set(values.flatMap((value) => ingredientLookupCandidates(value)).filter(Boolean)),
+  ].slice(0, 120);
   if (!normalized.length) return [];
+
   const mark = placeholders(normalized.length);
-  const direct = await env.db.prepare(`SELECT id FROM ingredients WHERE normalized_name IN (${mark})`).bind(...normalized).all<{ id: string }>();
-  const aliases = await env.db.prepare(`SELECT ingredient_id AS id FROM ingredient_aliases WHERE normalized_alias IN (${mark})`).bind(...normalized).all<{ id: string }>();
+  const direct = await env.db
+    .prepare(`SELECT id FROM ingredients WHERE normalized_name IN (${mark})`)
+    .bind(...normalized)
+    .all<{ id: string }>();
+  const aliases = await env.db
+    .prepare(`SELECT ingredient_id AS id FROM ingredient_aliases WHERE normalized_alias IN (${mark})`)
+    .bind(...normalized)
+    .all<{ id: string }>();
+
   return [...new Set([...direct.results, ...aliases.results].map((row) => row.id))].slice(0, 80);
 }
 
 async function efficientMatch(env: Env, ingredientIds: string[]) {
   if (!ingredientIds.length) return [];
+
   const mark = placeholders(ingredientIds.length);
   const candidateResult = await env.db.prepare(`
     SELECT ri.recipe_id AS recipeId, COUNT(DISTINCT ri.ingredient_id) AS foundCount
     FROM recipe_ingredients ri
-    WHERE ri.optional = 0 AND ri.ingredient_id IN (${mark})
+    JOIN ingredients i ON i.id = ri.ingredient_id
+    WHERE ri.optional = 0
+      AND i.is_staple = 0
+      AND ri.ingredient_id IN (${mark})
     GROUP BY ri.recipe_id
     ORDER BY foundCount DESC
     LIMIT 80
@@ -230,11 +246,14 @@ async function efficientMatch(env: Env, ingredientIds: string[]) {
 
   const recipes = await loadRecipesByIds(env, candidateResult.results.map((row) => row.recipeId));
   const supplied = new Set(ingredientIds);
+
   return recipes.map((recipe) => {
-    const required = recipe.ingredients.filter((item) => !item.optional);
+    const required = recipe.ingredients.filter((item) => !item.optional && !item.isStaple);
+    const staples = recipe.ingredients.filter((item) => !item.optional && item.isStaple);
     const found = required.filter((item) => supplied.has(item.ingredientId));
     const missing = required.filter((item) => !supplied.has(item.ingredientId));
     const compatibility = compatibilityPercent(found.length, required.length);
+
     return {
       id: recipe.id,
       title: recipe.title,
@@ -245,30 +264,49 @@ async function efficientMatch(env: Env, ingredientIds: string[]) {
       mealType: recipe.mealType,
       difficulty: recipe.difficulty,
       imageUrl: recipe.imageUrl,
+      image: recipe.image,
       tags: recipe.tags,
       compatibility,
       status: matchStatus(compatibility),
       foundIngredients: found.map((item) => ({ id: item.ingredientId, name: item.name })),
       missingIngredients: missing.map((item) => ({ id: item.ingredientId, name: item.name })),
-      optionalIngredients: recipe.ingredients.filter((item) => item.optional).map((item) => ({ id: item.ingredientId, name: item.name })),
+      optionalIngredients: recipe.ingredients
+        .filter((item) => item.optional)
+        .map((item) => ({ id: item.ingredientId, name: item.name })),
+      stapleIngredients: staples.map((item) => ({ id: item.ingredientId, name: item.name })),
     };
-  }).sort((a, b) => b.compatibility - a.compatibility || a.missingIngredients.length - b.missingIngredients.length || a.prepMinutes - b.prepMinutes || a.title.localeCompare(b.title, "pt-BR"));
+  }).sort(
+    (a, b) =>
+      b.compatibility - a.compatibility ||
+      a.missingIngredients.length - b.missingIngredients.length ||
+      a.prepMinutes - b.prepMinutes ||
+      a.title.localeCompare(b.title, "pt-BR"),
+  );
 }
 
 async function matchFromRequest(request: Request, env: Env): Promise<Response> {
-  let body: Record<string, unknown>;
-  try { body = await request.json() as Record<string, unknown>; }
-  catch { return apiError(request, env, 400, "Dados inválidos."); }
-  if (!Array.isArray(body.ingredients)) return apiError(request, env, 400, "ingredients deve ser uma lista.");
-  const values = body.ingredients.filter((item): item is string => typeof item === "string").slice(0, 40);
-  if (!values.length) return apiError(request, env, 400, "Informe pelo menos um ingrediente.");
+  const body = await readJson(request);
+  if (!Array.isArray(body?.ingredients)) {
+    return apiError(request, env, 400, "ingredients deve ser uma lista.");
+  }
+
+  const values = body.ingredients.filter((item): item is string => typeof item === "string");
+  if (values.length < 1 || values.length > 40) {
+    return apiError(request, env, 400, "Informe entre 1 e 40 ingredientes.");
+  }
+
   return json(request, env, await efficientMatch(env, await canonicalIngredientIds(env, values)));
 }
 
 async function matchFromPantry(request: Request, env: Env): Promise<Response> {
   const userId = await authenticatedUserId(request, env);
   if (!userId) return apiError(request, env, 401, "Entre na sua conta para usar sua despensa.");
-  const rows = await env.db.prepare("SELECT ingredient_id AS ingredientId FROM pantry_items WHERE user_id = ? LIMIT 80").bind(userId).all<{ ingredientId: string }>();
+
+  const rows = await env.db
+    .prepare("SELECT ingredient_id AS ingredientId FROM pantry_items WHERE user_id = ? LIMIT 80")
+    .bind(userId)
+    .all<{ ingredientId: string }>();
+
   return json(request, env, await efficientMatch(env, rows.results.map((row) => row.ingredientId)));
 }
 
@@ -276,49 +314,155 @@ async function listRecipes(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url);
   const limit = Math.min(60, Math.max(1, Number(url.searchParams.get("limit")) || 36));
   const offset = Math.max(0, Number(url.searchParams.get("offset")) || 0);
-  const search = normalizeIngredient(url.searchParams.get("q") ?? "");
+  const search = ftsRecipeQuery(url.searchParams.get("q") ?? "");
   const source = (url.searchParams.get("source") ?? "").trim().toLowerCase();
 
   let rows: D1Result<{ id: string }>;
   if (search && source) {
-    rows = await env.db.prepare(`SELECT id FROM recipes WHERE lower(title) LIKE ? AND lower(external_source) = ? ORDER BY title LIMIT ? OFFSET ?`).bind(`%${search}%`, source, limit, offset).all<{ id: string }>();
+    rows = await env.db
+      .prepare(`
+        SELECT r.id
+        FROM recipe_search
+        JOIN recipes r ON r.id = recipe_search.recipe_id
+        WHERE recipe_search MATCH ? AND lower(r.external_source) = ?
+        ORDER BY bm25(recipe_search), r.title
+        LIMIT ? OFFSET ?
+      `)
+      .bind(search, source, limit, offset)
+      .all<{ id: string }>();
   } else if (search) {
-    rows = await env.db.prepare(`SELECT id FROM recipes WHERE lower(title) LIKE ? ORDER BY title LIMIT ? OFFSET ?`).bind(`%${search}%`, limit, offset).all<{ id: string }>();
+    rows = await env.db
+      .prepare(`
+        SELECT r.id
+        FROM recipe_search
+        JOIN recipes r ON r.id = recipe_search.recipe_id
+        WHERE recipe_search MATCH ?
+        ORDER BY bm25(recipe_search), r.title
+        LIMIT ? OFFSET ?
+      `)
+      .bind(search, limit, offset)
+      .all<{ id: string }>();
   } else if (source) {
-    rows = await env.db.prepare(`SELECT id FROM recipes WHERE lower(external_source) = ? ORDER BY updated_at DESC, title LIMIT ? OFFSET ?`).bind(source, limit, offset).all<{ id: string }>();
+    rows = await env.db
+      .prepare("SELECT id FROM recipes WHERE lower(external_source) = ? ORDER BY updated_at DESC, title LIMIT ? OFFSET ?")
+      .bind(source, limit, offset)
+      .all<{ id: string }>();
   } else {
-    rows = await env.db.prepare(`SELECT id FROM recipes ORDER BY updated_at DESC, title LIMIT ? OFFSET ?`).bind(limit, offset).all<{ id: string }>();
+    rows = await env.db
+      .prepare("SELECT id FROM recipes ORDER BY updated_at DESC, title LIMIT ? OFFSET ?")
+      .bind(limit, offset)
+      .all<{ id: string }>();
   }
 
   return json(request, env, await loadRecipesByIds(env, rows.results.map((row) => row.id)));
 }
 
 async function recipeBySlug(request: Request, env: Env, slug: string): Promise<Response> {
-  const row = await env.db.prepare("SELECT id FROM recipes WHERE slug = ? LIMIT 1").bind(slug).first<{ id: string }>();
+  const row = await env.db
+    .prepare("SELECT id FROM recipes WHERE slug = ? LIMIT 1")
+    .bind(slug)
+    .first<{ id: string }>();
+
   if (!row) return apiError(request, env, 404, "Receita não encontrada.");
   const recipes = await loadRecipesByIds(env, [row.id]);
   return json(request, env, recipes[0]);
 }
 
-async function listFavorites(request: Request, env: Env): Promise<Response> {
+async function listFavorites(request: Request, env: Env, userId?: string): Promise<Response> {
+  const resolvedUserId = userId ?? await authenticatedUserId(request, env);
+  if (!resolvedUserId) {
+    return apiError(request, env, 401, "Entre na sua conta para acessar favoritos.");
+  }
+
+  const rows = await env.db
+    .prepare("SELECT recipe_id AS recipeId FROM favorites WHERE user_id = ? ORDER BY created_at DESC LIMIT 80")
+    .bind(resolvedUserId)
+    .all<{ recipeId: string }>();
+
+  return json(request, env, await loadRecipesByIds(env, rows.results.map((row) => row.recipeId)));
+}
+
+async function addFavorite(request: Request, env: Env): Promise<Response> {
   const userId = await authenticatedUserId(request, env);
   if (!userId) return apiError(request, env, 401, "Entre na sua conta para acessar favoritos.");
-  const rows = await env.db.prepare("SELECT recipe_id AS recipeId FROM favorites WHERE user_id = ? ORDER BY created_at DESC LIMIT 80").bind(userId).all<{ recipeId: string }>();
-  return json(request, env, await loadRecipesByIds(env, rows.results.map((row) => row.recipeId)));
+
+  const body = await readJson(request);
+  const recipeId = typeof body?.recipeId === "string" ? body.recipeId.trim() : "";
+  if (!recipeId) return apiError(request, env, 400, "Informe a receita.");
+
+  const recipe = await env.db
+    .prepare("SELECT id FROM recipes WHERE id = ? LIMIT 1")
+    .bind(recipeId)
+    .first();
+  if (!recipe) return apiError(request, env, 404, "Receita não encontrada.");
+
+  await env.db
+    .prepare("INSERT OR IGNORE INTO favorites (user_id, recipe_id) VALUES (?, ?)")
+    .bind(userId, recipeId)
+    .run();
+
+  return listFavorites(request, env, userId);
+}
+
+async function removeFavorite(request: Request, env: Env, recipeId: string): Promise<Response> {
+  const userId = await authenticatedUserId(request, env);
+  if (!userId) return apiError(request, env, 401, "Entre na sua conta para acessar favoritos.");
+
+  await env.db
+    .prepare("DELETE FROM favorites WHERE user_id = ? AND recipe_id = ?")
+    .bind(userId, recipeId)
+    .run();
+
+  return listFavorites(request, env, userId);
 }
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
     const path = url.pathname.replace(/\/+$/, "") || "/";
-    if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders(request, env) });
-    if (request.method === "GET" && path === "/api/sources") return listSources(request, env);
-    if (request.method === "GET" && path === "/api/ingredients") return listCatalogIngredients(request, env);
-    if (request.method === "POST" && path === "/api/recipes/match") return matchFromRequest(request, env);
-    if (request.method === "GET" && path === "/api/recipes/match/pantry") return matchFromPantry(request, env);
-    if (request.method === "GET" && path === "/api/recipes") return listRecipes(request, env);
-    if (request.method === "GET" && path.startsWith("/api/recipes/")) return recipeBySlug(request, env, decodeURIComponent(path.slice("/api/recipes/".length)));
-    if (request.method === "GET" && path === "/api/favorites") return listFavorites(request, env);
+
+    if (request.method === "OPTIONS") {
+      return new Response(null, { status: 204, headers: corsHeaders(request, env) });
+    }
+
+    if (request.method === "GET" && path === "/api/sources") {
+      return listSources(request, env);
+    }
+    if (request.method === "GET" && path === "/api/ingredients") {
+      return listCatalogIngredients(request, env);
+    }
+    if (request.method === "POST" && path === "/api/recipes/match") {
+      return matchFromRequest(request, env);
+    }
+    if (request.method === "GET" && path === "/api/recipes/match/pantry") {
+      return matchFromPantry(request, env);
+    }
+    if (request.method === "GET" && path === "/api/recipes") {
+      return listRecipes(request, env);
+    }
+
+    if (path === "/api/favorites" || path.startsWith("/api/favorites/")) {
+      if (request.method === "GET" && path === "/api/favorites") {
+        return listFavorites(request, env);
+      }
+      if (request.method === "POST" && path === "/api/favorites") {
+        return addFavorite(request, env);
+      }
+      if (request.method === "DELETE" && path.startsWith("/api/favorites/")) {
+        return removeFavorite(
+          request,
+          env,
+          decodeURIComponent(path.slice("/api/favorites/".length)),
+        );
+      }
+      return apiError(request, env, 405, "Método não permitido.");
+    }
+
+    const detailMatch = path.match(/^\/api\/recipes\/([^/]+)$/);
+    if (request.method === "GET" && detailMatch) {
+      return recipeBySlug(request, env, decodeURIComponent(detailMatch[1]));
+    }
+
     return socialWorker.fetch(request, env);
   },
 };

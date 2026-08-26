@@ -2,61 +2,52 @@
 
 Este documento descreve como o Receitando é validado, publicado e operado.
 
-## Ambientes principais
+## Ambientes
 
-- Frontend de produção: `https://receitando.miguelpita.com.br`
-- API de produção: `https://api.receitando.miguelpita.com.br`
+- Frontend: `https://receitando.miguelpita.com.br`
+- API: `https://api.receitando.miguelpita.com.br`
 - Frontend local: `http://localhost:3000`
 - API local: `http://localhost:8787`
 
 ## Componentes publicados
 
-O projeto possui dois componentes principais em produção:
-
 1. **Frontend Next.js**, compilado com OpenNext e publicado em Cloudflare Workers.
-2. **API Cloudflare Worker**, com persistência no Cloudflare D1.
+2. **API Cloudflare Worker**, publicada separadamente e persistindo dados em Cloudflare D1.
 
-O frontend e a API são publicados separadamente.
+A implementação antiga NestJS/Prisma/PostgreSQL foi removida da árvore principal e preservada na branch `legacy/nest-prisma`; ela não participa do CI ou deploy atual.
 
-## Workflows do GitHub Actions
+## Workflows ativos
 
 Os workflows ficam em `.github/workflows/`.
 
-### Frontend CI
+### `ci.yml` — frontend
 
-`ci.yml` valida o frontend em alterações de `frontend/`:
+Em alterações relevantes do frontend:
 
 1. `npm ci`;
 2. `npm run lint`;
 3. `npm run typecheck`;
-4. `npm run build`.
+4. `npm run test:coverage`;
+5. `npm run build`.
 
-### Deploy do frontend
+### `deploy-cloudflare.yml` — frontend
 
-`deploy-cloudflare.yml` publica o frontend na Cloudflare. Antes do deploy ele executa novamente:
+Antes de publicar, repete instalação, lint, typecheck, testes com cobertura, build OpenNext e só então deploy.
 
-1. instalação limpa de dependências;
-2. lint;
-3. typecheck;
-4. build com OpenNext;
-5. deploy do Worker.
+### `api-worker-ci.yml` — API
 
-Essa validação dentro do próprio workflow de produção evita que um deploy dependa apenas do resultado de um job paralelo.
+Valida a API com:
 
-### API CI
+1. `npm ci`;
+2. `npm run typecheck`;
+3. `npm test`;
+4. `npm run dry-run`.
 
-`api-worker-ci.yml` valida a API Worker com:
+A suíte executa regras puras e testes de `fetch()` dos Workers reais com D1 simulado.
 
-- instalação limpa de dependências;
-- `npm run typecheck` sobre todo `backend/worker-prototype/src/`;
-- `npm test` para regras críticas de matching e segurança;
-- `npm run dry-run`.
+### `deploy-api-cloudflare.yml` — API
 
-Os testes usam o test runner nativo do Node.js. Antes da execução, os helpers TypeScript testados são compilados por `tsconfig.tests.json` para `.test-dist/`, diretório temporário ignorado pelo Git.
-
-### Deploy da API
-
-`deploy-api-cloudflare.yml` segue a ordem:
+Ordem segura:
 
 1. `npm ci`;
 2. `npm run typecheck`;
@@ -65,35 +56,35 @@ Os testes usam o test runner nativo do Node.js. Antes da execução, os helpers 
 5. `npm run migrate:remote`;
 6. `npm run deploy`.
 
-Assim código, testes e configuração/bundle do Worker são validados antes de qualquer migration remota ser aplicada.
+Migrations remotas só são aplicadas depois de código, testes e bundle passarem nas validações anteriores.
 
-### Catálogo
+### `import-wikibooks.yml` — catálogo
 
-`import-wikibooks.yml` executa a importação manual do catálogo proveniente do Wikilivros e Wikimedia Commons.
+Workflow manual e independente do deploy que:
 
-O workflow valida a sintaxe do importador, aplica migrations necessárias e então executa `scripts/import-wikibooks-v2.mjs`.
+1. instala dependências;
+2. valida `import-wikibooks-v2.mjs` e `canonicalize-ingredients.mjs`;
+3. aplica migrations necessárias;
+4. importa receitas e imagens com licença livre;
+5. remove conteúdo que não pertence à política operacional atual conforme a rotina do importador;
+6. canonicaliza ingredientes e aliases;
+7. marca ingredientes básicos e otimiza o D1.
 
-Mais detalhes estão em [`catalogo.md`](catalogo.md).
+Workflows/importadores experimentais substituídos foram removidos da árvore ativa.
 
-### Workflow histórico
+## Entrypoint da API
 
-`import-recipes-64k.yml` está arquivado. Ele não importa dados para o D1 e apenas informa que o experimento de 64 mil receitas não representa a fonte atual do catálogo.
+O Wrangler publica:
 
-## Secrets
+```text
+backend/worker-prototype/src/auth-rate-limit-worker.ts
+```
 
-Credenciais reais nunca devem ser commitadas.
+Essa camada protege login, cadastro e solicitação de recuperação de senha antes de delegar ao restante da API.
 
-Secrets de CI/deploy ficam no GitHub Actions e/ou no ambiente seguro da Cloudflare.
+## Desenvolvimento local
 
-Entre os valores sensíveis utilizados pelo projeto estão:
-
-- `CLOUDFLARE_API_TOKEN`;
-- `CLOUDFLARE_ACCOUNT_ID`;
-- `RESEND_API_KEY`.
-
-O repositório pode manter apenas nomes de variáveis, bindings públicos e exemplos sem valores reais.
-
-## Frontend local
+### Frontend
 
 ```bash
 cd frontend
@@ -101,21 +92,16 @@ npm ci
 npm run dev
 ```
 
-Crie `frontend/.env.local` com:
-
-```dotenv
-NEXT_PUBLIC_API_URL=http://localhost:8787
-```
-
-Validação:
+Validação completa:
 
 ```bash
 npm run lint
 npm run typecheck
+npm run test:coverage
 npm run build
 ```
 
-## API local
+### API
 
 ```bash
 cd backend/worker-prototype
@@ -132,79 +118,84 @@ npm test
 npm run dry-run
 ```
 
-O `tsconfig.json` da API inclui todos os arquivos TypeScript de `src/`, para que as camadas realmente utilizadas pelo entrypoint `src/home-worker.ts` sejam verificadas.
+## O que os testes da API cobrem
 
-A suíte inicial cobre normalização de ingredientes, compatibilidade/status do matching, hash PBKDF2, verificação de senhas, salt aleatório, rejeição de hashes inválidos e SHA-256 usado em tokens. Mudanças futuras em rotas e persistência devem ampliar a cobertura com testes de integração quando apropriado.
+A suíte inclui:
+
+- normalização e canonicalização de ingredientes;
+- exclusão de staples do cálculo de compatibilidade;
+- uso de FTS5 na busca textual;
+- PBKDF2 e SHA-256;
+- rate limiting de login, cadastro e solicitação de recuperação;
+- cadastro e criação de sessão;
+- autorização de despensa/favoritos/perfil;
+- votos e comentários;
+- recuperação de senha sem enumeração de conta;
+- limite de 40 ingredientes;
+- roteamento sem colisão entre detalhe de receita e rotas sociais;
+- atribuição de imagem;
+- feed da home.
+
+O D1 usado nos testes de rota é simulado; eles não escrevem no banco de produção.
 
 ## Migrations
 
-As migrations do banco ficam em:
+Diretório:
 
 ```text
 backend/worker-prototype/migrations/
 ```
 
-Ambiente local:
+Local:
 
 ```bash
 npm run migrate:local
 ```
 
-Ambiente remoto:
+Remoto:
 
 ```bash
 npm run migrate:remote
 ```
 
-Migrations devem ser versionadas e nunca alteradas retroativamente depois de aplicadas em produção. Uma mudança de schema deve entrar em uma migration nova.
+Migrations já compartilhadas são histórico imutável. Mudanças entram em novos arquivos.
 
-## Ordem segura de publicação da API
+A migration `0015_matching_search_hardening.sql` adiciona `is_staple`, índices adicionais e o índice virtual FTS5 `recipe_search`.
 
-1. instalar dependências a partir do lockfile;
-2. validar TypeScript;
-3. executar testes automatizados;
-4. executar dry-run do Worker;
-5. aplicar migrations;
-6. publicar o Worker;
-7. verificar o healthcheck;
-8. testar rotas críticas.
+## Catálogo não faz parte do deploy
 
-## Healthcheck
+Publicar frontend/API não repopula receitas. A importação e canonicalização do Wikilivros/Commons ocorrem apenas pelo workflow dedicado.
 
-A API oferece rota de healthcheck documentada em [`api.md`](api.md).
+## Secrets
 
-Ela pode ser usada para confirmar se o Worker está respondendo após um deploy.
+Valores sensíveis ficam em GitHub Actions/Cloudflare, nunca no repositório:
 
-## Catálogo após deploy
-
-O deploy da aplicação e a importação de receitas são processos diferentes.
-
-Publicar frontend ou API não significa repopular o catálogo. A importação do Wikilivros é acionada manualmente pelo workflow específico.
+- `CLOUDFLARE_API_TOKEN`;
+- `CLOUDFLARE_ACCOUNT_ID` quando utilizado operacionalmente;
+- `RESEND_API_KEY`;
+- qualquer credencial, senha ou token real.
 
 ## Dependabot
 
-As atualizações automáticas de dependências acompanham apenas os componentes atuais:
+A configuração atual acompanha somente:
 
-- `frontend/`;
-- `backend/worker-prototype/`.
+- `/frontend`;
+- `/backend/worker-prototype`.
 
-A implementação histórica em NestJS não recebe atualizações automáticas.
+## Checklist pós-deploy da API
 
-PRs automáticos de dependências devem ser revisados com CI verde e atenção especial a atualizações major. Dependências ou PRs obsoletos não devem permanecer indefinidamente abertos apenas para aumentar ruído operacional.
-
-## Histórico no repositório
-
-Existe uma implementação antiga em NestJS/Prisma dentro de `backend/`. Ela é mantida apenas como referência histórica e não deve ser confundida com a API de produção.
-
-A API atual está em:
-
-```text
-backend/worker-prototype/
-```
+1. confirmar sucesso do workflow;
+2. verificar `/api/health`;
+3. confirmar login/cadastro e rate limiting;
+4. testar solicitação de recuperação sem exceder o limite;
+5. consultar catálogo e busca textual;
+6. executar um matching com variação de ingrediente e staple;
+7. testar uma rota autenticada com conta de teste;
+8. confirmar que nenhuma importação inesperada foi executada.
 
 ## Segurança operacional
 
-O procedimento para relatar vulnerabilidades está em [`../SECURITY.md`](../SECURITY.md). Detalhes exploráveis não devem ser publicados em issues comuns.
+Vulnerabilidades devem seguir [`../SECURITY.md`](../SECURITY.md); detalhes exploráveis não devem ser publicados em issue aberta.
 
 ## Documentos relacionados
 
@@ -214,4 +205,3 @@ O procedimento para relatar vulnerabilidades está em [`../SECURITY.md`](../SECU
 - [`catalogo.md`](catalogo.md)
 - [`estrutura-repositorio.md`](estrutura-repositorio.md)
 - [`../CONTRIBUTING.md`](../CONTRIBUTING.md)
-- [`../SECURITY.md`](../SECURITY.md)

@@ -1,40 +1,42 @@
 # Contribuindo com o Receitando
 
-Obrigado pelo interesse em contribuir com o Receitando. O projeto é acadêmico, mas o repositório segue práticas próximas às de um projeto de produção para manter código, documentação e infraestrutura coerentes.
+O Receitando é um projeto acadêmico, mas o repositório segue práticas de manutenção próximas às de um projeto de produção para manter código, documentação e infraestrutura coerentes.
 
 ## Antes de começar
 
-Leia, nesta ordem:
+Leia:
 
 1. [`README.md`](README.md)
 2. [`docs/escopo.md`](docs/escopo.md)
 3. [`docs/estrutura-repositorio.md`](docs/estrutura-repositorio.md)
 4. [`docs/architecture.md`](docs/architecture.md)
-5. a documentação específica da área que será alterada.
+5. [`docs/testes.md`](docs/testes.md)
+6. a documentação específica da área alterada.
 
 ## Arquitetura atual
 
 - frontend: `frontend/` — Next.js/React;
-- API atual: `backend/worker-prototype/` — Cloudflare Worker + D1;
-- backend NestJS/Prisma diretamente em `backend/`: histórico, não é a implementação de produção;
-- catálogo atual: Wikilivros + Wikimedia Commons.
+- API: `backend/worker-prototype/` — Cloudflare Workers + D1;
+- catálogo: Wikilivros + Wikimedia Commons;
+- implementação anterior NestJS/Prisma/PostgreSQL: arquivada na branch `legacy/nest-prisma`, fora da árvore principal.
 
-Não implemente novas funcionalidades no backend histórico.
+Toda funcionalidade nova de backend deve ser implementada em `backend/worker-prototype/`.
 
-## Fluxo de contribuição
+## Fluxo
 
-1. crie uma branch a partir de `main`;
-2. faça alterações pequenas e focadas;
-3. atualize testes e documentação quando o comportamento mudar;
+1. crie branch a partir de `main`;
+2. mantenha a mudança focada;
+3. atualize testes e documentação no mesmo PR quando o comportamento mudar;
 4. rode as validações locais;
-5. abra um pull request usando o template do repositório;
-6. aguarde o CI ficar verde antes do merge.
+5. abra PR usando o template;
+6. aguarde CI verde antes do merge.
 
-Sugestões de nomes de branch:
+Exemplos:
 
 ```text
 feat/nome-da-funcionalidade
 fix/resumo-do-problema
+test/area-coberta
 docs/assunto
 chore/manutencao
 ```
@@ -48,10 +50,11 @@ cd frontend
 npm ci
 npm run lint
 npm run typecheck
+npm run test:coverage
 npm run build
 ```
 
-### API Worker
+### API
 
 ```bash
 cd backend/worker-prototype
@@ -61,69 +64,96 @@ npm test
 npm run dry-run
 ```
 
-Mudanças na API não devem ser mescladas se os testes, o typecheck ou o dry-run falharem.
+Não faça merge com validação obrigatória falhando.
 
 ## Testes
 
-A suíte automatizada da API cobre regras críticas e deve crescer junto com o produto.
+### Frontend
+
+Mudanças em serviços, utilitários ou componentes com comportamento relevante devem atualizar/adicionar testes Vitest/Testing Library.
+
+### API
 
 Ao alterar:
 
-- matching/normalização de ingredientes → atualize testes de `recipe-utils`;
-- autenticação/criptografia → atualize testes de `security`;
-- rotas ou persistência → prefira adicionar testes de integração quando o comportamento justificar.
+- normalização/canonicalização/matching → atualizar `recipe-utils` e teste de rota correspondente;
+- staples → testar que não reduzem a compatibilidade;
+- busca textual → testar o contrato FTS5 e evitar regressão para `%LIKE%`;
+- autenticação/criptografia → `security` + regressão de rota quando aplicável;
+- rate limiting → `auth-rate-limit` e entrypoint;
+- rota/persistência/autorização → teste de Worker com D1 simulado;
+- recuperação de senha → testar resposta genérica e limites sem enviar e-mail real;
+- catálogo/licença → testar procedência e atribuição.
 
-Evite testes que apenas reproduzam a implementação sem validar comportamento observável.
+Rotas críticas e persistência **não devem depender apenas de testes de helpers**.
 
 ## Banco de dados
 
-- nunca reescreva uma migration já aplicada em produção;
-- mudanças de schema devem entrar em uma nova migration;
+- nunca reescreva migration já aplicada;
+- mudanças de schema entram em migration nova;
 - migrations ficam em `backend/worker-prototype/migrations/`;
-- valide localmente antes de qualquer aplicação remota.
+- documente índices, FTS e migrations incomuns em `docs/database.md`;
+- preserve chaves estrangeiras e relações existentes;
+- valide localmente antes de aplicação remota.
+
+Valores de requisição devem chegar ao D1 por statements preparados com `.bind()`. SQL estrutural dinâmico só pode ser construído a partir de valores controlados internamente, como a quantidade de placeholders `?`.
+
+## Catálogo e ingredientes
+
+O fluxo operacional atual usa:
+
+```text
+import-wikibooks-v2.mjs
+        ↓
+canonicalize-ingredients.mjs
+```
+
+Ao alterar normalização:
+
+- preserve `raw_text` da receita;
+- preserve aliases úteis;
+- não transforme equivalência semântica em simples substring;
+- adicione teste para evitar falsos positivos;
+- mantenha a política de `is_staple` documentada.
+
+## Conteúdo externo e segurança
+
+O fluxo atual persiste conteúdo culinário como texto e não renderiza HTML bruto do Wikilivros.
+
+Não introduza `dangerouslySetInnerHTML` para conteúdo externo sem uma etapa explícita e testada de sanitização.
+
+Nunca versione chaves, tokens, senhas, códigos de recuperação ou dados privados reais. Falhas de segurança devem seguir [`SECURITY.md`](SECURITY.md).
 
 ## Documentação
 
-A documentação deve mudar junto com o código.
-
 - objetivo/requisito → `docs/escopo.md`;
-- funcionalidade → `docs/funcionalidades.md`;
+- comportamento → `docs/funcionalidades.md`;
 - arquitetura → `docs/architecture.md`;
-- rota → `docs/api.md`;
-- schema → `docs/database.md`;
-- catálogo/importação → `docs/catalogo.md`;
+- rota/contrato → `docs/api.md`;
+- schema/migration/índice → `docs/database.md`;
+- catálogo/importação/licença → `docs/catalogo.md`;
+- testes → `docs/testes.md`;
 - CI/deploy → `docs/deploy.md`;
 - estrutura → `docs/estrutura-repositorio.md`.
 
-## Segurança e secrets
+README e documentos específicos não devem contradizer o código.
 
-Nunca versione:
+## Código substituído
 
-- chaves de API;
-- tokens Cloudflare/GitHub;
-- senhas;
-- tokens de sessão;
-- códigos de recuperação;
-- dados privados reais de usuários.
+Quando uma implementação for substituída e o histórico já estiver preservado pelo Git:
 
-Use apenas placeholders seguros em arquivos `.env.example`.
-
-Falhas de segurança devem seguir [`SECURITY.md`](SECURITY.md), e não ser publicadas com detalhes exploráveis em uma issue comum.
+- remova código morto da árvore ativa;
+- remova scripts/workflows sem função operacional;
+- mantenha apenas o que é executado ou possui justificativa explícita.
 
 ## Conteúdo e licenças
 
-A licença MIT cobre o código e a documentação originais do projeto conforme descrito no repositório.
+MIT cobre o código original do projeto; não substitui licenças de terceiros.
 
-Receitas, textos, imagens e outros conteúdos de terceiros continuam sujeitos às licenças de suas fontes. Não remova metadados de autoria, procedência ou licença de conteúdo importado.
+Não remova fonte, autoria, licença ou URL de atribuição de conteúdo importado.
 
 ## Pull requests
 
-Um PR deve explicar:
+Todo PR deve explicar problema, solução, validação, testes, impacto em API/banco/deploy/documentação e eventuais riscos/passos adicionais.
 
-- qual problema resolve;
-- o que mudou;
-- como foi validado;
-- se altera banco, API, deploy ou documentação;
-- riscos e passos adicionais, quando existirem.
-
-Prefira PRs pequenos e revisáveis a mudanças muito grandes sem separação lógica.
+Prefira mudanças revisáveis e com CI verde.

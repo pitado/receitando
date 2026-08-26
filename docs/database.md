@@ -28,99 +28,35 @@ erDiagram
 
 ### `users`
 
-Contas da aplicação.
-
-Campos relevantes:
-
-- `id`;
-- `name`;
-- `email` único;
-- `password_hash`;
-- `role` (`USER` ou `ADMIN`);
-- `handle` único quando preenchido;
-- `avatar_key`;
-- timestamps.
-
-Senhas nunca são salvas em texto puro.
+Contas da aplicação. Campos relevantes: `id`, `name`, `email`, `password_hash`, `role`, `handle`, `avatar_key` e timestamps. Senhas nunca são persistidas em texto puro.
 
 ### `sessions`
 
-Sessões autenticadas.
+Associa uma sessão a `user_id`, guarda somente `token_hash`, possui expiração e `last_seen_at` e é removida em cascata quando a conta é apagada.
 
-- associa uma sessão a `user_id`;
-- guarda somente `token_hash`;
-- possui expiração e `last_seen_at`;
-- é apagada em cascata quando a conta é removida.
+### `ingredients` e `ingredient_aliases`
 
-O token real existe apenas no cliente durante a sessão.
+`ingredients` é o catálogo canônico usado pelo matching. Cada registro possui um `normalized_name` único e, a partir da migration `0015_matching_search_hardening.sql`, a flag `is_staple`.
 
-### `ingredients`
+`ingredient_aliases` associa variações textuais ao mesmo `ingredient_id`. Assim `cebolas picadas`, `cebolas` e `cebola` podem apontar para a mesma entidade sem que a aplicação dependa de comparação parcial de strings.
 
-Catálogo canônico de ingredientes.
-
-- `name`: nome exibido;
-- `normalized_name`: forma normalizada e única;
-- `category`: categoria do ingrediente.
-
-### `ingredient_aliases`
-
-Variações conhecidas de nomes apontando para um ingrediente canônico.
-
-Exemplo conceitual:
-
-```text
-"farinha trigo" → "farinha de trigo"
-"mussarela"     → ingrediente canônico de queijo
-```
-
-O matching consulta tanto o nome canônico quanto aliases.
+`is_staple = 1` identifica ingredientes básicos que não penalizam a compatibilidade, como água, sal, pimenta e óleos genéricos definidos pela política atual.
 
 ### `recipes`
 
-Dados principais das receitas.
+Dados culinários:
 
-#### Conteúdo culinário
-
-- `id`;
-- `title`;
-- `slug` público;
-- `description`;
-- `instructions`;
-- `prep_minutes`;
-- `servings`;
-- `meal_type`;
-- `difficulty`;
+- `id`, `title`, `slug`, `description`, `instructions`;
+- `prep_minutes`, `servings`, `meal_type`, `difficulty`;
 - timestamps.
 
-#### Origem da receita
+Procedência da receita:
 
-- `source_type`;
-- `source_name`;
-- `source_url`;
-- `source_author`;
-- `source_license`;
-- `source_license_url`;
-- `source_language`;
-- `external_source`;
-- `external_id`;
-- `external_category`;
-- `imported_at`.
+- `source_type`, `source_name`, `source_url`;
+- `source_author`, `source_license`, `source_license_url`, `source_language`;
+- `external_source`, `external_id`, `external_category`, `imported_at`.
 
-Tipos de origem aceitos pelo schema:
-
-```text
-OWN
-OPEN_DATASET
-USER
-```
-
-A política atual do catálogo publicado utiliza `OPEN_DATASET` com `external_source = wikibooks`. Os demais tipos continuam previstos pelo modelo de dados, embora não sejam a fonte operacional atual do catálogo.
-
-Os campos externos permitem deduplicação por fonte e identificador sem depender apenas do título.
-
-#### Imagem e atribuição
-
-O schema também preserva metadados próprios da imagem:
+Metadados específicos da imagem:
 
 - `image_url`;
 - `image_source`;
@@ -130,103 +66,101 @@ O schema também preserva metadados próprios da imagem:
 - `image_license_url`;
 - `image_alt`.
 
-Isso permite manter a procedência da imagem separada da procedência do texto da receita. Atualmente nem todos esses campos são expostos pelo contrato público da API, mas eles permanecem persistidos no D1 para atribuição e auditoria.
-
 ### `recipe_ingredients`
 
-Relação entre receita e ingrediente.
+Relação receita/ingrediente, com quantidade, unidade, flag `optional` e `raw_text` quando disponível. O par receita/ingrediente é único.
 
-Além das chaves, pode armazenar:
-
-- quantidade;
-- unidade;
-- indicação de ingrediente opcional;
-- texto bruto importado quando disponível.
-
-O par receita/ingrediente é único.
-
-### `recipe_tags`
-
-Tags editoriais ou de classificação associadas às receitas.
+Quantidade e unidade são persistidas para informação culinária e evolução do produto, mas a regra atual de matching é booleano: presença ou ausência do ingrediente.
 
 ### `pantry_items`
 
-Itens da despensa de cada usuário.
+Despensa por usuário. Quantidade, unidade e validade são opcionais. O par usuário/ingrediente é único; nova inclusão do mesmo ingrediente atualiza o item existente.
 
-- `user_id`;
-- `ingredient_id`;
-- quantidade opcional;
-- unidade opcional;
-- validade opcional;
-- timestamps.
+### `favorites`, `recipe_votes` e `recipe_comments`
 
-O par usuário/ingrediente é único. Adicionar novamente o mesmo ingrediente atualiza o item existente.
-
-### `favorites`
-
-Relaciona usuários e receitas favoritas.
-
-A chave composta (`user_id`, `recipe_id`) impede duplicidade.
-
-### `recipe_votes`
-
-Uma avaliação por usuário e receita.
-
-Valores aceitos:
-
-```text
-LIKE
-DISLIKE
-```
-
-### `recipe_comments`
-
-Comentários da comunidade ligados a usuário e receita, com timestamps de criação e edição.
+Relacionamentos da comunidade. Chaves estrangeiras e chaves compostas impedem relações inválidas ou duplicadas conforme o caso.
 
 ### `password_reset_codes`
 
-Estado temporário da recuperação de senha.
+Estado temporário da recuperação de senha. Persiste hashes do código/token de reset, tentativas, expiração, verificação e uso; os segredos reais não são armazenados em texto puro.
 
-Armazena hashes do código e do token temporário, contador de tentativas, expiração, verificação e uso. O código real e o token real não são persistidos em texto puro.
+### `auth_rate_limit_events`
 
-## Normalização de ingredientes
+Registra eventos temporários usados para limitar abuso de login, cadastro e solicitação de recuperação de senha. O identificador do bucket é persistido apenas como SHA-256.
 
-A aplicação normaliza os nomes antes de comparar:
+## Integridade referencial
 
-1. decompõe Unicode;
-2. remove acentos;
-3. remove espaços externos;
-4. converte para minúsculas;
-5. reduz espaços repetidos;
-6. no matching atual, hífen e `_` também podem ser tratados como separadores.
+As migrations definem `FOREIGN KEY` com políticas `ON DELETE CASCADE` ou `ON DELETE RESTRICT` conforme a relação.
 
-A tabela de aliases cobre variações que não podem ser resolvidas apenas por normalização textual.
+Exemplos:
 
-## Matching
+- apagar um usuário remove sessões, despensa, favoritos, votos e comentários associados;
+- apagar uma receita remove favoritos, votos, comentários, tags e relações com ingredientes;
+- ingredientes referenciados por receitas/despensa não são removidos de forma destrutiva antes de suas relações serem tratadas.
 
-O motor considera principalmente relações de `recipe_ingredients` com `optional = 0`.
+No Cloudflare D1, a verificação de chaves estrangeiras é habilitada por padrão. As migrations antigas também registram `PRAGMA foreign_keys = ON` por clareza histórica. Não é necessário executar esse `PRAGMA` a cada requisição da API.
+
+## Índices
+
+O schema já possuía índices e índices automáticos derivados de `PRIMARY KEY`/`UNIQUE`. A migration `0015_matching_search_hardening.sql` adiciona índices explícitos para padrões de acesso frequentes que não eram cobertos pelo prefixo ideal:
 
 ```text
-compatibilidade = ingredientes obrigatórios encontrados
-                  ------------------------------------- × 100
-                  total de ingredientes obrigatórios
+idx_pantry_items_user_id
+idx_pantry_items_user_updated_at
+idx_recipe_ingredients_recipe_id
+idx_favorites_user_created_at
 ```
 
-Os resultados também carregam listas de ingredientes encontrados, faltantes e opcionais.
+Também continuam existentes índices para sessões, aliases, votos, comentários, ingredientes e relações por receita/ingrediente.
 
-## Evolução do catálogo nas migrations
+## Busca textual com FTS5
 
-O diretório de migrations preserva a evolução histórica do banco. Por isso existem migrations antigas de seed de catálogos anteriores. Elas não definem a fonte operacional atual por si só e **não devem ser reescritas**, pois migrations já aplicadas fazem parte do histórico do schema.
+A busca do catálogo não usa mais `LIKE '%termo%'` para localizar títulos. A migration `0015_matching_search_hardening.sql` cria a tabela virtual FTS5:
 
-As migrations mais recentes relacionadas à procedência são:
+```text
+recipe_search
+```
 
-- `0011_external_catalog.sql`: identidade de fonte externa e deduplicação;
-- `0012_recipe_source_attribution.sql`: URL, autor, licença, idioma e data de importação da receita;
-- `0013_recipe_image_attribution.sql`: fonte, autor, página, licença e texto alternativo da imagem.
+Ela indexa `title` e `description` e é mantida sincronizada com `recipes` por triggers de inserção, atualização e exclusão.
 
-A política atual de manter o catálogo publicado em Wikilivros/Commons é aplicada pelo importador atual, que também remove entradas de fontes antigas durante a operação. Em um ambiente D1 novo, depois de aplicar as migrations, execute a importação atual para alinhar o conteúdo do catálogo à política vigente.
+A API consulta `recipe_search MATCH ?` e ordena por `bm25()`, permitindo termos múltiplos e prefixos sem realizar um table scan completo do catálogo a cada busca textual.
 
-## Migrations
+## Normalização e matching
+
+O fluxo atual é:
+
+1. normalizar caixa, acentos e separadores;
+2. gerar a forma textual completa e uma forma canônica conservadora;
+3. resolver correspondências exatas em `ingredients.normalized_name` e `ingredient_aliases.normalized_alias`;
+4. converter tudo para `ingredient_id`;
+5. excluir ingredientes opcionais e `is_staple = 1` do denominador;
+6. calcular compatibilidade com os ingredientes obrigatórios restantes.
+
+```text
+compatibilidade = ingredientes obrigatórios não básicos encontrados
+                  ------------------------------------------------ × 100
+                  total de ingredientes obrigatórios não básicos
+```
+
+A aplicação não usa substring para decidir equivalência entre ingredientes. Por isso, `óleo` não implica automaticamente `óleo de gergelim torrado`, e `açúcar` não implica `açúcar de confeiteiro`.
+
+## Histórico das migrations
+
+Migrations já aplicadas são **histórico imutável**. Mesmo quando uma estratégia de catálogo é substituída, arquivos antigos não devem ser renumerados ou reescritos.
+
+### `0008b_prepare_catalog_v3b.sql`
+
+O sufixo `b` é intencional. Essa migration foi adicionada entre `0008_seed_catalog_v3.sql` e `0009_seed_catalog_v3b.sql` como etapa preparatória da expansão v3b e deve permanecer com esse nome.
+
+### Migrations recentes
+
+- `0011_external_catalog.sql`: identidade de fonte externa/deduplicação;
+- `0012_recipe_source_attribution.sql`: procedência da receita;
+- `0013_recipe_image_attribution.sql`: atribuição da imagem;
+- `0014_auth_rate_limits.sql`: eventos de rate limiting;
+- `0015_matching_search_hardening.sql`: ingredientes básicos, índices adicionais e FTS5.
+
+## Execução
 
 Local:
 
@@ -242,15 +176,11 @@ cd backend/worker-prototype
 npm run migrate:remote
 ```
 
-No deploy oficial da API, as migrations remotas são executadas pelo GitHub Actions somente depois de `typecheck` e `dry-run` do Worker.
-
-Migrations já compartilhadas não devem ser reescritas. Mudanças de schema entram sempre em uma migration nova.
+No deploy oficial, migrations remotas são aplicadas somente depois das validações previstas no workflow da API.
 
 ## Segurança
 
-O schema pode ser público; conhecer nomes de tabelas, colunas ou relações não concede acesso ao banco.
-
-O que deve permanecer privado são as **credenciais que autorizam operações**, tokens de sessão, chaves de API, códigos de recuperação e dados privados reais dos usuários.
+O schema e migrations podem ser públicos. O que deve permanecer privado são credenciais, chaves, tokens reais, códigos de recuperação e dados privados dos usuários.
 
 ## Documentos relacionados
 
