@@ -28,99 +28,31 @@ erDiagram
 
 ### `users`
 
-Contas da aplicação.
-
-Campos relevantes:
-
-- `id`;
-- `name`;
-- `email` único;
-- `password_hash`;
-- `role` (`USER` ou `ADMIN`);
-- `handle` único quando preenchido;
-- `avatar_key`;
-- timestamps.
-
-Senhas nunca são salvas em texto puro.
+Contas da aplicação. Campos relevantes: `id`, `name`, `email`, `password_hash`, `role`, `handle`, `avatar_key` e timestamps. Senhas nunca são persistidas em texto puro.
 
 ### `sessions`
 
-Sessões autenticadas.
+Associa uma sessão a `user_id`, guarda somente `token_hash`, possui expiração e `last_seen_at` e é removida em cascata quando a conta é apagada.
 
-- associa uma sessão a `user_id`;
-- guarda somente `token_hash`;
-- possui expiração e `last_seen_at`;
-- é apagada em cascata quando a conta é removida.
+### `ingredients` e `ingredient_aliases`
 
-O token real existe apenas no cliente durante a sessão.
-
-### `ingredients`
-
-Catálogo canônico de ingredientes.
-
-- `name`: nome exibido;
-- `normalized_name`: forma normalizada e única;
-- `category`: categoria do ingrediente.
-
-### `ingredient_aliases`
-
-Variações conhecidas de nomes apontando para um ingrediente canônico.
-
-Exemplo conceitual:
-
-```text
-"farinha trigo" → "farinha de trigo"
-"mussarela"     → ingrediente canônico de queijo
-```
-
-O matching consulta tanto o nome canônico quanto aliases.
+`ingredients` mantém o catálogo canônico. `ingredient_aliases` aponta variações textuais para o ingrediente correspondente. O matching consulta ambos.
 
 ### `recipes`
 
-Dados principais das receitas.
+Dados culinários:
 
-#### Conteúdo culinário
-
-- `id`;
-- `title`;
-- `slug` público;
-- `description`;
-- `instructions`;
-- `prep_minutes`;
-- `servings`;
-- `meal_type`;
-- `difficulty`;
+- `id`, `title`, `slug`, `description`, `instructions`;
+- `prep_minutes`, `servings`, `meal_type`, `difficulty`;
 - timestamps.
 
-#### Origem da receita
+Procedência da receita:
 
-- `source_type`;
-- `source_name`;
-- `source_url`;
-- `source_author`;
-- `source_license`;
-- `source_license_url`;
-- `source_language`;
-- `external_source`;
-- `external_id`;
-- `external_category`;
-- `imported_at`.
+- `source_type`, `source_name`, `source_url`;
+- `source_author`, `source_license`, `source_license_url`, `source_language`;
+- `external_source`, `external_id`, `external_category`, `imported_at`.
 
-Tipos de origem aceitos pelo schema:
-
-```text
-OWN
-OPEN_DATASET
-USER
-```
-
-A política atual do catálogo publicado utiliza `OPEN_DATASET` com `external_source = wikibooks`. Os demais tipos continuam previstos pelo modelo de dados, embora não sejam a fonte operacional atual do catálogo.
-
-Os campos externos permitem deduplicação por fonte e identificador sem depender apenas do título.
-
-#### Imagem e atribuição
-
-O schema também preserva metadados próprios da imagem:
+Metadados específicos da imagem:
 
 - `image_url`;
 - `image_source`;
@@ -130,81 +62,51 @@ O schema também preserva metadados próprios da imagem:
 - `image_license_url`;
 - `image_alt`.
 
-Isso permite manter a procedência da imagem separada da procedência do texto da receita. Atualmente nem todos esses campos são expostos pelo contrato público da API, mas eles permanecem persistidos no D1 para atribuição e auditoria.
+A procedência da imagem é independente da procedência do texto da receita. O contrato público atual da API expõe esses créditos para que a interface possa cumprir a atribuição exigida pelas fontes externas.
 
 ### `recipe_ingredients`
 
-Relação entre receita e ingrediente.
-
-Além das chaves, pode armazenar:
-
-- quantidade;
-- unidade;
-- indicação de ingrediente opcional;
-- texto bruto importado quando disponível.
-
-O par receita/ingrediente é único.
+Relação receita/ingrediente, com quantidade, unidade, flag `optional` e `raw_text` quando disponível. O par receita/ingrediente é único.
 
 ### `recipe_tags`
 
-Tags editoriais ou de classificação associadas às receitas.
+Tags associadas às receitas.
 
 ### `pantry_items`
 
-Itens da despensa de cada usuário.
-
-- `user_id`;
-- `ingredient_id`;
-- quantidade opcional;
-- unidade opcional;
-- validade opcional;
-- timestamps.
-
-O par usuário/ingrediente é único. Adicionar novamente o mesmo ingrediente atualiza o item existente.
+Despensa por usuário. Quantidade, unidade e validade são opcionais. O par usuário/ingrediente é único; nova inclusão do mesmo ingrediente atualiza o item existente.
 
 ### `favorites`
 
-Relaciona usuários e receitas favoritas.
-
-A chave composta (`user_id`, `recipe_id`) impede duplicidade.
+Relação única entre usuário e receita favorita.
 
 ### `recipe_votes`
 
-Uma avaliação por usuário e receita.
-
-Valores aceitos:
-
-```text
-LIKE
-DISLIKE
-```
+Um voto por usuário/receita, com valores `LIKE` ou `DISLIKE`.
 
 ### `recipe_comments`
 
-Comentários da comunidade ligados a usuário e receita, com timestamps de criação e edição.
+Comentários da comunidade ligados a usuário e receita, com timestamps de criação/edição.
 
 ### `password_reset_codes`
 
-Estado temporário da recuperação de senha.
+Estado temporário da recuperação de senha. Persiste hashes do código/token de reset, tentativas, expiração, verificação e uso; os segredos reais não são armazenados em texto puro.
 
-Armazena hashes do código e do token temporário, contador de tentativas, expiração, verificação e uso. O código real e o token real não são persistidos em texto puro.
+### `auth_rate_limit_events`
 
-## Normalização de ingredientes
+Criada em `0014_auth_rate_limits.sql`. Registra eventos temporários usados para limitar abuso de autenticação.
 
-A aplicação normaliza os nomes antes de comparar:
+- `action`: tipo de limite, como login por e-mail/IP ou cadastro por IP;
+- `key_hash`: SHA-256 do identificador usado no limite, não o e-mail/IP em texto puro;
+- `created_at`: instante do evento.
 
-1. decompõe Unicode;
-2. remove acentos;
-3. remove espaços externos;
-4. converte para minúsculas;
-5. reduz espaços repetidos;
-6. no matching atual, hífen e `_` também podem ser tratados como separadores.
+Índices por `(action, key_hash, created_at)` e por `created_at` permitem calcular janelas e remover eventos antigos com eficiência.
 
-A tabela de aliases cobre variações que não podem ser resolvidas apenas por normalização textual.
+## Normalização e matching
 
-## Matching
+A normalização remove acentos, ajusta caixa/espaços e trata separadores conhecidos. Aliases resolvem variações que não podem ser tratadas apenas por normalização textual.
 
-O motor considera principalmente relações de `recipe_ingredients` com `optional = 0`.
+O cálculo principal usa ingredientes obrigatórios:
 
 ```text
 compatibilidade = ingredientes obrigatórios encontrados
@@ -212,21 +114,28 @@ compatibilidade = ingredientes obrigatórios encontrados
                   total de ingredientes obrigatórios
 ```
 
-Os resultados também carregam listas de ingredientes encontrados, faltantes e opcionais.
+## Histórico das migrations
 
-## Evolução do catálogo nas migrations
+Migrations já aplicadas são **histórico imutável**. Mesmo quando uma estratégia de catálogo é substituída, os arquivos antigos não devem ser renumerados ou reescritos.
 
-O diretório de migrations preserva a evolução histórica do banco. Por isso existem migrations antigas de seed de catálogos anteriores. Elas não definem a fonte operacional atual por si só e **não devem ser reescritas**, pois migrations já aplicadas fazem parte do histórico do schema.
+### `0008b_prepare_catalog_v3b.sql`
 
-As migrations mais recentes relacionadas à procedência são:
+O sufixo `b` é intencional. Essa migration foi adicionada entre `0008_seed_catalog_v3.sql` e `0009_seed_catalog_v3b.sql` como etapa preparatória da expansão v3b.
 
-- `0011_external_catalog.sql`: identidade de fonte externa e deduplicação;
+O catálogo anterior já possuía slugs/IDs que colidiam com duas receitas da expansão. Em vez de substituir registros existentes — o que poderia quebrar URLs, favoritos e comentários já associados — `0008b` cria IDs/slugs alternativos antes da seed seguinte. Assim, os relacionamentos existentes permanecem intactos.
+
+Ela não deve ser renomeada para “corrigir” a sequência: instalações que já aplicaram migrations dependem do nome/histórico atual.
+
+### Procedência e catálogo externo
+
+- `0011_external_catalog.sql`: identidade de fonte externa/deduplicação;
 - `0012_recipe_source_attribution.sql`: URL, autor, licença, idioma e data de importação da receita;
-- `0013_recipe_image_attribution.sql`: fonte, autor, página, licença e texto alternativo da imagem.
+- `0013_recipe_image_attribution.sql`: fonte, autor, página, licença e texto alternativo da imagem;
+- `0014_auth_rate_limits.sql`: eventos usados pelo rate limiting de autenticação.
 
-A política atual de manter o catálogo publicado em Wikilivros/Commons é aplicada pelo importador atual, que também remove entradas de fontes antigas durante a operação. Em um ambiente D1 novo, depois de aplicar as migrations, execute a importação atual para alinhar o conteúdo do catálogo à política vigente.
+A política operacional do catálogo usa Wikilivros/Commons e é aplicada pelo importador atual. Em um D1 novo, aplique todas as migrations e depois execute o importador atual para alinhar o conteúdo à política vigente.
 
-## Migrations
+## Execução
 
 Local:
 
@@ -242,15 +151,11 @@ cd backend/worker-prototype
 npm run migrate:remote
 ```
 
-No deploy oficial da API, as migrations remotas são executadas pelo GitHub Actions somente depois de `typecheck` e `dry-run` do Worker.
-
-Migrations já compartilhadas não devem ser reescritas. Mudanças de schema entram sempre em uma migration nova.
+No deploy oficial, migrations remotas são aplicadas somente depois das validações previstas no workflow da API.
 
 ## Segurança
 
-O schema pode ser público; conhecer nomes de tabelas, colunas ou relações não concede acesso ao banco.
-
-O que deve permanecer privado são as **credenciais que autorizam operações**, tokens de sessão, chaves de API, códigos de recuperação e dados privados reais dos usuários.
+O schema e migrations podem ser públicos. O que deve permanecer privado são credenciais, chaves, tokens reais, códigos de recuperação e dados privados dos usuários.
 
 ## Documentos relacionados
 
