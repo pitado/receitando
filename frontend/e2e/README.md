@@ -1,6 +1,6 @@
 # E2E do frontend
 
-Esta pasta contém a suíte de navegador do Receitando com **Playwright**.
+Esta pasta contém a suíte de navegador do Receitando com **Playwright 1.62.1**.
 
 Ela complementa os testes unitários do frontend e os testes de integração da API exercitando páginas reais do Next.js em Chromium.
 
