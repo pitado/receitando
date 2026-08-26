@@ -14,13 +14,9 @@
     "migrate:remote": "wrangler d1 migrations apply receitando --remote",
     "deploy": "wrangler deploy"
   },
-  "dependencies": {
-    "@prisma/adapter-pg": "6.19.3",
-    "pg": "8.23.0"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@cloudflare/workers-types": "5.20260822.1",
-    "@types/pg": "8.23.1",
     "typescript": "5.9.3",
     "wrangler": "4.125.0"
   },
