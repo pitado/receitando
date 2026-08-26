@@ -1,5 +1,10 @@
 import socialWorker from "./social-worker";
-import { compatibilityPercent, matchStatus, normalizeIngredient } from "./lib/recipe-utils";
+import {
+  compatibilityPercent,
+  ingredientLookupCandidates,
+  matchStatus,
+  normalizeIngredient,
+} from "./lib/recipe-utils";
 import {
   apiError,
   authenticatedUserId,
@@ -45,11 +50,20 @@ type IngredientRow = {
   quantity: number | null;
   unit: string | null;
   optional: number;
+  isStaple: number;
   rawText: string | null;
 };
 
 function placeholders(count: number): string {
   return Array.from({ length: count }, () => "?").join(",");
+}
+
+function ftsRecipeQuery(value: string): string {
+  const tokens = normalizeIngredient(value).match(/[a-z0-9]+/g) ?? [];
+  return [...new Set(tokens)]
+    .slice(0, 8)
+    .map((token) => `"${token.replaceAll('"', '""')}"*`)
+    .join(" AND ");
 }
 
 async function loadRecipesByIds(env: Env, ids: string[]) {
@@ -73,12 +87,12 @@ async function loadRecipesByIds(env: Env, ids: string[]) {
 
   const ingredientResult = await env.db.prepare(`
     SELECT ri.recipe_id AS recipeId, i.id AS ingredientId, i.name,
-      i.normalized_name AS normalizedName, i.category,
+      i.normalized_name AS normalizedName, i.category, i.is_staple AS isStaple,
       ri.quantity, ri.unit, ri.optional, ri.raw_text AS rawText
     FROM recipe_ingredients ri
     JOIN ingredients i ON i.id = ri.ingredient_id
     WHERE ri.recipe_id IN (${mark})
-    ORDER BY ri.optional, i.name
+    ORDER BY ri.optional, i.is_staple, i.name
   `).bind(...limited).all<IngredientRow>();
 
   const tagResult = await env.db.prepare(`
@@ -140,6 +154,7 @@ async function loadRecipesByIds(env: Env, ids: string[]) {
       quantity: item.quantity,
       unit: item.unit,
       optional: Boolean(item.optional),
+      isStaple: Boolean(item.isStaple),
       rawText: item.rawText,
     })),
   })).sort((a, b) => (order.get(a.id) ?? 999) - (order.get(b.id) ?? 999));
@@ -148,16 +163,27 @@ async function loadRecipesByIds(env: Env, ids: string[]) {
 async function listCatalogIngredients(request: Request, env: Env): Promise<Response> {
   const rows = await env.db.prepare(`
     SELECT i.id, i.name, i.normalized_name AS normalizedName, i.category,
-      COUNT(DISTINCT ri.recipe_id) AS usageCount
+      i.is_staple AS isStaple, COUNT(DISTINCT ri.recipe_id) AS usageCount
     FROM ingredients i
     JOIN recipe_ingredients ri ON ri.ingredient_id = i.id
     JOIN recipes r ON r.id = ri.recipe_id
-    GROUP BY i.id, i.name, i.normalized_name, i.category
+    GROUP BY i.id, i.name, i.normalized_name, i.category, i.is_staple
     ORDER BY usageCount DESC, i.name ASC
     LIMIT 1200
-  `).all<{ id: string; name: string; normalizedName: string; category: string; usageCount: number }>();
+  `).all<{
+    id: string;
+    name: string;
+    normalizedName: string;
+    category: string;
+    isStaple: number;
+    usageCount: number;
+  }>();
 
-  return json(request, env, rows.results);
+  return json(
+    request,
+    env,
+    rows.results.map((row) => ({ ...row, isStaple: Boolean(row.isStaple) })),
+  );
 }
 
 async function listSources(request: Request, env: Env): Promise<Response> {
@@ -184,7 +210,9 @@ async function listSources(request: Request, env: Env): Promise<Response> {
 }
 
 async function canonicalIngredientIds(env: Env, values: string[]): Promise<string[]> {
-  const normalized = [...new Set(values.map(normalizeIngredient).filter(Boolean))];
+  const normalized = [
+    ...new Set(values.flatMap((value) => ingredientLookupCandidates(value)).filter(Boolean)),
+  ].slice(0, 120);
   if (!normalized.length) return [];
 
   const mark = placeholders(normalized.length);
@@ -207,7 +235,10 @@ async function efficientMatch(env: Env, ingredientIds: string[]) {
   const candidateResult = await env.db.prepare(`
     SELECT ri.recipe_id AS recipeId, COUNT(DISTINCT ri.ingredient_id) AS foundCount
     FROM recipe_ingredients ri
-    WHERE ri.optional = 0 AND ri.ingredient_id IN (${mark})
+    JOIN ingredients i ON i.id = ri.ingredient_id
+    WHERE ri.optional = 0
+      AND i.is_staple = 0
+      AND ri.ingredient_id IN (${mark})
     GROUP BY ri.recipe_id
     ORDER BY foundCount DESC
     LIMIT 80
@@ -217,7 +248,8 @@ async function efficientMatch(env: Env, ingredientIds: string[]) {
   const supplied = new Set(ingredientIds);
 
   return recipes.map((recipe) => {
-    const required = recipe.ingredients.filter((item) => !item.optional);
+    const required = recipe.ingredients.filter((item) => !item.optional && !item.isStaple);
+    const staples = recipe.ingredients.filter((item) => !item.optional && item.isStaple);
     const found = required.filter((item) => supplied.has(item.ingredientId));
     const missing = required.filter((item) => !supplied.has(item.ingredientId));
     const compatibility = compatibilityPercent(found.length, required.length);
@@ -241,6 +273,7 @@ async function efficientMatch(env: Env, ingredientIds: string[]) {
       optionalIngredients: recipe.ingredients
         .filter((item) => item.optional)
         .map((item) => ({ id: item.ingredientId, name: item.name })),
+      stapleIngredients: staples.map((item) => ({ id: item.ingredientId, name: item.name })),
     };
   }).sort(
     (a, b) =>
@@ -281,19 +314,33 @@ async function listRecipes(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url);
   const limit = Math.min(60, Math.max(1, Number(url.searchParams.get("limit")) || 36));
   const offset = Math.max(0, Number(url.searchParams.get("offset")) || 0);
-  const search = normalizeIngredient(url.searchParams.get("q") ?? "");
+  const search = ftsRecipeQuery(url.searchParams.get("q") ?? "");
   const source = (url.searchParams.get("source") ?? "").trim().toLowerCase();
 
   let rows: D1Result<{ id: string }>;
   if (search && source) {
     rows = await env.db
-      .prepare("SELECT id FROM recipes WHERE lower(title) LIKE ? AND lower(external_source) = ? ORDER BY title LIMIT ? OFFSET ?")
-      .bind(`%${search}%`, source, limit, offset)
+      .prepare(`
+        SELECT r.id
+        FROM recipe_search
+        JOIN recipes r ON r.id = recipe_search.recipe_id
+        WHERE recipe_search MATCH ? AND lower(r.external_source) = ?
+        ORDER BY bm25(recipe_search), r.title
+        LIMIT ? OFFSET ?
+      `)
+      .bind(search, source, limit, offset)
       .all<{ id: string }>();
   } else if (search) {
     rows = await env.db
-      .prepare("SELECT id FROM recipes WHERE lower(title) LIKE ? ORDER BY title LIMIT ? OFFSET ?")
-      .bind(`%${search}%`, limit, offset)
+      .prepare(`
+        SELECT r.id
+        FROM recipe_search
+        JOIN recipes r ON r.id = recipe_search.recipe_id
+        WHERE recipe_search MATCH ?
+        ORDER BY bm25(recipe_search), r.title
+        LIMIT ? OFFSET ?
+      `)
+      .bind(search, limit, offset)
       .all<{ id: string }>();
   } else if (source) {
     rows = await env.db
