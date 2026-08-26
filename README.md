@@ -6,7 +6,7 @@
 
 O **Receitando** é uma aplicação web acadêmica que ajuda a descobrir receitas a partir dos ingredientes que a pessoa já possui.
 
-O usuário pode informar ingredientes manualmente ou manter uma despensa vinculada à conta. O sistema normaliza esses itens, compara com o catálogo e ordena receitas por compatibilidade, mostrando o que já está disponível e o que ainda falta.
+O usuário pode informar ingredientes manualmente ou manter uma despensa vinculada à conta. O sistema resolve variações para ingredientes canônicos, compara esses itens com o catálogo e ordena receitas por compatibilidade, mostrando o que já está disponível e o que ainda falta.
 
 > Escopo formal: [`docs/escopo.md`](docs/escopo.md)  
 > Funcionalidades implementadas: [`docs/funcionalidades.md`](docs/funcionalidades.md)  
@@ -19,25 +19,31 @@ O usuário pode informar ingredientes manualmente ou manter uma despensa vincula
 
 ## O que já está implementado
 
-### Receitas e matching
+### Receitas, busca e matching
 
-- catálogo navegável;
-- detalhe completo da receita;
-- busca por ingredientes;
-- normalização e aliases de ingredientes;
+- catálogo navegável e detalhe completo;
+- busca textual indexada com SQLite FTS5;
+- catálogo canônico de ingredientes e aliases;
+- normalização de variações como plural e descrições comuns de preparo;
+- equivalência por IDs canônicos, sem substring como regra de matching;
+- ingredientes básicos (`is_staple`) que não penalizam a compatibilidade;
 - percentual de compatibilidade;
-- ingredientes encontrados, faltantes e opcionais;
+- ingredientes encontrados, faltantes, opcionais e básicos;
 - matching com até 40 ingredientes informados;
-- matching diretamente pela despensa.
+- matching diretamente pela despensa;
+- regra atual de matching booleano (`tem` / `não tem`), documentada na interface e no escopo.
 
-### Conta
+### Conta e segurança
 
 - cadastro;
 - login e logout;
 - sessão persistente;
 - perfil com nome, `@` e avatar;
 - recuperação de senha por código enviado por e-mail;
-- proteção contra força bruta/abuso em login e cadastro.
+- PBKDF2 via Web Crypto para senhas;
+- SHA-256 para tokens e chaves de rate limiting armazenadas;
+- rate limiting de login, cadastro e solicitação de recuperação de senha;
+- resposta genérica no reset para evitar enumeração de contas.
 
 ### Personalização e comunidade
 
@@ -52,11 +58,13 @@ O usuário pode informar ingredientes manualmente ou manter uma despensa vincula
 ### Catálogo externo
 
 - receitas do **Wikilivros em português**;
-- imagens livres do **Wikimedia Commons**;
-- importação automatizada/manual via GitHub Actions;
+- imagens com licença livre do **Wikimedia Commons**;
+- importação manual via GitHub Actions;
+- pós-processamento para canonicalização de ingredientes;
 - procedência da receita;
 - procedência, autor, página e licença da imagem;
-- créditos exibidos no detalhe da receita.
+- créditos exibidos no detalhe da receita;
+- conteúdo culinário convertido para texto, sem renderização de HTML bruto da fonte externa.
 
 ## Arquitetura
 
@@ -77,7 +85,7 @@ API Cloudflare Worker
 
 O frontend nunca acessa o banco diretamente.
 
-A API atual fica em `backend/worker-prototype/`. Apesar do nome histórico do diretório, é essa implementação que está em produção.
+A API atual fica em `backend/worker-prototype/`. Apesar do nome histórico do diretório, essa é a única implementação de backend mantida na árvore principal.
 
 ### Entrypoint real da API
 
@@ -107,13 +115,11 @@ pantry-worker
 index
 ```
 
-Cada camada possui um grupo de rotas. Infraestrutura repetida de CORS, respostas JSON, leitura de token e contrato `Env` foi centralizada em `src/lib/worker-http.ts`.
+Infraestrutura compartilhada de HTTP/CORS/autenticação fica em `src/lib/worker-http.ts`; normalização e regras puras de matching ficam em `src/lib/recipe-utils.ts`.
 
 Detalhes: [`docs/architecture.md`](docs/architecture.md).
 
 ## API — visão rápida
-
-A documentação completa, com exemplos e contratos, está em [`docs/api.md`](docs/api.md).
 
 | Método | Rota | Função |
 | --- | --- | --- |
@@ -126,8 +132,8 @@ A documentação completa, com exemplos e contratos, está em [`docs/api.md`](do
 | `POST` | `/api/auth/verify-reset-code` | validar código |
 | `POST` | `/api/auth/reset-password` | trocar senha |
 | `GET` | `/api/sources` | fontes do catálogo |
-| `GET` | `/api/ingredients` | ingredientes |
-| `GET` | `/api/recipes` | catálogo |
+| `GET` | `/api/ingredients` | ingredientes canônicos |
+| `GET` | `/api/recipes` | catálogo e busca FTS5 |
 | `GET` | `/api/recipes/:slug` | detalhe da receita |
 | `POST` | `/api/recipes/match` | matching manual |
 | `GET` | `/api/recipes/match/pantry` | matching pela despensa |
@@ -141,22 +147,55 @@ A documentação completa, com exemplos e contratos, está em [`docs/api.md`](do
 | `PATCH` / `DELETE` | `/api/recipe-comments/:commentId` | comentário próprio |
 | `GET` | `/api/home-feed` | feed da home |
 
-**Rota canônica de detalhe:** `/api/recipes/:slug`. A implementação antiga `/api/recipes/slug/:slug` foi removida junto com outras rotas duplicadas de `index.ts`.
+Documentação completa: [`docs/api.md`](docs/api.md).
+
+## Regra de matching
+
+O fluxo não compara strings com `LIKE '%ingrediente%'`.
+
+```text
+texto informado/importado
+        ↓
+normalização
+        ↓
+nome completo + forma canônica conservadora
+        ↓
+ingredients.normalized_name / ingredient_aliases.normalized_alias
+        ↓
+ingredient_id canônico
+        ↓
+matching por presença
+```
+
+Exemplo esperado:
+
+```text
+cebola / cebolas / cebolas picadas / cebola média
+                         ↓
+                       cebola
+```
+
+Compostos semanticamente diferentes permanecem separados: `óleo` não equivale automaticamente a `óleo de gergelim torrado`, e `açúcar` não equivale a `açúcar de confeiteiro`.
+
+Ingredientes marcados `is_staple`, como água, sal, pimenta e óleo genérico, não entram no denominador da compatibilidade nem na lista principal de faltantes.
+
+**Quantidade e unidade ainda não participam do cálculo.** Nesta versão, possuir `1 ovo` significa possuir o ingrediente `ovo`, mesmo que a receita solicite uma quantidade maior. Essa limitação está explícita no escopo e na tela de combinações.
 
 ## Segurança
 
 A implementação atual inclui:
 
-- PBKDF2 para senhas;
+- PBKDF2 com salt aleatório para senhas;
 - tokens de sessão aleatórios, com somente SHA-256 persistido no D1;
-- queries parametrizadas com `.bind()`;
+- queries de requisição parametrizadas com `.bind()`;
 - autorização por usuário em despensa, favoritos, votos e comentários;
-- resposta genérica na solicitação de recuperação de senha para evitar enumeração de e-mail;
+- resposta genérica na recuperação de senha;
 - limite de tentativas no código de recuperação;
 - invalidação das sessões após troca de senha;
-- rate limiting de login por e-mail/IP e cadastro por IP;
+- rate limiting por e-mail/IP em login e solicitação de recuperação e por IP em cadastro;
 - CORS restrito a origens configuradas;
-- secrets fora do repositório.
+- secrets fora do repositório;
+- conteúdo externo culinário convertido para texto e renderizado pelo React como texto, sem HTML bruto do Wikilivros.
 
 Reporte responsável: [`SECURITY.md`](SECURITY.md).
 
@@ -169,24 +208,16 @@ O fluxo operacional usa exclusivamente:
 - **Wikilivros em português** para receitas;
 - **Wikimedia Commons** para imagens livres.
 
-O importador atual fica em:
+Scripts ativos:
 
 ```text
 backend/worker-prototype/scripts/import-wikibooks-v2.mjs
+backend/worker-prototype/scripts/canonicalize-ingredients.mjs
 ```
 
-Ele descobre páginas, interpreta ingredientes/preparo, procura imagens, valida metadados/licenças, trata rate limits e grava no D1 em lotes.
+A sequência do workflow importa as receitas e depois consolida variações de ingredientes, preservando aliases e identificando staples.
 
 Importadores experimentais substituídos foram removidos da árvore ativa. O histórico continua acessível pelo Git.
-
-### Atribuição
-
-A API retorna dois blocos independentes:
-
-- `source`: procedência do texto/receita;
-- `image`: URL, fonte, autor, página, licença, URL da licença e texto alternativo da imagem.
-
-O frontend exibe esses créditos no detalhe quando disponíveis.
 
 Documentação: [`docs/catalogo.md`](docs/catalogo.md).
 
@@ -200,20 +231,11 @@ Migrations:
 backend/worker-prototype/migrations/
 ```
 
-O schema inclui:
+O schema inclui usuários/sessões, catálogo canônico de ingredientes, aliases, receitas, despensa, favoritos, recuperação de senha, comunidade, atribuição de conteúdo, rate limiting e busca FTS5.
 
-- usuários e sessões;
-- ingredientes e aliases;
-- receitas, ingredientes e tags;
-- despensa;
-- favoritos;
-- recuperação de senha;
-- perfil;
-- votos e comentários;
-- procedência de receitas/imagens;
-- eventos de rate limiting.
+A migration `0015_matching_search_hardening.sql` adiciona `is_staple`, índices para padrões frequentes de acesso e a tabela virtual `recipe_search` com triggers de sincronização.
 
-A migration `0008b_prepare_catalog_v3b.sql` é uma etapa histórica intencional para preservar IDs/URLs e relações existentes durante uma expansão antiga do catálogo; ela está documentada em [`docs/database.md`](docs/database.md).
+Chaves estrangeiras com `CASCADE`/`RESTRICT` protegem a integridade relacional. Detalhes: [`docs/database.md`](docs/database.md).
 
 ## Estrutura do repositório
 
@@ -221,22 +243,22 @@ A migration `0008b_prepare_catalog_v3b.sql` é uma etapa histórica intencional 
 receitando/
 ├── frontend/                       aplicação Next.js
 ├── backend/
-│   ├── worker-prototype/           API atual de produção
-│   │   ├── migrations/             migrations do D1
-│   │   ├── scripts/                importador operacional
-│   │   ├── src/                    Workers e bibliotecas
-│   │   └── tests/                  testes da API
-│   ├── src/                        NestJS histórico
-│   └── prisma/                     Prisma histórico
+│   ├── README.md
+│   └── worker-prototype/           API atual de produção
+│       ├── migrations/             migrations do D1
+│       ├── scripts/                importação/canonicalização
+│       ├── src/                    Workers e bibliotecas
+│       └── tests/                  testes da API
 ├── docs/                           documentação oficial
 ├── .github/                        CI, deploy, Dependabot e templates
+├── CHANGELOG.md
 ├── CONTRIBUTING.md
 ├── SECURITY.md
 ├── LICENSE
 └── README.md
 ```
 
-O backend NestJS/Prisma diretamente em `backend/` é **histórico**: não recebe novas funcionalidades, não faz parte do deploy atual e não é tratado como componente de produção no CI.
+A implementação antiga em NestJS + Prisma + PostgreSQL foi retirada da árvore principal e preservada na branch `legacy/nest-prisma`.
 
 Mapa detalhado: [`docs/estrutura-repositorio.md`](docs/estrutura-repositorio.md).
 
@@ -319,8 +341,6 @@ Endereços padrão:
 
 ### Frontend
 
-A suíte usa **Vitest + React Testing Library + jsdom + jest-dom**.
-
 ```bash
 cd frontend
 npm run lint
@@ -329,7 +349,7 @@ npm run test:coverage
 npm run build
 ```
 
-Os testes cobrem serviços HTTP, autenticação no cliente, armazenamento da sessão atual, catálogo, matching, despensa, favoritos, perfil, recuperação, social/home, normalização, formatação e componentes compartilhados.
+A suíte usa Vitest + React Testing Library + jsdom + jest-dom.
 
 ### API Worker
 
@@ -340,7 +360,7 @@ npm test
 npm run dry-run
 ```
 
-A suíte combina testes de regras puras com testes que executam `fetch()` dos Workers reais usando um D1 simulado. Entre os fluxos cobertos estão cadastro/sessão, autorização, despensa, favoritos, perfil, recuperação sem enumeração, catálogo, matching, atribuição de imagem, social e home feed.
+A suíte combina testes de regras puras com testes de `fetch()` dos Workers usando D1 simulado. Matching canônico, staples, FTS5, autenticação, rate limiting e rotas críticas possuem testes de regressão.
 
 CI/deploy falham se as validações obrigatórias falharem.
 
@@ -357,17 +377,11 @@ A configuração atual monitora somente:
 - `/frontend`;
 - `/backend/worker-prototype`.
 
-Atualizações `minor`/`patch` são agrupadas. Majors são tratadas como migrações planejadas, não como merge automático.
+## Contribuição e licença
 
-## Contribuição
+Regras de branches, testes, migrations, documentação e PRs: [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
-Regras de branches, testes, migrations, documentação e pull requests: [`CONTRIBUTING.md`](CONTRIBUTING.md).
-
-## Licença
-
-O código original do Receitando é disponibilizado sob **MIT License**. Consulte [`LICENSE`](LICENSE).
-
-A MIT não altera as licenças das receitas e imagens importadas. Conteúdo do Wikilivros/Wikimedia continua sujeito às condições e atribuições informadas nas respectivas fontes.
+O código original do Receitando é disponibilizado sob **MIT License**. A MIT não altera as licenças das receitas e imagens importadas.
 
 ## Documentação
 
@@ -376,8 +390,9 @@ A MIT não altera as licenças das receitas e imagens importadas. Conteúdo do W
 - [`docs/funcionalidades.md`](docs/funcionalidades.md) — estado implementado;
 - [`docs/architecture.md`](docs/architecture.md) — arquitetura;
 - [`docs/api.md`](docs/api.md) — contrato completo da API;
-- [`docs/database.md`](docs/database.md) — D1 e migrations;
+- [`docs/database.md`](docs/database.md) — D1, índices e migrations;
 - [`docs/catalogo.md`](docs/catalogo.md) — receitas, imagens e licenças;
+- [`docs/testes.md`](docs/testes.md) — estratégia de testes;
 - [`docs/deploy.md`](docs/deploy.md) — CI/deploy/operação;
 - [`docs/estrutura-repositorio.md`](docs/estrutura-repositorio.md) — estrutura do código;
 - [`frontend/README.md`](frontend/README.md) — frontend;
