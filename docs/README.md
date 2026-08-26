@@ -21,7 +21,7 @@ Arquivos de governança/histórico na raiz:
 - [`../CONTRIBUTING.md`](../CONTRIBUTING.md) — contribuição e validações;
 - [`../SECURITY.md`](../SECURITY.md) — reporte responsável e práticas de segurança;
 - [`../CHANGELOG.md`](../CHANGELOG.md) — decisões estruturais e correções relevantes;
-- [`../LICENSE`](../LICENSE) — MIT para o código original.
+- [`../LICENSE`](../LICENSE) — GNU AGPLv3 para o código original.
 
 ## Ordem recomendada
 
