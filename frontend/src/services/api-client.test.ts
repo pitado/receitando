@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { apiRequest } from "./api-client";
+import { apiRequest, setTransientBearerToken } from "./api-client";
 
 const originalApiUrl = process.env.NEXT_PUBLIC_API_URL;
 
@@ -18,11 +18,13 @@ function mockResponse(
 describe("apiRequest", () => {
   beforeEach(() => {
     process.env.NEXT_PUBLIC_API_URL = "https://api.example.test/";
+    setTransientBearerToken(null);
     vi.stubGlobal("fetch", vi.fn());
   });
 
   afterEach(() => {
     process.env.NEXT_PUBLIC_API_URL = originalApiUrl;
+    setTransientBearerToken(null);
     vi.unstubAllGlobals();
     vi.clearAllMocks();
   });
@@ -51,7 +53,7 @@ describe("apiRequest", () => {
     );
   });
 
-  it("não injeta Authorization Bearer a partir de JavaScript", async () => {
+  it("não injeta Authorization quando não há fallback transitório", async () => {
     const fetchMock = vi.mocked(fetch);
     fetchMock.mockResolvedValue(mockResponse({ id: "1" }));
 
@@ -60,6 +62,17 @@ describe("apiRequest", () => {
     const [, init] = fetchMock.mock.calls[0];
     expect(init?.credentials).toBe("include");
     expect(new Headers(init?.headers).has("Authorization")).toBe(false);
+  });
+
+  it("usa Bearer apenas em memória durante compatibilidade de deploy", async () => {
+    setTransientBearerToken("token-transitorio");
+    const fetchMock = vi.mocked(fetch);
+    fetchMock.mockResolvedValue(mockResponse({ id: "1" }));
+
+    await apiRequest("/api/auth/me");
+
+    const [, init] = fetchMock.mock.calls[0];
+    expect(new Headers(init?.headers).get("Authorization")).toBe("Bearer token-transitorio");
   });
 
   it("retorna undefined em respostas 204", async () => {
