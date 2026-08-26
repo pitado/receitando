@@ -7,6 +7,7 @@ export interface Ingredient {
   name: string;
   normalizedName: string;
   category: string;
+  isStaple?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -19,6 +20,7 @@ export interface RecipeIngredient {
   quantity: number | null;
   unit: string | null;
   optional: boolean;
+  isStaple?: boolean;
   rawText?: string | null;
 }
 
@@ -80,6 +82,7 @@ export interface MatchRecipeResult {
   foundIngredients: MatchIngredient[];
   missingIngredients: MatchIngredient[];
   optionalIngredients: MatchIngredient[];
+  stapleIngredients?: MatchIngredient[];
 }
 
 export interface MatchRecipesPayload {
