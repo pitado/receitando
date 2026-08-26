@@ -48,6 +48,7 @@ function isCatalogRoute(path: string): boolean {
   return (
     path === "/api/recipes" ||
     path === "/api/recipes/match" ||
+    path === "/api/recipes/match/pantry" ||
     /^\/api\/recipes\/[^/]+$/.test(path) ||
     path === "/api/ingredients" ||
     path === "/api/sources" ||
