@@ -38,7 +38,7 @@ concurrency:
 
 jobs:
   import:
-    name: descobrir e importar receitas com foto livre
+    name: descobrir importar e canonicalizar receitas
     runs-on: ubuntu-latest
     timeout-minutes: 180
     defaults:
@@ -55,8 +55,10 @@ jobs:
           cache: npm
           cache-dependency-path: backend/worker-prototype/package-lock.json
       - run: npm ci
-      - name: Validar importador
-        run: node --check scripts/import-wikibooks-v2.mjs
+      - name: Validar scripts de catálogo
+        run: |
+          node --check scripts/import-wikibooks-v2.mjs
+          node --check scripts/canonicalize-ingredients.mjs
       - name: Aplicar migrations
         run: npm run migrate:remote
       - name: Importar receitas com imagens livres
@@ -64,3 +66,5 @@ jobs:
         env:
           CATEGORY: ${{ inputs.category }}
           LIMIT: ${{ inputs.limit }}
+      - name: Canonicalizar ingredientes importados
+        run: node scripts/canonicalize-ingredients.mjs
