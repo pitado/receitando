@@ -5,7 +5,7 @@ const {
   hashPassword,
   sha256,
   verifyPassword,
-} = require("../.test-dist/security.js");
+} = require("../.test-dist/lib/security.js");
 
 test("hash de senha usa PBKDF2 e nunca armazena a senha em texto puro", async () => {
   const password = "uma-senha-segura-123";
