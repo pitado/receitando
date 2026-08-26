@@ -1,4 +1,4 @@
-import { apiRequest } from "@/services/api-client";
+import { apiRequest, setTransientBearerToken } from "@/services/api-client";
 import { clearAuthSession, markAuthSession } from "@/services/auth-storage";
 
 export interface AuthUser {
@@ -13,6 +13,7 @@ export interface AuthUser {
 interface AuthSession {
   user: AuthUser;
   expiresAt: string;
+  token?: string;
 }
 
 interface ForgotPasswordResponse {
@@ -28,6 +29,14 @@ interface ResetPasswordResponse {
   message: string;
 }
 
+function adoptSession(session: AuthSession, remember: boolean): AuthUser {
+  // O token só pode aparecer enquanto um backend antigo ainda estiver ativo
+  // durante o deploy. Ele fica apenas em memória e nunca vai para Web Storage.
+  setTransientBearerToken(session.token ?? null);
+  markAuthSession(remember);
+  return session.user;
+}
+
 export async function register(
   name: string,
   email: string,
@@ -36,11 +45,10 @@ export async function register(
 ): Promise<AuthUser> {
   const session = await apiRequest<AuthSession>("/api/auth/register", {
     method: "POST",
-    body: JSON.stringify({ name, email, password, remember }),
+    body: JSON.stringify({ name, email, password, remember, authMode: "cookie-v1" }),
   });
 
-  markAuthSession(remember);
-  return session.user;
+  return adoptSession(session, remember);
 }
 
 export async function login(
@@ -50,11 +58,10 @@ export async function login(
 ): Promise<AuthUser> {
   const session = await apiRequest<AuthSession>("/api/auth/login", {
     method: "POST",
-    body: JSON.stringify({ email, password, remember }),
+    body: JSON.stringify({ email, password, remember, authMode: "cookie-v1" }),
   });
 
-  markAuthSession(remember);
-  return session.user;
+  return adoptSession(session, remember);
 }
 
 export function requestPasswordReset(email: string): Promise<ForgotPasswordResponse> {
@@ -104,6 +111,7 @@ export async function logout(): Promise<void> {
   try {
     await apiRequest<void>("/api/auth/logout", { method: "POST" });
   } finally {
+    setTransientBearerToken(null);
     clearAuthSession();
   }
 }
