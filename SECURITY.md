@@ -1,6 +1,6 @@
 # Política de Segurança
 
-A segurança do Receitando deve ser tratada de forma responsável, especialmente porque o projeto possui autenticação, sessões, recuperação de senha e dados persistentes.
+A segurança do Receitando deve ser tratada de forma responsável, especialmente porque o projeto possui autenticação, sessões, recuperação de senha, conteúdo externo e dados persistentes.
 
 ## Como reportar uma vulnerabilidade
 
@@ -30,12 +30,53 @@ Evite incluir dados reais de terceiros. Use contas e valores de teste.
 - cadastro e login;
 - hash e verificação de senhas;
 - tokens de sessão;
-- recuperação de senha;
+- recuperação de senha e envio pelo Resend;
 - autorização de rotas autenticadas;
+- rate limiting;
 - Cloudflare D1;
 - secrets do GitHub Actions e Cloudflare;
 - CORS e políticas de segurança do frontend;
-- importadores que escrevem dados no banco.
+- importadores que escrevem dados no banco;
+- conteúdo externo exibido no frontend.
+
+## Senhas e tokens
+
+A implementação Worker usa Web Crypto API.
+
+- senhas são derivadas com PBKDF2 e salt aleatório;
+- tokens de sessão são aleatórios e somente seu SHA-256 é persistido;
+- códigos/tokens de recuperação são armazenados de forma derivada/hash;
+- comparações de hashes de senha usam verificação em tempo constante no helper compartilhado.
+
+## Rate limiting
+
+O entrypoint da API aplica proteção versionada para reduzir força bruta e abuso de recursos pagos/limitados.
+
+Os buckets atuais cobrem:
+
+- login por e-mail;
+- login por IP;
+- cadastro por IP;
+- solicitação de recuperação de senha por e-mail;
+- solicitação de recuperação de senha por IP.
+
+Ao atingir o limite, a API responde `429` com `Retry-After`. E-mails e IPs usados nesses controles são persistidos apenas como chaves SHA-256.
+
+Uma regra de WAF/Rate Limiting na borda da Cloudflare pode complementar essa defesa antes de a requisição chegar ao Worker e ao D1.
+
+## Conteúdo externo e XSS
+
+O importador consome conteúdo do Wikilivros, mas o fluxo atual não entrega HTML bruto da fonte para a página de receita.
+
+O importador remove tags/markup aproveitável e persiste conteúdo culinário como texto. O frontend renderiza essas strings como texto React e não utiliza `dangerouslySetInnerHTML` para a receita.
+
+Se futuramente for necessário renderizar HTML rico vindo de fonte externa ou conteúdo criado por usuário, ele deverá passar por sanitização apropriada antes da renderização. HTML externo não deve ser introduzido diretamente em `dangerouslySetInnerHTML`.
+
+## Queries e banco
+
+Valores recebidos por requisições da API devem ser enviados ao D1 por statements preparados com `.bind()`. SQL dinâmico pode ser usado apenas para estrutura controlada internamente, como a quantidade de placeholders `?`, nunca para interpolar texto fornecido pelo usuário.
+
+As migrations usam chaves estrangeiras e políticas de cascata/restrição para proteger integridade referencial.
 
 ## Secrets e credenciais
 
@@ -62,6 +103,6 @@ Correções de vulnerabilidades devem:
 4. evitar expor o exploit em mensagens de commit antes da correção estar disponível;
 5. atualizar documentação relevante quando o comportamento de segurança mudar.
 
-## Conteúdo de terceiros
+## Conteúdo e licenciamento
 
-Questões de licença ou atribuição de receitas/imagens não são vulnerabilidades de segurança, mas devem ser reportadas como problema de conteúdo/licenciamento e corrigidas preservando a procedência da fonte.
+Questões de licença ou atribuição de receitas/imagens não são vulnerabilidades de segurança, mas devem ser corrigidas preservando a procedência da fonte. Consulte [`docs/catalogo.md`](docs/catalogo.md).
