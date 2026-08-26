@@ -43,20 +43,12 @@ function forbiddenOrigin(request: Request, env: Env): Response {
   );
 }
 
-type AuthPreferences = {
-  remember: boolean;
-  cookieOnly: boolean;
-};
-
-async function authPreferences(request: Request): Promise<AuthPreferences> {
+async function rememberPreference(request: Request): Promise<boolean> {
   try {
     const body = (await request.clone().json()) as Record<string, unknown>;
-    return {
-      remember: body.remember === true,
-      cookieOnly: body.authMode === "cookie-v1",
-    };
+    return body.remember === true;
   } catch {
-    return { remember: false, cookieOnly: false };
+    return false;
   }
 }
 
@@ -71,7 +63,7 @@ async function attachSessionCookie(
   request: Request,
   env: Env,
   response: Response,
-  preferences: AuthPreferences,
+  remember: boolean,
 ): Promise<Response> {
   if (!response.ok) return withCredentialCors(request, env, response);
 
@@ -93,26 +85,13 @@ async function attachSessionCookie(
   }
 
   const token = payload.token;
-  const headers = new Headers(response.headers);
-  headers.append("Set-Cookie", buildSessionCookie(request, token, preferences.remember));
-  headers.set("Cache-Control", "no-store");
-
-  // Compatibilidade de deploy: o frontend novo envia authMode=cookie-v1 e não
-  // recebe o token. Clientes antigos continuam recebendo o corpo anterior até
-  // a etapa final da migração, evitando quebra se API e frontend publicarem em
-  // ordens diferentes.
-  if (!preferences.cookieOnly) {
-    const decorated = new Response(response.body, {
-      status: response.status,
-      statusText: response.statusText,
-      headers,
-    });
-    return withCredentialCors(request, env, decorated);
-  }
-
   const { token: _hiddenToken, ...safePayload } = payload as Record<string, unknown>;
   void _hiddenToken;
+
+  const headers = new Headers(response.headers);
+  headers.append("Set-Cookie", buildSessionCookie(request, token, remember));
   headers.set("Content-Type", "application/json; charset=utf-8");
+  headers.set("Cache-Control", "no-store");
 
   const decorated = new Response(JSON.stringify(safePayload), {
     status: response.status,
@@ -149,15 +128,13 @@ export default {
     const isSessionCreation =
       request.method === "POST" &&
       (path === "/api/auth/login" || path === "/api/auth/register");
-    const preferences = isSessionCreation
-      ? await authPreferences(request)
-      : { remember: false, cookieOnly: false };
+    const remember = isSessionCreation ? await rememberPreference(request) : false;
 
     const authenticatedRequest = requestWithCookieAuthorization(request, cookieToken);
     const response = await authRateLimitWorker.fetch(authenticatedRequest, env);
 
     if (isSessionCreation) {
-      return attachSessionCookie(request, env, response, preferences);
+      return attachSessionCookie(request, env, response, remember);
     }
 
     if (request.method === "POST" && path === "/api/auth/logout") {
