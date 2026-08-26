@@ -5,15 +5,7 @@ import {
   getRateLimitStatus,
   recordRateLimitEvent,
 } from "./lib/auth-rate-limit";
-
-interface Env {
-  db: D1Database;
-  FRONTEND_URL: string;
-}
-
-function allowedOrigins(env: Env): string[] {
-  return env.FRONTEND_URL.split(",").map((value) => value.trim()).filter(Boolean);
-}
+import { allowedOrigins, type Env } from "./lib/worker-http";
 
 function tooManyRequests(request: Request, env: Env, retryAfterSeconds: number): Response {
   const headers = new Headers({
