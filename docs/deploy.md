@@ -14,7 +14,7 @@ Este documento descreve como o Receitando é validado, publicado e operado.
 1. **Frontend Next.js**, compilado com OpenNext e publicado em Cloudflare Workers.
 2. **API Cloudflare Worker**, publicada separadamente e persistindo dados em Cloudflare D1.
 
-O backend NestJS/Prisma existente em `backend/` é histórico e não participa do deploy atual.
+A implementação antiga NestJS/Prisma/PostgreSQL foi removida da árvore principal e preservada na branch `legacy/nest-prisma`; ela não participa do CI ou deploy atual.
 
 ## Workflows ativos
 
@@ -30,20 +30,9 @@ Em alterações relevantes do frontend:
 4. `npm run test:coverage`;
 5. `npm run build`.
 
-A suíte usa Vitest/Testing Library e possui limites mínimos de cobertura definidos em `frontend/vitest.config.mts`.
-
 ### `deploy-cloudflare.yml` — frontend
 
-Antes de publicar:
-
-1. instalação pelo lockfile;
-2. lint;
-3. typecheck;
-4. testes com cobertura;
-5. build OpenNext;
-6. deploy na Cloudflare.
-
-Assim o deploy não depende apenas de um CI paralelo já executado.
+Antes de publicar, repete instalação, lint, typecheck, testes com cobertura, build OpenNext e só então deploy.
 
 ### `api-worker-ci.yml` — API
 
@@ -54,9 +43,7 @@ Valida a API com:
 3. `npm test`;
 4. `npm run dry-run`.
 
-`tsconfig.tests.json` compila os Workers e bibliotecas para `.test-dist/`. A suíte usa o test runner nativo do Node.js.
-
-Além das regras puras, existem testes de integração do roteamento que chamam `fetch()` das camadas reais com um D1 simulado. Isso valida fluxos sem escrever no banco de produção.
+A suíte executa regras puras e testes de `fetch()` dos Workers reais com D1 simulado.
 
 ### `deploy-api-cloudflare.yml` — API
 
@@ -73,17 +60,17 @@ Migrations remotas só são aplicadas depois de código, testes e bundle passare
 
 ### `import-wikibooks.yml` — catálogo
 
-Workflow manual que:
+Workflow manual e independente do deploy que:
 
-1. prepara dependências/configuração;
-2. aplica migrations necessárias;
-3. valida o importador;
-4. executa `scripts/import-wikibooks-v2.mjs`;
-5. grava o catálogo no D1.
+1. instala dependências;
+2. valida `import-wikibooks-v2.mjs` e `canonicalize-ingredients.mjs`;
+3. aplica migrations necessárias;
+4. importa receitas e imagens com licença livre;
+5. remove conteúdo que não pertence à política operacional atual conforme a rotina do importador;
+6. canonicaliza ingredientes e aliases;
+7. marca ingredientes básicos e otimiza o D1.
 
-É independente dos deploys da aplicação.
-
-Workflows experimentais substituídos foram removidos da árvore ativa.
+Workflows/importadores experimentais substituídos foram removidos da árvore ativa.
 
 ## Entrypoint da API
 
@@ -93,7 +80,7 @@ O Wrangler publica:
 backend/worker-prototype/src/auth-rate-limit-worker.ts
 ```
 
-O healthcheck atravessa a cadeia de Workers até a camada base e é usado como uma verificação simples pós-deploy.
+Essa camada protege login, cadastro e solicitação de recuperação de senha antes de delegar ao restante da API.
 
 ## Desenvolvimento local
 
@@ -103,12 +90,6 @@ O healthcheck atravessa a cadeia de Workers até a camada base e é usado como u
 cd frontend
 npm ci
 npm run dev
-```
-
-`frontend/.env.local`:
-
-```dotenv
-NEXT_PUBLIC_API_URL=http://localhost:8787
 ```
 
 Validação completa:
@@ -139,22 +120,23 @@ npm run dry-run
 
 ## O que os testes da API cobrem
 
-A suíte atual inclui:
+A suíte inclui:
 
-- normalização e cálculo de matching;
+- normalização e canonicalização de ingredientes;
+- exclusão de staples do cálculo de compatibilidade;
+- uso de FTS5 na busca textual;
 - PBKDF2 e SHA-256;
-- rate limiting de autenticação;
+- rate limiting de login, cadastro e solicitação de recuperação;
 - cadastro e criação de sessão;
 - autorização de despensa/favoritos/perfil;
 - votos e comentários;
 - recuperação de senha sem enumeração de conta;
-- limite canônico de 40 ingredientes;
+- limite de 40 ingredientes;
 - roteamento sem colisão entre detalhe de receita e rotas sociais;
-- atribuição de imagem no contrato da receita;
-- feed da home;
-- delegação pelo entrypoint real.
+- atribuição de imagem;
+- feed da home.
 
-O D1 usado nesses testes é um fake controlado, portanto eles são testes de integração da aplicação e não E2E contra a infraestrutura remota.
+O D1 usado nos testes de rota é simulado; eles não escrevem no banco de produção.
 
 ## Migrations
 
@@ -176,11 +158,13 @@ Remoto:
 npm run migrate:remote
 ```
 
-Migrations já compartilhadas são histórico imutável. Mudanças futuras entram em novos arquivos, sem renumerar os anteriores.
+Migrations já compartilhadas são histórico imutável. Mudanças entram em novos arquivos.
+
+A migration `0015_matching_search_hardening.sql` adiciona `is_staple`, índices adicionais e o índice virtual FTS5 `recipe_search`.
 
 ## Catálogo não faz parte do deploy
 
-Publicar frontend/API não repopula receitas. A importação do Wikilivros/Commons ocorre apenas pelo workflow dedicado.
+Publicar frontend/API não repopula receitas. A importação e canonicalização do Wikilivros/Commons ocorrem apenas pelo workflow dedicado.
 
 ## Secrets
 
@@ -198,18 +182,16 @@ A configuração atual acompanha somente:
 - `/frontend`;
 - `/backend/worker-prototype`.
 
-Minor/patch são agrupados. Majors exigem planejamento/revisão específica.
-
-O backend NestJS histórico não recebe atualização automática porque não é um componente mantido de produção.
-
 ## Checklist pós-deploy da API
 
 1. confirmar sucesso do workflow;
 2. verificar `/api/health`;
 3. confirmar login/cadastro e rate limiting;
-4. consultar catálogo e detalhe de uma receita;
-5. testar uma rota autenticada com conta de teste;
-6. confirmar que nenhuma migration/importação inesperada foi executada.
+4. testar solicitação de recuperação sem exceder o limite;
+5. consultar catálogo e busca textual;
+6. executar um matching com variação de ingrediente e staple;
+7. testar uma rota autenticada com conta de teste;
+8. confirmar que nenhuma importação inesperada foi executada.
 
 ## Segurança operacional
 
