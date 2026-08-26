@@ -4,7 +4,7 @@ Esta pasta contém somente utilitários que fazem parte da operação atual do c
 
 ## `import-wikibooks-v2.mjs`
 
-É o **importador oficial atual** utilizado pelo workflow de produção do catálogo.
+É o **importador oficial atual** utilizado pelo workflow do catálogo.
 
 Responsabilidades:
 
@@ -17,11 +17,36 @@ Responsabilidades:
 - gravar receitas no Cloudflare D1 em lotes;
 - manter apenas o catálogo operacional baseado em Wikilivros/Commons.
 
-Workflow correspondente:
+## `canonicalize-ingredients.mjs`
+
+É executado **depois da importação** para alinhar os ingredientes ao modelo canônico usado pelo matching.
+
+Responsabilidades:
+
+- reduzir variações gramaticais e descrições comuns de preparo para uma chave canônica;
+- preservar a forma original como alias em `ingredient_aliases`;
+- redirecionar relações de receitas e itens da despensa para o ingrediente canônico;
+- evitar duplicidades antes de unir relações;
+- marcar ingredientes básicos (`is_staple`) como água, sal, pimenta e óleo;
+- manter compostos semanticamente diferentes separados, por exemplo `óleo de gergelim torrado` e `óleo`;
+- executar `PRAGMA optimize` ao final da manutenção.
+
+O script não compara ingredientes por substring. A aplicação resolve nomes e aliases normalizados para IDs canônicos.
+
+## Workflow
+
+Os dois scripts fazem parte de:
 
 ```text
 .github/workflows/import-wikibooks.yml
 ```
+
+A sequência operacional é:
+
+1. validar os scripts;
+2. aplicar migrations;
+3. importar receitas e imagens;
+4. canonicalizar os ingredientes importados.
 
 ## Implementações antigas
 
