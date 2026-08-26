@@ -1,4 +1,5 @@
-import baseWorker from "./home-worker";
+import indexWorker from "./index";
+import passwordResetWorker from "./password-reset-worker";
 import {
   clearRateLimitEvents,
   clientIp,
@@ -39,6 +40,14 @@ async function readBody(request: Request): Promise<Record<string, unknown> | nul
   }
 }
 
+function dispatchAuthRoute(request: Request, env: Env): Promise<Response> {
+  const path = new URL(request.url).pathname.replace(/\/+$/, "") || "/";
+  if (path === "/api/auth/forgot-password") {
+    return passwordResetWorker.fetch(request, env);
+  }
+  return indexWorker.fetch(request, env);
+}
+
 async function handleLogin(request: Request, env: Env): Promise<Response> {
   const body = await readBody(request);
   const email = typeof body?.email === "string" ? body.email.trim().toLowerCase() : "";
@@ -59,7 +68,7 @@ async function handleLogin(request: Request, env: Env): Promise<Response> {
     );
   }
 
-  const response = await baseWorker.fetch(request, env);
+  const response = await dispatchAuthRoute(request, env);
 
   if (response.status === 401) {
     if (email) await recordRateLimitEvent(env.db, "login_email", email);
@@ -78,7 +87,7 @@ async function handleRegister(request: Request, env: Env): Promise<Response> {
     if (status.blocked) return tooManyRequests(request, env, status.retryAfterSeconds);
   }
 
-  const response = await baseWorker.fetch(request, env);
+  const response = await dispatchAuthRoute(request, env);
 
   if (ip && (response.status === 201 || response.status === 409)) {
     await recordRateLimitEvent(env.db, "register_ip", ip);
@@ -107,7 +116,7 @@ async function handlePasswordResetRequest(request: Request, env: Env): Promise<R
     );
   }
 
-  const response = await baseWorker.fetch(request, env);
+  const response = await dispatchAuthRoute(request, env);
   if (response.ok) {
     if (email) await recordRateLimitEvent(env.db, "password_reset_email", email);
     if (ip) await recordRateLimitEvent(env.db, "password_reset_ip", ip);
@@ -131,6 +140,6 @@ export default {
       return handlePasswordResetRequest(request, env);
     }
 
-    return baseWorker.fetch(request, env);
+    return indexWorker.fetch(request, env);
   },
 };

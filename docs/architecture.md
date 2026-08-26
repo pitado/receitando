@@ -50,43 +50,57 @@ Apesar do nome histórico, esta é a API atual de produção e a única implemen
 `backend/worker-prototype/wrangler.jsonc` publica:
 
 ```text
-src/auth-rate-limit-worker.ts
+src/session-cookie-worker.ts
 ```
 
-A API utiliza uma cadeia de Workers especializados:
+O entrypoint cuida da sessão por cookie `HttpOnly`, CORS credenciado e proteção de `Origin` para mutações. Depois disso, ele delega a requisição para `app-router.ts`.
 
-```text
-auth-rate-limit-worker
-        ↓
-home-worker
-        ↓
-catalog64-worker
-        ↓
-social-worker
-        ↓
-profile-worker
-        ↓
-password-reset-worker
-        ↓
-pantry-worker
-        ↓
-index
+### Roteamento central
+
+O runtime não depende mais de uma longa corrente em que cada Worker tenta reconhecer a rota e repassa para o próximo. `app-router.ts` escolhe diretamente o módulo responsável pela rota:
+
+```mermaid
+flowchart TD
+    S[session-cookie-worker]
+    R[app-router]
+    RL[auth-rate-limit-worker]
+    H[home-worker]
+    C[catalog64-worker]
+    SO[social-worker]
+    P[profile-worker]
+    PR[password-reset-worker]
+    PA[pantry-worker]
+    I[index]
+
+    S --> R
+    R -->|login/cadastro/forgot-password| RL
+    R -->|home-feed| H
+    R -->|catálogo/matching/favoritos| C
+    R -->|votos/comentários| SO
+    R -->|perfil| P
+    R -->|verify/reset password| PR
+    R -->|despensa| PA
+    R -->|health/logout/fallback| I
 ```
 
-- `auth-rate-limit-worker`: rate limiting de login, cadastro e solicitação de recuperação;
-- `home-worker`: `/api/home-feed`;
-- `catalog64-worker`: fontes, ingredientes, busca FTS5, catálogo, detalhe, favoritos e matching;
-- `social-worker`: votos e comentários;
-- `profile-worker`: leitura e atualização do perfil;
-- `password-reset-worker`: solicitação, validação e conclusão da recuperação de senha;
-- `pantry-worker`: despensa;
-- `index`: healthcheck, cadastro, login, sessão atual, logout e fallback final.
+Responsabilidades:
 
-Rotas antigas de catálogo/matching que existiam também em `index.ts` foram removidas para existir **uma única implementação canônica** em `catalog64-worker.ts`.
+- `session-cookie-worker.ts`: cookie `HttpOnly`, CORS credenciado e defesa adicional contra CSRF;
+- `app-router.ts`: dispatcher central de rotas;
+- `auth-rate-limit-worker.ts`: rate limiting de login, cadastro e solicitação de recuperação;
+- `home-worker.ts`: `/api/home-feed`;
+- `catalog64-worker.ts`: fontes, ingredientes, busca FTS5, catálogo, detalhe, favoritos e matching;
+- `social-worker.ts`: votos e comentários;
+- `profile-worker.ts`: leitura e atualização do perfil;
+- `password-reset-worker.ts`: solicitação, validação e conclusão da recuperação de senha;
+- `pantry-worker.ts`: despensa;
+- `index.ts`: healthcheck, cadastro, login, logout e fallback final.
+
+As rotas antigas de catálogo/matching que existiam também em `index.ts` foram removidas. A implementação canônica fica em `catalog64-worker.ts`.
 
 ### Infraestrutura HTTP compartilhada
 
-`src/lib/worker-http.ts` centraliza o contrato `Env` e helpers de CORS, respostas JSON/erro e autenticação. `src/lib/recipe-utils.ts` concentra normalização canônica e regras puras do matching.
+`src/lib/worker-http.ts` centraliza o contrato `Env` e helpers de CORS, respostas JSON/erro e autenticação interna. `src/lib/session-cookie.ts` concentra a política do cookie de sessão. `src/lib/recipe-utils.ts` concentra normalização canônica e regras puras do matching.
 
 O `tsconfig.json` valida todo `src/**/*.ts`.
 
@@ -106,11 +120,13 @@ A integridade referencial é definida por chaves estrangeiras com `CASCADE`/`RES
 
 ## Autenticação e proteção contra abuso
 
-No contrato atualmente publicado, o login cria um token aleatório de sessão e o banco guarda somente seu SHA-256. Senhas são derivadas com PBKDF2 via Web Crypto, usando salt aleatório por hash.
+O navegador recebe a sessão por cookie `HttpOnly`. Em produção o cookie usa `Secure`, `SameSite=Strict`, prefixo `__Host-` e `Path=/`. O frontend usa `credentials: "include"` e não persiste token bruto em `localStorage` ou `sessionStorage`.
 
-Recuperações usam código temporário, limite de tentativas e token de reset armazenados apenas de forma derivada/hash.
+Internamente, o Worker cria um token aleatório de sessão e o D1 armazena somente seu SHA-256. O entrypoint extrai o cookie e o converte para o mecanismo interno de autorização usado pelos módulos atuais; esse Bearer interno não faz parte do contrato público do frontend.
 
-Antes de delegar a essas rotas, o entrypoint mantém buckets em D1 para:
+Senhas são derivadas com PBKDF2 via Web Crypto, usando salt aleatório por hash. Recuperações usam código temporário, limite de tentativas e token de reset armazenados apenas de forma derivada/hash.
+
+Antes de login, cadastro e solicitação de recuperação, a camada de rate limiting mantém buckets em D1 para:
 
 - login por e-mail e IP;
 - cadastro por IP;

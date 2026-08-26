@@ -51,40 +51,39 @@ Apesar do nome histórico, esta é a **API atual de produção**.
 O entrypoint efetivamente publicado é definido em `wrangler.jsonc` e atualmente é:
 
 ```text
-src/auth-rate-limit-worker.ts
+src/session-cookie-worker.ts
 ```
 
-A API é organizada em uma cadeia de camadas:
+A API usa um dispatcher central em vez de depender de uma corrente linear de fallbacks:
 
 ```text
-auth-rate-limit-worker
+session-cookie-worker
         ↓
-home-worker
-        ↓
-catalog64-worker
-        ↓
-social-worker
-        ↓
-profile-worker
-        ↓
-password-reset-worker
-        ↓
-pantry-worker
-        ↓
-index
+app-router
+   ├── auth-rate-limit-worker → index / password-reset-worker
+   ├── home-worker
+   ├── catalog64-worker
+   ├── social-worker
+   ├── profile-worker
+   ├── password-reset-worker
+   ├── pantry-worker
+   └── index
 ```
 
 Responsabilidades:
 
+- `session-cookie-worker.ts`: sessão por cookie `HttpOnly`, CORS credenciado e proteção de `Origin`;
+- `app-router.ts`: roteamento central e escolha direta do módulo responsável;
 - `auth-rate-limit-worker.ts`: proteção contra abuso de login, cadastro e solicitação de recuperação de senha;
 - `home-worker.ts`: feed da home;
-- `catalog64-worker.ts`: fontes, ingredientes, catálogo, detalhe por slug, busca FTS5 e matching;
+- `catalog64-worker.ts`: fontes, ingredientes, catálogo, detalhe por slug, busca FTS5, favoritos e matching;
 - `social-worker.ts`: votos e comentários;
 - `profile-worker.ts`: consulta e atualização de perfil;
 - `password-reset-worker.ts`: recuperação de senha e Resend;
 - `pantry-worker.ts`: despensa;
-- `index.ts`: cadastro, login, sessão, logout, healthcheck e fallback final;
+- `index.ts`: cadastro, login, logout, healthcheck e fallback final;
 - `lib/worker-http.ts`: helpers HTTP/CORS/autenticação compartilhados;
+- `lib/session-cookie.ts`: construção e leitura do cookie de sessão;
 - `lib/recipe-utils.ts`: normalização canônica e regras do matching.
 
 Rotas de catálogo/matching que eram duplicadas em `index.ts` foram removidas. A implementação canônica dessas rotas é `catalog64-worker.ts`.
@@ -97,7 +96,7 @@ A suíte fica em `backend/worker-prototype/tests/` e é executada com:
 npm test
 ```
 
-Ela cobre matching, normalização de ingredientes, segurança, rate limiting e rotas críticas do Worker.
+Ela cobre matching, normalização de ingredientes, segurança, rate limiting, roteamento central e rotas críticas do Worker.
 
 ## Catálogo e scripts
 
@@ -165,13 +164,14 @@ A licença do projeto não substitui as licenças próprias das receitas e image
 
 Ao adicionar uma funcionalidade:
 
-1. alterar o componente ativo correto;
-2. criar migration nova quando o schema mudar;
-3. atualizar contrato da API e tipos do frontend;
-4. incluir teste de regressão/integração adequado ao risco;
-5. atualizar a documentação relacionada;
-6. remover implementações substituídas em vez de manter código morto;
-7. abrir PR e aguardar os checks de CI.
+1. registrar a rota no `app-router.ts` quando necessário;
+2. alterar o módulo ativo responsável;
+3. criar migration nova quando o schema mudar;
+4. atualizar contrato da API e tipos do frontend;
+5. incluir teste de regressão/integração adequado ao risco;
+6. atualizar a documentação relacionada;
+7. remover implementações substituídas em vez de manter código morto;
+8. abrir PR e aguardar os checks de CI.
 
 ## Documentos relacionados
 

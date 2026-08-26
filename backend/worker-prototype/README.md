@@ -9,34 +9,34 @@ O nome `worker-prototype` é histórico. Hoje o diretório concentra autenticaç
 `wrangler.jsonc` publica:
 
 ```text
-src/auth-rate-limit-worker.ts
+src/session-cookie-worker.ts
 ```
 
-Essa camada protege login, cadastro e solicitação de recuperação de senha contra abuso e delega as demais requisições pela cadeia funcional.
+Essa camada controla a sessão por cookie `HttpOnly`, CORS credenciado e validação de `Origin`. Em seguida, ela envia a requisição ao dispatcher central `app-router.ts`.
 
-## Cadeia atual
+## Roteamento atual
 
 ```text
-auth-rate-limit-worker
+session-cookie-worker
         ↓
-home-worker
-        ↓
-catalog64-worker
-        ↓
-social-worker
-        ↓
-profile-worker
-        ↓
-password-reset-worker
-        ↓
-pantry-worker
-        ↓
-index
+app-router
+   ├── auth-rate-limit-worker → index / password-reset-worker
+   ├── home-worker
+   ├── catalog64-worker
+   ├── social-worker
+   ├── profile-worker
+   ├── password-reset-worker
+   ├── pantry-worker
+   └── index
 ```
+
+O roteador escolhe diretamente o módulo responsável, evitando que toda requisição atravesse uma cadeia completa de Workers até encontrar a rota certa.
 
 Responsabilidades:
 
-- `auth-rate-limit-worker.ts`: rate limiting de login/cadastro/reset;
+- `session-cookie-worker.ts`: cookie `HttpOnly`, CORS credenciado e defesa adicional contra CSRF;
+- `app-router.ts`: dispatcher central;
+- `auth-rate-limit-worker.ts`: rate limiting de login/cadastro/solicitação de reset;
 - `home-worker.ts`: `/api/home-feed`;
 - `catalog64-worker.ts`: fontes, ingredientes, FTS5, receitas, detalhe, matching e favoritos;
 - `social-worker.ts`: votos e comentários;
@@ -49,7 +49,9 @@ As implementações duplicadas de catálogo/matching que existiam em `index.ts` 
 
 ## Bibliotecas compartilhadas
 
-`src/lib/worker-http.ts` centraliza CORS, respostas JSON/erro, Bearer token, sessão e parsing de JSON.
+`src/lib/worker-http.ts` centraliza CORS, respostas JSON/erro, autorização interna e parsing de JSON.
+
+`src/lib/session-cookie.ts` centraliza leitura, criação e expiração do cookie de sessão.
 
 `src/lib/security.ts` centraliza PBKDF2, verificação de senha, SHA-256 e conversões usadas por autenticação/recuperação.
 
@@ -85,6 +87,18 @@ A listagem de receitas usa a tabela virtual FTS5 `recipe_search` quando o parâm
 
 A consulta usa `MATCH` e `bm25()` em vez de `LIKE '%termo%'`. Triggers no D1 mantêm título e descrição sincronizados com a tabela `recipes`.
 
+## Sessão
+
+O frontend autentica exclusivamente por cookie de sessão. Em produção ele usa:
+
+- `HttpOnly`;
+- `Secure`;
+- `SameSite=Strict`;
+- prefixo `__Host-`;
+- `Path=/`.
+
+O token bruto não faz parte do contrato público de login/cadastro. O D1 persiste somente seu SHA-256.
+
 ## Execução local
 
 ```bash
@@ -116,6 +130,7 @@ A suíte cobre regras puras e rotas/persistência simulada, incluindo:
 - votos/comentários;
 - recuperação sem enumeração de conta;
 - rate limiting;
+- roteamento central;
 - atribuição de imagem;
 - feed da home.
 
@@ -145,8 +160,10 @@ worker-prototype/
 │   ├── import-wikibooks-v2.mjs
 │   └── canonicalize-ingredients.mjs
 ├── src/
+│   ├── app-router.ts
+│   ├── session-cookie-worker.ts
 │   ├── lib/
-│   └── ... workers atuais
+│   └── ... workers por domínio
 ├── tests/
 ├── package.json
 ├── package-lock.json

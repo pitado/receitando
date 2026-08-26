@@ -46,7 +46,7 @@ A suíte atual cobre:
 - montagem de URL e headers;
 - tratamento de erros HTTP, rede e respostas inválidas;
 - autenticação no frontend;
-- armazenamento da sessão usado pelo contrato atual;
+- armazenamento do indicador não sensível de sessão;
 - serviços de cadastro, login, logout, perfil e recuperação;
 - catálogo e matching;
 - despensa;
@@ -85,17 +85,19 @@ Os testes cobrem:
 - salt aleatório;
 - rejeição de hashes inválidos;
 - SHA-256;
-- políticas e janelas de rate limiting.
+- políticas e janelas de rate limiting;
+- construção/leitura/expiração do cookie de sessão.
 
 ### Integração dos Workers
 
-`tests/worker-routes.test.cjs` chama os Workers compilados reais e injeta um D1 fake controlado.
+`tests/worker-routes.test.cjs` chama os Workers compilados reais e injeta um D1 fake controlado. `tests/app-router.test.cjs` protege o dispatcher central e verifica que famílias de rotas chegam ao módulo correto.
 
 Isso permite testar roteamento e persistência sem escrever em produção.
 
 Casos protegidos incluem:
 
-- entrypoint `auth-rate-limit-worker.ts` e healthcheck;
+- healthcheck e handlers base;
+- roteamento central de perfil, despensa, matching, social e autenticação limitada;
 - cadastro e criação de sessão;
 - ausência das antigas rotas duplicadas de catálogo em `index.ts`;
 - autorização da despensa;
@@ -111,15 +113,17 @@ Casos protegidos incluem:
 
 ## O que não é E2E
 
-Os testes da API não utilizam:
+Os testes atuais não utilizam, em conjunto, um navegador real + frontend servido + API/D1 local/remoto como uma única jornada completa.
+
+Também não utilizam:
 
 - D1 remoto de produção;
-- Cloudflare Worker publicado;
+- Cloudflare Worker publicado como alvo da suíte comum;
 - envio real do Resend;
 - contas reais;
 - dados privados de usuários.
 
-Portanto, eles são testes unitários/integração de aplicação, não uma suíte E2E contra a infraestrutura externa.
+Portanto, a suíte atual é composta por testes unitários e de integração de aplicação. Uma suíte E2E de navegador continua sendo uma camada adicional de qualidade, não um requisito para os checks atuais.
 
 ## CI
 
@@ -167,7 +171,7 @@ Mudanças nas seguintes áreas devem receber teste de regressão sempre que poss
 
 ## Backend histórico
 
-O NestJS/Prisma diretamente em `backend/` não faz parte da produção atual. Seu teste antigo é preservado como histórico, mas essa implementação não participa do CI oficial do produto.
+O NestJS/Prisma arquivado não faz parte da produção atual e não participa do CI oficial do produto.
 
 Isso é intencional: o projeto não trata código histórico como um segundo backend ativo. Novas funcionalidades e testes devem ser adicionados à API em `backend/worker-prototype/`.
 
