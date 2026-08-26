@@ -148,7 +148,9 @@ Quando uma implementação for substituída e o histórico já estiver preservad
 
 ## Conteúdo e licenças
 
-MIT cobre o código original do projeto; não substitui licenças de terceiros.
+O código original do projeto é disponibilizado sob **GNU Affero General Public License v3.0 (AGPL-3.0-only)**. Contribuições ao código devem ser compatíveis com essa licença.
+
+A licença do projeto não substitui as licenças próprias de receitas, imagens e outros conteúdos de terceiros.
 
 Não remova fonte, autoria, licença ou URL de atribuição de conteúdo importado.
 

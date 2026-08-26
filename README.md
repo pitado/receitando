@@ -2,7 +2,7 @@
 
 [![Frontend CI](https://github.com/pitado/receitando/actions/workflows/ci.yml/badge.svg)](https://github.com/pitado/receitando/actions/workflows/ci.yml)
 [![API Worker CI](https://github.com/pitado/receitando/actions/workflows/api-worker-ci.yml/badge.svg)](https://github.com/pitado/receitando/actions/workflows/api-worker-ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![License: GNU AGPLv3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
 
 O **Receitando** é uma aplicação web acadêmica que ajuda a descobrir receitas a partir dos ingredientes que a pessoa já possui.
 
@@ -381,7 +381,7 @@ A configuração atual monitora somente:
 
 Regras de branches, testes, migrations, documentação e PRs: [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
-O código original do Receitando é disponibilizado sob **MIT License**. A MIT não altera as licenças das receitas e imagens importadas.
+O código original do Receitando é disponibilizado sob **GNU Affero General Public License v3.0 (AGPL-3.0-only)**. Essa licença não altera as licenças próprias das receitas e imagens importadas de terceiros.
 
 ## Documentação
 

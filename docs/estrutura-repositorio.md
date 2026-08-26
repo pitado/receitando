@@ -22,7 +22,7 @@ receitando/
 ├── frontend/                       aplicação Next.js
 ├── CONTRIBUTING.md                 guia de contribuição
 ├── SECURITY.md                     política de segurança
-├── LICENSE                         licença MIT do código original
+├── LICENSE                         GNU AGPLv3 do código original
 ├── CHANGELOG.md                    mudanças relevantes
 ├── README.md                       visão geral do projeto
 └── .env.example                    referência de configuração sem secrets reais
@@ -157,9 +157,9 @@ O `dependabot.yml` acompanha somente:
 
 - `CONTRIBUTING.md`: fluxo de contribuição e validações;
 - `SECURITY.md`: reporte responsável de vulnerabilidades;
-- `LICENSE`: MIT para o código original do projeto.
+- `LICENSE`: GNU Affero General Public License v3.0 (AGPL-3.0-only) para o código original do projeto.
 
-A MIT não substitui as licenças das receitas e imagens importadas.
+A licença do projeto não substitui as licenças próprias das receitas e imagens importadas.
 
 ## Regra para novas funcionalidades
 
