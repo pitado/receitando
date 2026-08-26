@@ -1,32 +1,69 @@
 # API do Receitando — Cloudflare Worker + D1
 
-Este diretório contém a **API atualmente usada pelo Receitando em produção**.
+Este diretório contém a **API atual de produção** do Receitando.
 
-O nome `worker-prototype` é histórico. A implementação deixou de ser um protótipo e hoje concentra autenticação, catálogo, matching, despensa, favoritos, perfil, recuperação de senha, feed, votos e comentários.
+O nome `worker-prototype` é histórico. Hoje o diretório concentra autenticação, catálogo, matching, despensa, favoritos, perfil, recuperação de senha, feed, votos, comentários, rate limiting e persistência no Cloudflare D1.
 
-## Arquitetura
+## Entrypoint
 
-```text
-Frontend Next.js
-      │
-      ▼
-Cloudflare Worker API
-      │
-      ├── Cloudflare D1
-      └── Resend
-```
-
-O frontend nunca acessa o D1 diretamente.
-
-## Ponto de entrada
-
-O `wrangler.jsonc` aponta para:
+`wrangler.jsonc` publica:
 
 ```text
 src/auth-rate-limit-worker.ts
 ```
 
-Essa camada aplica proteção contra abuso nas rotas de login e cadastro e, quando a requisição pode continuar, encaminha para `src/home-worker.ts`. A partir daí, as camadas funcionais da API são encadeadas até `src/index.ts`.
+Essa camada protege login/cadastro contra abuso e delega as demais requisições pela cadeia funcional.
+
+## Cadeia atual
+
+```text
+auth-rate-limit-worker
+        ↓
+home-worker
+        ↓
+catalog64-worker
+        ↓
+social-worker
+        ↓
+profile-worker
+        ↓
+password-reset-worker
+        ↓
+pantry-worker
+        ↓
+index
+```
+
+Responsabilidades:
+
+- `auth-rate-limit-worker.ts`: limite de tentativas de autenticação/cadastro;
+- `home-worker.ts`: `/api/home-feed`;
+- `catalog64-worker.ts`: fontes, ingredientes, receitas, detalhe, matching e favoritos;
+- `social-worker.ts`: votos e comentários;
+- `profile-worker.ts`: `/api/auth/me`;
+- `password-reset-worker.ts`: recuperação de senha e Resend;
+- `pantry-worker.ts`: despensa;
+- `index.ts`: healthcheck, cadastro, login, logout e fallback final.
+
+As implementações antigas de catálogo/matching que existiam também em `index.ts` foram removidas. A rota de detalhe canônica é `/api/recipes/:slug` e o matching manual possui um único limite de 40 ingredientes.
+
+## Infraestrutura compartilhada
+
+`src/lib/worker-http.ts` concentra:
+
+- interface `Env`;
+- origens autorizadas;
+- headers de CORS;
+- respostas JSON;
+- respostas de erro;
+- respostas vazias;
+- extração do Bearer token;
+- resolução básica de sessão;
+- parsing seguro de JSON.
+
+`src/lib/security.ts` concentra PBKDF2, verificação em tempo constante, SHA-256 e conversões utilizadas por autenticação/recuperação.
+
+Essa centralização reduz divergências entre Workers.
 
 ## Execução local
 
@@ -36,13 +73,13 @@ npm run migrate:local
 npm run dev
 ```
 
-A API local fica normalmente em:
+API padrão:
 
 ```text
 http://localhost:8787
 ```
 
-## Validação e testes
+## Validação
 
 ```bash
 npm run typecheck
@@ -50,102 +87,93 @@ npm test
 npm run dry-run
 ```
 
-O `typecheck` cobre todos os arquivos TypeScript em `src/`. O `npm test` executa a suíte automatizada com o test runner nativo do Node.js, e o `dry-run` valida o bundle/configuração do Worker sem publicar.
+- `typecheck`: valida todo `src/**/*.ts`;
+- `test`: compila os Workers/bibliotecas para `.test-dist/` e executa `tests/*.test.cjs`;
+- `dry-run`: valida o bundle/configuração do Wrangler sem publicar.
 
-A cobertura automatizada inclui regras usadas pelo código real de produção:
+## Testes
+
+A suíte possui duas camadas.
+
+### Regras puras
 
 - normalização de ingredientes;
-- cálculo de compatibilidade;
-- classificação `READY` / `ALMOST_READY` / `NEAR` / `EXPLORE`;
-- hash PBKDF2 de senhas;
+- percentual/status do matching;
+- PBKDF2;
 - verificação de senha;
 - salt aleatório;
-- hashes inválidos;
-- SHA-256 usado no tratamento de tokens;
-- políticas de rate limiting de autenticação;
-- expiração da janela de bloqueio;
-- limpeza de tentativas de login após autenticação bem-sucedida;
-- armazenamento apenas de hash do e-mail/IP usado pelos buckets de limitação.
+- SHA-256;
+- políticas de rate limiting.
 
-Os helpers testáveis ficam em `src/lib/`. A compilação específica dos testes é definida por `tsconfig.tests.json`, gera arquivos temporários em `.test-dist/` e é seguida pelos testes em `tests/*.test.cjs`.
+### Rotas e persistência simulada
 
-Essas validações fazem parte do CI e, para a API, também antecedem migrations e deploy de produção.
+`tests/worker-routes.test.cjs` executa `fetch()` dos Workers reais usando um D1 fake controlado.
 
-## Proteção de autenticação
+Entre os casos cobertos:
 
-A API mantém uma defesa versionada no próprio Worker para reduzir força bruta e criação automatizada de contas.
+- entrypoint real e healthcheck;
+- cadastro/sessão;
+- ausência das rotas duplicadas antigas em `index.ts`;
+- despensa autenticada;
+- catálogo como dono canônico das rotas de receita;
+- limite de 40 ingredientes;
+- não colisão de detalhe por slug com rotas sociais;
+- atribuição completa de imagem;
+- favoritos;
+- perfil;
+- votos/comentários;
+- recuperação sem enumeração de e-mail;
+- feed da home.
 
-Políticas atuais:
+Esses testes não acessam o D1 remoto nem enviam e-mail real.
 
-- login por e-mail: até **5 falhas em 15 minutos**;
-- login por IP: até **20 falhas em 15 minutos**;
-- cadastro por IP: até **5 tentativas válidas em 1 hora**.
+## Rate limiting
 
-Quando o limite é atingido, a API responde com HTTP `429` e `Retry-After`. As chaves de limitação são persistidas no D1 apenas como SHA-256; e-mails e IPs não são gravados em texto puro nessa tabela. Eventos antigos são removidos de forma oportunista.
+Políticas versionadas no Worker:
 
-O IP usado é `CF-Connecting-IP`, fornecido pela Cloudflare em produção. Uma regra de Rate Limiting/WAF na borda da Cloudflare continua recomendada como segunda camada de defesa, porque ela pode barrar tráfego antes de chegar ao Worker e ao D1.
+- login por e-mail: **5 falhas / 15 minutos**;
+- login por IP: **20 falhas / 15 minutos**;
+- cadastro por IP: **5 tentativas / 1 hora**.
+
+Ao atingir o limite, a API responde `429` com `Retry-After`.
+
+E-mail/IP usados nos buckets são persistidos apenas como SHA-256. Em produção, o IP vem de `CF-Connecting-IP`.
+
+Uma regra adicional no WAF/Rate Limiting da Cloudflare pode ser usada como defesa de borda complementar.
 
 ## Estrutura
 
 ```text
 worker-prototype/
-├── migrations/        schema e evoluções do Cloudflare D1
-├── scripts/           importador atual e scripts históricos documentados
+├── migrations/              histórico versionado do D1
+├── scripts/
+│   ├── README.md
+│   └── import-wikibooks-v2.mjs
 ├── src/
-│   ├── lib/           regras puras reutilizadas e testáveis
-│   └── ...            implementação atual da API Worker
-├── tests/             testes automatizados
-├── package.json       scripts e dependências
-├── tsconfig.json      configuração TypeScript da API
-├── tsconfig.tests.json compilação dos helpers testados
-├── worker-configuration.d.ts tipos do ambiente Cloudflare
-└── wrangler.jsonc     entrypoint, domínio, vars e binding D1
+│   ├── lib/
+│   └── ... workers atuais
+├── tests/
+├── package.json
+├── package-lock.json
+├── tsconfig.json
+├── tsconfig.tests.json
+├── worker-configuration.d.ts
+└── wrangler.jsonc
 ```
 
-Arquivos antigos de uma tentativa NestJS/Prisma/Hyperdrive que estavam misturados a `src/` foram removidos desta estrutura. O código NestJS preservado como histórico fica no diretório `backend/`, fora da API atual.
+Importadores experimentais substituídos foram removidos da árvore atual; o histórico permanece no Git.
 
-## Workers encadeados
+## Dependências
 
-A implementação atual é dividida em camadas que atendem grupos de rotas e encaminham as demais para a próxima camada.
+A API atual usa D1 diretamente. Dependências antigas de PostgreSQL/Prisma (`pg`, `@prisma/adapter-pg`, `@types/pg`) foram removidas deste pacote porque não eram importadas pelo código de produção.
+
+## Banco
+
+Binding:
 
 ```text
-auth-rate-limit-worker
-   ↓
-home-worker
-   ↓
-catalog64-worker
-   ↓
-social-worker
-   ↓
-profile-worker
-   ↓
-password-reset-validation-worker
-   ↓
-password-reset-worker
-   ↓
-pantry-worker
-   ↓
-index
+db → Cloudflare D1 / receitando
 ```
-
-Arquivos principais:
-
-- `src/auth-rate-limit-worker.ts`: proteção de login/cadastro e entrypoint publicado;
-- `src/home-worker.ts`: feed da home;
-- `src/catalog64-worker.ts`: fontes, catálogo, ingredientes e matching;
-- `src/social-worker.ts`: votos e comentários;
-- `src/profile-worker.ts`: perfil autenticado;
-- `src/password-reset-validation-worker.ts`: validações do fluxo de recuperação;
-- `src/password-reset-worker.ts`: recuperação de senha e integração de e-mail;
-- `src/pantry-worker.ts`: despensa e favoritos;
-- `src/index.ts`: autenticação e rotas-base;
-- `src/lib/auth-rate-limit.ts`: regras e persistência dos buckets de limitação;
-- `src/lib/recipe-utils.ts`: normalização e regras puras de matching;
-- `src/lib/security.ts`: hash/verificação de senha e SHA-256 reutilizáveis.
-
-## Banco de dados
-
-A persistência usa **Cloudflare D1** com binding `db`.
 
 Migrations:
 
@@ -153,87 +181,81 @@ Migrations:
 migrations/
 ```
 
-Aplicar localmente:
+Comandos:
 
 ```bash
 npm run migrate:local
-```
-
-Aplicar remotamente:
-
-```bash
 npm run migrate:remote
 ```
 
-Migrations já aplicadas não devem ser reescritas; mudanças de schema entram em novos arquivos numerados.
+Migrations já aplicadas não são reescritas. `0008b_prepare_catalog_v3b.sql` é uma etapa histórica intencional e está explicada em [`../../docs/database.md`](../../docs/database.md).
 
 ## Catálogo
 
-O catálogo oficial atual utiliza:
+Fonte operacional:
 
-- Wikilivros em português para conteúdo;
-- Wikimedia Commons para imagens livres.
+- Wikilivros em português;
+- Wikimedia Commons.
 
-O importador operacional atual é:
+Script:
 
 ```text
 scripts/import-wikibooks-v2.mjs
 ```
 
-O workflow correspondente é:
+Workflow:
 
 ```text
 .github/workflows/import-wikibooks.yml
 ```
 
-A pasta `scripts/` também contém arquivos históricos de experimentos anteriores, identificados em [`scripts/README.md`](scripts/README.md). Eles não representam a fonte atual de produção.
+A API retorna procedência da receita em `source` e procedência específica da imagem em `image`.
+
+## Recuperação de senha
+
+A solicitação utiliza uma resposta genérica para e-mails válidos, exista ou não uma conta. Isso evita enumeração de usuários.
+
+Códigos:
+
+- expiram;
+- possuem limite de tentativas;
+- são armazenados por PBKDF2;
+- geram um token temporário persistido somente como hash.
+
+Depois da troca de senha, sessões existentes do usuário são invalidadas.
 
 ## Variáveis e secrets
 
-Variáveis não secretas podem ficar em `wrangler.jsonc` ou em arquivos `.env.example` seguros.
+- `db`: binding D1;
+- `FRONTEND_URL`: origens aceitas;
+- `EMAIL_FROM`: remetente do reset;
+- `RESEND_API_KEY`: **secret**.
 
-Bindings/variáveis atuais relevantes:
-
-- `db`: banco Cloudflare D1;
-- `FRONTEND_URL`: origens permitidas do frontend;
-- `EMAIL_FROM`: remetente da recuperação de senha;
-- `RESEND_API_KEY`: secret da integração de e-mail.
-
-Secrets reais não devem ser commitados. Credenciais de Cloudflare utilizadas no GitHub Actions também ficam armazenadas como secrets do repositório.
-
-A tabela consolidada de variáveis está no [`../../README.md`](../../README.md).
+Credenciais reais de Cloudflare/Resend nunca devem ser commitadas.
 
 ## Deploy
 
-O deploy da API é separado do frontend.
+O workflow de produção executa:
 
-A rotina de produção:
+1. `npm ci`;
+2. `npm run typecheck`;
+3. `npm test`;
+4. `npm run dry-run`;
+5. migrations remotas;
+6. deploy do Worker.
 
-1. instala dependências;
-2. executa o typecheck de toda a API;
-3. executa os testes automatizados;
-4. executa `dry-run` do Worker;
-5. aplica migrations remotas;
-6. publica o Worker.
+Detalhes: [`../../docs/deploy.md`](../../docs/deploy.md).
 
-A migration de rate limiting é aplicada antes de o novo entrypoint ser publicado, evitando que o Worker novo seja ativado sem a tabela necessária.
+## Backend histórico
 
-Mais detalhes em [`../../docs/deploy.md`](../../docs/deploy.md).
+O NestJS/Prisma/PostgreSQL diretamente em `backend/` é uma implementação anterior preservada apenas como referência. Ele não é chamado, compilado nem publicado por esta API.
 
-## Segurança
+## Documentação
 
-O procedimento de reporte responsável está em [`../../SECURITY.md`](../../SECURITY.md). Vulnerabilidades com detalhes exploráveis não devem ser abertas como issues públicas.
-
-## Documentação relacionada
-
-- [`../../README.md`](../../README.md)
-- [`../../CONTRIBUTING.md`](../../CONTRIBUTING.md)
-- [`../../SECURITY.md`](../../SECURITY.md)
-- [`../../docs/README.md`](../../docs/README.md)
-- [`../../docs/escopo.md`](../../docs/escopo.md)
-- [`../../docs/funcionalidades.md`](../../docs/funcionalidades.md)
 - [`../../docs/architecture.md`](../../docs/architecture.md)
 - [`../../docs/api.md`](../../docs/api.md)
 - [`../../docs/database.md`](../../docs/database.md)
 - [`../../docs/catalogo.md`](../../docs/catalogo.md)
 - [`../../docs/deploy.md`](../../docs/deploy.md)
+- [`../../SECURITY.md`](../../SECURITY.md)
+- [`../../CONTRIBUTING.md`](../../CONTRIBUTING.md)
