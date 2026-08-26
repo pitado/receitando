@@ -44,13 +44,3 @@ export function clearAuthSession(): void {
   window.sessionStorage.removeItem(AUTH_SESSION_HINT_KEY);
   notifyAuthChange();
 }
-
-// Compatibilidade temporária com componentes que verificam apenas a existência
-// de uma sessão conhecida. Nenhuma credencial é retornada ou persistida aqui.
-export function getAuthToken(): string | null {
-  return hasAuthSessionHint() ? "http-only-cookie-session" : null;
-}
-
-export function clearAuthToken(): void {
-  clearAuthSession();
-}
