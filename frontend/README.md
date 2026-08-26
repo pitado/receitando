@@ -1,86 +1,99 @@
 # Frontend do Receitando
 
-Aplicação web do Receitando construída com **Next.js**, **React** e **TypeScript**, publicada em **Cloudflare Workers** por meio do OpenNext.
+Aplicação web construída com **Next.js**, **React** e **TypeScript**, publicada em Cloudflare Workers por meio do OpenNext.
 
 ## Responsabilidades
 
-O frontend é responsável por:
+- navegação/layout;
+- catálogo e detalhe de receitas;
+- matching por ingredientes;
+- despensa e favoritos;
+- cadastro/login/logout;
+- perfil e recuperação de senha;
+- votos e comentários;
+- feed da home;
+- estados de loading, erro, vazio e 404;
+- apresentação de procedência/licença das receitas e imagens.
 
-- navegação e layout;
-- autenticação no cliente;
-- catálogo e detalhes de receitas;
-- busca e combinação por ingredientes;
-- uso da despensa do usuário;
-- favoritos;
-- perfil;
-- recuperação de senha;
-- avaliações e comentários;
-- feed da página inicial;
-- tratamento de carregamento, erros e página 404.
+Toda persistência passa pela API; o frontend não acessa D1 diretamente.
 
-Toda persistência é feita pela API. O frontend não acessa o D1 diretamente.
-
-## Estrutura principal
+## Estrutura
 
 ```text
 frontend/
-├── public/                arquivos públicos
+├── public/
 ├── src/
-│   ├── app/               rotas e páginas do App Router
-│   ├── components/        componentes reutilizáveis
-│   ├── services/          acesso à API
-│   ├── types/             tipos TypeScript
-│   └── ...
-├── next.config.ts         configuração do Next.js
-├── open-next.config.ts    integração OpenNext
-├── wrangler.jsonc         configuração do Worker
-├── package.json           scripts e dependências
-└── .env.example           exemplo de configuração local
+│   ├── app/                       páginas App Router
+│   ├── components/                UI reutilizável
+│   ├── lib/                       utilitários
+│   ├── services/                  contratos HTTP
+│   ├── test/                      setup da suíte
+│   └── types/                     tipos da API
+├── vitest.config.mts
+├── next.config.ts
+├── open-next.config.ts
+├── wrangler.jsonc
+├── package.json
+└── package-lock.json
 ```
-
-A estrutura interna de `src/` pode evoluir, mas a regra é manter acesso à API concentrado na camada de serviços sempre que possível.
 
 ## Requisitos
 
-- Node.js 20.9 ou superior;
-- npm 10 ou superior.
+- Node.js 20.9+;
+- npm 10+.
 
-## Instalação
+## Desenvolvimento
 
 ```bash
 cd frontend
 npm ci
+npm run dev
 ```
 
-## Ambiente local
-
-Crie `frontend/.env.local`:
+`frontend/.env.local`:
 
 ```dotenv
 NEXT_PUBLIC_API_URL=http://localhost:8787
 ```
 
-Inicie:
-
-```bash
-npm run dev
-```
-
-A aplicação fica disponível normalmente em:
+Padrão:
 
 ```text
 http://localhost:3000
 ```
 
-## Validação
-
-Antes de abrir ou concluir uma alteração relevante:
+## Validação completa
 
 ```bash
 npm run lint
 npm run typecheck
+npm run test:coverage
 npm run build
 ```
+
+## Testes
+
+Ferramentas:
+
+- Vitest;
+- React Testing Library;
+- jest-dom;
+- jsdom;
+- cobertura V8.
+
+Scripts:
+
+```bash
+npm test
+npm run test:watch
+npm run test:coverage
+```
+
+A suíte cobre serviços HTTP, autenticação no cliente, armazenamento de sessão, catálogo/matching, despensa, favoritos, perfil, recuperação, social/home, utilitários e componentes compartilhados.
+
+`vitest.config.mts` define limites mínimos para evitar regressão silenciosa de cobertura nos módulos monitorados.
+
+Mais detalhes: [`../docs/testes.md`](../docs/testes.md).
 
 ## API
 
@@ -90,33 +103,43 @@ Produção:
 https://api.receitando.miguelpita.com.br
 ```
 
-A documentação de rotas está em:
+A camada `src/services/` concentra chamadas HTTP. A rota canônica de detalhe é:
 
-[`../docs/api.md`](../docs/api.md)
+```text
+GET /api/recipes/:slug
+```
 
-## Imagens de receitas
+Contrato: [`../docs/api.md`](../docs/api.md).
 
-O frontend aceita imagens remotas das fontes utilizadas pelo catálogo atual. A configuração de host remoto e política de conteúdo fica em `next.config.ts`.
+## Imagens e atribuição
 
-O catálogo atual utiliza receitas do Wikilivros e imagens livres do Wikimedia Commons.
+O tipo `Recipe` recebe:
 
-## Deploy
+- `source`: procedência do conteúdo da receita;
+- `image`: URL, fonte, autor, página, licença, URL da licença e texto alternativo da imagem;
+- `imageUrl`: mantido por compatibilidade.
 
-O frontend é compilado com OpenNext e publicado como Cloudflare Worker.
+A página de detalhe utiliza o `alt` importado quando disponível e exibe os créditos específicos da imagem com links para o arquivo original e licença.
 
-A automação está documentada em:
-
-[`../docs/deploy.md`](../docs/deploy.md)
+A configuração do Next.js restringe os hosts remotos de imagem às fontes necessárias ao catálogo atual.
 
 ## Segurança
 
-Nunca coloque no frontend secrets reais, tokens administrativos ou credenciais privadas.
+Nunca coloque secrets em variáveis `NEXT_PUBLIC_*`: elas são entregues ao navegador.
 
-Variáveis com prefixo `NEXT_PUBLIC_` são acessíveis ao navegador e, portanto, devem conter apenas informações que podem ser públicas.
+A autenticação atualmente publicada deve seguir o contrato descrito em `docs/api.md`. A migração para cookie `HttpOnly` é tratada em PRs de segurança separados para evitar quebra durante deploy gradual.
+
+## Deploy
+
+O workflow executa instalação, lint, typecheck, testes com cobertura, build OpenNext e publicação.
+
+Detalhes: [`../docs/deploy.md`](../docs/deploy.md).
 
 ## Documentação relacionada
 
 - [`../README.md`](../README.md)
 - [`../docs/escopo.md`](../docs/escopo.md)
+- [`../docs/funcionalidades.md`](../docs/funcionalidades.md)
 - [`../docs/architecture.md`](../docs/architecture.md)
 - [`../docs/api.md`](../docs/api.md)
+- [`../docs/testes.md`](../docs/testes.md)
