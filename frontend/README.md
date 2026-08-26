@@ -21,14 +21,15 @@ Toda persistência passa pela API; o frontend não acessa D1 diretamente.
 
 ```text
 frontend/
+├── e2e/                         Playwright e testes de navegador
 ├── public/
 ├── src/
-│   ├── app/                       páginas App Router
-│   ├── components/                UI reutilizável
-│   ├── lib/                       utilitários
-│   ├── services/                  contratos HTTP
-│   ├── test/                      setup da suíte
-│   └── types/                     tipos da API
+│   ├── app/                     páginas App Router
+│   ├── components/              UI reutilizável
+│   ├── lib/                     utilitários
+│   ├── services/                contratos HTTP
+│   ├── test/                    setup da suíte Vitest
+│   └── types/                   tipos da API
 ├── vitest.config.mts
 ├── next.config.ts
 ├── open-next.config.ts
@@ -71,7 +72,9 @@ npm run test:coverage
 npm run build
 ```
 
-## Testes
+Além dessas validações, o workflow **E2E Playwright** executa fluxos reais de navegador em Chromium.
+
+## Testes unitários e de componentes
 
 Ferramentas:
 
@@ -93,7 +96,36 @@ A suíte cobre serviços HTTP, autenticação no cliente, armazenamento de sess�
 
 `vitest.config.mts` define limites mínimos para evitar regressão silenciosa de cobertura nos módulos monitorados.
 
-Mais detalhes: [`../docs/testes.md`](../docs/testes.md).
+## Testes E2E com Playwright
+
+A suíte de navegador fica em `frontend/e2e/` e usa uma instalação isolada do Playwright para não misturar dependências de automação com o runtime da aplicação.
+
+Ela cobre os fluxos críticos da interface:
+
+- home → combinador;
+- estado de despensa sem sessão;
+- matching de receitas;
+- login → despensa;
+- credenciais inválidas;
+- ausência de token legado no Web Storage;
+- recuperação completa de senha.
+
+Execução local:
+
+```bash
+cd frontend
+npm ci
+cd e2e
+npm ci
+npx playwright install chromium
+npm test
+```
+
+Durante os E2E, a API é interceptada em uma URL local dedicada. A suíte não usa contas reais, não envia e-mail e não escreve no D1 de produção.
+
+Em caso de falha, screenshots, vídeos e traces são preservados e enviados como artefatos no GitHub Actions.
+
+Mais detalhes: [`e2e/README.md`](e2e/README.md) e [`../docs/testes.md`](../docs/testes.md).
 
 ## API
 
@@ -141,7 +173,7 @@ Detalhes: [`../SECURITY.md`](../SECURITY.md).
 
 ## Deploy
 
-O workflow executa instalação, lint, typecheck, testes com cobertura, build OpenNext e publicação.
+O workflow executa instalação, lint, typecheck, testes com cobertura, build OpenNext e publicação. A suíte E2E roda em workflow separado para validar os fluxos de navegador sem acoplar a automação de Chromium ao deploy.
 
 Detalhes: [`../docs/deploy.md`](../docs/deploy.md).
 
@@ -153,3 +185,4 @@ Detalhes: [`../docs/deploy.md`](../docs/deploy.md).
 - [`../docs/architecture.md`](../docs/architecture.md)
 - [`../docs/api.md`](../docs/api.md)
 - [`../docs/testes.md`](../docs/testes.md)
+- [`e2e/README.md`](e2e/README.md)

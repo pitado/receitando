@@ -17,6 +17,7 @@ Leia:
 
 - frontend: `frontend/` — Next.js/React;
 - API: `backend/worker-prototype/` — Cloudflare Workers + D1;
+- E2E do frontend: `frontend/e2e/` — Playwright/Chromium;
 - catálogo: Wikilivros + Wikimedia Commons;
 - implementação anterior NestJS/Prisma/PostgreSQL: arquivada na branch `legacy/nest-prisma`, fora da árvore principal.
 
@@ -64,6 +65,17 @@ npm test
 npm run dry-run
 ```
 
+### E2E quando a jornada de usuário for afetada
+
+```bash
+cd frontend
+npm ci
+cd e2e
+npm ci
+npx playwright install chromium
+npm test
+```
+
 Não faça merge com validação obrigatória falhando.
 
 ## Testes
@@ -71,6 +83,10 @@ Não faça merge com validação obrigatória falhando.
 ### Frontend
 
 Mudanças em serviços, utilitários ou componentes com comportamento relevante devem atualizar/adicionar testes Vitest/Testing Library.
+
+Mudanças que atravessem páginas, autenticação, navegação ou vários componentes devem também avaliar um cenário em `frontend/e2e/`.
+
+A suíte Playwright deve ser determinística: ela usa mocks de API locais, não D1 de produção, contas reais ou envio real do Resend.
 
 ### API
 
