@@ -1,6 +1,6 @@
 # Estrutura do repositório
 
-Este documento explica o papel das partes principais do Receitando e separa claramente código de produção, documentação e implementação histórica.
+Este documento explica o papel das partes principais do Receitando e mantém a árvore principal alinhada à arquitetura realmente usada em produção.
 
 ## Visão geral
 
@@ -12,20 +12,19 @@ receitando/
 │   ├── pull_request_template.md    checklist padrão de PR
 │   └── workflows/                  CI, deploy e importação de receitas
 ├── backend/
-│   ├── worker-prototype/           API atual de produção
-│   │   ├── migrations/             histórico versionado do Cloudflare D1
-│   │   ├── scripts/                importador atual do Wikilivros/Commons
-│   │   ├── src/                    implementação da API Worker
-│   │   └── tests/                  testes automatizados da API
-│   ├── prisma/                     implementação histórica
-│   └── src/                        implementação histórica em NestJS
+│   ├── README.md
+│   └── worker-prototype/           API atual de produção
+│       ├── migrations/             histórico versionado do Cloudflare D1
+│       ├── scripts/                importador atual do Wikilivros/Commons
+│       ├── src/                    implementação da API Worker
+│       └── tests/                  testes automatizados da API
 ├── docs/                           documentação funcional e técnica
 ├── frontend/                       aplicação Next.js
 ├── CONTRIBUTING.md                 guia de contribuição
 ├── SECURITY.md                     política de segurança
 ├── LICENSE                         licença MIT do código original
+├── CHANGELOG.md                    mudanças relevantes
 ├── README.md                       visão geral do projeto
-├── docker-compose.yml              apoio apenas ao backend histórico
 └── .env.example                    referência de configuração sem secrets reais
 ```
 
@@ -55,7 +54,7 @@ O entrypoint efetivamente publicado é definido em `wrangler.jsonc` e atualmente
 src/auth-rate-limit-worker.ts
 ```
 
-A API é organizada em uma cadeia de camadas. Cada camada atende seu conjunto de rotas e delega as demais:
+A API é organizada em uma cadeia de camadas:
 
 ```text
 auth-rate-limit-worker
@@ -77,21 +76,20 @@ index
 
 Responsabilidades:
 
-- `auth-rate-limit-worker.ts`: proteção contra abuso de login e cadastro;
+- `auth-rate-limit-worker.ts`: proteção contra abuso de login, cadastro e solicitação de recuperação de senha;
 - `home-worker.ts`: feed da home;
-- `catalog64-worker.ts`: fontes, ingredientes, catálogo, detalhe por slug e matching;
+- `catalog64-worker.ts`: fontes, ingredientes, catálogo, detalhe por slug, busca FTS5 e matching;
 - `social-worker.ts`: votos e comentários;
 - `profile-worker.ts`: consulta e atualização de perfil;
 - `password-reset-worker.ts`: recuperação de senha e Resend;
-- `pantry-worker.ts`: despensa e favoritos;
+- `pantry-worker.ts`: despensa;
 - `index.ts`: cadastro, login, sessão, logout, healthcheck e fallback final;
-- `lib/worker-http.ts`: contrato `Env` e helpers HTTP/CORS/autenticação compartilhados, evitando que cada Worker mantenha sua própria cópia da mesma infraestrutura.
+- `lib/worker-http.ts`: helpers HTTP/CORS/autenticação compartilhados;
+- `lib/recipe-utils.ts`: normalização canônica e regras do matching.
 
 Rotas de catálogo/matching que eram duplicadas em `index.ts` foram removidas. A implementação canônica dessas rotas é `catalog64-worker.ts`.
 
-O `typecheck` valida todo o TypeScript em `src/`, não apenas o entrypoint.
-
-### Testes da API
+## Testes da API
 
 A suíte fica em `backend/worker-prototype/tests/` e é executada com:
 
@@ -99,7 +97,7 @@ A suíte fica em `backend/worker-prototype/tests/` e é executada com:
 npm test
 ```
 
-Ela cobre regras de matching, segurança e rate limiting. Testes de rotas/persistência devem acompanhar fluxos críticos à medida que a suíte de integração é ampliada.
+Ela cobre matching, normalização de ingredientes, segurança, rate limiting e rotas críticas do Worker.
 
 ## Catálogo e scripts
 
@@ -109,15 +107,19 @@ O único importador operacional mantido na árvore atual é:
 backend/worker-prototype/scripts/import-wikibooks-v2.mjs
 ```
 
-Importadores experimentais substituídos foram removidos da árvore ativa; seu histórico permanece consultável pelo Git. O workflow operacional correspondente é `.github/workflows/import-wikibooks.yml`.
+Importadores experimentais substituídos foram removidos da árvore ativa; seu histórico continua disponível no Git.
 
-## Código histórico em `backend/`
+## Backend NestJS/Prisma arquivado
 
-Os arquivos NestJS/Prisma/PostgreSQL diretamente em `backend/` representam uma implementação anterior e **não fazem parte da produção atual**.
+A primeira implementação em NestJS + Prisma + PostgreSQL foi retirada da árvore principal para evitar confusão, builds desnecessários e documentação divergente.
 
-Eles são preservados apenas como referência histórica e não recebem novas funcionalidades nem atualizações automáticas de dependências. Alterações do produto devem ser feitas em `backend/worker-prototype/`.
+Ela foi preservada antes da remoção na branch:
 
-O `docker-compose.yml` da raiz também pertence a essa implementação histórica.
+```text
+legacy/nest-prisma
+```
+
+O antigo `docker-compose.yml`, `backend/src`, `backend/prisma` e configurações exclusivas do NestJS também saíram da árvore ativa.
 
 ## `docs/`
 
@@ -127,8 +129,9 @@ Documentação oficial:
 - `funcionalidades.md`: mapa do que está implementado;
 - `architecture.md`: arquitetura da solução;
 - `api.md`: rotas e contratos;
-- `database.md`: modelo do D1 e histórico de migrations;
+- `database.md`: modelo do D1, índices e migrations;
 - `catalogo.md`: origem, licenças e importação;
+- `testes.md`: estratégia de testes;
 - `deploy.md`: CI, deploy e operação;
 - `estrutura-repositorio.md`: organização do código;
 - `README.md`: índice da documentação.
@@ -143,16 +146,12 @@ Workflows ativos:
 - `deploy-api-cloudflare.yml`: valida, aplica migrations e publica a API;
 - `import-wikibooks.yml`: importa manualmente Wikilivros/Commons.
 
-Workflows de importadores substituídos foram removidos, em vez de permanecerem como arquivos que apenas imprimem mensagens de arquivamento.
-
 ## Dependabot
 
-O `dependabot.yml` atual acompanha somente:
+O `dependabot.yml` acompanha somente:
 
 - `frontend/`;
 - `backend/worker-prototype/`.
-
-PRs antigos gerados por configurações anteriores não significam que o backend NestJS continue monitorado; eles pertencem ao histórico do GitHub e devem ser encerrados quando estiverem obsoletos.
 
 ## Governança
 
@@ -161,10 +160,6 @@ PRs antigos gerados por configurações anteriores não significam que o backend
 - `LICENSE`: MIT para o código original do projeto.
 
 A MIT não substitui as licenças das receitas e imagens importadas.
-
-## Arquivos de ambiente
-
-Arquivos `.env.example` podem conter nomes de variáveis e valores locais seguros, nunca tokens, senhas, chaves reais, códigos de recuperação ou dados privados.
 
 ## Regra para novas funcionalidades
 
