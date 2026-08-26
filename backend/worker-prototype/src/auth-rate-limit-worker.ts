@@ -87,6 +87,35 @@ async function handleRegister(request: Request, env: Env): Promise<Response> {
   return response;
 }
 
+async function handlePasswordResetRequest(request: Request, env: Env): Promise<Response> {
+  const body = await readBody(request);
+  const email = typeof body?.email === "string" ? body.email.trim().toLowerCase() : "";
+  const ip = clientIp(request);
+
+  const emailStatus = email
+    ? await getRateLimitStatus(env.db, "password_reset_email", email)
+    : { attempts: 0, blocked: false, retryAfterSeconds: 0 };
+  const ipStatus = ip
+    ? await getRateLimitStatus(env.db, "password_reset_ip", ip)
+    : { attempts: 0, blocked: false, retryAfterSeconds: 0 };
+
+  if (emailStatus.blocked || ipStatus.blocked) {
+    return tooManyRequests(
+      request,
+      env,
+      Math.max(emailStatus.retryAfterSeconds, ipStatus.retryAfterSeconds),
+    );
+  }
+
+  const response = await baseWorker.fetch(request, env);
+  if (response.ok) {
+    if (email) await recordRateLimitEvent(env.db, "password_reset_email", email);
+    if (ip) await recordRateLimitEvent(env.db, "password_reset_ip", ip);
+  }
+
+  return response;
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
@@ -97,6 +126,9 @@ export default {
     }
     if (request.method === "POST" && path === "/api/auth/register") {
       return handleRegister(request, env);
+    }
+    if (request.method === "POST" && path === "/api/auth/forgot-password") {
+      return handlePasswordResetRequest(request, env);
     }
 
     return baseWorker.fetch(request, env);
