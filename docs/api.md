@@ -19,12 +19,14 @@ http://localhost:8787
 - rotas da aplicação usam `/api`;
 - corpos usam JSON;
 - erros seguem, em geral, `{ "statusCode": number, "message": string }`;
-- o contrato publicado nesta branch ainda utiliza `Authorization: Bearer <token>` nas rotas autenticadas;
-- CORS aceita apenas origens declaradas em `FRONTEND_URL`;
+- no navegador, rotas autenticadas usam cookie de sessão `HttpOnly` enviado com `credentials: "include"`;
+- o token bruto de sessão não faz parte do contrato público de login/cadastro;
+- CORS com credenciais aceita apenas origens declaradas em `FRONTEND_URL`;
+- operações mutáveis do navegador validam `Origin` como defesa adicional contra CSRF;
 - respostas sensíveis usam `Cache-Control: no-store`;
 - login, cadastro e solicitação de recuperação de senha passam por rate limiting no entrypoint.
 
-> A migração para cookie `HttpOnly` está sendo tratada separadamente nos PRs de segurança #99–#101 e não faz parte desta refatoração estrutural.
+Clientes não-browser podem continuar usando `Authorization: Bearer <token>` quando possuírem uma credencial válida, mas o frontend oficial não lê nem persiste esse token em JavaScript.
 
 ## Mapa de rotas
 
@@ -73,17 +75,52 @@ A rota correta de detalhe é **`GET /api/recipes/:slug`**. Não existe contrato 
 {
   "name": "Pessoa Exemplo",
   "email": "pessoa@example.com",
-  "password": "uma-senha-de-exemplo"
+  "password": "uma-senha-de-exemplo",
+  "remember": true
 }
 ```
 
+`remember` é opcional. Quando `true`, a API emite cookie persistente; quando `false` ou ausente, emite cookie de sessão.
+
 Nome, e-mail e senha são validados antes da persistência. A senha precisa ter entre 10 e 128 caracteres.
+
+Resposta pública de sucesso:
+
+```json
+{
+  "user": {
+    "id": "...",
+    "name": "Pessoa Exemplo",
+    "email": "pessoa@example.com",
+    "role": "USER"
+  },
+  "expiresAt": "2026-09-25T00:00:00.000Z"
+}
+```
+
+O token bruto não é devolvido no JSON. Ele é usado internamente para montar o cookie `HttpOnly`.
 
 ### Login
 
 `POST /api/auth/login`
 
+```json
+{
+  "email": "pessoa@example.com",
+  "password": "uma-senha-de-exemplo",
+  "remember": true
+}
+```
+
 Credenciais inválidas retornam uma mensagem genérica. O entrypoint aplica limite por e-mail e por IP para reduzir força bruta.
+
+Em produção, o cookie de sessão usa `__Host-receitando_session`, `HttpOnly`, `Secure`, `SameSite=Strict` e `Path=/`.
+
+### Logout
+
+`POST /api/auth/logout`
+
+A sessão persistida é invalidada e a resposta expira o cookie do navegador.
 
 ### Rate limiting
 
@@ -246,7 +283,7 @@ Favoritos, votos e comentários são sempre vinculados ao usuário autenticado n
 
 A suíte da API chama `fetch()` dos Workers reais com um D1 simulado para validar roteamento, autenticação, autorização e persistência sem tocar no banco de produção.
 
-Além dos fluxos de conta, despensa, favoritos e comunidade, os testes cobrem normalização canônica, rate limiting e regras críticas do matching.
+Além dos fluxos de conta, despensa, favoritos e comunidade, os testes cobrem normalização canônica, rate limiting, cookie de sessão e regras críticas do matching.
 
 ## Implementação histórica
 
