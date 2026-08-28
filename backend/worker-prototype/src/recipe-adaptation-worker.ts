@@ -13,7 +13,7 @@ type RecipeAdaptationRow = {
   servings: number;
 };
 
-type RecipeIngredientRow = AdaptableIngredient & {
+type RecipeIngredientRow = Omit<AdaptableIngredient, "optional" | "isStaple"> & {
   optional: number;
   isStaple: number;
 };
