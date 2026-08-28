@@ -57,6 +57,7 @@ describe("contratos dos serviços HTTP", () => {
     const payload = {
       targetServings: 4,
       unavailableIngredients: ["leite", "manteiga"],
+      usePantry: true,
     };
 
     await adaptRecipe("bolo/chocolate", payload, controller.signal);
