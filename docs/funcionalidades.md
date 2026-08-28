@@ -59,6 +59,26 @@ Usuários autenticados possuem uma despensa persistente no D1.
 
 É possível listar, adicionar, atualizar quantidade/unidade, remover itens e usar a despensa diretamente no matching. Toda operação é vinculada ao `user_id` autenticado.
 
+### 4.1 Validade e prioridade de consumo
+
+Cada item da despensa pode receber uma data de validade opcional. A interface destaca itens vencidos ou próximos do vencimento e mantém os itens com validade mais próxima no início da lista.
+
+Ao combinar receitas usando a despensa, a compatibilidade continua sendo o critério principal. Quando duas opções possuem compatibilidade próxima, a interface usa a validade como critério adicional para favorecer receitas que aproveitam ingredientes que precisam ser consumidos primeiro.
+
+O aviso atual é exibido dentro da aplicação. Notificações externas em segundo plano, como Web Push ou e-mail de vencimento, ainda não fazem parte desta entrega.
+
+### 4.2 Lista de compras automática
+
+No detalhe de uma receita, usuários autenticados podem gerar uma lista de compras a partir da própria despensa. A lista contém somente ingredientes obrigatórios que não foram encontrados na despensa; ingredientes opcionais e básicos não são incluídos.
+
+A lista pode ser copiada para uso fora da aplicação. Como o matching geral ainda é booleano, a lista compara presença/ausência e não reduz quantidades parciais que o usuário já possua.
+
+### 4.3 Adaptação e substituição de ingredientes
+
+O detalhe da receita também possui um motor culinário experimental. O usuário pode alterar o rendimento, marcar ingredientes indisponíveis e, quando autenticado, cruzar a adaptação com a despensa.
+
+Quando existe uma substituição conhecida e compatível com o contexto culinário identificado, o motor apresenta a troca sugerida, confiança, justificativa e alternativas. Se não houver substituição suficientemente confiável, a interface informa essa limitação em vez de inventar uma equivalência.
+
 ## 5. Autenticação e sessão
 
 O sistema possui cadastro, login, logout, consulta da sessão atual e sessão persistente.

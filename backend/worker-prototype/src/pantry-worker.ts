@@ -32,6 +32,21 @@ async function authenticatedUser(request: Request, env: Env): Promise<UserRow | 
   );
 }
 
+function normalizeExpirationDate(value: unknown): string | null | undefined {
+  if (value === null || value === "") return null;
+  if (typeof value !== "string") return undefined;
+
+  const trimmed = value.trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return undefined;
+
+  const parsed = new Date(`${trimmed}T12:00:00Z`);
+  if (Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== trimmed) {
+    return undefined;
+  }
+
+  return trimmed;
+}
+
 async function listPantry(request: Request, env: Env, user: UserRow): Promise<Response> {
   const result = await env.db
     .prepare(
@@ -42,7 +57,9 @@ async function listPantry(request: Request, env: Env, user: UserRow): Promise<Re
        FROM pantry_items p
        JOIN ingredients i ON i.id = p.ingredient_id
        WHERE p.user_id = ?
-       ORDER BY i.name ASC`,
+       ORDER BY CASE WHEN p.expires_at IS NULL THEN 1 ELSE 0 END,
+                p.expires_at ASC,
+                i.name ASC`,
     )
     .bind(user.id)
     .all();
@@ -59,8 +76,13 @@ async function addPantryItem(request: Request, env: Env, user: UserRow): Promise
     ? body.quantity
     : null;
   const unit = typeof body.unit === "string" ? body.unit.trim().slice(0, 40) : null;
+  const hasExpiresAt = Object.prototype.hasOwnProperty.call(body, "expiresAt");
+  const expiresAt = hasExpiresAt ? normalizeExpirationDate(body.expiresAt) : undefined;
 
   if (!ingredientId) return apiError(request, env, 400, "Selecione um ingrediente.");
+  if (hasExpiresAt && expiresAt === undefined) {
+    return apiError(request, env, 400, "Informe uma data de validade válida.");
+  }
 
   const ingredient = await env.db
     .prepare("SELECT id FROM ingredients WHERE id = ? LIMIT 1")
@@ -75,16 +97,23 @@ async function addPantryItem(request: Request, env: Env, user: UserRow): Promise
   const now = new Date().toISOString();
 
   if (existing) {
-    await env.db
-      .prepare("UPDATE pantry_items SET quantity = ?, unit = ?, updated_at = ? WHERE id = ?")
-      .bind(quantity, unit || null, now, existing.id)
-      .run();
+    if (hasExpiresAt) {
+      await env.db
+        .prepare("UPDATE pantry_items SET quantity = ?, unit = ?, expires_at = ?, updated_at = ? WHERE id = ?")
+        .bind(quantity, unit || null, expiresAt ?? null, now, existing.id)
+        .run();
+    } else {
+      await env.db
+        .prepare("UPDATE pantry_items SET quantity = ?, unit = ?, updated_at = ? WHERE id = ?")
+        .bind(quantity, unit || null, now, existing.id)
+        .run();
+    }
   } else {
     await env.db
       .prepare(
-        "INSERT INTO pantry_items (id, user_id, ingredient_id, quantity, unit, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO pantry_items (id, user_id, ingredient_id, quantity, unit, expires_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
       )
-      .bind(crypto.randomUUID(), user.id, ingredientId, quantity, unit || null, now, now)
+      .bind(crypto.randomUUID(), user.id, ingredientId, quantity, unit || null, expiresAt ?? null, now, now)
       .run();
   }
 
