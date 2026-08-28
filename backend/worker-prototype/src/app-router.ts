@@ -1,5 +1,6 @@
 import authRateLimitWorker from "./auth-rate-limit-worker";
 import catalogWorker from "./catalog64-worker";
+import catalogV2Worker from "./catalog-v2-worker";
 import homeWorker from "./home-worker";
 import indexWorker from "./index";
 import pantryWorker from "./pantry-worker";
@@ -76,6 +77,10 @@ export default {
 
     if (path === "/api/home-feed") {
       return homeWorker.fetch(request, env);
+    }
+
+    if (path === "/api/v2/recipes") {
+      return catalogV2Worker.fetch(request, env);
     }
 
     if (isRecipeAdaptationRoute(path)) {

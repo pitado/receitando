@@ -2,6 +2,7 @@ export type RecipeDifficulty = "FACIL" | "MEDIA" | "DIFICIL";
 export type RecipeSourceType = "OWN" | "OPEN_DATASET" | "USER";
 export type RecipeMatchStatus = "READY" | "ALMOST_READY" | "NEAR" | "EXPLORE";
 export type AdaptationConfidence = "HIGH" | "MEDIUM" | "LOW";
+export type RecipeCatalogSort = "relevance" | "recent" | "popular" | "quick" | "title";
 export type CulinarySignal =
   | "BAKED"
   | "FRIED"
@@ -68,6 +69,41 @@ export interface Recipe {
   image?: RecipeImageAttribution;
   tags: string[];
   ingredients: RecipeIngredient[];
+}
+
+export interface RecipeCatalogItem {
+  id: string;
+  title: string;
+  slug: string;
+  description: string;
+  prepMinutes: number;
+  servings: number;
+  mealType: string;
+  difficulty: RecipeDifficulty;
+  imageUrl: string | null;
+  source: {
+    name: string;
+    externalSource: string | null;
+  };
+  tags: string[];
+}
+
+export interface RecipeCatalogResponse {
+  items: RecipeCatalogItem[];
+  pagination: {
+    total: number;
+    limit: number;
+    offset: number;
+    hasMore: boolean;
+  };
+  filters: {
+    query: string;
+    source: string;
+    mealType: string;
+    difficulty: RecipeDifficulty | "";
+    maxPrepMinutes: number | null;
+    sort: RecipeCatalogSort;
+  };
 }
 
 export interface MatchIngredient {
