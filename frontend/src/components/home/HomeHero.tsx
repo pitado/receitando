@@ -1,8 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import type { FormEvent } from "react";
 
 import styles from "./HomeHero.module.css";
 
