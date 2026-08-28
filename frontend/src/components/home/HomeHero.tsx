@@ -62,9 +62,14 @@ export function HomeHero() {
     <section className={styles.hero}>
       <div className={`container ${styles.inner}`}>
         <div className={styles.copy}>
-          <h1>
-            <span className={styles.titleLine}>Cozinhe com</span>
-            <span className={styles.titleLine}>o que você já tem.</span>
+          <h1
+            style={{
+              fontSize: "clamp(3rem, 5vw, 5.25rem)",
+              maxWidth: "none",
+            }}
+          >
+            <span style={{ display: "block" }}>Cozinhe com</span>
+            <span style={{ display: "block" }}>o que você já tem.</span>
           </h1>
 
           <p className={styles.description}>
