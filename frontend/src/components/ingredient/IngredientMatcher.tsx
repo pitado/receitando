@@ -12,12 +12,15 @@ import { ErrorState } from "@/components/ui/ErrorState";
 import { LoadingState } from "@/components/ui/LoadingState";
 import { normalizeIngredientName } from "@/lib/normalize-ingredient";
 import { ApiError } from "@/services/api-client";
-import { matchRecipes } from "@/services/recipes.service";
+import { hasAuthSessionHint } from "@/services/auth-storage";
+import { getPantry, type PantryItem } from "@/services/pantry.service";
+import { matchRecipes, matchRecipesFromPantry } from "@/services/recipes.service";
 import type { MatchRecipeResult } from "@/types/recipe";
 
 import styles from "./IngredientMatcher.module.css";
 
 type MatcherStatus = "idle" | "loading" | "success" | "error";
+type ResultMode = "manual" | "pantry" | null;
 
 type IngredientMatcherProps = {
   initialIngredients?: string[];
@@ -25,6 +28,7 @@ type IngredientMatcherProps = {
 };
 
 const suggestions = ["ovo", "banana", "farinha de trigo", "leite"];
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 function getErrorMessage(error: unknown): string {
   if (error instanceof ApiError && error.kind === "connection") {
@@ -38,6 +42,52 @@ function getErrorMessage(error: unknown): string {
   return "Não foi possível buscar receitas agora. Tente novamente.";
 }
 
+function daysUntil(dateValue: string | null): number | null {
+  if (!dateValue) return null;
+  const [year, month, day] = dateValue.split("-").map(Number);
+  if (!year || !month || !day) return null;
+
+  const today = new Date();
+  const todayUtc = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+  return Math.round((Date.UTC(year, month - 1, day) - todayUtc) / DAY_MS);
+}
+
+function urgencyWeight(days: number | null): number {
+  if (days === null || days > 7) return 0;
+  if (days <= 0) return 5;
+  if (days === 1) return 4;
+  if (days <= 3) return 3;
+  return 1;
+}
+
+function rankPantryMatches(matches: MatchRecipeResult[], pantry: PantryItem[]): MatchRecipeResult[] {
+  const expiryByIngredient = new Map(
+    pantry.map((item) => [item.ingredientId, daysUntil(item.expiresAt)]),
+  );
+
+  function recipeUrgency(recipe: MatchRecipeResult): number {
+    return recipe.foundIngredients.reduce(
+      (score, ingredient) => score + urgencyWeight(expiryByIngredient.get(ingredient.id) ?? null),
+      0,
+    );
+  }
+
+  return [...matches].sort((first, second) => {
+    const compatibilityGap = Math.abs(first.compatibility - second.compatibility);
+    if (compatibilityGap > 5) return second.compatibility - first.compatibility;
+
+    const urgencyGap = recipeUrgency(second) - recipeUrgency(first);
+    if (urgencyGap !== 0) return urgencyGap;
+
+    return (
+      second.compatibility - first.compatibility ||
+      first.missingIngredients.length - second.missingIngredients.length ||
+      first.prepMinutes - second.prepMinutes ||
+      first.title.localeCompare(second.title, "pt-BR")
+    );
+  });
+}
+
 export function IngredientMatcher({
   initialIngredients = [],
   previewLimit,
@@ -45,6 +95,7 @@ export function IngredientMatcher({
   const [ingredients, setIngredients] = useState<string[]>(initialIngredients);
   const [fieldError, setFieldError] = useState<string | null>(null);
   const [results, setResults] = useState<MatchRecipeResult[]>([]);
+  const [resultMode, setResultMode] = useState<ResultMode>(null);
   const [status, setStatus] = useState<MatcherStatus>("idle");
   const [requestError, setRequestError] = useState("");
   const activeRequest = useRef<AbortController | null>(null);
@@ -53,6 +104,7 @@ export function IngredientMatcher({
     activeRequest.current?.abort();
     activeRequest.current = null;
     setResults([]);
+    setResultMode(null);
     setRequestError("");
     setStatus("idle");
   }
@@ -102,27 +154,57 @@ export function IngredientMatcher({
     try {
       const matches = await matchRecipes(ingredients, controller.signal);
 
-      if (activeRequest.current !== controller) {
-        return;
-      }
+      if (activeRequest.current !== controller) return;
 
-      setResults(
-        [...matches].sort((first, second) => second.compatibility - first.compatibility),
-      );
+      setResults(matches);
+      setResultMode("manual");
       setStatus("success");
     } catch (error: unknown) {
-      if (error instanceof DOMException && error.name === "AbortError") {
-        return;
-      }
+      if (error instanceof DOMException && error.name === "AbortError") return;
 
       if (activeRequest.current === controller) {
         setRequestError(getErrorMessage(error));
         setStatus("error");
       }
     } finally {
+      if (activeRequest.current === controller) activeRequest.current = null;
+    }
+  }
+
+  async function findRecipesFromPantry() {
+    if (!hasAuthSessionHint()) {
+      setRequestError("Entre na sua conta para combinar receitas com a despensa e considerar as validades.");
+      setStatus("error");
+      return;
+    }
+
+    activeRequest.current?.abort();
+    const controller = new AbortController();
+    activeRequest.current = controller;
+    setFieldError(null);
+    setRequestError("");
+    setStatus("loading");
+
+    try {
+      const [matches, pantry] = await Promise.all([
+        matchRecipesFromPantry(controller.signal),
+        getPantry(),
+      ]);
+
+      if (activeRequest.current !== controller) return;
+
+      setResults(rankPantryMatches(matches, pantry));
+      setResultMode("pantry");
+      setStatus("success");
+    } catch (error: unknown) {
+      if (error instanceof DOMException && error.name === "AbortError") return;
+
       if (activeRequest.current === controller) {
-        activeRequest.current = null;
+        setRequestError(getErrorMessage(error));
+        setStatus("error");
       }
+    } finally {
+      if (activeRequest.current === controller) activeRequest.current = null;
     }
   }
 
@@ -183,7 +265,7 @@ export function IngredientMatcher({
             </div>
           ) : (
             <p className={styles.noIngredients}>
-              Sua lista ainda está vazia. Adicione um item acima.
+              Sua lista ainda está vazia. Adicione um item acima ou use sua despensa.
             </p>
           )}
         </div>
@@ -196,6 +278,16 @@ export function IngredientMatcher({
         >
           {isLoading ? "Comparando ingredientes…" : "Encontrar receitas"}
         </Button>
+
+        <button
+          className={styles.pantryButton}
+          disabled={isLoading}
+          onClick={() => void findRecipesFromPantry()}
+          type="button"
+        >
+          <strong>Usar minha despensa</strong>
+          <span>Leva a validade em conta para desempatar receitas próximas.</span>
+        </button>
       </div>
 
       <div aria-live="polite" aria-busy={isLoading} className={styles.results}>
@@ -204,8 +296,7 @@ export function IngredientMatcher({
             <div>
               <strong>As melhores combinações aparecem aqui</strong>
               <p>
-                A compatibilidade considera os ingredientes obrigatórios de cada
-                receita.
+                A compatibilidade considera os ingredientes obrigatórios. Com a despensa, o que vence antes também ganha prioridade.
               </p>
             </div>
           </div>
@@ -216,12 +307,14 @@ export function IngredientMatcher({
         ) : null}
 
         {status === "error" ? (
-          <ErrorState message={requestError} onRetry={findRecipes} />
+          <ErrorState message={requestError} onRetry={resultMode === "pantry" ? findRecipesFromPantry : findRecipes} />
         ) : null}
 
         {status === "success" && results.length === 0 ? (
           <EmptyState
-            description="Tente adicionar outros itens da sua cozinha para encontrarmos uma combinação."
+            description={resultMode === "pantry"
+              ? "Sua despensa ainda não encontrou uma combinação. Adicione mais ingredientes ou revise o que está cadastrado."
+              : "Tente adicionar outros itens da sua cozinha para encontrarmos uma combinação."}
             icon="?"
             title="Nenhuma receita encontrada"
           />
@@ -237,9 +330,11 @@ export function IngredientMatcher({
                 </h2>
               </div>
               <p>
-                {hasMoreResults
-                  ? `Mostrando as ${visibleResults.length} melhores por aqui.`
-                  : "Da maior compatibilidade para a menor."}
+                {resultMode === "pantry"
+                  ? "Compatibilidade primeiro; em resultados próximos, priorizamos alimentos perto do vencimento."
+                  : hasMoreResults
+                    ? `Mostrando as ${visibleResults.length} melhores por aqui.`
+                    : "Da maior compatibilidade para a menor."}
               </p>
             </div>
             <div className={styles.grid}>
@@ -265,7 +360,7 @@ export function IngredientMatcher({
               ))}
             </div>
 
-            {hasMoreResults ? (
+            {hasMoreResults && resultMode === "manual" ? (
               <Link className={styles.seeAll} href={combineHref}>
                 Ver todas as combinações
                 <span aria-hidden="true">→</span>
