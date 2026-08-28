@@ -11,26 +11,33 @@ import { normalizeIngredientName } from "@/lib/normalize-ingredient";
 import { AUTH_CHANGED_EVENT, hasAuthSessionHint } from "@/services/auth-storage";
 import { listFavorites } from "@/services/favorites.service";
 import { listRecipes, matchRecipesFromPantry } from "@/services/recipes.service";
-import type { MatchRecipeResult, Recipe } from "@/types/recipe";
+import type {
+  MatchRecipeResult,
+  RecipeCatalogItem,
+  RecipeCatalogResponse,
+} from "@/types/recipe";
 
 import styles from "./RecipesCatalog.module.css";
 
 interface RecipesCatalogProps {
+  initialCatalog: RecipeCatalogResponse;
   initialError?: string;
-  initialRecipes: Recipe[];
 }
 
 const PAGE_SIZE = 36;
 const SEARCH_DELAY_MS = 300;
 
-function mergeRecipes(current: Recipe[], incoming: Recipe[]): Recipe[] {
+function mergeRecipes(
+  current: RecipeCatalogItem[],
+  incoming: RecipeCatalogItem[],
+): RecipeCatalogItem[] {
   const byId = new Map(current.map((recipe) => [recipe.id, recipe]));
   for (const recipe of incoming) byId.set(recipe.id, recipe);
   return [...byId.values()];
 }
 
-export function RecipesCatalog({ initialError = "", initialRecipes }: RecipesCatalogProps) {
-  const [recipes, setRecipes] = useState(initialRecipes);
+export function RecipesCatalog({ initialCatalog, initialError = "" }: RecipesCatalogProps) {
+  const [recipes, setRecipes] = useState(initialCatalog.items);
   const [matches, setMatches] = useState<MatchRecipeResult[] | null>(null);
   const [query, setQuery] = useState("");
   const [error, setError] = useState(initialError);
@@ -38,10 +45,11 @@ export function RecipesCatalog({ initialError = "", initialRecipes }: RecipesCat
   const [isLoading, setIsLoading] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(initialRecipes.length === PAGE_SIZE);
+  const [hasMore, setHasMore] = useState(initialCatalog.pagination.hasMore);
+  const [total, setTotal] = useState(initialCatalog.pagination.total);
   const [authenticated, setAuthenticated] = useState(() => hasAuthSessionHint());
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
-  const lastRequestedQuery = useRef("");
+  const lastRequestedQuery = useRef(initialCatalog.filters.query);
 
   useEffect(() => {
     if (authenticated) {
@@ -83,10 +91,11 @@ export function RecipesCatalog({ initialError = "", initialRecipes }: RecipesCat
         query: searchQuery || undefined,
         signal: controller.signal,
       })
-        .then((nextRecipes) => {
+        .then((nextCatalog) => {
           lastRequestedQuery.current = searchQuery;
-          setRecipes(nextRecipes);
-          setHasMore(nextRecipes.length === PAGE_SIZE);
+          setRecipes(nextCatalog.items);
+          setHasMore(nextCatalog.pagination.hasMore);
+          setTotal(nextCatalog.pagination.total);
         })
         .catch(() => {
           if (!controller.signal.aborted) {
@@ -109,14 +118,15 @@ export function RecipesCatalog({ initialError = "", initialRecipes }: RecipesCat
     setIsLoading(true);
     setError("");
     try {
-      const nextRecipes = await listRecipes({
+      const nextCatalog = await listRecipes({
         limit: PAGE_SIZE,
         offset: 0,
         query: searchQuery || undefined,
       });
       lastRequestedQuery.current = searchQuery;
-      setRecipes(nextRecipes);
-      setHasMore(nextRecipes.length === PAGE_SIZE);
+      setRecipes(nextCatalog.items);
+      setHasMore(nextCatalog.pagination.hasMore);
+      setTotal(nextCatalog.pagination.total);
     } catch {
       setError("Não foi possível carregar o catálogo agora. Tente novamente.");
     } finally {
@@ -130,13 +140,14 @@ export function RecipesCatalog({ initialError = "", initialRecipes }: RecipesCat
     setIsLoadingMore(true);
     setPaginationError("");
     try {
-      const nextRecipes = await listRecipes({
+      const nextCatalog = await listRecipes({
         limit: PAGE_SIZE,
         offset: recipes.length,
         query: query.trim() || undefined,
       });
-      setRecipes((current) => mergeRecipes(current, nextRecipes));
-      setHasMore(nextRecipes.length === PAGE_SIZE);
+      setRecipes((current) => mergeRecipes(current, nextCatalog.items));
+      setHasMore(nextCatalog.pagination.hasMore);
+      setTotal(nextCatalog.pagination.total);
     } catch {
       setPaginationError("Não foi possível carregar mais receitas agora.");
     } finally {
@@ -188,9 +199,8 @@ export function RecipesCatalog({ initialError = "", initialRecipes }: RecipesCat
     );
   }
 
-  const countHasMore = !matches && hasMore;
-  const countValue = `${filteredRecipes.length}${countHasMore ? "+" : ""}`;
-  const countLabel = query.trim() ? "resultados" : filteredRecipes.length === 1 ? "receita" : "receitas";
+  const countValue = matches ? filteredRecipes.length : total;
+  const countLabel = query.trim() ? "resultados" : countValue === 1 ? "receita" : "receitas";
 
   return (
     <div className={styles.catalog}>
@@ -288,7 +298,7 @@ export function RecipesCatalog({ initialError = "", initialRecipes }: RecipesCat
               <button disabled={isLoadingMore || isSearching} onClick={() => void loadMore()} type="button">
                 {isLoadingMore ? "Carregando…" : "Carregar mais receitas"}
               </button>
-              <span>Você está vendo {recipes.length} receitas até agora.</span>
+              <span>Você está vendo {recipes.length} de {total} receitas.</span>
               {paginationError ? <p role="alert">{paginationError}</p> : null}
             </div>
           ) : null}
