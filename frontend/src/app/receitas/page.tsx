@@ -4,7 +4,7 @@ import { RecipesCatalog } from "@/components/recipe/RecipesCatalog";
 import { SectionTitle } from "@/components/ui/SectionTitle";
 import { ApiError } from "@/services/api-client";
 import { listRecipes } from "@/services/recipes.service";
-import type { Recipe } from "@/types/recipe";
+import type { RecipeCatalogResponse } from "@/types/recipe";
 
 import styles from "./page.module.css";
 
@@ -25,12 +25,32 @@ function getCatalogError(error: unknown): string {
   return "Não foi possível carregar o catálogo agora. Tente novamente.";
 }
 
+function emptyCatalog(): RecipeCatalogResponse {
+  return {
+    items: [],
+    pagination: {
+      total: 0,
+      limit: INITIAL_RECIPE_LIMIT,
+      offset: 0,
+      hasMore: false,
+    },
+    filters: {
+      query: "",
+      source: "",
+      mealType: "",
+      difficulty: "",
+      maxPrepMinutes: null,
+      sort: "recent",
+    },
+  };
+}
+
 export default async function RecipesPage() {
-  let recipes: Recipe[] = [];
+  let catalog = emptyCatalog();
   let errorMessage = "";
 
   try {
-    recipes = await listRecipes({ limit: INITIAL_RECIPE_LIMIT });
+    catalog = await listRecipes({ limit: INITIAL_RECIPE_LIMIT });
   } catch (error: unknown) {
     errorMessage = getCatalogError(error);
   }
@@ -45,7 +65,7 @@ export default async function RecipesPage() {
         Encontre uma receita para hoje
       </SectionTitle>
 
-      <RecipesCatalog initialError={errorMessage} initialRecipes={recipes} />
+      <RecipesCatalog initialCatalog={catalog} initialError={errorMessage} />
     </div>
   );
 }
