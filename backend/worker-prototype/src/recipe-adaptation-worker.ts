@@ -16,7 +16,6 @@ type RecipeAdaptationRow = {
   servings: number;
   mealType: string | null;
   instructions: string | null;
-  tags: string | null;
 };
 
 type RecipeIngredientRow = Omit<AdaptableIngredient, "optional" | "isStaple"> & {
@@ -46,16 +45,6 @@ function validTargetServings(value: unknown): number | undefined {
   return numeric;
 }
 
-function parseTags(value: string | null): string[] {
-  if (!value) return [];
-  try {
-    const parsed = JSON.parse(value);
-    return Array.isArray(parsed) ? parsed.filter((tag): tag is string => typeof tag === "string") : [];
-  } catch {
-    return value.split(",").map((tag) => tag.trim()).filter(Boolean);
-  }
-}
-
 async function pantryForUser(env: Env, userId: string): Promise<PantryRow[]> {
   const rows = await env.db.prepare(`
     SELECT ingredient_id AS ingredientId, quantity, unit
@@ -73,8 +62,7 @@ async function adaptRecipeBySlug(request: Request, env: Env, slug: string): Prom
         title,
         servings,
         meal_type AS mealType,
-        instructions,
-        tags
+        instructions
       FROM recipes
       WHERE slug = ?
       LIMIT 1
@@ -123,6 +111,13 @@ async function adaptRecipeBySlug(request: Request, env: Env, slug: string): Prom
     WHERE ri.recipe_id = ?
     ORDER BY ri.optional, i.is_staple, i.name
   `).bind(recipe.id).all<RecipeIngredientRow>();
+
+  const tagRows = await env.db.prepare(`
+    SELECT tag
+    FROM recipe_tags
+    WHERE recipe_id = ?
+    ORDER BY tag
+  `).bind(recipe.id).all<{ tag: string }>();
 
   const ingredients = ingredientRows.results.map((ingredient) => ({
     ...ingredient,
@@ -200,7 +195,7 @@ async function adaptRecipeBySlug(request: Request, env: Env, slug: string): Prom
     title: recipe.title,
     mealType: recipe.mealType,
     instructions: recipe.instructions,
-    tags: parseTags(recipe.tags),
+    tags: tagRows.results.map((row) => row.tag),
   });
   const contextual = contextualizeAdaptation(adapted, context);
   const shortageWarnings = shortages.map((item) =>
