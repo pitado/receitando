@@ -118,12 +118,12 @@ export function HomeHero() {
           <Image
             alt=""
             className={styles.character}
-            height={640}
+            height={289}
             priority
             sizes="(max-width: 767px) 88vw, (max-width: 1100px) 44vw, 620px"
-            src="/receitando-hero-personagem-v2.webp"
+            src="/receitando-hero-personagem-v3.png"
             unoptimized
-            width={665}
+            width={300}
           />
         </div>
       </div>
