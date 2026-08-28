@@ -3,6 +3,8 @@ import type {
   MatchRecipeResult,
   MatchRecipesPayload,
   Recipe,
+  RecipeAdaptationPayload,
+  RecipeAdaptationResult,
 } from "@/types/recipe";
 
 export function listRecipes(signal?: AbortSignal): Promise<Recipe[]> {
@@ -37,4 +39,19 @@ export function matchRecipesFromPantry(
   return apiRequest<MatchRecipeResult[]>("/api/recipes/match/pantry", {
     signal,
   });
+}
+
+export function adaptRecipe(
+  slug: string,
+  payload: RecipeAdaptationPayload,
+  signal?: AbortSignal,
+): Promise<RecipeAdaptationResult> {
+  return apiRequest<RecipeAdaptationResult>(
+    `/api/recipes/${encodeURIComponent(slug)}/adapt`,
+    {
+      method: "POST",
+      body: JSON.stringify(payload),
+      signal,
+    },
+  );
 }
