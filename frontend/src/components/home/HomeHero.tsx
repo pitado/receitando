@@ -121,7 +121,7 @@ export function HomeHero() {
             height={385}
             priority
             sizes="(max-width: 767px) 88vw, (max-width: 1100px) 44vw, 620px"
-            src="/receitando-hero-personagem-v3.png"
+            src="/receitando-hero-personagem-final.png"
             unoptimized
             width={400}
           />
