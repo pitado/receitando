@@ -93,7 +93,7 @@ function contextualDecision(
   const replacement = canonicalIngredientName(replacementName);
   const signals = new Set(context.signals);
 
-  if (original === "ovo" && replacement.includes("linhaça")) {
+  if (original === "ovo" && replacement.includes("linhaca")) {
     if (signals.has("EGG_CENTRIC")) {
       return {
         allowed: false,
