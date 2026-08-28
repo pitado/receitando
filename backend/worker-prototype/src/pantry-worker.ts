@@ -33,7 +33,7 @@ async function authenticatedUser(request: Request, env: Env): Promise<UserRow | 
 }
 
 function normalizeExpirationDate(value: unknown): string | null | undefined {
-  if (value === null || value === "") return null;
+  if (value === undefined || value === null || value === "") return null;
   if (typeof value !== "string") return undefined;
 
   const trimmed = value.trim();
