@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { RecipeCard } from "@/components/recipe/RecipeCard";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -20,14 +20,28 @@ interface RecipesCatalogProps {
   initialRecipes: Recipe[];
 }
 
+const PAGE_SIZE = 36;
+const SEARCH_DELAY_MS = 300;
+
+function mergeRecipes(current: Recipe[], incoming: Recipe[]): Recipe[] {
+  const byId = new Map(current.map((recipe) => [recipe.id, recipe]));
+  for (const recipe of incoming) byId.set(recipe.id, recipe);
+  return [...byId.values()];
+}
+
 export function RecipesCatalog({ initialError = "", initialRecipes }: RecipesCatalogProps) {
   const [recipes, setRecipes] = useState(initialRecipes);
   const [matches, setMatches] = useState<MatchRecipeResult[] | null>(null);
   const [query, setQuery] = useState("");
   const [error, setError] = useState(initialError);
+  const [paginationError, setPaginationError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(initialRecipes.length === PAGE_SIZE);
   const [authenticated, setAuthenticated] = useState(() => hasAuthSessionHint());
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
+  const lastRequestedQuery = useRef("");
 
   useEffect(() => {
     if (authenticated) {
@@ -52,15 +66,81 @@ export function RecipesCatalog({ initialError = "", initialRecipes }: RecipesCat
     return () => window.removeEventListener(AUTH_CHANGED_EVENT, handleAuthChange);
   }, [authenticated]);
 
+  useEffect(() => {
+    if (matches) return;
+
+    const searchQuery = query.trim();
+    if (searchQuery === lastRequestedQuery.current) return;
+
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => {
+      setIsSearching(true);
+      setPaginationError("");
+
+      listRecipes({
+        limit: PAGE_SIZE,
+        offset: 0,
+        query: searchQuery || undefined,
+        signal: controller.signal,
+      })
+        .then((nextRecipes) => {
+          lastRequestedQuery.current = searchQuery;
+          setRecipes(nextRecipes);
+          setHasMore(nextRecipes.length === PAGE_SIZE);
+        })
+        .catch(() => {
+          if (!controller.signal.aborted) {
+            setError("Não foi possível buscar no catálogo agora. Tente novamente.");
+          }
+        })
+        .finally(() => {
+          if (!controller.signal.aborted) setIsSearching(false);
+        });
+    }, SEARCH_DELAY_MS);
+
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [matches, query]);
+
   async function retry() {
+    const searchQuery = query.trim();
     setIsLoading(true);
     setError("");
     try {
-      setRecipes(await listRecipes());
+      const nextRecipes = await listRecipes({
+        limit: PAGE_SIZE,
+        offset: 0,
+        query: searchQuery || undefined,
+      });
+      lastRequestedQuery.current = searchQuery;
+      setRecipes(nextRecipes);
+      setHasMore(nextRecipes.length === PAGE_SIZE);
     } catch {
       setError("Não foi possível carregar o catálogo agora. Tente novamente.");
     } finally {
       setIsLoading(false);
+    }
+  }
+
+  async function loadMore() {
+    if (isLoadingMore || !hasMore || matches) return;
+
+    setIsLoadingMore(true);
+    setPaginationError("");
+    try {
+      const nextRecipes = await listRecipes({
+        limit: PAGE_SIZE,
+        offset: recipes.length,
+        query: query.trim() || undefined,
+      });
+      setRecipes((current) => mergeRecipes(current, nextRecipes));
+      setHasMore(nextRecipes.length === PAGE_SIZE);
+    } catch {
+      setPaginationError("Não foi possível carregar mais receitas agora.");
+    } finally {
+      setIsLoadingMore(false);
     }
   }
 
@@ -78,19 +158,12 @@ export function RecipesCatalog({ initialError = "", initialRecipes }: RecipesCat
 
   const normalizedQuery = normalizeIngredientName(query);
   const filteredRecipes = useMemo(() => {
-    if (matches) {
-      return matches.filter((recipe) =>
-        !normalizedQuery ||
-        normalizeIngredientName(`${recipe.title} ${recipe.description} ${recipe.mealType}`).includes(normalizedQuery),
-      );
-    }
+    if (!matches) return recipes;
 
-    return recipes
-      .filter((recipe) =>
-        !normalizedQuery ||
-        normalizeIngredientName(`${recipe.title} ${recipe.description} ${recipe.mealType}`).includes(normalizedQuery),
-      )
-      .sort((first, second) => first.title.localeCompare(second.title, "pt-BR"));
+    return matches.filter((recipe) =>
+      !normalizedQuery ||
+      normalizeIngredientName(`${recipe.title} ${recipe.description} ${recipe.mealType}`).includes(normalizedQuery),
+    );
   }, [matches, normalizedQuery, recipes]);
 
   function updateFavorite(recipeId: string, favorite: boolean) {
@@ -105,7 +178,7 @@ export function RecipesCatalog({ initialError = "", initialRecipes }: RecipesCat
   if (isLoading) return <LoadingState label="Consultando a cozinha…" />;
   if (error) return <ErrorState message={error} onRetry={retry} />;
 
-  if (recipes.length === 0 && !matches) {
+  if (recipes.length === 0 && !matches && !query) {
     return (
       <EmptyState
         description="Quando as primeiras receitas forem cadastradas, elas aparecerão neste espaço."
@@ -114,6 +187,10 @@ export function RecipesCatalog({ initialError = "", initialRecipes }: RecipesCat
       />
     );
   }
+
+  const countHasMore = !matches && hasMore;
+  const countValue = `${filteredRecipes.length}${countHasMore ? "+" : ""}`;
+  const countLabel = query.trim() ? "resultados" : filteredRecipes.length === 1 ? "receita" : "receitas";
 
   return (
     <div className={styles.catalog}>
@@ -144,50 +221,80 @@ export function RecipesCatalog({ initialError = "", initialRecipes }: RecipesCat
 
       <div className={styles.toolbar}>
         <div className={styles.searchField}>
-          <label htmlFor="recipe-search">Buscar no catálogo</label>
-          <input
-            autoComplete="off"
-            id="recipe-search"
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Receita, refeição ou palavra-chave"
-            type="search"
-            value={query}
-          />
+          <label htmlFor="recipe-search">Buscar receitas</label>
+          <div className={styles.searchControl}>
+            <span aria-hidden="true" className={styles.searchIcon}>⌕</span>
+            <input
+              autoComplete="off"
+              id="recipe-search"
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Nome, refeição ou palavra-chave"
+              type="search"
+              value={query}
+            />
+            {query ? (
+              <button
+                aria-label="Limpar busca"
+                className={styles.clearSearch}
+                onClick={() => setQuery("")}
+                type="button"
+              >
+                ×
+              </button>
+            ) : null}
+          </div>
+          <span className={styles.searchHint}>
+            {isSearching ? "Buscando em todo o catálogo…" : "A busca consulta o catálogo completo, não só os cards carregados."}
+          </span>
         </div>
         <div aria-live="polite" className={styles.count}>
-          <strong>{filteredRecipes.length}</strong>
-          <span>{filteredRecipes.length === 1 ? "receita" : "receitas"}</span>
+          <strong>{countValue}</strong>
+          <span>{countLabel}</span>
         </div>
       </div>
 
       {filteredRecipes.length > 0 ? (
-        <div className={styles.grid}>
-          {filteredRecipes.map((recipe) => {
-            const match = "compatibility" in recipe ? recipe : null;
-            const catalogRecipe = recipes.find((item) => item.id === recipe.id);
-            return (
-              <RecipeCard
-                compatibility={match?.compatibility}
-                description={recipe.description}
-                difficulty={recipe.difficulty}
-                externalSource={catalogRecipe?.source.externalSource}
-                imageUrl={recipe.imageUrl}
-                initialFavorite={favoriteIds.has(recipe.id)}
-                key={recipe.id}
-                mealType={recipe.mealType}
-                missingIngredients={match?.missingIngredients}
-                onFavoriteChange={(favorite) => updateFavorite(recipe.id, favorite)}
-                prepMinutes={recipe.prepMinutes}
-                recipeId={recipe.id}
-                servings={recipe.servings}
-                slug={recipe.slug}
-                sourceName={catalogRecipe?.source.name}
-                status={match?.status}
-                title={recipe.title}
-              />
-            );
-          })}
-        </div>
+        <>
+          <div className={styles.grid}>
+            {filteredRecipes.map((recipe) => {
+              const match = "compatibility" in recipe ? recipe : null;
+              const catalogRecipe = recipes.find((item) => item.id === recipe.id);
+              return (
+                <RecipeCard
+                  compatibility={match?.compatibility}
+                  description={recipe.description}
+                  difficulty={recipe.difficulty}
+                  externalSource={catalogRecipe?.source.externalSource}
+                  imageUrl={recipe.imageUrl}
+                  initialFavorite={favoriteIds.has(recipe.id)}
+                  key={recipe.id}
+                  mealType={recipe.mealType}
+                  missingIngredients={match?.missingIngredients}
+                  onFavoriteChange={(favorite) => updateFavorite(recipe.id, favorite)}
+                  prepMinutes={recipe.prepMinutes}
+                  recipeId={recipe.id}
+                  servings={recipe.servings}
+                  slug={recipe.slug}
+                  sourceName={catalogRecipe?.source.name}
+                  status={match?.status}
+                  title={recipe.title}
+                />
+              );
+            })}
+          </div>
+
+          {!matches && hasMore ? (
+            <div className={styles.pagination}>
+              <button disabled={isLoadingMore || isSearching} onClick={() => void loadMore()} type="button">
+                {isLoadingMore ? "Carregando…" : "Carregar mais receitas"}
+              </button>
+              <span>Você está vendo {recipes.length} receitas até agora.</span>
+              {paginationError ? <p role="alert">{paginationError}</p> : null}
+            </div>
+          ) : null}
+        </>
+      ) : isSearching ? (
+        <LoadingState label="Buscando receitas…" />
       ) : (
         <EmptyState
           description="Tente buscar com outro nome ou limpe o campo para ver todas as opções."
