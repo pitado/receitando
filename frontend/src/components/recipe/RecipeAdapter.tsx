@@ -1,10 +1,12 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 
 import { adaptRecipe } from "@/services/recipes.service";
+import { hasAuthSessionHint } from "@/services/auth-storage";
 import type {
   AdaptationConfidence,
+  CulinarySignal,
   RecipeAdaptationResult,
   RecipeIngredient,
 } from "@/types/recipe";
@@ -23,6 +25,17 @@ const confidenceLabels: Record<AdaptationConfidence, string> = {
   LOW: "baixa confiança",
 };
 
+const culinarySignalLabels: Record<CulinarySignal, string> = {
+  BAKED: "assado",
+  FRIED: "frito",
+  COOKED: "cozido",
+  FRESH: "fresco",
+  AERATED: "depende de aeração",
+  EGG_CENTRIC: "ovo é estrutural",
+  SWEET: "doce",
+  SAVORY: "salgado",
+};
+
 function overallConfidenceLabel(value: number): string {
   if (value >= 90) return "Adaptação muito consistente";
   if (value >= 70) return "Adaptação consistente";
@@ -36,6 +49,12 @@ export function RecipeAdapter({ recipeSlug, servings, ingredients }: RecipeAdapt
   const [result, setResult] = useState<RecipeAdaptationResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [canUsePantry, setCanUsePantry] = useState(false);
+  const [usePantry, setUsePantry] = useState(false);
+
+  useEffect(() => {
+    setCanUsePantry(hasAuthSessionHint());
+  }, []);
 
   const unavailableNames = useMemo(
     () => ingredients.filter((item) => unavailable.has(item.ingredientId)).map((item) => item.name),
@@ -60,6 +79,7 @@ export function RecipeAdapter({ recipeSlug, servings, ingredients }: RecipeAdapt
       const adaptation = await adaptRecipe(recipeSlug, {
         ...(servings > 0 ? { targetServings } : {}),
         unavailableIngredients: unavailableNames,
+        usePantry: canUsePantry && usePantry,
       });
       setResult(adaptation);
     } catch (requestError: unknown) {
@@ -81,10 +101,10 @@ export function RecipeAdapter({ recipeSlug, servings, ingredients }: RecipeAdapt
           <h2 id="recipe-adapter-title">Adapte à sua cozinha</h2>
           <p>
             Mude o rendimento e marque o que está faltando. O Receitando recalcula as quantidades,
-            procura substituições e explica onde vale conferir manualmente.
+            cruza sua despensa, procura substituições e leva o tipo de preparo em consideração.
           </p>
         </div>
-        <span className={styles.version}>Engine v1.0</span>
+        <span className={styles.version}>Engine v1.1</span>
       </div>
 
       <form className={styles.form} onSubmit={handleSubmit}>
@@ -114,12 +134,29 @@ export function RecipeAdapter({ recipeSlug, servings, ingredients }: RecipeAdapt
 
           <div className={styles.missingSummary}>
             <strong>{unavailable.size}</strong>
-            <span>{unavailable.size === 1 ? "ingrediente faltando" : "ingredientes faltando"}</span>
+            <span>{unavailable.size === 1 ? "ingrediente marcado" : "ingredientes marcados"}</span>
           </div>
         </div>
 
+        <label className={`${styles.pantryControl} ${!canUsePantry ? styles.pantryDisabled : ""}`}>
+          <input
+            checked={canUsePantry && usePantry}
+            disabled={!canUsePantry}
+            onChange={(event) => setUsePantry(event.target.checked)}
+            type="checkbox"
+          />
+          <span>
+            <strong>Usar minha despensa automaticamente</strong>
+            <small>
+              {canUsePantry
+                ? "O motor identifica o que você já tem, o que falta e quando a quantidade parece insuficiente."
+                : "Entre na sua conta para cruzar esta receita com a sua despensa."}
+            </small>
+          </span>
+        </label>
+
         <fieldset className={styles.ingredientsFieldset}>
-          <legend>O que você não tem?</legend>
+          <legend>O que você sabe que está faltando?</legend>
           <div className={styles.ingredientGrid}>
             {ingredients.map((ingredient) => {
               const checked = unavailable.has(ingredient.ingredientId);
@@ -162,6 +199,28 @@ export function RecipeAdapter({ recipeSlug, servings, ingredients }: RecipeAdapt
             </div>
           </div>
 
+          {result.culinaryContext.signals.length > 0 ? (
+            <div className={styles.contextPanel}>
+              <strong>Contexto que o motor identificou</strong>
+              <div>
+                {result.culinaryContext.signals.map((signal) => (
+                  <span key={signal}>{culinarySignalLabels[signal]}</span>
+                ))}
+              </div>
+              {result.culinaryContext.evidence.length > 0 ? (
+                <small>{result.culinaryContext.evidence.join(" · ")}</small>
+              ) : null}
+            </div>
+          ) : null}
+
+          {result.pantry.used ? (
+            <div className={styles.pantryResult}>
+              <div><strong>{result.pantry.presentCount}</strong><span>na despensa</span></div>
+              <div><strong>{result.pantry.missingCount}</strong><span>não encontrados</span></div>
+              <div><strong>{result.pantry.shortageCount}</strong><span>quantidades curtas</span></div>
+            </div>
+          ) : null}
+
           {result.changes.length > 0 ? (
             <ul className={styles.changes}>
               {result.changes.map((change, index) => (
@@ -191,7 +250,7 @@ export function RecipeAdapter({ recipeSlug, servings, ingredients }: RecipeAdapt
                       ) : null}
                     </>
                   ) : ingredient.unavailable ? (
-                    <span>Sem substituição confiável cadastrada ainda.</span>
+                    <span>Sem substituição confiável para este contexto.</span>
                   ) : (
                     <span>{ingredient.optional ? "Opcional" : "Mantido da receita original"}</span>
                   )}
