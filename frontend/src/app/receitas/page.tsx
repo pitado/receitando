@@ -15,6 +15,8 @@ export const metadata: Metadata = {
   description: "Explore o catálogo de receitas do Receitando.",
 };
 
+const INITIAL_RECIPE_LIMIT = 36;
+
 function getCatalogError(error: unknown): string {
   if (error instanceof ApiError && error.kind === "connection") {
     return "Não foi possível carregar o catálogo. Confira se a API está ligada e tente novamente.";
@@ -28,7 +30,7 @@ export default async function RecipesPage() {
   let errorMessage = "";
 
   try {
-    recipes = await listRecipes();
+    recipes = await listRecipes({ limit: INITIAL_RECIPE_LIMIT });
   } catch (error: unknown) {
     errorMessage = getCatalogError(error);
   }

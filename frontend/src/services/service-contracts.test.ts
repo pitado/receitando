@@ -24,16 +24,31 @@ describe("contratos dos serviços HTTP", () => {
     apiRequestMock.mockResolvedValue([]);
   });
 
-  it("consulta catálogo e receita por slug escapado", async () => {
+  it("consulta catálogo paginado e receita por slug escapado", async () => {
     const controller = new AbortController();
 
-    await listRecipes(controller.signal);
+    await listRecipes({
+      limit: 36,
+      offset: 36,
+      query: "bolo de chocolate",
+      signal: controller.signal,
+    });
     await getRecipeBySlug("bolo/chocolate", controller.signal);
 
-    expect(apiRequestMock).toHaveBeenNthCalledWith(1, "/api/recipes", { signal: controller.signal });
+    expect(apiRequestMock).toHaveBeenNthCalledWith(
+      1,
+      "/api/recipes?q=bolo+de+chocolate&limit=36&offset=36",
+      { signal: controller.signal },
+    );
     expect(apiRequestMock).toHaveBeenNthCalledWith(2, "/api/recipes/bolo%2Fchocolate", {
       signal: controller.signal,
     });
+  });
+
+  it("mantém a rota simples quando não há filtros no catálogo", async () => {
+    await listRecipes();
+
+    expect(apiRequestMock).toHaveBeenCalledWith("/api/recipes", { signal: undefined });
   });
 
   it("envia ingredientes para o matching e consulta matching da despensa", async () => {

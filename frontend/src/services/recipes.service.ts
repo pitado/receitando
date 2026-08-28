@@ -7,8 +7,25 @@ import type {
   RecipeAdaptationResult,
 } from "@/types/recipe";
 
-export function listRecipes(signal?: AbortSignal): Promise<Recipe[]> {
-  return apiRequest<Recipe[]>("/api/recipes", { signal });
+export interface ListRecipesOptions {
+  limit?: number;
+  offset?: number;
+  query?: string;
+  signal?: AbortSignal;
+}
+
+export function listRecipes(options: ListRecipesOptions = {}): Promise<Recipe[]> {
+  const params = new URLSearchParams();
+  const query = options.query?.trim();
+
+  if (query) params.set("q", query);
+  if (typeof options.limit === "number") params.set("limit", String(options.limit));
+  if (typeof options.offset === "number") params.set("offset", String(options.offset));
+
+  const search = params.toString();
+  return apiRequest<Recipe[]>(`/api/recipes${search ? `?${search}` : ""}`, {
+    signal: options.signal,
+  });
 }
 
 export function getRecipeBySlug(

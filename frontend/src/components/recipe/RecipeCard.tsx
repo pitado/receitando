@@ -78,9 +78,16 @@ export function RecipeCard({
     : undefined;
   const hasPrepTime = typeof prepMinutes === "number" && prepMinutes > 0;
   const hasServings = typeof servings === "number" && servings > 0;
+  const recipeHref = `/receitas/${slug}`;
 
   return (
     <article className={styles.card}>
+      <Link
+        aria-label={`Abrir receita ${title}`}
+        className={styles.cardOverlay}
+        href={recipeHref}
+      />
+
       <div
         aria-label={imageUrl ? `Foto de ${title}` : undefined}
         aria-hidden={imageUrl ? undefined : true}
@@ -94,11 +101,7 @@ export function RecipeCard({
 
       <div className={styles.body}>
         <div className={styles.heading}>
-          <h3 className={styles.title}>
-            <Link className={styles.titleLink} href={`/receitas/${slug}`}>
-              {title}
-            </Link>
-          </h3>
+          <h3 className={styles.title}>{title}</h3>
           {compatibility !== undefined ? <CompatibilityBadge value={compatibility} /> : null}
         </div>
 
@@ -120,17 +123,19 @@ export function RecipeCard({
         {missingMessage ? <p className={styles.matchMessage}>{missingMessage}</p> : null}
 
         <div className={styles.actions}>
-          <Link className={styles.cardLink} href={`/receitas/${slug}`}>
+          <span className={styles.cardLink}>
             Ver receita <span aria-hidden="true">→</span>
-          </Link>
-          <FavoriteButton
-            initialFavorite={initialFavorite}
-            key={`${recipeId}-${initialFavorite ? "saved" : "unsaved"}`}
-            label={false}
-            onChange={onFavoriteChange}
-            recipeId={recipeId}
-            syncFavorite={false}
-          />
+          </span>
+          <div className={styles.favoriteAction}>
+            <FavoriteButton
+              initialFavorite={initialFavorite}
+              key={`${recipeId}-${initialFavorite ? "saved" : "unsaved"}`}
+              label={false}
+              onChange={onFavoriteChange}
+              recipeId={recipeId}
+              syncFavorite={false}
+            />
+          </div>
         </div>
       </div>
     </article>
