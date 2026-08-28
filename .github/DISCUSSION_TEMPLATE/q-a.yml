@@ -1,0 +1,47 @@
+title: "[Dúvida] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use esta categoria para perguntas sobre o Receitando. Descreva bem o contexto para aumentar a chance de alguém conseguir responder e marcar uma solução.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Área da dúvida
+      options:
+        - Uso do Receitando
+        - Receitas e catálogo
+        - Combinação por ingredientes
+        - Despensa
+        - Conta e perfil
+        - API
+        - Desenvolvimento local
+        - Cloudflare e deploy
+        - Documentação
+        - Outro
+    validations:
+      required: true
+
+  - type: textarea
+    id: duvida
+    attributes:
+      label: Qual é a sua dúvida?
+      placeholder: Explique claramente o que você está tentando entender ou fazer.
+    validations:
+      required: true
+
+  - type: textarea
+    id: contexto
+    attributes:
+      label: Contexto
+      description: Inclua passos, comportamento observado, exemplos ou trechos relevantes.
+      placeholder: Quanto mais contexto, melhor.
+    validations:
+      required: true
+
+  - type: textarea
+    id: tentativas
+    attributes:
+      label: O que você já tentou?
+      description: Opcional, mas ajuda a evitar respostas repetidas.
