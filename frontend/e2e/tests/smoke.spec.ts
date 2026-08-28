@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 import { installApiMock } from "./api-mock";
 
-test("home carrega e leva ao combinador", async ({ page }) => {
+test("home carrega e leva ingredientes ao combinador", async ({ page }) => {
   await installApiMock(page, {
     "GET /api/home-feed": async () => ({
       body: {
@@ -19,13 +19,17 @@ test("home carrega e leva ao combinador", async ({ page }) => {
   await expect(
     page.getByRole("heading", {
       level: 1,
-      name: /Você já tem os ingredientes/i,
+      name: "Cozinhe com o que você já tem.",
     }),
   ).toBeVisible();
 
-  await page.getByRole("link", { name: /Ver o que posso fazer/i }).click();
+  await page.getByRole("button", { name: "arroz", exact: true }).click();
+  await page.getByRole("button", { name: "tomate", exact: true }).click();
+  await expect(page.getByLabel("Ingredientes que você tem")).toHaveValue("arroz, tomate");
 
-  await expect(page).toHaveURL(/\/combinar$/);
+  await page.getByRole("button", { name: "Buscar receitas" }).click();
+
+  await expect(page).toHaveURL(/\/combinar\?ingredientes=arroz%2Ctomate$/);
   await expect(
     page.getByRole("heading", { level: 1, name: "O que dá para fazer?" }),
   ).toBeVisible();
