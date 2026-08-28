@@ -4,9 +4,11 @@
 [![API Worker CI](https://github.com/pitado/receitando/actions/workflows/api-worker-ci.yml/badge.svg)](https://github.com/pitado/receitando/actions/workflows/api-worker-ci.yml)
 [![License: GNU AGPLv3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
 
-O **Receitando** é uma aplicação web acadêmica que ajuda a descobrir receitas a partir dos ingredientes que a pessoa já possui.
+O **Receitando** é uma aplicação web acadêmica que ajuda a transformar os ingredientes disponíveis em casa em decisões práticas: descobrir o que cozinhar, aproveitar alimentos antes do vencimento, adaptar receitas e saber o que ainda precisa ser comprado.
 
-O usuário pode informar ingredientes manualmente ou manter uma despensa vinculada à conta. O sistema resolve variações para ingredientes canônicos, compara esses itens com o catálogo e ordena receitas por compatibilidade, mostrando o que já está disponível e o que ainda falta.
+O usuário pode informar ingredientes manualmente ou manter uma **despensa persistente** vinculada à conta. O sistema resolve variações para ingredientes canônicos, calcula compatibilidade com o catálogo e mostra o que já está disponível e o que falta.
+
+A evolução atual do projeto vai além de um buscador de receitas: a despensa pode registrar validade, o combinador prioriza o aproveitamento de itens próximos do vencimento em resultados de compatibilidade semelhante e o detalhe da receita gera uma lista de compras baseada no que falta em casa.
 
 > Escopo formal: [`docs/escopo.md`](docs/escopo.md)  
 > Glossário de termos: [`docs/glossario.md`](docs/glossario.md)  
@@ -18,6 +20,65 @@ O usuário pode informar ingredientes manualmente ou manter uma despensa vincula
 - **Site:** https://receitando.miguelpita.com.br
 - **API:** https://api.receitando.miguelpita.com.br
 
+## Diferenciais atuais
+
+### Despensa com validade
+
+Cada item da despensa pode ter uma data de validade opcional. A interface:
+
+- mostra a validade do item;
+- destaca alimentos vencidos ou próximos do vencimento;
+- exibe avisos como `Vence hoje`, `Vence amanhã` e `Vence em N dias`;
+- ordena itens com validade mais próxima antes dos itens sem validade;
+- permite adicionar o item primeiro e ajustar a validade depois.
+
+O aviso de vencimento atual é **in-app**. Web Push, e-mail automático ou outra notificação em segundo plano ainda não fazem parte da implementação.
+
+### Matching com prioridade de consumo
+
+O matching continua usando compatibilidade como critério principal. Quando o usuário escolhe **Usar minha despensa**, o frontend também considera a validade para desempatar receitas com compatibilidade próxima.
+
+A regra atual é:
+
+1. diferenças de compatibilidade superiores a 5 pontos mantêm a maior compatibilidade primeiro;
+2. dentro dessa faixa de 5 pontos, receitas que usam ingredientes mais urgentes recebem prioridade;
+3. depois disso, permanecem os critérios de compatibilidade, menor quantidade de faltantes, menor tempo de preparo e título.
+
+Peso de urgência usado na interface:
+
+| Situação do ingrediente | Peso |
+| --- | ---: |
+| vencido ou vence hoje | 5 |
+| vence amanhã | 4 |
+| vence em 2–3 dias | 3 |
+| vence em 4–7 dias | 1 |
+| mais de 7 dias ou sem validade | 0 |
+
+A porcentagem de compatibilidade em si **não é alterada pela validade**. A validade atua apenas na ordenação de resultados próximos quando o matching é feito pela despensa.
+
+### Lista de compras automática
+
+No detalhe da receita, usuários autenticados podem comparar a receita com a própria despensa e gerar uma lista somente com os ingredientes obrigatórios que ainda faltam.
+
+- ingredientes já presentes são removidos da lista;
+- opcionais e ingredientes básicos (`is_staple`) não entram na lista principal;
+- a lista pode ser copiada;
+- a comparação da lista continua seguindo presença/ausência, assim como o matching geral.
+
+### Adaptação e substituição de ingredientes
+
+O detalhe da receita também possui um **motor culinário experimental** que permite:
+
+- alterar o número de porções;
+- recalcular quantidades quando o rendimento original permite;
+- marcar ingredientes indisponíveis;
+- usar a despensa como referência;
+- detectar quando a quantidade cadastrada parece insuficiente em unidades comparáveis;
+- sugerir substituições conhecidas com nível de confiança e justificativa;
+- considerar sinais do contexto culinário antes de recomendar uma troca.
+
+Quando não existe substituição considerada confiável para aquele contexto, o sistema informa a limitação em vez de assumir uma equivalência arbitrária.
+
 ## O que já está implementado
 
 ### Receitas, busca e matching
@@ -25,47 +86,62 @@ O usuário pode informar ingredientes manualmente ou manter uma despensa vincula
 - catálogo navegável e detalhe completo;
 - busca textual indexada com SQLite FTS5;
 - catálogo canônico de ingredientes e aliases;
-- normalização de variações como plural e descrições comuns de preparo;
+- normalização conservadora de variações de ingredientes;
 - equivalência por IDs canônicos, sem substring como regra de matching;
 - ingredientes básicos (`is_staple`) que não penalizam a compatibilidade;
 - percentual de compatibilidade;
 - ingredientes encontrados, faltantes, opcionais e básicos;
-- matching com até 40 ingredientes informados;
+- matching manual com até 40 ingredientes;
 - matching diretamente pela despensa;
-- regra atual de matching booleano (`tem` / `não tem`), documentada na interface e no escopo.
+- prioridade de consumo por validade na ordenação da interface;
+- adaptação de receita e substituições contextuais;
+- lista de compras automática baseada na despensa.
 
-### Conta e segurança
+### Conta, despensa e comunidade
 
-- cadastro;
-- login e logout;
+- cadastro, login e logout;
 - sessão persistente por cookie `HttpOnly`;
 - perfil com nome, `@` e avatar;
 - recuperação de senha por código enviado por e-mail;
-- PBKDF2 via Web Crypto para senhas;
-- SHA-256 para tokens e chaves de rate limiting armazenadas;
-- rate limiting de login, cadastro e solicitação de recuperação de senha;
-- resposta genérica no reset para evitar enumeração de contas.
-
-### Personalização e comunidade
-
-- despensa persistente;
-- quantidade e unidade opcionais;
+- despensa persistente por usuário;
+- quantidade, unidade e validade opcionais na despensa;
 - favoritos persistentes;
 - gostei/não gostei;
 - comentários;
 - edição e exclusão apenas do próprio comentário;
 - feed da home com receitas populares, comentários recentes e totais.
 
+### Segurança
+
+- PBKDF2 via Web Crypto para senhas;
+- SHA-256 para tokens de sessão e identificadores de rate limiting persistidos;
+- cookie `HttpOnly`, `Secure` e `SameSite=Strict` em produção;
+- validação de `Origin` em mutações do navegador;
+- CORS credenciado restrito às origens configuradas;
+- statements SQL parametrizados com `.bind()`;
+- autorização por usuário em despensa, favoritos, votos e comentários;
+- rate limiting em login, cadastro e solicitação de recuperação;
+- resposta genérica no reset para reduzir enumeração de contas;
+- secrets fora do repositório;
+- conteúdo externo tratado como texto antes da renderização.
+
 ### Catálogo externo
 
 - receitas do **Wikilivros em português**;
 - imagens com licença livre do **Wikimedia Commons**;
 - importação manual via GitHub Actions;
-- pós-processamento para canonicalização de ingredientes;
+- canonicalização e aliases de ingredientes;
 - procedência da receita;
 - procedência, autor, página e licença da imagem;
-- créditos exibidos no detalhe da receita;
-- conteúdo culinário convertido para texto, sem renderização de HTML bruto da fonte externa.
+- créditos exibidos no detalhe da receita.
+
+## Limitação atual do matching
+
+O matching principal ainda é **booleano**: considera se o ingrediente está presente ou ausente.
+
+Quantidade e unidade são armazenadas e usadas pelo motor de adaptação em comparações compatíveis, mas **não alteram a porcentagem de compatibilidade do combinador**. Portanto, possuir `1 ovo` conta como presença do ingrediente `ovo`, mesmo que uma receita exija mais unidades.
+
+Ingredientes marcados `is_staple`, como água, sal, pimenta e óleo genérico na política atual, continuam fazendo parte da receita, mas não entram no denominador da compatibilidade nem na lista principal de faltantes.
 
 ## Arquitetura
 
@@ -86,35 +162,24 @@ API Cloudflare Worker
 
 O frontend nunca acessa o banco diretamente.
 
-A API atual fica em `backend/worker-prototype/`. Apesar do nome histórico do diretório, essa é a única implementação de backend mantida na árvore principal.
+A API atual fica em `backend/worker-prototype/`. Apesar do nome histórico do diretório, essa é a implementação de backend mantida na árvore principal.
 
-### Entrypoint real da API
-
-O `wrangler.jsonc` aponta para:
-
-```text
-src/session-cookie-worker.ts
-```
-
-O entrypoint trata cookie `HttpOnly`, CORS credenciado e proteção de `Origin`. Depois disso, `src/app-router.ts` escolhe diretamente o Worker responsável pela rota:
+O `wrangler.jsonc` aponta para `src/session-cookie-worker.ts`. Depois das regras de sessão/CORS, `src/app-router.ts` direciona a requisição ao Worker responsável.
 
 ```text
 session-cookie-worker
         ↓
 app-router
-   ├── auth-rate-limit-worker → index / password-reset-worker
+   ├── auth-rate-limit-worker
    ├── home-worker
    ├── catalog64-worker
+   ├── recipe-adaptation-worker
    ├── social-worker
    ├── profile-worker
    ├── password-reset-worker
    ├── pantry-worker
    └── index
 ```
-
-Assim, uma requisição comum não precisa atravessar todos os Workers em sequência até encontrar o handler correto.
-
-Infraestrutura compartilhada de HTTP/CORS/autenticação fica em `src/lib/worker-http.ts`; política do cookie em `src/lib/session-cookie.ts`; normalização e regras puras de matching ficam em `src/lib/recipe-utils.ts`.
 
 Detalhes: [`docs/architecture.md`](docs/architecture.md).
 
@@ -132,11 +197,12 @@ Detalhes: [`docs/architecture.md`](docs/architecture.md).
 | `POST` | `/api/auth/reset-password` | trocar senha |
 | `GET` | `/api/sources` | fontes do catálogo |
 | `GET` | `/api/ingredients` | ingredientes canônicos |
-| `GET` | `/api/recipes` | catálogo e busca FTS5 |
+| `GET` | `/api/recipes` | catálogo e busca |
 | `GET` | `/api/recipes/:slug` | detalhe da receita |
 | `POST` | `/api/recipes/match` | matching manual |
 | `GET` | `/api/recipes/match/pantry` | matching pela despensa |
-| `GET` / `POST` | `/api/pantry` | despensa |
+| `POST` | `/api/recipes/:slug/adapt` | adaptar receita/substituições |
+| `GET` / `POST` | `/api/pantry` | listar/adicionar/atualizar despensa |
 | `DELETE` | `/api/pantry/:itemId` | remover item |
 | `GET` / `POST` | `/api/favorites` | favoritos |
 | `DELETE` | `/api/favorites/:recipeId` | remover favorito |
@@ -148,9 +214,7 @@ Detalhes: [`docs/architecture.md`](docs/architecture.md).
 
 Documentação completa: [`docs/api.md`](docs/api.md).
 
-## Regra de matching
-
-O fluxo não compara strings com `LIKE '%ingrediente%'`.
+## Regra de matching canônico
 
 ```text
 texto informado/importado
@@ -166,7 +230,7 @@ ingredient_id canônico
 matching por presença
 ```
 
-Exemplo esperado:
+Exemplo:
 
 ```text
 cebola / cebolas / cebolas picadas / cebola média
@@ -174,55 +238,13 @@ cebola / cebolas / cebolas picadas / cebola média
                        cebola
 ```
 
-Compostos semanticamente diferentes permanecem separados: `óleo` não equivale automaticamente a `óleo de gergelim torrado`, e `açúcar` não equivale a `açúcar de confeiteiro`.
-
-Ingredientes marcados `is_staple`, como água, sal, pimenta e óleo genérico, não entram no denominador da compatibilidade nem na lista principal de faltantes.
-
-**Quantidade e unidade ainda não participam do cálculo.** Nesta versão, possuir `1 ovo` significa possuir o ingrediente `ovo`, mesmo que a receita solicite uma quantidade maior. Essa limitação está explícita no escopo e na tela de combinações.
-
-## Segurança
-
-A implementação atual inclui:
-
-- PBKDF2 com salt aleatório para senhas;
-- tokens de sessão aleatórios, com somente SHA-256 persistido no D1;
-- sessão do navegador em cookie `HttpOnly`, `Secure` e `SameSite=Strict` em produção;
-- token bruto fora do `localStorage`/`sessionStorage` e fora do JSON público de autenticação;
-- validação de `Origin` em mutações do navegador e CORS credenciado restrito;
-- queries de requisição parametrizadas com `.bind()`;
-- autorização por usuário em despensa, favoritos, votos e comentários;
-- resposta genérica na recuperação de senha;
-- limite de tentativas no código de recuperação;
-- invalidação das sessões após troca de senha;
-- rate limiting por e-mail/IP em login e solicitação de recuperação e por IP em cadastro;
-- secrets fora do repositório;
-- conteúdo externo culinário convertido para texto e renderizado pelo React como texto, sem HTML bruto do Wikilivros.
-
-Reporte responsável: [`SECURITY.md`](SECURITY.md).
-
-## Catálogo, imagens e licenças
-
-O fluxo operacional usa exclusivamente:
-
-- **Wikilivros em português** para receitas;
-- **Wikimedia Commons** para imagens livres.
-
-Scripts ativos:
-
-```text
-backend/worker-prototype/scripts/import-wikibooks-v2.mjs
-backend/worker-prototype/scripts/canonicalize-ingredients.mjs
-```
-
-A sequência do workflow importa as receitas e depois consolida variações de ingredientes, preservando aliases e identificando staples.
-
-Importadores experimentais substituídos foram removidos da árvore ativa. O histórico continua acessível pelo Git.
-
-Documentação: [`docs/catalogo.md`](docs/catalogo.md).
+Compostos semanticamente diferentes permanecem separados: `óleo` não equivale automaticamente a `óleo de gergelim torrado`, e `açúcar` não equivale automaticamente a `açúcar de confeiteiro`.
 
 ## Banco de dados
 
-Produção utiliza **Cloudflare D1**.
+Produção utiliza **Cloudflare D1**. O schema inclui usuários, sessões, catálogo canônico de ingredientes, aliases, receitas, despensa, favoritos, recuperação de senha, comunidade, atribuição de conteúdo, rate limiting e busca FTS5.
+
+A coluna `pantry_items.expires_at` já fazia parte do schema original e agora é usada pela interface de validade; portanto, essa evolução não exigiu uma migration nova.
 
 Migrations:
 
@@ -230,11 +252,7 @@ Migrations:
 backend/worker-prototype/migrations/
 ```
 
-O schema inclui usuários/sessões, catálogo canônico de ingredientes, aliases, receitas, despensa, favoritos, recuperação de senha, comunidade, atribuição de conteúdo, rate limiting e busca FTS5.
-
-A migration `0015_matching_search_hardening.sql` adiciona `is_staple`, índices para padrões frequentes de acesso e a tabela virtual `recipe_search` com triggers de sincronização.
-
-Chaves estrangeiras com `CASCADE`/`RESTRICT` protegem a integridade relacional. Detalhes: [`docs/database.md`](docs/database.md).
+Detalhes: [`docs/database.md`](docs/database.md).
 
 ## Estrutura do repositório
 
@@ -259,34 +277,13 @@ receitando/
 
 A implementação antiga em NestJS + Prisma + PostgreSQL foi retirada da árvore principal e preservada na branch `legacy/nest-prisma`.
 
-Mapa detalhado: [`docs/estrutura-repositorio.md`](docs/estrutura-repositorio.md).
-
 ## Stack
 
-### Frontend
+**Frontend:** Next.js 16, React 19, TypeScript, App Router, OpenNext e Cloudflare Workers.
 
-- Next.js 16;
-- React 19;
-- TypeScript;
-- App Router;
-- OpenNext;
-- Cloudflare Workers.
+**API:** Cloudflare Workers, TypeScript, Wrangler, Cloudflare D1, Web Crypto API e Resend.
 
-### API
-
-- Cloudflare Workers;
-- TypeScript;
-- Wrangler;
-- Cloudflare D1;
-- Web Crypto API;
-- Resend.
-
-### Infraestrutura
-
-- GitHub Actions;
-- Cloudflare Workers;
-- Cloudflare D1;
-- Dependabot para frontend e API atuais.
+**Infraestrutura:** GitHub Actions, Cloudflare Workers, Cloudflare D1 e Dependabot.
 
 ## Desenvolvimento local
 
@@ -323,22 +320,9 @@ Endereços padrão:
 - frontend: `http://localhost:3000`;
 - API: `http://localhost:8787`.
 
-## Variáveis e secrets
-
-| Variável | Componente | Tipo | Uso |
-| --- | --- | --- | --- |
-| `NEXT_PUBLIC_API_URL` | frontend | pública | URL da API |
-| `FRONTEND_URL` | API | configuração | origens aceitas no CORS |
-| `EMAIL_FROM` | API | configuração | remetente do reset de senha |
-| `RESEND_API_KEY` | API | **secret** | autenticação no Resend |
-| `CLOUDFLARE_API_TOKEN` | Actions | **secret** | deploy/migrations |
-| `CLOUDFLARE_ACCOUNT_ID` | Actions | **secret operacional** | conta Cloudflare |
-
-`.env.example` contém apenas placeholders/valores locais seguros.
-
 ## Qualidade e testes
 
-### Frontend
+Frontend:
 
 ```bash
 cd frontend
@@ -348,9 +332,7 @@ npm run test:coverage
 npm run build
 ```
 
-A suíte usa Vitest + React Testing Library + jsdom + jest-dom.
-
-### API Worker
+API:
 
 ```bash
 cd backend/worker-prototype
@@ -359,37 +341,22 @@ npm test
 npm run dry-run
 ```
 
-A suíte combina testes de regras puras com testes de `fetch()` dos Workers usando D1 simulado. Matching canônico, staples, FTS5, autenticação, rate limiting, sessão por cookie, roteamento central e rotas críticas possuem testes de regressão.
-
-CI/deploy falham se as validações obrigatórias falharem.
+A suíte combina testes unitários e testes de rota com D1 simulado. O repositório também possui E2E em navegador com Playwright.
 
 ## Deploy
 
-Frontend e API possuem workflows separados. A importação do catálogo também é independente do deploy.
+Frontend e API possuem workflows separados, e a importação do catálogo é independente do deploy.
 
 Guia operacional: [`docs/deploy.md`](docs/deploy.md).
-
-## Dependabot
-
-A configuração atual monitora somente:
-
-- `/frontend`;
-- `/backend/worker-prototype`.
-
-## Contribuição e licença
-
-Regras de branches, testes, migrations, documentação e PRs: [`CONTRIBUTING.md`](CONTRIBUTING.md).
-
-O código original do Receitando é disponibilizado sob **GNU Affero General Public License v3.0 (AGPL-3.0-only)**. Essa licença não altera as licenças próprias das receitas e imagens importadas de terceiros.
 
 ## Documentação
 
 - [`docs/README.md`](docs/README.md) — índice;
 - [`docs/escopo.md`](docs/escopo.md) — escopo acadêmico;
-- [`docs/glossario.md`](docs/glossario.md) — glossário de termos do projeto;
+- [`docs/glossario.md`](docs/glossario.md) — termos do projeto;
 - [`docs/funcionalidades.md`](docs/funcionalidades.md) — estado implementado;
 - [`docs/architecture.md`](docs/architecture.md) — arquitetura;
-- [`docs/api.md`](docs/api.md) — contrato completo da API;
+- [`docs/api.md`](docs/api.md) — contrato HTTP;
 - [`docs/database.md`](docs/database.md) — D1, índices e migrations;
 - [`docs/catalogo.md`](docs/catalogo.md) — receitas, imagens e licenças;
 - [`docs/testes.md`](docs/testes.md) — estratégia de testes;
@@ -399,6 +366,10 @@ O código original do Receitando é disponibilizado sob **GNU Affero General Pub
 - [`backend/worker-prototype/README.md`](backend/worker-prototype/README.md) — API atual;
 - [`CONTRIBUTING.md`](CONTRIBUTING.md) — contribuição;
 - [`SECURITY.md`](SECURITY.md) — segurança.
+
+## Licença
+
+O código original do Receitando é disponibilizado sob **GNU Affero General Public License v3.0 (AGPL-3.0-only)**. Essa licença não altera as licenças próprias das receitas e imagens importadas de terceiros.
 
 ---
 
