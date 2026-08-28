@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { FavoriteButton } from "@/components/recipe/FavoriteButton";
 import { RecipeAdapter } from "@/components/recipe/RecipeAdapter";
 import { RecipeCommunity } from "@/components/recipe/RecipeCommunity";
+import { RecipeShoppingList } from "@/components/recipe/RecipeShoppingList";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { formatIngredientAmount, formatPrepTime } from "@/lib/format";
 import { ApiError } from "@/services/api-client";
@@ -141,6 +142,8 @@ export default async function RecipeDetailPage({ params }: RecipeDetailPageProps
           )}
         </div>
       </header>
+
+      <RecipeShoppingList ingredients={recipe.ingredients} />
 
       <RecipeAdapter
         ingredients={recipe.ingredients}
