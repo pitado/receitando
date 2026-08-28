@@ -1,6 +1,6 @@
 import Image from "next/image";
-import Link from "next/link";
 
+import { HomeHero } from "@/components/home/HomeHero";
 import { HomeLiveSections } from "@/components/home/HomeLiveSections";
 import { SectionTitle } from "@/components/ui/SectionTitle";
 
@@ -9,39 +9,7 @@ import styles from "./page.module.css";
 export default function HomePage() {
   return (
     <main className={styles.page}>
-      <section
-        className={styles.hero}
-        style={{
-          background:
-            "radial-gradient(ellipse at 16% 48%, rgba(226, 154, 122, 0.28) 0%, rgba(244, 199, 177, 0.16) 30%, rgba(255, 246, 233, 0) 66%), radial-gradient(ellipse at 94% 20%, rgba(226, 154, 122, 0.2) 0%, rgba(244, 199, 177, 0.12) 30%, rgba(255, 246, 233, 0) 64%)",
-        }}
-      >
-        <div className={`container ${styles.heroGrid}`}>
-          <div className={styles.heroCopy}>
-            <p className={styles.eyebrow}>Sua cozinha, novas possibilidades</p>
-            <h1 className={styles.title}>
-              Você já tem os ingredientes. <em>Faltava a receita.</em>
-            </h1>
-            <p className={styles.description}>
-              Diga o que tem em casa. O Receitando encontra receitas possíveis,
-              mostra o que está faltando e ajuda você a aproveitar melhor os
-              alimentos.
-            </p>
-            <Link className={styles.cta} href="/combinar">
-              Ver o que posso fazer
-              <span aria-hidden="true">→</span>
-            </Link>
-          </div>
-
-          <div aria-hidden="true" className={styles.heroVisual}>
-            <div className={styles.note}>
-              <span className={styles.noteLabel}>Hoje dá para fazer</span>
-              <strong>algo gostoso</strong>
-              <span>com o que já está na despensa.</span>
-            </div>
-          </div>
-        </div>
-      </section>
+      <HomeHero />
 
       <section
         aria-label="Ideias da cozinha"
