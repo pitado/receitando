@@ -1,4 +1,5 @@
-# Glossário de Termos — Receitando
+# Glossário de Termos 
+Receitando
 
 Este glossário reúne os principais termos de **negócio, produto e tecnologia** utilizados no projeto acadêmico Receitando. As definições abaixo descrevem o significado dos termos **no contexto da aplicação**, facilitando a leitura do escopo, da documentação funcional e dos documentos técnicos.
 
