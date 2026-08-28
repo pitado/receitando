@@ -7,6 +7,7 @@ Esta pasta reúne a documentação oficial do projeto, separando escopo acadêmi
 | Documento | Conteúdo |
 | --- | --- |
 | [`escopo.md`](escopo.md) | problema, objetivo, público-alvo, requisitos, entregas e critérios de conclusão |
+| [`glossario.md`](glossario.md) | termos de negócio, produto, requisitos, arquitetura, banco, segurança e catálogo externo |
 | [`funcionalidades.md`](funcionalidades.md) | funcionalidades efetivamente implementadas |
 | [`architecture.md`](architecture.md) | arquitetura atual, entrypoint, cadeia de Workers e fluxo frontend/API/D1 |
 | [`api.md`](api.md) | mapa completo de rotas, autenticação, matching e contratos |
@@ -28,13 +29,14 @@ Arquivos de governança/histórico na raiz:
 ### Avaliação acadêmica
 
 1. [`escopo.md`](escopo.md)
-2. [`funcionalidades.md`](funcionalidades.md)
-3. [`architecture.md`](architecture.md)
-4. [`catalogo.md`](catalogo.md)
-5. [`database.md`](database.md)
-6. [`api.md`](api.md)
-7. [`testes.md`](testes.md)
-8. [`deploy.md`](deploy.md)
+2. [`glossario.md`](glossario.md)
+3. [`funcionalidades.md`](funcionalidades.md)
+4. [`architecture.md`](architecture.md)
+5. [`catalogo.md`](catalogo.md)
+6. [`database.md`](database.md)
+7. [`api.md`](api.md)
+8. [`testes.md`](testes.md)
+9. [`deploy.md`](deploy.md)
 
 ### Desenvolvimento
 
@@ -45,7 +47,8 @@ Arquivos de governança/histórico na raiz:
 5. [`testes.md`](testes.md)
 6. [`deploy.md`](deploy.md)
 7. [`catalogo.md`](catalogo.md)
-8. [`../CONTRIBUTING.md`](../CONTRIBUTING.md)
+8. [`glossario.md`](glossario.md)
+9. [`../CONTRIBUTING.md`](../CONTRIBUTING.md)
 
 ## Estrutura resumida
 
@@ -79,6 +82,8 @@ A implementação anterior em NestJS/Prisma/PostgreSQL não fica mais na árvore
 
 ## Fonte de verdade
 
+- objetivo, requisitos e critérios acadêmicos → `escopo.md`;
+- vocabulário e significado dos termos → `glossario.md`;
 - comportamento implementado → `funcionalidades.md`;
 - contrato HTTP → `api.md`;
 - entrypoint/fluxo técnico → `architecture.md`;
@@ -94,6 +99,7 @@ O README da raiz é a visão consolidada. Detalhes técnicos devem permanecer no
 Quando houver alteração relevante:
 
 - objetivo/requisito → `escopo.md`;
+- termo ou conceito usado na documentação → `glossario.md`;
 - funcionalidade → `funcionalidades.md`;
 - componente/entrypoint/fluxo → `architecture.md` e `estrutura-repositorio.md`;
 - rota/contrato → `api.md`;
