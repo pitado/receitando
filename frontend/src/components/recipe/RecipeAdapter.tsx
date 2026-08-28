@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useMemo, useState, type FormEvent } from "react";
 
 import { adaptRecipe } from "@/services/recipes.service";
 import { hasAuthSessionHint } from "@/services/auth-storage";
@@ -49,12 +49,7 @@ export function RecipeAdapter({ recipeSlug, servings, ingredients }: RecipeAdapt
   const [result, setResult] = useState<RecipeAdaptationResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [canUsePantry, setCanUsePantry] = useState(false);
   const [usePantry, setUsePantry] = useState(false);
-
-  useEffect(() => {
-    setCanUsePantry(hasAuthSessionHint());
-  }, []);
 
   const unavailableNames = useMemo(
     () => ingredients.filter((item) => unavailable.has(item.ingredientId)).map((item) => item.name),
@@ -70,6 +65,16 @@ export function RecipeAdapter({ recipeSlug, servings, ingredients }: RecipeAdapt
     });
   }
 
+  function togglePantry(checked: boolean) {
+    if (checked && !hasAuthSessionHint()) {
+      setUsePantry(false);
+      setError("Entre na sua conta para cruzar esta receita com a sua despensa.");
+      return;
+    }
+    setError(null);
+    setUsePantry(checked);
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoading(true);
@@ -79,7 +84,7 @@ export function RecipeAdapter({ recipeSlug, servings, ingredients }: RecipeAdapt
       const adaptation = await adaptRecipe(recipeSlug, {
         ...(servings > 0 ? { targetServings } : {}),
         unavailableIngredients: unavailableNames,
-        usePantry: canUsePantry && usePantry,
+        usePantry,
       });
       setResult(adaptation);
     } catch (requestError: unknown) {
@@ -138,19 +143,16 @@ export function RecipeAdapter({ recipeSlug, servings, ingredients }: RecipeAdapt
           </div>
         </div>
 
-        <label className={`${styles.pantryControl} ${!canUsePantry ? styles.pantryDisabled : ""}`}>
+        <label className={styles.pantryControl}>
           <input
-            checked={canUsePantry && usePantry}
-            disabled={!canUsePantry}
-            onChange={(event) => setUsePantry(event.target.checked)}
+            checked={usePantry}
+            onChange={(event) => togglePantry(event.target.checked)}
             type="checkbox"
           />
           <span>
             <strong>Usar minha despensa automaticamente</strong>
             <small>
-              {canUsePantry
-                ? "O motor identifica o que você já tem, o que falta e quando a quantidade parece insuficiente."
-                : "Entre na sua conta para cruzar esta receita com a sua despensa."}
+              Requer login. O motor identifica o que você já tem, o que falta e quando a quantidade parece insuficiente.
             </small>
           </span>
         </label>
