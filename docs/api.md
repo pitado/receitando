@@ -26,7 +26,7 @@ http://localhost:8787
 - respostas sensíveis usam `Cache-Control: no-store`;
 - login, cadastro e solicitação de recuperação de senha passam por rate limiting no entrypoint.
 
-Clientes não-browser podem continuar usando `Authorization: Bearer <token>` quando possuírem uma credencial válida, mas o frontend oficial não lê nem persiste esse token em JavaScript.
+Clientes não-browser podem usar `Authorization: Bearer <token>` quando possuírem uma credencial válida, mas o frontend oficial não lê nem persiste esse token em JavaScript.
 
 ## Mapa de rotas
 
@@ -48,6 +48,7 @@ Clientes não-browser podem continuar usando `Authorization: Bearer <token>` qua
 | `GET` | `/api/recipes/:slug` | público | detalhe por slug |
 | `POST` | `/api/recipes/match` | público | matching por ingredientes |
 | `GET` | `/api/recipes/match/pantry` | autenticado | matching usando a despensa |
+| `POST` | `/api/recipes/:slug/adapt` | público/autenticado quando `usePantry=true` | adaptar rendimento, faltas e substituições |
 | `GET` | `/api/pantry` | autenticado | listar despensa |
 | `POST` | `/api/pantry` | autenticado | adicionar/atualizar item |
 | `DELETE` | `/api/pantry/:itemId` | autenticado | remover item próprio |
@@ -63,7 +64,7 @@ Clientes não-browser podem continuar usando `Authorization: Bearer <token>` qua
 | `DELETE` | `/api/recipe-comments/:commentId` | dono | excluir comentário próprio |
 | `GET` | `/api/home-feed` | público | feed e totais da home |
 
-A rota correta de detalhe é **`GET /api/recipes/:slug`**. Não existe contrato público `/api/recipes/slug/:slug`.
+A rota de detalhe é **`GET /api/recipes/:slug`**. Não existe contrato público `/api/recipes/slug/:slug`.
 
 ## Autenticação
 
@@ -80,25 +81,9 @@ A rota correta de detalhe é **`GET /api/recipes/:slug`**. Não existe contrato 
 }
 ```
 
-`remember` é opcional. Quando `true`, a API emite cookie persistente; quando `false` ou ausente, emite cookie de sessão.
+`remember` é opcional. Nome, e-mail e senha são validados antes da persistência. A senha precisa ter entre 10 e 128 caracteres.
 
-Nome, e-mail e senha são validados antes da persistência. A senha precisa ter entre 10 e 128 caracteres.
-
-Resposta pública de sucesso:
-
-```json
-{
-  "user": {
-    "id": "...",
-    "name": "Pessoa Exemplo",
-    "email": "pessoa@example.com",
-    "role": "USER"
-  },
-  "expiresAt": "2026-09-25T00:00:00.000Z"
-}
-```
-
-O token bruto não é devolvido no JSON. Ele é usado internamente para montar o cookie `HttpOnly`.
+O token bruto não é devolvido no JSON; ele é usado internamente para montar o cookie `HttpOnly`.
 
 ### Login
 
@@ -112,9 +97,9 @@ O token bruto não é devolvido no JSON. Ele é usado internamente para montar o
 }
 ```
 
-Credenciais inválidas retornam uma mensagem genérica. O entrypoint aplica limite por e-mail e por IP para reduzir força bruta.
+Credenciais inválidas retornam mensagem genérica. O entrypoint aplica limite por e-mail e por IP.
 
-Em produção, o cookie de sessão usa `__Host-receitando_session`, `HttpOnly`, `Secure`, `SameSite=Strict` e `Path=/`.
+Em produção, o cookie usa `__Host-receitando_session`, `HttpOnly`, `Secure`, `SameSite=Strict` e `Path=/`.
 
 ### Logout
 
@@ -124,8 +109,6 @@ A sessão persistida é invalidada e a resposta expira o cookie do navegador.
 
 ### Rate limiting
 
-A proteção atual possui buckets independentes:
-
 | Ação | Limite atual |
 | --- | --- |
 | falhas de login por e-mail | 5 em 15 minutos |
@@ -134,9 +117,7 @@ A proteção atual possui buckets independentes:
 | solicitação de recuperação por e-mail | 3 em 15 minutos |
 | solicitação de recuperação por IP | 10 em 15 minutos |
 
-Quando um limite é atingido, a API retorna HTTP `429` e `Retry-After`.
-
-E-mails e IPs usados nesses buckets não são persistidos em texto puro: o D1 recebe apenas uma chave SHA-256 derivada.
+Limites atingidos retornam HTTP `429` e `Retry-After`. E-mails e IPs usados nesses buckets são persistidos apenas por uma chave SHA-256 derivada.
 
 ## Perfil
 
@@ -156,7 +137,7 @@ E-mails e IPs usados nesses buckets não são persistidos em texto puro: o D1 re
 }
 ```
 
-Para e-mails sintaticamente válidos, a resposta é deliberadamente genérica exista ou não uma conta. Isso evita enumeração de usuários. A solicitação também passa pelo rate limiting por e-mail e IP antes de chegar ao fluxo que pode disparar o Resend.
+A resposta é deliberadamente genérica para e-mails sintaticamente válidos, exista ou não uma conta.
 
 ### Validar código
 
@@ -170,11 +151,9 @@ O código possui seis dígitos, expira, tem limite de tentativas e é persistido
 
 Uma troca bem-sucedida invalida as sessões existentes do usuário.
 
-## Fontes
+## Fontes e ingredientes
 
-`GET /api/sources` publica as fontes operacionais conhecidas. Para `wikibooks`, a resposta inclui nome, homepage, licença, URL da licença, idioma e quantidade importada.
-
-## Ingredientes
+`GET /api/sources` publica as fontes operacionais conhecidas.
 
 `GET /api/ingredients` retorna ingredientes usados pelo catálogo, incluindo:
 
@@ -193,26 +172,26 @@ Uma troca bem-sucedida invalida as sessões existentes do usuário.
 
 `GET /api/recipes`
 
-Parâmetros:
+Parâmetros principais:
 
 - `limit`: 1–60; padrão 36;
 - `offset`: paginação;
 - `q`: busca textual;
 - `source`: filtro de fonte, como `wikibooks`.
 
-Quando `q` é informado, a API consulta a tabela virtual FTS5 `recipe_search`, com suporte a termos múltiplos e prefixos, e ordena os resultados por relevância com `bm25()`. A busca não depende mais de `LIKE '%termo%'` sobre todos os títulos.
+Quando `q` é informado, a API consulta a tabela virtual FTS5 `recipe_search` e ordena por relevância com `bm25()`.
 
 ### Detalhe
 
 `GET /api/recipes/:slug`
 
-O detalhe retorna conteúdo culinário, ingredientes, tags, procedência da receita e atribuição da imagem.
+Retorna conteúdo culinário, ingredientes, tags, procedência da receita e atribuição da imagem.
 
-Cada ingrediente pode incluir `isStaple`, além de quantidade, unidade, forma normalizada e `rawText` quando disponível.
-
-`imageUrl` é mantido por compatibilidade. O objeto `image` concentra a atribuição específica da fotografia/ilustração.
+Cada ingrediente pode incluir `isStaple`, quantidade, unidade, forma normalizada e `rawText` quando disponível.
 
 ## Matching
+
+### Matching manual
 
 `POST /api/recipes/match`
 
@@ -224,26 +203,18 @@ Cada ingrediente pode incluir `isStaple`, além de quantidade, unidade, forma no
 
 São aceitos **1 a 40 ingredientes**.
 
-O fluxo atual:
+Fluxo:
 
 1. normaliza caixa, acentos e separadores;
 2. gera candidatos textuais exatos e uma forma canônica conservadora;
 3. consulta `ingredients.normalized_name` e `ingredient_aliases.normalized_alias` por igualdade;
 4. converte os valores para IDs canônicos;
-5. exclui opcionais e ingredientes `isStaple` do denominador;
+5. exclui opcionais e `isStaple` do denominador;
 6. calcula a porcentagem e ordena os resultados.
 
-Não há equivalência por substring. Por exemplo, informar `óleo` não faz o sistema assumir automaticamente que o usuário possui `óleo de gergelim torrado`.
+Não há equivalência automática por substring.
 
-### Quantidades
-
-Nesta versão, o matching é **booleano**: considera presença ou ausência do ingrediente. Quantidade e unidade podem existir na despensa e na receita, mas não participam da porcentagem.
-
-Assim, `1 ovo` representa presença do ingrediente `ovo`; a API ainda não verifica se a quantidade atende uma receita que exija várias unidades.
-
-### Resultado
-
-Cada resultado pode incluir:
+Resultado principal:
 
 - `compatibility`;
 - `status`;
@@ -252,28 +223,137 @@ Cada resultado pode incluir:
 - `optionalIngredients`;
 - `stapleIngredients`.
 
-Ingredientes básicos continuam disponíveis em `stapleIngredients`, mas não reduzem a pontuação nem aparecem como faltantes principais.
+### Matching pela despensa
 
-Estados:
+`GET /api/recipes/match/pantry`
 
-```text
-READY
-ALMOST_READY
-NEAR
-EXPLORE
-```
+Exige autenticação e aplica a mesma regra de compatibilidade aos ingredientes persistidos na conta.
 
-`GET /api/recipes/match/pantry` aplica a mesma regra aos ingredientes persistidos da conta autenticada.
+**Importante:** a API não altera a porcentagem por causa da validade. O ranking com prioridade de consumo é aplicado no frontend, que combina o resultado desta rota com `GET /api/pantry`.
+
+Na interface atual, receitas com diferença de compatibilidade superior a 5 pontos continuam ordenadas pela compatibilidade. Dentro de uma diferença de até 5 pontos, a validade pode desempatar a ordem para favorecer ingredientes próximos do vencimento.
 
 ## Despensa
 
-`GET /api/pantry`, `POST /api/pantry` e `DELETE /api/pantry/:itemId` exigem autenticação.
+### Listar
 
-Quantidade e unidade são opcionais e atualmente informativas para o matching.
+`GET /api/pantry`
+
+Exige autenticação.
+
+Cada item retorna, entre outros campos:
+
+```json
+{
+  "id": "...",
+  "quantity": null,
+  "unit": null,
+  "expiresAt": "2026-09-01",
+  "ingredientId": "...",
+  "ingredientName": "Tomate",
+  "normalizedName": "tomate",
+  "category": "..."
+}
+```
+
+A listagem ordena primeiro os itens que possuem validade, da data mais próxima para a mais distante, e depois os itens sem validade.
+
+### Adicionar ou atualizar
+
+`POST /api/pantry`
+
+```json
+{
+  "ingredientId": "ingrediente-1",
+  "quantity": 2,
+  "unit": "un",
+  "expiresAt": "2026-09-01"
+}
+```
+
+Campos:
+
+- `ingredientId`: obrigatório;
+- `quantity`: opcional;
+- `unit`: opcional;
+- `expiresAt`: opcional, no formato `YYYY-MM-DD`.
+
+Semântica de `expiresAt`:
+
+- data válida → salva/atualiza a validade;
+- `null` ou string vazia → remove a validade;
+- campo omitido ao atualizar um item existente → preserva a validade atual;
+- formato inválido → HTTP `400` com mensagem de data inválida.
+
+A inclusão repetida do mesmo `ingredientId` para o mesmo usuário atualiza o registro existente em vez de criar uma duplicata.
+
+### Remover
+
+`DELETE /api/pantry/:itemId`
+
+Remove somente o item pertencente ao usuário autenticado.
+
+## Lista de compras
+
+Não existe uma rota exclusiva de lista de compras.
+
+A lista é derivada no frontend a partir de:
+
+- ingredientes obrigatórios da receita;
+- `GET /api/pantry`;
+- `ingredientId` canônico.
+
+Ingredientes já presentes, opcionais e básicos não entram na lista principal.
+
+Como esse fluxo é booleano, ele ainda não calcula compras parciais por quantidade.
+
+## Adaptação e substituições
+
+`POST /api/recipes/:slug/adapt`
+
+Exemplo:
+
+```json
+{
+  "targetServings": 4,
+  "unavailableIngredients": ["ovo"],
+  "usePantry": true
+}
+```
+
+Campos:
+
+- `targetServings`: opcional; inteiro de 1 a 50;
+- `unavailableIngredients`: lista opcional de nomes marcados como indisponíveis;
+- `usePantry`: booleano opcional.
+
+Quando `usePantry=true`, a rota exige autenticação.
+
+O motor:
+
+1. carrega a receita e seus ingredientes;
+2. recalcula quantidades quando existe rendimento original utilizável;
+3. incorpora faltas manuais;
+4. cruza a despensa quando solicitado;
+5. compara quantidades apenas quando as unidades podem ser comparadas com segurança;
+6. identifica sinais do contexto culinário;
+7. aplica substituições conhecidas com regras contextuais;
+8. devolve confiança, mudanças e avisos.
+
+O objeto `pantry` da resposta informa:
+
+- `used`;
+- `presentCount`;
+- `missingCount`;
+- `shortageCount`;
+- `missingIngredientIds`;
+- `shortages`.
+
+O motor não inventa densidade para comparar massa e volume incompatíveis e pode recusar uma substituição quando o ingrediente possui papel estrutural naquele preparo.
 
 ## Favoritos e comunidade
 
-Favoritos, votos e comentários são sempre vinculados ao usuário autenticado nas operações de escrita. Edição/exclusão de comentários validam o dono antes da mutação.
+Favoritos, votos e comentários são vinculados ao usuário autenticado nas operações de escrita. Edição/exclusão de comentários validam o dono antes da mutação.
 
 ## Home
 
@@ -283,7 +363,17 @@ Favoritos, votos e comentários são sempre vinculados ao usuário autenticado n
 
 A suíte da API chama `fetch()` dos Workers reais com um D1 simulado para validar roteamento, autenticação, autorização e persistência sem tocar no banco de produção.
 
-Além dos fluxos de conta, despensa, favoritos e comunidade, os testes cobrem normalização canônica, rate limiting, cookie de sessão e regras críticas do matching.
+Os testes cobrem, entre outros pontos:
+
+- canonicalização e staples;
+- FTS5;
+- autenticação e sessão;
+- rate limiting;
+- despensa;
+- favoritos e comunidade;
+- matching;
+- adaptação de receitas;
+- comparação segura de unidades.
 
 ## Implementação histórica
 
