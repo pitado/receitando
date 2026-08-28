@@ -14,7 +14,7 @@ O catálogo operacional é alimentado pelo fluxo **Wikilivros + Wikimedia Common
 
 A listagem de receitas permite pesquisa textual por `q`.
 
-A API utiliza SQLite **FTS5** sobre título e descrição, com busca por termos/prefixos e ordenação por relevância. A busca principal não depende mais de `LIKE '%termo%'` em toda a tabela de receitas.
+A API utiliza SQLite **FTS5** sobre título e descrição, com busca por termos/prefixos e ordenação por relevância. A busca principal não depende de `LIKE '%termo%'` em toda a tabela de receitas.
 
 ## 3. Matching por ingredientes
 
@@ -45,39 +45,104 @@ O resultado informa:
 - ingredientes básicos (`stapleIngredients`);
 - acesso ao detalhe da receita.
 
-### Ingredientes básicos
+### 3.1 Ingredientes básicos
 
 Ingredientes marcados `is_staple = true` — como água, sal, pimenta e óleo genérico na política atual — continuam fazendo parte da receita, mas não reduzem a compatibilidade nem entram na lista principal de faltantes.
 
-### Quantidades
+### 3.2 Quantidades
 
-O matching atual é booleano (`tem` / `não tem`). Quantidade e unidade são armazenadas e exibidas, porém ainda não alteram a porcentagem de compatibilidade.
+O matching principal é booleano (`tem` / `não tem`). Quantidade e unidade são armazenadas e exibidas, porém ainda não alteram a porcentagem de compatibilidade.
+
+O motor de adaptação possui uma regra separada e consegue comparar algumas quantidades/unidades compatíveis para avisar quando a despensa parece insuficiente. Isso não muda o cálculo percentual do combinador.
 
 ## 4. Despensa
 
 Usuários autenticados possuem uma despensa persistente no D1.
 
-É possível listar, adicionar, atualizar quantidade/unidade, remover itens e usar a despensa diretamente no matching. Toda operação é vinculada ao `user_id` autenticado.
+É possível listar, adicionar, atualizar quantidade/unidade/validade, remover itens e usar a despensa diretamente no matching. Toda operação é vinculada ao `user_id` autenticado.
 
-### 4.1 Validade e prioridade de consumo
+### 4.1 Validade
 
-Cada item da despensa pode receber uma data de validade opcional. A interface destaca itens vencidos ou próximos do vencimento e mantém os itens com validade mais próxima no início da lista.
+Cada item da despensa pode receber uma data de validade opcional.
 
-Ao combinar receitas usando a despensa, a compatibilidade continua sendo o critério principal. Quando duas opções possuem compatibilidade próxima, a interface usa a validade como critério adicional para favorecer receitas que aproveitam ingredientes que precisam ser consumidos primeiro.
+A interface:
 
-O aviso atual é exibido dentro da aplicação. Notificações externas em segundo plano, como Web Push ou e-mail de vencimento, ainda não fazem parte desta entrega.
+- permite informar a validade ao adicionar um ingrediente;
+- permite alterar ou remover a validade depois;
+- mostra mensagens relativas como `Vence hoje`, `Vence amanhã` e `Vence em N dias`;
+- destaca itens vencidos ou com vencimento próximo;
+- exibe um alerta da despensa quando existem itens vencidos ou com até 3 dias para vencer;
+- mantém itens com validade ordenados pela data mais próxima antes dos itens sem validade.
 
-### 4.2 Lista de compras automática
+O campo `expires_at` já existia no schema da despensa. Esta evolução passou a utilizá-lo na experiência do produto sem exigir uma migration nova.
 
-No detalhe de uma receita, usuários autenticados podem gerar uma lista de compras a partir da própria despensa. A lista contém somente ingredientes obrigatórios que não foram encontrados na despensa; ingredientes opcionais e básicos não são incluídos.
+O aviso atual é **in-app**. Web Push, e-mail automático ou outra notificação externa em segundo plano ainda não fazem parte desta implementação.
 
-A lista pode ser copiada para uso fora da aplicação. Como o matching geral ainda é booleano, a lista compara presença/ausência e não reduz quantidades parciais que o usuário já possua.
+### 4.2 Matching da despensa com prioridade de consumo
 
-### 4.3 Adaptação e substituição de ingredientes
+A porcentagem de compatibilidade continua sendo calculada pela API com a mesma regra de presença/ausência. A validade **não altera o percentual**.
 
-O detalhe da receita também possui um motor culinário experimental. O usuário pode alterar o rendimento, marcar ingredientes indisponíveis e, quando autenticado, cruzar a adaptação com a despensa.
+Quando o usuário escolhe **Usar minha despensa**, o frontend consulta em paralelo:
 
-Quando existe uma substituição conhecida e compatível com o contexto culinário identificado, o motor apresenta a troca sugerida, confiança, justificativa e alternativas. Se não houver substituição suficientemente confiável, a interface informa essa limitação em vez de inventar uma equivalência.
+- `GET /api/recipes/match/pantry` para obter as receitas compatíveis;
+- `GET /api/pantry` para obter os itens e suas validades.
+
+Depois, a interface aplica um critério adicional de ordenação para resultados próximos.
+
+Regra atual:
+
+1. se a diferença de compatibilidade entre duas receitas for superior a 5 pontos, prevalece a maior compatibilidade;
+2. se a diferença for de até 5 pontos, a receita que usa ingredientes mais urgentes pode subir na ordenação;
+3. persistindo o empate, são usados compatibilidade, menor quantidade de faltantes, menor tempo de preparo e título.
+
+Peso de urgência por ingrediente encontrado:
+
+| Validade | Peso |
+| --- | ---: |
+| vencido ou vence hoje | 5 |
+| vence amanhã | 4 |
+| vence em 2–3 dias | 3 |
+| vence em 4–7 dias | 1 |
+| mais de 7 dias ou sem validade | 0 |
+
+O score de urgência de uma receita é a soma dos pesos dos ingredientes encontrados nela.
+
+Esse mecanismo preserva a proposta principal do matching e usa a validade apenas como critério de aproveitamento quando as opções já são semelhantes em compatibilidade.
+
+### 4.3 Lista de compras automática
+
+No detalhe de uma receita, usuários autenticados podem comparar a receita com a própria despensa.
+
+A interface gera uma lista contendo apenas ingredientes obrigatórios que não foram encontrados na despensa.
+
+Não entram na lista principal:
+
+- ingredientes já presentes;
+- ingredientes opcionais;
+- ingredientes básicos (`is_staple`).
+
+A lista pode ser copiada para uso fora da aplicação.
+
+Como esse fluxo usa presença/ausência, ele ainda não calcula uma compra parcial do tipo “tenho 200 g e preciso comprar mais 300 g”. Essa comparação quantitativa parcial permanece restrita às verificações compatíveis do motor de adaptação.
+
+### 4.4 Adaptação e substituição de ingredientes
+
+O detalhe da receita possui um **motor culinário experimental**.
+
+O usuário pode:
+
+- alterar o rendimento desejado;
+- marcar ingredientes indisponíveis;
+- usar a despensa automaticamente quando autenticado;
+- receber quantidades recalculadas quando o rendimento original permite;
+- visualizar faltas e possíveis insuficiências de quantidade em unidades comparáveis;
+- receber substituições conhecidas quando elas forem compatíveis com o contexto culinário identificado.
+
+O motor apresenta nível de confiança, justificativa e alternativas quando disponíveis.
+
+Também são inferidos sinais do contexto da receita, como preparo assado, frito, cozido, fresco, doce/salgado e casos em que determinado ingrediente possui papel estrutural.
+
+Se não houver substituição suficientemente confiável para aquele contexto, a interface informa essa limitação em vez de inventar uma equivalência.
 
 ## 5. Autenticação e sessão
 
@@ -130,7 +195,7 @@ Comentários podem ser listados publicamente. Criação exige autenticação e e
 
 O frontend possui tratamento de carregamento, erro, conteúdo vazio, página 404 e feedback de ações autenticadas.
 
-A tela `/combinar` também explica que a versão atual usa presença/ausência e não quantidade, e que ingredientes básicos não penalizam a compatibilidade.
+A tela `/combinar` explica a regra de compatibilidade e, no modo despensa, informa que a validade é usada apenas para priorizar resultados próximos.
 
 ## 12. Importação e canonicalização
 
@@ -164,7 +229,7 @@ Metadados da receita e da imagem são preservados separadamente para atribuiçã
 
 ## 14. API e persistência
 
-A API é organizada em autenticação/perfil, recuperação, fontes, ingredientes, receitas/matching, despensa, favoritos, votos, comentários e home.
+A API é organizada em autenticação/perfil, recuperação, fontes, ingredientes, receitas/matching, adaptação de receita, despensa, favoritos, votos, comentários e home.
 
 A produção usa Cloudflare D1 para usuários, sessões, catálogo canônico, aliases, FTS5, despensa, favoritos, recuperação, comunidade, procedência e rate limiting.
 
@@ -175,9 +240,9 @@ Detalhes:
 
 ## 15. Qualidade
 
-O frontend possui testes com Vitest/Testing Library.
+O frontend possui testes com Vitest/Testing Library e fluxo E2E com Playwright.
 
-A API possui testes de regras puras e testes de rota com D1 simulado, incluindo canonicalização, staples, FTS5, autenticação, autorização, rate limiting, catálogo, matching, recuperação e interação social.
+A API possui testes de regras puras e testes de rota com D1 simulado, incluindo canonicalização, staples, FTS5, autenticação, autorização, rate limiting, catálogo, matching, adaptação de receitas, recuperação e interação social.
 
 CI também executa lint/typecheck/build/dry-run conforme o componente.
 
