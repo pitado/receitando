@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { FavoriteButton } from "@/components/recipe/FavoriteButton";
+import { RecipeAdapter } from "@/components/recipe/RecipeAdapter";
 import { RecipeCommunity } from "@/components/recipe/RecipeCommunity";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { formatIngredientAmount, formatPrepTime } from "@/lib/format";
@@ -140,6 +141,12 @@ export default async function RecipeDetailPage({ params }: RecipeDetailPageProps
           )}
         </div>
       </header>
+
+      <RecipeAdapter
+        ingredients={recipe.ingredients}
+        recipeSlug={recipe.slug}
+        servings={recipe.servings}
+      />
 
       <div className={styles.content}>
         <section aria-labelledby="ingredients-title" className={styles.ingredients}>
