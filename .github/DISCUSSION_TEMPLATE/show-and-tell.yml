@@ -1,0 +1,26 @@
+title: "[Compartilhando] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Este espaço é para mostrar algo feito a partir do Receitando, compartilhar testes, integrações, experimentos ou resultados interessantes com a comunidade.
+
+  - type: textarea
+    id: projeto
+    attributes:
+      label: O que você quer compartilhar?
+      placeholder: Conte o que você fez e como isso se relaciona com o Receitando.
+    validations:
+      required: true
+
+  - type: textarea
+    id: demonstracao
+    attributes:
+      label: Demonstração, links ou imagens
+      description: Adicione links, screenshots ou outros materiais, se houver.
+
+  - type: textarea
+    id: detalhes
+    attributes:
+      label: Detalhes adicionais
+      description: Opcional. Inclua decisões, aprendizados ou próximos passos.
