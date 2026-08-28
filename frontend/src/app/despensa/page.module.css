@@ -54,17 +54,27 @@
   line-height: 1.6;
 }
 
-.searchBox {
+.searchBox,
+.expiryField {
   display: grid;
   gap: var(--space-2);
 }
 
-.searchBox label {
+.searchBox label,
+.expiryField label {
   font-size: 0.84rem;
   font-weight: 800;
 }
 
-.searchBox input {
+.expiryField label span {
+  color: var(--color-text-muted);
+  font-size: 0.72rem;
+  font-weight: 650;
+  margin-left: 0.35rem;
+}
+
+.searchBox input,
+.expiryField input {
   background: var(--color-background);
   border: 1px solid var(--color-border);
   border-radius: 1rem;
@@ -76,9 +86,16 @@
   width: 100%;
 }
 
-.searchBox input:focus {
+.searchBox input:focus,
+.expiryField input:focus {
   border-color: var(--color-primary-dark);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary-dark) 12%, transparent);
+}
+
+.expiryField small {
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  line-height: 1.45;
 }
 
 .suggestionBlock {
@@ -246,6 +263,57 @@
   padding: 0.5rem 0.75rem;
 }
 
+.expiryAlert {
+  background: color-mix(in srgb, var(--color-accent, #7c9a6e) 12%, var(--color-background));
+  border-bottom: 1px solid var(--color-border);
+  display: grid;
+  gap: var(--space-3);
+  padding: 1rem clamp(1.25rem, 4vw, 2rem);
+}
+
+.expiryAlert > div {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.expiryAlert > div strong {
+  font-size: 0.94rem;
+}
+
+.expiryAlert > div span {
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.expiryAlert ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.expiryAlert li {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  display: inline-flex;
+  gap: 0.45rem;
+  padding: 0.45rem 0.7rem;
+}
+
+.expiryAlert li strong,
+.expiryAlert li span {
+  font-size: 0.75rem;
+}
+
+.expiryAlert li span {
+  color: var(--color-primary-dark);
+  font-weight: 800;
+}
+
 .items {
   display: grid;
   gap: var(--space-2);
@@ -261,11 +329,11 @@
   border-radius: 0.9rem;
   display: grid;
   gap: var(--space-3);
-  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-columns: minmax(0, 1fr) minmax(8.5rem, auto) auto auto;
   padding: 0.8rem 0.9rem;
 }
 
-.items li > div {
+.itemInfo {
   display: grid;
   gap: 0.15rem;
   min-width: 0;
@@ -277,10 +345,51 @@
   white-space: nowrap;
 }
 
-.items li > div span {
+.itemInfo > span {
   color: var(--color-text-muted);
   font-size: 0.75rem;
   text-transform: capitalize;
+}
+
+.itemInfo > small {
+  color: var(--color-text-muted);
+  font-size: 0.72rem;
+  font-weight: 750;
+}
+
+.expiryWarning {
+  color: var(--color-primary-dark) !important;
+}
+
+.expiryExpired {
+  color: #9c2f22 !important;
+}
+
+.itemExpiry {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.itemExpiry > span {
+  color: var(--color-text-muted);
+  font-size: 0.67rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.itemExpiry input {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: 0.65rem;
+  color: var(--color-text);
+  font: inherit;
+  font-size: 0.75rem;
+  min-height: 2.15rem;
+  padding: 0.35rem 0.5rem;
+}
+
+.itemExpiry input:disabled {
+  opacity: 0.55;
 }
 
 .amount {
@@ -369,6 +478,27 @@
   padding: var(--space-5) clamp(1.25rem, 4vw, 2rem);
 }
 
+@media (max-width: 68rem) {
+  .items li {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+  }
+
+  .itemExpiry {
+    grid-column: 1 / span 2;
+    grid-row: 2;
+  }
+
+  .amount {
+    grid-column: 3;
+    grid-row: 1;
+  }
+
+  .remove {
+    grid-column: 3;
+    grid-row: 2;
+  }
+}
+
 @media (max-width: 56rem) {
   .workspace {
     grid-template-columns: 1fr;
@@ -385,17 +515,28 @@
   }
 
   .items li {
+    align-items: start;
     grid-template-columns: minmax(0, 1fr) auto;
   }
 
-  .amount {
+  .itemInfo {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .itemExpiry {
     grid-column: 1;
     grid-row: 2;
   }
 
+  .amount {
+    grid-column: 1;
+    grid-row: 3;
+  }
+
   .remove {
     grid-column: 2;
-    grid-row: 1 / span 2;
+    grid-row: 1 / span 3;
   }
 
   .previewFooter {
