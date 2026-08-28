@@ -14,8 +14,8 @@
     }
   ],
   "vars": {
-    // Produção e desenvolvimento local autorizados pelo CORS da API.
-    "FRONTEND_URL": "https://receitando.miguelpita.com.br,http://localhost:3000",
+    // Produção, endereço workers.dev e desenvolvimento local autorizados pelo CORS da API.
+    "FRONTEND_URL": "https://receitando.miguelpita.com.br,https://www.receitando.miguelpita.com.br,https://receitando.miguellpitaa.workers.dev,http://localhost:3000",
     "EMAIL_FROM": "Receitando <noreply@mail.miguelpita.com.br>"
   },
   "d1_databases": [
