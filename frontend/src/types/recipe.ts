@@ -1,6 +1,16 @@
 export type RecipeDifficulty = "FACIL" | "MEDIA" | "DIFICIL";
 export type RecipeSourceType = "OWN" | "OPEN_DATASET" | "USER";
 export type RecipeMatchStatus = "READY" | "ALMOST_READY" | "NEAR" | "EXPLORE";
+export type AdaptationConfidence = "HIGH" | "MEDIUM" | "LOW";
+export type CulinarySignal =
+  | "BAKED"
+  | "FRIED"
+  | "COOKED"
+  | "FRESH"
+  | "AERATED"
+  | "EGG_CENTRIC"
+  | "SWEET"
+  | "SAVORY";
 
 export interface Ingredient {
   id: string;
@@ -87,4 +97,72 @@ export interface MatchRecipeResult {
 
 export interface MatchRecipesPayload {
   ingredients: string[];
+}
+
+export interface RecipeAdaptationPayload {
+  targetServings?: number;
+  unavailableIngredients: string[];
+  usePantry?: boolean;
+}
+
+export interface RecipeAdaptationSubstitutionOption {
+  name: string;
+  ratio: number;
+  confidence: AdaptationConfidence;
+  reason: string;
+}
+
+export interface RecipeAdaptationIngredient {
+  ingredientId: string;
+  originalName: string;
+  adaptedName: string;
+  optional: boolean;
+  unavailable: boolean;
+  original: {
+    quantity: number | null;
+    unit: string | null;
+    rawText: string | null;
+  };
+  adapted: {
+    quantity: number | null;
+    unit: string | null;
+    displayAmount: string | null;
+  };
+  substitution: {
+    recommended: RecipeAdaptationSubstitutionOption;
+    alternatives: RecipeAdaptationSubstitutionOption[];
+  } | null;
+  warnings: string[];
+}
+
+export interface RecipeAdaptationResult {
+  engineVersion: "1.0";
+  recipeTitle: string;
+  originalServings: number | null;
+  targetServings: number | null;
+  scaleFactor: number;
+  confidence: number;
+  ingredients: RecipeAdaptationIngredient[];
+  changes: Array<{
+    type: "SCALE" | "SUBSTITUTION";
+    ingredientId?: string;
+    message: string;
+  }>;
+  warnings: string[];
+  culinaryContext: {
+    signals: CulinarySignal[];
+    evidence: string[];
+  };
+  pantry: {
+    used: boolean;
+    presentCount: number;
+    missingCount: number;
+    shortageCount: number;
+    missingIngredientIds: string[];
+    shortages: Array<{
+      ingredientId: string;
+      ingredientName: string;
+      shortage: string | null;
+    }>;
+  };
 }

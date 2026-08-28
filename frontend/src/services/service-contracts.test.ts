@@ -9,6 +9,7 @@ import { apiRequest } from "@/services/api-client";
 import { addFavorite, listFavorites, removeFavorite } from "./favorites.service";
 import { getIngredients, getPantry, removePantryItem, savePantryItem } from "./pantry.service";
 import {
+  adaptRecipe,
   getRecipeBySlug,
   listRecipes,
   matchRecipes,
@@ -47,6 +48,23 @@ describe("contratos dos serviços HTTP", () => {
       signal: controller.signal,
     });
     expect(apiRequestMock).toHaveBeenNthCalledWith(2, "/api/recipes/match/pantry", {
+      signal: controller.signal,
+    });
+  });
+
+  it("envia a configuração da adaptação para a receita correta", async () => {
+    const controller = new AbortController();
+    const payload = {
+      targetServings: 4,
+      unavailableIngredients: ["leite", "manteiga"],
+      usePantry: true,
+    };
+
+    await adaptRecipe("bolo/chocolate", payload, controller.signal);
+
+    expect(apiRequestMock).toHaveBeenCalledWith("/api/recipes/bolo%2Fchocolate/adapt", {
+      method: "POST",
+      body: JSON.stringify(payload),
       signal: controller.signal,
     });
   });

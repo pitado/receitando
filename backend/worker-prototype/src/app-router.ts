@@ -5,6 +5,7 @@ import indexWorker from "./index";
 import pantryWorker from "./pantry-worker";
 import passwordResetWorker from "./password-reset-worker";
 import profileWorker from "./profile-worker";
+import recipeAdaptationWorker from "./recipe-adaptation-worker";
 import socialWorker from "./social-worker";
 import type { Env } from "./lib/worker-http";
 
@@ -44,6 +45,10 @@ function isSocialRoute(path: string): boolean {
   );
 }
 
+function isRecipeAdaptationRoute(path: string): boolean {
+  return /^\/api\/recipes\/[^/]+\/adapt$/.test(path);
+}
+
 function isCatalogRoute(path: string): boolean {
   return (
     path === "/api/recipes" ||
@@ -71,6 +76,10 @@ export default {
 
     if (path === "/api/home-feed") {
       return homeWorker.fetch(request, env);
+    }
+
+    if (isRecipeAdaptationRoute(path)) {
+      return recipeAdaptationWorker.fetch(request, env);
     }
 
     if (isSocialRoute(path)) {
