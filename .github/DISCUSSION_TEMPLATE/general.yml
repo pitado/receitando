@@ -1,0 +1,35 @@
+title: "[Geral] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use este espaço para conversar sobre o Receitando, trocar experiências e levantar assuntos que não se encaixem melhor em outra categoria.
+
+        Antes de publicar, verifique se já existe uma discussão parecida.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Área relacionada
+      description: Qual parte do projeto está mais relacionada ao assunto?
+      options:
+        - Receitas e catálogo
+        - Combinação por ingredientes
+        - Despensa
+        - Conta e perfil
+        - Comunidade e interações
+        - Interface e experiência de uso
+        - API e backend
+        - Documentação
+        - Outro
+    validations:
+      required: true
+
+  - type: textarea
+    id: assunto
+    attributes:
+      label: Assunto
+      description: Conte o que você gostaria de discutir.
+      placeholder: Explique o contexto e os pontos que gostaria de conversar com a comunidade.
+    validations:
+      required: true

@@ -1,0 +1,45 @@
+title: "[Ideia] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Tem uma ideia para melhorar o Receitando? Descreva a necessidade primeiro e depois a solução que você imagina. Assim fica mais fácil discutir alternativas antes de transformar a proposta em uma issue.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Área da ideia
+      options:
+        - Receitas e catálogo
+        - Combinação por ingredientes
+        - Despensa
+        - Conta e perfil
+        - Comunidade e interações
+        - Interface e experiência de uso
+        - API e backend
+        - Documentação
+        - Outro
+    validations:
+      required: true
+
+  - type: textarea
+    id: problema
+    attributes:
+      label: Qual problema ou oportunidade você percebeu?
+      placeholder: Explique o cenário atual e por que ele poderia ser melhor.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposta
+    attributes:
+      label: Como você imagina a melhoria?
+      placeholder: Descreva sua sugestão. Não precisa estar tecnicamente pronta.
+    validations:
+      required: true
+
+  - type: textarea
+    id: observacoes
+    attributes:
+      label: Referências ou observações
+      description: Campo opcional para exemplos, links, imagens ou alternativas.

@@ -1,0 +1,36 @@
+title: "[Comunicado] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Categoria destinada a novidades oficiais do Receitando, como mudanças relevantes, novas funcionalidades, atualizações de arquitetura e avisos à comunidade.
+
+  - type: dropdown
+    id: tipo
+    attributes:
+      label: Tipo de comunicado
+      options:
+        - Nova funcionalidade
+        - Atualização importante
+        - Mudança técnica
+        - Documentação
+        - Aviso à comunidade
+        - Outro
+    validations:
+      required: true
+
+  - type: textarea
+    id: resumo
+    attributes:
+      label: Resumo
+      placeholder: Explique em poucas linhas o que mudou ou precisa ser comunicado.
+    validations:
+      required: true
+
+  - type: textarea
+    id: detalhes
+    attributes:
+      label: Detalhes
+      placeholder: Inclua contexto, links relevantes, PRs, documentação ou próximos passos.
+    validations:
+      required: true
