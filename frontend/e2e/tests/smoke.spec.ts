@@ -23,6 +23,14 @@ test("home carrega e leva ingredientes ao combinador", async ({ page }) => {
     }),
   ).toBeVisible();
 
+  const heroImage = page.locator('img[src="/receitando-hero-personagem-v3.png"]');
+  await expect(heroImage).toBeVisible();
+  await expect
+    .poll(() =>
+      heroImage.evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0),
+    )
+    .toBe(true);
+
   await page.getByRole("button", { name: "arroz", exact: true }).click();
   await page.getByRole("button", { name: "tomate", exact: true }).click();
   await expect(page.getByLabel("Ingredientes que você tem")).toHaveValue("arroz, tomate");
