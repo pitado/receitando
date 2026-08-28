@@ -17,10 +17,37 @@ import {
 
 import styles from "./page.module.css";
 
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+function daysUntil(dateValue: string | null): number | null {
+  if (!dateValue) return null;
+  const [year, month, day] = dateValue.split("-").map(Number);
+  if (!year || !month || !day) return null;
+
+  const today = new Date();
+  const todayUtc = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+  const expiryUtc = Date.UTC(year, month - 1, day);
+  return Math.round((expiryUtc - todayUtc) / DAY_MS);
+}
+
+function expirationLabel(dateValue: string | null): string | null {
+  const days = daysUntil(dateValue);
+  if (days === null || !dateValue) return null;
+  if (days < -1) return `Venceu há ${Math.abs(days)} dias`;
+  if (days === -1) return "Venceu ontem";
+  if (days === 0) return "Vence hoje";
+  if (days === 1) return "Vence amanhã";
+  if (days <= 7) return `Vence em ${days} dias`;
+
+  const [year, month, day] = dateValue.split("-");
+  return `Validade ${day}/${month}/${year}`;
+}
+
 export function PantryClient() {
   const [items, setItems] = useState<PantryItem[]>([]);
   const [ingredients, setIngredients] = useState<IngredientOption[]>([]);
   const [query, setQuery] = useState("");
+  const [nextExpiry, setNextExpiry] = useState("");
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -64,6 +91,14 @@ export function PantryClient() {
     [ingredients, pantryIds],
   );
 
+  const expiringItems = useMemo(
+    () => items.filter((item) => {
+      const days = daysUntil(item.expiresAt);
+      return days !== null && days <= 3;
+    }),
+    [items],
+  );
+
   const normalizedQuery = normalizeIngredientName(query);
   const suggestions = useMemo(() => {
     const ranked = [...availableIngredients].sort(
@@ -85,10 +120,23 @@ export function PantryClient() {
     setSavingId(ingredient.id);
     setError(null);
     try {
-      setItems(await savePantryItem(ingredient.id, null, null));
+      setItems(await savePantryItem(ingredient.id, null, null, nextExpiry || null));
       setQuery("");
+      setNextExpiry("");
     } catch (cause: unknown) {
       setError(cause instanceof ApiError ? cause.message : "Não foi possível adicionar o ingrediente.");
+    } finally {
+      setSavingId(null);
+    }
+  }
+
+  async function handleExpiryChange(item: PantryItem, value: string) {
+    setSavingId(item.ingredientId);
+    setError(null);
+    try {
+      setItems(await savePantryItem(item.ingredientId, item.quantity, item.unit, value || null));
+    } catch (cause: unknown) {
+      setError(cause instanceof ApiError ? cause.message : "Não foi possível atualizar a validade.");
     } finally {
       setSavingId(null);
     }
@@ -120,7 +168,7 @@ export function PantryClient() {
         <div className={styles.formIntro}>
           <p>ADICIONE EM SEGUNDOS</p>
           <h2 id="add-pantry-title">O que você tem em casa?</h2>
-          <span>Digite um ingrediente e toque para adicionar. Sem formulário, sem quantidade obrigatória.</span>
+          <span>Busque o ingrediente e, se souber, informe a validade. Ela ajuda o Receitando a sugerir primeiro o que precisa ser usado.</span>
         </div>
 
         <div className={styles.searchBox}>
@@ -133,6 +181,18 @@ export function PantryClient() {
             type="search"
             value={query}
           />
+        </div>
+
+        <div className={styles.expiryField}>
+          <label htmlFor="pantry-expiry">Validade do próximo item <span>opcional</span></label>
+          <input
+            id="pantry-expiry"
+            min={new Date().toISOString().slice(0, 10)}
+            onChange={(event) => setNextExpiry(event.target.value)}
+            type="date"
+            value={nextExpiry}
+          />
+          <small>Você também pode adicionar agora e ajustar a validade depois.</small>
         </div>
 
         <div className={styles.suggestionBlock}>
@@ -161,7 +221,7 @@ export function PantryClient() {
           )}
         </div>
 
-        {savingId ? <p className={styles.saving}>Adicionando à sua despensa…</p> : null}
+        {savingId ? <p className={styles.saving}>Atualizando sua despensa…</p> : null}
         {error ? <p className={styles.error}>{error}</p> : null}
       </section>
 
@@ -174,6 +234,23 @@ export function PantryClient() {
           <span>{items.length} {items.length === 1 ? "ingrediente" : "ingredientes"}</span>
         </div>
 
+        {expiringItems.length > 0 ? (
+          <div className={styles.expiryAlert} role="status">
+            <div>
+              <strong>Tem coisa pedindo para ser usada.</strong>
+              <span>O Receitando vai priorizar receitas que aproveitem esses ingredientes.</span>
+            </div>
+            <ul>
+              {expiringItems.slice(0, 3).map((item) => (
+                <li key={item.id}>
+                  <strong>{item.ingredientName}</strong>
+                  <span>{expirationLabel(item.expiresAt)}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+
         {loading ? <p className={styles.notice}>Carregando sua despensa…</p> : null}
         {!loading && items.length === 0 ? (
           <div className={styles.empty}>
@@ -185,25 +262,46 @@ export function PantryClient() {
         {items.length > 0 ? (
           <>
             <ul className={styles.items}>
-              {items.map((item) => (
-                <li key={item.id}>
-                  <div>
-                    <strong>{item.ingredientName}</strong>
-                    <span>{item.category}</span>
-                  </div>
-                  {item.quantity !== null ? (
-                    <small className={styles.amount}>{item.quantity}{item.unit ? ` ${item.unit}` : ""}</small>
-                  ) : null}
-                  <button className={styles.remove} onClick={() => void handleRemove(item.id)} type="button" aria-label={`Remover ${item.ingredientName}`}>
-                    ×
-                  </button>
-                </li>
-              ))}
+              {items.map((item) => {
+                const expiryDays = daysUntil(item.expiresAt);
+                const expiryText = expirationLabel(item.expiresAt);
+                const expiryClass = expiryDays !== null && expiryDays < 0
+                  ? styles.expiryExpired
+                  : expiryDays !== null && expiryDays <= 1
+                    ? styles.expiryWarning
+                    : "";
+
+                return (
+                  <li key={item.id}>
+                    <div className={styles.itemInfo}>
+                      <strong>{item.ingredientName}</strong>
+                      <span>{item.category}</span>
+                      {expiryText ? <small className={expiryClass}>{expiryText}</small> : null}
+                    </div>
+                    <label className={styles.itemExpiry}>
+                      <span>Validade</span>
+                      <input
+                        aria-label={`Validade de ${item.ingredientName}`}
+                        disabled={savingId === item.ingredientId}
+                        onChange={(event) => void handleExpiryChange(item, event.target.value)}
+                        type="date"
+                        value={item.expiresAt ?? ""}
+                      />
+                    </label>
+                    {item.quantity !== null ? (
+                      <small className={styles.amount}>{item.quantity}{item.unit ? ` ${item.unit}` : ""}</small>
+                    ) : null}
+                    <button className={styles.remove} onClick={() => void handleRemove(item.id)} type="button" aria-label={`Remover ${item.ingredientName}`}>
+                      ×
+                    </button>
+                  </li>
+                );
+              })}
             </ul>
             <div className={styles.previewFooter}>
               <div>
                 <strong>Pronto para combinar.</strong>
-                <span>O Receitando usa esses ingredientes para ordenar as receitas que mais combinam com sua cozinha.</span>
+                <span>Além da compatibilidade, receitas da despensa podem ganhar prioridade quando usam alimentos perto do vencimento.</span>
               </div>
               <Link href="/combinar">Ver combinações</Link>
             </div>
