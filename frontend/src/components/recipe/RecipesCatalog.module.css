@@ -103,63 +103,120 @@
 }
 
 .toolbar {
-  align-items: end;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
+  align-items: center;
+  border-bottom: 1px solid var(--color-border);
   display: grid;
   gap: var(--space-4);
-  padding: var(--space-5);
+  padding-bottom: var(--space-5);
 }
 
 .searchField {
   display: grid;
-  gap: var(--space-2);
+  gap: 0.4rem;
   min-width: 0;
 }
 
 .searchField label {
   color: var(--color-text);
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 800;
+}
+
+.searchControl {
+  position: relative;
+}
+
+.searchIcon {
+  color: var(--color-primary-dark);
+  font-size: 1.35rem;
+  left: 0.95rem;
+  line-height: 1;
+  pointer-events: none;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-52%);
 }
 
 .searchField input {
   appearance: none;
   background: var(--color-card);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-button);
+  border-radius: var(--radius-pill);
   color: var(--color-text);
-  min-height: 3rem;
+  min-height: 3.15rem;
   min-width: 0;
-  padding: 0.75rem 1rem;
+  padding: 0.75rem 3rem 0.75rem 2.8rem;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
   width: 100%;
 }
 
 .searchField input::placeholder {
   color: var(--color-text-muted);
-  opacity: 0.78;
+  opacity: 0.72;
 }
 
 .searchField input:hover {
   border-color: var(--color-accent);
 }
 
+.searchField input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 14%, transparent);
+  outline: none;
+}
+
+.clearSearch {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-round);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-size: 1.3rem;
+  height: 2rem;
+  justify-content: center;
+  padding: 0;
+  position: absolute;
+  right: 0.65rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2rem;
+}
+
+.clearSearch:hover {
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.searchHint {
+  color: var(--color-text-muted);
+  font-size: 0.74rem;
+  line-height: 1.4;
+}
+
 .count {
   align-items: baseline;
-  display: flex;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  display: inline-flex;
   gap: var(--space-2);
+  justify-self: start;
+  padding: 0.62rem 0.9rem;
+  white-space: nowrap;
 }
 
 .count strong {
   color: var(--color-primary-dark);
   font-family: var(--font-editorial), Georgia, serif;
-  font-size: 1.65rem;
+  font-size: 1.35rem;
 }
 
 .count span {
   color: var(--color-text-muted);
-  font-size: 0.86rem;
+  font-size: 0.8rem;
   font-weight: 700;
 }
 
@@ -168,9 +225,58 @@
   gap: var(--space-5);
 }
 
+.pagination {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  justify-content: center;
+  padding-top: var(--space-2);
+  text-align: center;
+}
+
+.pagination button {
+  background: var(--color-card);
+  border: 1px solid var(--color-primary-dark);
+  border-radius: var(--radius-button);
+  color: var(--color-primary-dark);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 800;
+  min-height: 3rem;
+  padding: 0.75rem 1.15rem;
+}
+
+.pagination button:hover:not(:disabled) {
+  background: var(--color-primary-dark);
+  color: var(--color-background);
+}
+
+.pagination button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.pagination span,
+.pagination p {
+  color: var(--color-text-muted);
+  font-size: 0.76rem;
+  margin: 0;
+}
+
+.pagination p {
+  color: var(--color-primary-dark);
+  font-weight: 700;
+}
+
 @media (min-width: 36rem) {
   .toolbar {
     grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .count {
+    justify-self: end;
   }
 }
 
