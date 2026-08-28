@@ -9,6 +9,7 @@ O **Receitando** é uma aplicação web acadêmica que ajuda a descobrir receita
 O usuário pode informar ingredientes manualmente ou manter uma despensa vinculada à conta. O sistema resolve variações para ingredientes canônicos, compara esses itens com o catálogo e ordena receitas por compatibilidade, mostrando o que já está disponível e o que ainda falta.
 
 > Escopo formal: [`docs/escopo.md`](docs/escopo.md)  
+> Glossário de termos: [`docs/glossario.md`](docs/glossario.md)  
 > Funcionalidades implementadas: [`docs/funcionalidades.md`](docs/funcionalidades.md)  
 > Índice da documentação: [`docs/README.md`](docs/README.md)
 
@@ -385,6 +386,7 @@ O código original do Receitando é disponibilizado sob **GNU Affero General Pub
 
 - [`docs/README.md`](docs/README.md) — índice;
 - [`docs/escopo.md`](docs/escopo.md) — escopo acadêmico;
+- [`docs/glossario.md`](docs/glossario.md) — glossário de termos do projeto;
 - [`docs/funcionalidades.md`](docs/funcionalidades.md) — estado implementado;
 - [`docs/architecture.md`](docs/architecture.md) — arquitetura;
 - [`docs/api.md`](docs/api.md) — contrato completo da API;
