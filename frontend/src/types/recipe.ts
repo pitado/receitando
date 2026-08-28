@@ -2,6 +2,15 @@ export type RecipeDifficulty = "FACIL" | "MEDIA" | "DIFICIL";
 export type RecipeSourceType = "OWN" | "OPEN_DATASET" | "USER";
 export type RecipeMatchStatus = "READY" | "ALMOST_READY" | "NEAR" | "EXPLORE";
 export type AdaptationConfidence = "HIGH" | "MEDIUM" | "LOW";
+export type CulinarySignal =
+  | "BAKED"
+  | "FRIED"
+  | "COOKED"
+  | "FRESH"
+  | "AERATED"
+  | "EGG_CENTRIC"
+  | "SWEET"
+  | "SAVORY";
 
 export interface Ingredient {
   id: string;
@@ -93,6 +102,7 @@ export interface MatchRecipesPayload {
 export interface RecipeAdaptationPayload {
   targetServings?: number;
   unavailableIngredients: string[];
+  usePantry?: boolean;
 }
 
 export interface RecipeAdaptationSubstitutionOption {
@@ -139,4 +149,20 @@ export interface RecipeAdaptationResult {
     message: string;
   }>;
   warnings: string[];
+  culinaryContext: {
+    signals: CulinarySignal[];
+    evidence: string[];
+  };
+  pantry: {
+    used: boolean;
+    presentCount: number;
+    missingCount: number;
+    shortageCount: number;
+    missingIngredientIds: string[];
+    shortages: Array<{
+      ingredientId: string;
+      ingredientName: string;
+      shortage: string | null;
+    }>;
+  };
 }
