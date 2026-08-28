@@ -33,10 +33,11 @@ export function savePantryItem(
   ingredientId: string,
   quantity: number | null,
   unit: string | null,
+  expiresAt: string | null = null,
 ): Promise<PantryItem[]> {
   return apiRequest<PantryItem[]>("/api/pantry", {
     method: "POST",
-    body: JSON.stringify({ ingredientId, quantity, unit }),
+    body: JSON.stringify({ ingredientId, quantity, unit, expiresAt }),
   });
 }
 
