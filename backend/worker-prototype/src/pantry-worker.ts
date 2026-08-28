@@ -33,7 +33,7 @@ async function authenticatedUser(request: Request, env: Env): Promise<UserRow | 
 }
 
 function normalizeExpirationDate(value: unknown): string | null | undefined {
-  if (value === undefined || value === null || value === "") return null;
+  if (value === null || value === "") return null;
   if (typeof value !== "string") return undefined;
 
   const trimmed = value.trim();
@@ -76,10 +76,11 @@ async function addPantryItem(request: Request, env: Env, user: UserRow): Promise
     ? body.quantity
     : null;
   const unit = typeof body.unit === "string" ? body.unit.trim().slice(0, 40) : null;
-  const expiresAt = normalizeExpirationDate(body.expiresAt);
+  const hasExpiresAt = Object.prototype.hasOwnProperty.call(body, "expiresAt");
+  const expiresAt = hasExpiresAt ? normalizeExpirationDate(body.expiresAt) : undefined;
 
   if (!ingredientId) return apiError(request, env, 400, "Selecione um ingrediente.");
-  if (expiresAt === undefined) {
+  if (hasExpiresAt && expiresAt === undefined) {
     return apiError(request, env, 400, "Informe uma data de validade válida.");
   }
 
@@ -96,16 +97,23 @@ async function addPantryItem(request: Request, env: Env, user: UserRow): Promise
   const now = new Date().toISOString();
 
   if (existing) {
-    await env.db
-      .prepare("UPDATE pantry_items SET quantity = ?, unit = ?, expires_at = ?, updated_at = ? WHERE id = ?")
-      .bind(quantity, unit || null, expiresAt, now, existing.id)
-      .run();
+    if (hasExpiresAt) {
+      await env.db
+        .prepare("UPDATE pantry_items SET quantity = ?, unit = ?, expires_at = ?, updated_at = ? WHERE id = ?")
+        .bind(quantity, unit || null, expiresAt ?? null, now, existing.id)
+        .run();
+    } else {
+      await env.db
+        .prepare("UPDATE pantry_items SET quantity = ?, unit = ?, updated_at = ? WHERE id = ?")
+        .bind(quantity, unit || null, now, existing.id)
+        .run();
+    }
   } else {
     await env.db
       .prepare(
         "INSERT INTO pantry_items (id, user_id, ingredient_id, quantity, unit, expires_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
       )
-      .bind(crypto.randomUUID(), user.id, ingredientId, quantity, unit || null, expiresAt, now, now)
+      .bind(crypto.randomUUID(), user.id, ingredientId, quantity, unit || null, expiresAt ?? null, now, now)
       .run();
   }
 
