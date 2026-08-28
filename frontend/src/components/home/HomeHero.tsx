@@ -62,12 +62,15 @@ export function HomeHero() {
     <section className={styles.hero}>
       <div className={`container ${styles.inner}`}>
         <div className={styles.copy}>
-          <p className={styles.eyebrow}>
-            <span aria-hidden="true" className={styles.eyebrowMark}>⌁</span>
-            Sua cozinha, mais leve
-          </p>
-
-          <h1>Cozinhe com o que você já tem.</h1>
+          <h1
+            style={{
+              fontSize: "clamp(3rem, 5vw, 5.25rem)",
+              maxWidth: "none",
+            }}
+          >
+            <span style={{ display: "block" }}>Cozinhe com</span>
+            <span style={{ display: "block" }}>o que você já tem.</span>
+          </h1>
 
           <p className={styles.description}>
             Encontre receitas, descubra novas combinações e aproveite melhor os
@@ -118,7 +121,8 @@ export function HomeHero() {
             height={640}
             priority
             sizes="(max-width: 767px) 88vw, (max-width: 1100px) 44vw, 620px"
-            src="/receitando-hero-personagem.webp"
+            src="/receitando-hero-personagem-v2.webp"
+            unoptimized
             width={665}
           />
         </div>
