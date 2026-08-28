@@ -257,7 +257,7 @@ export function parseIngredientAmount(rawText: string | null | undefined): {
   if (!rawText?.trim()) return { quantity: null, unit: null };
 
   const prepared = replaceFractionGlyphs(rawText).trim();
-  const amountMatch = prepared.match(/^(\d+(?:[.,]\d+)?(?:\s+\d+\/\d+)?|\d+\/\d+)\b/);
+  const amountMatch = prepared.match(/^(\d+\s+\d+\/\d+|\d+\/\d+|\d+(?:[.,]\d+)?)\b/);
   if (!amountMatch) return { quantity: null, unit: null };
 
   const quantity = parseNumericExpression(amountMatch[1]);
