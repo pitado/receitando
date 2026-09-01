@@ -1,6 +1,7 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { useState } from "react";
+import type { FormEvent } from "react";
 
 import { ApiError } from "@/services/api-client";
 import { submitRecipe } from "@/services/recipe-submissions.service";
@@ -25,7 +26,8 @@ export function RecipeSubmissionForm() {
     setMessage("");
     setError("");
 
-    const form = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
 
     try {
       const response = await submitRecipe({
@@ -44,7 +46,7 @@ export function RecipeSubmissionForm() {
       });
 
       setMessage(response.message);
-      event.currentTarget.reset();
+      formElement.reset();
     } catch (submitError: unknown) {
       setError(
         submitError instanceof ApiError
