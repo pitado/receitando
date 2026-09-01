@@ -4,6 +4,7 @@ interface __BaseEnv_Env {
   FRONTEND_URL: string;
   EMAIL_FROM?: string;
   RESEND_API_KEY?: string;
+  RECIPE_IMAGES?: R2Bucket;
 }
 
 declare namespace Cloudflare {
