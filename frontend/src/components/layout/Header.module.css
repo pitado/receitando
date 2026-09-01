@@ -8,31 +8,42 @@
 
 .inner {
   align-items: center;
-  display: flex;
-  gap: var(--space-5);
-  justify-content: space-between;
-  min-height: 5.25rem;
+  display: grid;
+  gap: 0.55rem 0.9rem;
+  grid-template-areas:
+    "brand auth"
+    "nav nav";
+  grid-template-columns: minmax(0, 1fr) auto;
+  min-height: 4.8rem;
+  padding-block: 0.65rem;
 }
 
 .brand {
   align-items: center;
   display: inline-flex;
   flex-shrink: 0;
+  grid-area: brand;
+  min-width: 0;
   text-decoration: none;
 }
 
 .brandLogo {
   display: block;
   height: auto;
-  width: clamp(11.5rem, 15vw, 14.5rem);
+  max-width: 100%;
+  width: clamp(10.7rem, 46vw, 13rem);
 }
 
 .navigation {
   align-items: center;
   display: flex;
-  gap: var(--space-2);
+  gap: var(--space-1);
+  grid-area: nav;
+  margin-inline: calc(var(--page-gutter) * -1);
   overflow-x: auto;
+  padding-inline: var(--page-gutter);
   scrollbar-width: none;
+  width: calc(100% + (var(--page-gutter) * 2));
 }
 
 .navigation::-webkit-scrollbar {
@@ -42,9 +53,10 @@
 .navLink {
   border-radius: var(--radius-button);
   color: var(--color-text-muted);
-  font-size: 0.94rem;
+  flex-shrink: 0;
+  font-size: 0.88rem;
   font-weight: 700;
-  padding: 0.7rem 0.85rem;
+  padding: 0.62rem 0.72rem;
   text-decoration: none;
   transition:
     background-color var(--transition-fast),
@@ -57,15 +69,90 @@
   color: var(--color-primary-dark);
 }
 
-.login,
-.account,
+.login {
+  align-items: center;
+  background: var(--color-text);
+  border-radius: 999px;
+  color: var(--color-background);
+  display: inline-flex;
+  flex-shrink: 0;
+  font-size: 0.86rem;
+  font-weight: 800;
+  grid-area: auth;
+  justify-content: center;
+  min-height: 2.55rem;
+  padding: 0.55rem 0.85rem;
+  text-decoration: none;
+  touch-action: manipulation;
+  transition: background-color var(--transition-fast);
+}
+
+.login:hover {
+  background: var(--color-primary-dark);
+}
+
 .authPlaceholder {
+  display: block;
+  grid-area: auth;
+  min-height: 2.55rem;
+  min-width: 4.25rem;
+}
+
+.account {
+  align-items: center;
+  display: inline-flex;
+  flex-shrink: 0;
+  grid-area: auth;
+  min-width: 0;
+}
+
+.accountName {
+  align-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  color: var(--color-text-muted);
+  display: inline-flex;
+  justify-content: center;
+  min-height: 2.65rem;
+  min-width: 2.65rem;
+  padding: 0.25rem;
+  text-decoration: none;
+  touch-action: manipulation;
+  transition:
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.accountName:hover {
+  background: var(--color-surface);
+  border-color: var(--color-primary);
+  color: var(--color-primary-dark);
+}
+
+.accountAvatar {
+  border-radius: 50%;
+  display: block;
+  flex: 0 0 2.05rem;
+  height: 2.05rem;
+  overflow: hidden;
+  width: 2.05rem;
+}
+
+.accountCopy,
+.accountArrow,
+.logout {
   display: none;
 }
 
 @media (min-width: 48rem) {
   .inner {
+    display: flex;
+    gap: var(--space-5);
+    justify-content: space-between;
     min-height: 6.25rem;
+    padding-block: 0;
   }
 
   .brandLogo {
@@ -73,77 +160,49 @@
   }
 
   .navigation {
+    gap: var(--space-2);
+    margin-inline: 0;
     overflow: visible;
+    padding-inline: 0;
+    width: auto;
   }
 
   .navLink {
     font-size: 1rem;
-    padding-inline: 1rem;
+    padding: 0.7rem 1rem;
   }
 
   .login {
-    align-items: center;
-    background: var(--color-text);
     border-radius: var(--radius-button);
-    color: var(--color-background);
-    display: inline-flex;
-    flex-shrink: 0;
     font-size: 0.94rem;
-    font-weight: 750;
-    justify-content: center;
     min-height: 2.85rem;
     padding: 0.65rem 1.05rem;
-    text-decoration: none;
-    transition: background-color var(--transition-fast);
-  }
-
-  .login:hover {
-    background: var(--color-primary-dark);
   }
 
   .authPlaceholder {
-    display: block;
     min-width: 5.2rem;
   }
 
   .account {
-    align-items: center;
-    display: inline-flex;
-    flex-shrink: 0;
     gap: 0.7rem;
   }
 
   .accountName {
-    align-items: center;
-    border: 1px solid transparent;
-    border-radius: 999px;
-    color: var(--color-text-muted);
-    display: inline-flex;
+    border-color: transparent;
     gap: 0.65rem;
     min-height: 3rem;
     padding: 0.38rem 0.6rem 0.38rem 0.4rem;
-    text-decoration: none;
-    transition:
-      background-color var(--transition-fast),
-      border-color var(--transition-fast),
-      color var(--transition-fast),
-      transform var(--transition-fast);
   }
 
   .accountName:hover {
-    background: var(--color-surface);
     border-color: var(--color-border);
-    color: var(--color-primary-dark);
     transform: translateY(-1px);
   }
 
   .accountAvatar {
     border: 1px solid var(--color-border);
-    border-radius: 50%;
-    display: block;
-    flex: 0 0 2.15rem;
+    flex-basis: 2.15rem;
     height: 2.15rem;
-    overflow: hidden;
     width: 2.15rem;
   }
 
@@ -173,6 +232,7 @@
   }
 
   .accountArrow {
+    display: inline;
     font-size: 1.2rem;
     line-height: 1;
     opacity: 0.65;
@@ -184,6 +244,7 @@
     border-radius: var(--radius-button);
     color: var(--color-text);
     cursor: pointer;
+    display: inline-block;
     font: inherit;
     font-size: 0.9rem;
     font-weight: 750;
@@ -208,24 +269,12 @@
 }
 
 @media (max-width: 35rem) {
-  .header {
-    position: static;
-  }
-
-  .inner {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: var(--space-2);
-    padding-block: var(--space-3);
-  }
-
   .brandLogo {
-    width: 11.3rem;
+    width: min(10.8rem, 50vw);
   }
 
-  .navigation {
-    margin-inline: calc(var(--page-gutter) * -1);
-    padding-inline: var(--page-gutter);
-    width: calc(100% + (var(--page-gutter) * 2));
+  .navLink {
+    font-size: 0.84rem;
+    padding: 0.58rem 0.66rem;
   }
 }
