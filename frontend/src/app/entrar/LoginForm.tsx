@@ -28,7 +28,7 @@ export function LoginForm() {
 
     try {
       await login(email, password, remember);
-      router.push("/despensa");
+      router.replace("/despensa");
       router.refresh();
     } catch (requestError: unknown) {
       if (requestError instanceof ApiError) {
@@ -46,12 +46,15 @@ export function LoginForm() {
       <label className={styles.field}>
         <span>E-mail</span>
         <input
+          autoCapitalize="none"
           autoComplete="email"
           disabled={isSubmitting}
+          enterKeyHint="next"
           inputMode="email"
           name="email"
           placeholder="voce@exemplo.com"
           required
+          spellCheck={false}
           type="email"
         />
       </label>
@@ -61,6 +64,7 @@ export function LoginForm() {
         <input
           autoComplete="current-password"
           disabled={isSubmitting}
+          enterKeyHint="go"
           minLength={10}
           name="password"
           placeholder="Sua senha"
