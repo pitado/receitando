@@ -5,6 +5,7 @@ export interface Env {
   FRONTEND_URL: string;
   RESEND_API_KEY?: string;
   EMAIL_FROM?: string;
+  RECIPE_IMAGES?: R2Bucket;
 }
 
 export function allowedOrigins(env: Env): string[] {
@@ -48,13 +49,13 @@ export function bearerToken(request: Request): string | undefined {
   return token || undefined;
 }
 
-export async function tokenHashFromRequest(request: Request): Promise<string | null> {
+export async function tokenHashFromRequest(request: Request, env: Env): Promise<string | null> {
   const token = bearerToken(request);
   return token ? sha256(token) : null;
 }
 
 export async function authenticatedUserId(request: Request, env: Env): Promise<string | null> {
-  const tokenHash = await tokenHashFromRequest(request);
+  const tokenHash = await tokenHashFromRequest(request, env);
   if (!tokenHash) return null;
 
   const row = await env.db.prepare(`
