@@ -1,0 +1,35 @@
+.page {
+  display: grid;
+  grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.4fr);
+  gap: clamp(2rem, 5vw, 4.5rem);
+  align-items: start;
+}
+
+.intro {
+  position: sticky;
+  top: 7rem;
+}
+
+.tips {
+  display: grid;
+  gap: 0.6rem;
+  margin-top: 1.4rem;
+}
+
+.tips span {
+  width: fit-content;
+  border-radius: 999px;
+  background: rgba(124, 154, 110, 0.13);
+  padding: 0.55rem 0.8rem;
+  font-weight: 700;
+}
+
+@media (max-width: 900px) {
+  .page {
+    grid-template-columns: 1fr;
+  }
+
+  .intro {
+    position: static;
+  }
+}

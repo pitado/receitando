@@ -9,6 +9,7 @@ const links = [
   { href: "/combinar", label: "Combinar" },
   { href: "/despensa", label: "Despensa" },
   { href: "/favoritos", label: "Favoritos" },
+  { href: "/enviar-receita", label: "Enviar receita" },
 ];
 
 export function Header() {

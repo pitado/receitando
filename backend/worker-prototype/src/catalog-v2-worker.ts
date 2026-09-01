@@ -137,7 +137,14 @@ async function listCatalogV2(request: Request, env: Env): Promise<Response> {
   const sort = sortFrom(url.searchParams.get("sort"), Boolean(search));
 
   const fromParts = ["FROM recipes r"];
-  const where: string[] = [];
+  // O catálogo público usa apenas o acervo livre que foi validado no Wikilivros
+  // e exige uma imagem real associada à receita. Isso evita seeds/demos e cards
+  // com foto ausente ou sem procedência.
+  const where: string[] = [
+    "lower(COALESCE(r.external_source, '')) = 'wikibooks'",
+    "r.image_url IS NOT NULL",
+    "trim(r.image_url) <> ''",
+  ];
   const bindings: Array<string | number> = [];
 
   if (search) {
@@ -163,7 +170,7 @@ async function listCatalogV2(request: Request, env: Env): Promise<Response> {
   }
 
   const fromSql = fromParts.join(" ");
-  const whereSql = where.length ? `WHERE ${where.join(" AND ")}` : "";
+  const whereSql = `WHERE ${where.join(" AND ")}`;
 
   const totalRow = await env.db
     .prepare(`SELECT COUNT(*) AS total ${fromSql} ${whereSql}`)
