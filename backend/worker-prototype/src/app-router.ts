@@ -7,6 +7,7 @@ import pantryWorker from "./pantry-worker";
 import passwordResetWorker from "./password-reset-worker";
 import profileWorker from "./profile-worker";
 import recipeAdaptationWorker from "./recipe-adaptation-worker";
+import recipeSubmissionWorker from "./recipe-submission-worker";
 import socialWorker from "./social-worker";
 import type { Env } from "./lib/worker-http";
 
@@ -81,6 +82,10 @@ export default {
 
     if (path === "/api/v2/recipes") {
       return catalogV2Worker.fetch(request, env);
+    }
+
+    if (path === "/api/recipe-submissions") {
+      return recipeSubmissionWorker.fetch(request, env);
     }
 
     if (isRecipeAdaptationRoute(path)) {
