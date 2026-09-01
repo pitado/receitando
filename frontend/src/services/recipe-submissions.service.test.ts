@@ -40,6 +40,11 @@ describe("recipe submissions service", () => {
     const body = init.body as FormData;
     expect(body.get("authorName")).toBe("Maria");
     expect(body.getAll("ingredients")).toEqual(["2 ovos", "1 xícara de farinha"]);
-    expect(body.get("image")).toBe(image);
+
+    const uploaded = body.get("image");
+    expect(uploaded).toBeInstanceOf(File);
+    expect((uploaded as File).name).toBe("bolo.jpg");
+    expect((uploaded as File).type).toBe("image/jpeg");
+    expect((uploaded as File).size).toBe(image.size);
   });
 });
