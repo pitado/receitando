@@ -49,13 +49,13 @@ export function bearerToken(request: Request): string | undefined {
   return token || undefined;
 }
 
-export async function tokenHashFromRequest(request: Request, env: Env): Promise<string | null> {
+export async function tokenHashFromRequest(request: Request): Promise<string | null> {
   const token = bearerToken(request);
   return token ? sha256(token) : null;
 }
 
 export async function authenticatedUserId(request: Request, env: Env): Promise<string | null> {
-  const tokenHash = await tokenHashFromRequest(request, env);
+  const tokenHash = await tokenHashFromRequest(request);
   if (!tokenHash) return null;
 
   const row = await env.db.prepare(`
