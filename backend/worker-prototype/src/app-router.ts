@@ -40,6 +40,10 @@ function isPantryRoute(path: string): boolean {
   return path === "/api/pantry" || path.startsWith("/api/pantry/");
 }
 
+function isRecipeSubmissionRoute(path: string): boolean {
+  return path === "/api/recipe-submissions" || path.startsWith("/api/recipe-submission-images/");
+}
+
 function isSocialRoute(path: string): boolean {
   return (
     /^\/api\/recipes\/[^/]+\/(social|vote|comments)$/.test(path) ||
@@ -84,7 +88,7 @@ export default {
       return catalogV2Worker.fetch(request, env);
     }
 
-    if (path === "/api/recipe-submissions") {
+    if (isRecipeSubmissionRoute(path)) {
       return recipeSubmissionWorker.fetch(request, env);
     }
 

@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import type { FormEvent } from "react";
+import { type ChangeEvent, type FormEvent, useEffect, useState } from "react";
 
 import { ApiError } from "@/services/api-client";
 import { submitRecipe } from "@/services/recipe-submissions.service";
 
 import styles from "./RecipeSubmissionForm.module.css";
+
+const MAX_IMAGE_BYTES = 12 * 1024 * 1024;
+const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 function lines(value: string): string[] {
   return value
@@ -19,6 +21,45 @@ export function RecipeSubmissionForm() {
   const [sending, setSending] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [previewUrl, setPreviewUrl] = useState("");
+  const [imageName, setImageName] = useState("");
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
+
+  function handleImageChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.currentTarget.files?.[0];
+    setMessage("");
+
+    if (!file) {
+      setImageName("");
+      setPreviewUrl("");
+      return;
+    }
+
+    if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
+      event.currentTarget.value = "";
+      setImageName("");
+      setPreviewUrl("");
+      setError("Use uma foto JPG, PNG ou WebP.");
+      return;
+    }
+
+    if (file.size > MAX_IMAGE_BYTES) {
+      event.currentTarget.value = "";
+      setImageName("");
+      setPreviewUrl("");
+      setError("A foto pode ter no máximo 12 MB.");
+      return;
+    }
+
+    setError("");
+    setImageName(file.name);
+    setPreviewUrl(URL.createObjectURL(file));
+  }
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -28,6 +69,14 @@ export function RecipeSubmissionForm() {
 
     const formElement = event.currentTarget;
     const form = new FormData(formElement);
+    const imageEntry = form.get("image");
+    const image = imageEntry instanceof File && imageEntry.size > 0 ? imageEntry : undefined;
+
+    if (!image) {
+      setError("Escolha uma foto do prato para enviar a receita.");
+      setSending(false);
+      return;
+    }
 
     try {
       const response = await submitRecipe({
@@ -41,12 +90,14 @@ export function RecipeSubmissionForm() {
         servings: Number(form.get("servings")) || undefined,
         mealType: String(form.get("mealType") ?? ""),
         difficulty: String(form.get("difficulty") ?? "FACIL") as "FACIL" | "MEDIA" | "DIFICIL",
-        imageUrl: String(form.get("imageUrl") ?? ""),
+        image,
         website: String(form.get("website") ?? ""),
       });
 
       setMessage(response.message);
       formElement.reset();
+      setImageName("");
+      setPreviewUrl("");
     } catch (submitError: unknown) {
       setError(
         submitError instanceof ApiError
@@ -67,7 +118,7 @@ export function RecipeSubmissionForm() {
         </label>
         <label>
           <span>E-mail <small>(opcional)</small></span>
-          <input name="authorEmail" type="email" placeholder="Para contato sobre a receita" />
+          <input name="authorEmail" type="email" inputMode="email" autoComplete="email" placeholder="Para contato sobre a receita" />
         </label>
       </div>
 
@@ -127,15 +178,39 @@ export function RecipeSubmissionForm() {
         </label>
       </div>
 
-      <div className={styles.gridTwo}>
-        <label>
-          <span>Tipo de refeição</span>
-          <input name="mealType" placeholder="Café da manhã, almoço, sobremesa..." />
+      <label>
+        <span>Tipo de refeição</span>
+        <input name="mealType" placeholder="Café da manhã, almoço, sobremesa..." />
+      </label>
+
+      <div className={styles.photoField}>
+        <div className={styles.photoHeading}>
+          <div>
+            <strong>Foto do prato</strong>
+            <p>No celular, toque abaixo para tirar uma foto ou escolher da galeria.</p>
+          </div>
+          <span>JPG, PNG ou WebP · até 12 MB</span>
+        </div>
+
+        <label className={styles.photoPicker}>
+          <input
+            accept="image/jpeg,image/png,image/webp"
+            name="image"
+            onChange={handleImageChange}
+            required
+            type="file"
+          />
+          <span className={styles.photoPickerButton}>Escolher foto</span>
+          <span className={styles.photoPickerName}>{imageName || "Nenhuma foto escolhida"}</span>
         </label>
-        <label>
-          <span>Foto da receita <small>(link HTTPS)</small></span>
-          <input name="imageUrl" type="url" placeholder="https://..." />
-        </label>
+
+        {previewUrl ? (
+          <div className={styles.photoPreview}>
+            {/* eslint-disable-next-line @next/next/no-img-element -- local object URL preview before upload */}
+            <img alt="Prévia da foto escolhida" src={previewUrl} />
+            <span>Prévia da foto que será enviada</span>
+          </div>
+        ) : null}
       </div>
 
       <input className={styles.honeypot} name="website" tabIndex={-1} autoComplete="off" />
@@ -148,10 +223,10 @@ export function RecipeSubmissionForm() {
       </div>
 
       {message ? <p className={styles.success}>{message}</p> : null}
-      {error ? <p className={styles.error}>{error}</p> : null}
+      {error ? <p className={styles.error} role="alert">{error}</p> : null}
 
       <button className={styles.submit} disabled={sending} type="submit">
-        {sending ? "Enviando..." : "Enviar minha receita"}
+        {sending ? "Enviando receita e foto..." : "Enviar minha receita"}
       </button>
     </form>
   );

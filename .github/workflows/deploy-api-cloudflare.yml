@@ -33,6 +33,14 @@ jobs:
           cache: npm
           cache-dependency-path: backend/worker-prototype/package-lock.json
       - run: npm ci
+      - name: Ensure recipe image bucket exists
+        shell: bash
+        run: |
+          if npx wrangler r2 bucket list | grep -q "receitando-recipe-images"; then
+            echo "R2 bucket already exists."
+          else
+            npx wrangler r2 bucket create receitando-recipe-images
+          fi
       - run: npm run typecheck
       - run: npm test
       - name: Validate Worker build

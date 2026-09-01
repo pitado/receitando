@@ -5,6 +5,7 @@ export interface Env {
   FRONTEND_URL: string;
   RESEND_API_KEY?: string;
   EMAIL_FROM?: string;
+  RECIPE_IMAGES?: R2Bucket;
 }
 
 export function allowedOrigins(env: Env): string[] {

@@ -26,6 +26,12 @@
       "migrations_dir": "migrations"
     }
   ],
+  "r2_buckets": [
+    {
+      "binding": "RECIPE_IMAGES",
+      "bucket_name": "receitando-recipe-images"
+    }
+  ],
   "observability": {
     "enabled": true,
     "logs": {
