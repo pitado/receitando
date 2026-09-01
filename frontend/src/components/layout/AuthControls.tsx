@@ -23,18 +23,17 @@ export function AuthControls() {
       await Promise.resolve();
       if (cancelled) return;
 
-      if (!hasAuthSessionHint()) {
-        setUser(null);
-        setIsLoading(false);
-        return;
-      }
+      const hadSessionHint = hasAuthSessionHint();
 
       try {
+        // O cookie HttpOnly é a fonte real da sessão. Consultar a API mesmo sem
+        // o indicador local mantém login funcional em Safari/modo privado.
         const currentUser = await getCurrentUser();
         if (!cancelled) setUser(currentUser);
       } catch {
         if (!cancelled) {
-          clearAuthSession();
+          // Evita um ciclo de eventos: só dispara limpeza quando havia um hint.
+          if (hadSessionHint) clearAuthSession();
           setUser(null);
         }
       } finally {
