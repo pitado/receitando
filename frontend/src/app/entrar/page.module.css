@@ -118,6 +118,7 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-button);
   color: var(--color-text);
+  font-size: 1rem;
   min-height: 3.35rem;
   padding: 0.85rem 1rem;
   transition:
@@ -190,6 +191,7 @@
   font-weight: 800;
   min-height: 3.35rem;
   padding: 0.85rem 1rem;
+  touch-action: manipulation;
   transition:
     background-color var(--transition-fast),
     box-shadow var(--transition-fast),
@@ -254,14 +256,69 @@
 }
 
 @media (max-width: 40rem) {
+  .page {
+    background: var(--color-background);
+  }
+
   .shell {
+    align-items: stretch;
+    gap: 1.4rem;
     min-height: auto;
+    padding-block: 1.35rem 2.25rem;
+  }
+
+  .eyebrow {
+    font-size: 0.68rem;
+    margin-bottom: 0.7rem;
   }
 
   .intro h1 {
+    font-size: clamp(2.15rem, 10.5vw, 3rem);
+    line-height: 1;
     max-width: 12ch;
   }
 
+  .intro > p {
+    font-size: 0.95rem;
+    line-height: 1.55;
+    margin-top: 0.9rem;
+  }
+
+  .note {
+    display: none;
+  }
+
+  .card {
+    border-radius: 1.15rem;
+    box-shadow: 0 0.8rem 2rem color-mix(in srgb, var(--color-text) 7%, transparent);
+    padding: 1.15rem;
+  }
+
+  .cardHeader h2 {
+    font-size: 2rem;
+  }
+
+  .cardHeader p {
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  .form {
+    gap: 1rem;
+    margin-top: 1.45rem;
+  }
+
+  .formMeta {
+    align-items: center;
+    flex-direction: row;
+  }
+
+  .divider {
+    margin-block: 1.2rem 1rem;
+  }
+}
+
+@media (max-width: 23rem) {
   .formMeta {
     align-items: flex-start;
     flex-direction: column;
