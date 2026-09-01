@@ -1,0 +1,130 @@
+.form {
+  display: grid;
+  gap: 1.15rem;
+  padding: clamp(1.25rem, 3vw, 2rem);
+  border: 1px solid color-mix(in srgb, var(--color-text, #2a1608) 14%, transparent);
+  border-radius: 1.5rem;
+  background: color-mix(in srgb, var(--color-surface, #fff6e9) 88%, white);
+  box-shadow: 0 1.2rem 3rem rgba(42, 22, 8, 0.08);
+}
+
+.form label {
+  display: grid;
+  gap: 0.45rem;
+  font-weight: 700;
+}
+
+.form small {
+  font-weight: 500;
+  opacity: 0.62;
+}
+
+.form input,
+.form textarea,
+.form select {
+  width: 100%;
+  border: 1px solid rgba(42, 22, 8, 0.2);
+  border-radius: 0.95rem;
+  background: #fffdf8;
+  color: #2a1608;
+  font: inherit;
+  font-weight: 500;
+  padding: 0.85rem 0.95rem;
+  outline: none;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.form textarea {
+  resize: vertical;
+  line-height: 1.55;
+}
+
+.form input:focus,
+.form textarea:focus,
+.form select:focus {
+  border-color: #7c9a6e;
+  box-shadow: 0 0 0 3px rgba(124, 154, 110, 0.15);
+}
+
+.gridTwo,
+.gridThree {
+  display: grid;
+  gap: 1rem;
+}
+
+.gridTwo {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.gridThree {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.notice {
+  border-radius: 1rem;
+  background: rgba(124, 154, 110, 0.13);
+  padding: 1rem 1.1rem;
+}
+
+.notice strong {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.notice p,
+.success,
+.error {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.success,
+.error {
+  border-radius: 0.9rem;
+  padding: 0.85rem 1rem;
+  font-weight: 700;
+}
+
+.success {
+  background: rgba(124, 154, 110, 0.16);
+}
+
+.error {
+  background: rgba(194, 69, 44, 0.12);
+}
+
+.submit {
+  justify-self: start;
+  border: 0;
+  border-radius: 999px;
+  background: #c2452c;
+  color: white;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+  padding: 0.9rem 1.35rem;
+}
+
+.submit:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.honeypot {
+  position: absolute !important;
+  left: -10000px !important;
+  width: 1px !important;
+  height: 1px !important;
+  opacity: 0 !important;
+}
+
+@media (max-width: 760px) {
+  .gridTwo,
+  .gridThree {
+    grid-template-columns: 1fr;
+  }
+
+  .submit {
+    width: 100%;
+  }
+}
