@@ -44,6 +44,7 @@ export async function apiRequest<T>(
   init: RequestInit = {},
 ): Promise<T> {
   let response: Response;
+  const isMultipart = typeof FormData !== "undefined" && init.body instanceof FormData;
 
   try {
     response = await fetch(buildUrl(path), {
@@ -52,7 +53,7 @@ export async function apiRequest<T>(
       credentials: "include",
       headers: {
         Accept: "application/json",
-        ...(init.body ? { "Content-Type": "application/json" } : {}),
+        ...(init.body && !isMultipart ? { "Content-Type": "application/json" } : {}),
         ...init.headers,
       },
     });
