@@ -39,7 +39,7 @@ function mergeRecipes(
 export function RecipesCatalog({ initialCatalog, initialError = "" }: RecipesCatalogProps) {
   const [recipes, setRecipes] = useState(initialCatalog.items);
   const [matches, setMatches] = useState<MatchRecipeResult[] | null>(null);
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(initialCatalog.filters.query);
   const [error, setError] = useState(initialError);
   const [paginationError, setPaginationError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
