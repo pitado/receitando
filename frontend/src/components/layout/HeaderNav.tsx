@@ -1,67 +1,37 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import type { FormEvent } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 import styles from "./Header.module.css";
 
+const links = [
+  { href: "/receitas", label: "Receitas" },
+  { href: "/combinar", label: "Combinar" },
+  { href: "/despensa", label: "Despensa" },
+  { href: "/favoritos", label: "Favoritos" },
+  { href: "/enviar-receita", label: "Enviar receita" },
+];
+
 export function HeaderNav() {
-  const router = useRouter();
-  const [query, setQuery] = useState("");
-
-  function submitSearch(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const search = query.trim();
-
-    if (!search) {
-      router.push("/receitas");
-      return;
-    }
-
-    const params = new URLSearchParams({ q: search });
-    router.push(`/receitas?${params.toString()}`);
-  }
+  const pathname = usePathname();
 
   return (
-    <form
-      aria-label="Pesquisar receitas"
-      className={styles.headerSearch}
-      onSubmit={submitSearch}
-      role="search"
-    >
-      <span aria-hidden="true" className={styles.headerSearchIcon}>
-        <svg viewBox="0 0 24 24">
-          <path d="m21 21-4.4-4.4m2.4-5.1a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z" />
-        </svg>
-      </span>
+    <nav aria-label="Navegação principal" className={styles.navigation}>
+      {links.map((link) => {
+        const isActive = pathname === link.href || pathname.startsWith(`${link.href}/`);
 
-      <label className="sr-only" htmlFor="header-recipe-search">
-        Pesquisar receitas
-      </label>
-      <input
-        autoComplete="off"
-        id="header-recipe-search"
-        onChange={(event) => setQuery(event.target.value)}
-        placeholder="Pesquisar receitas"
-        type="search"
-        value={query}
-      />
-
-      {query ? (
-        <button
-          aria-label="Limpar pesquisa"
-          className={styles.headerSearchClear}
-          onClick={() => setQuery("")}
-          type="button"
-        >
-          ×
-        </button>
-      ) : null}
-
-      <button className="sr-only" type="submit">
-        Pesquisar no catálogo
-      </button>
-    </form>
+        return (
+          <Link
+            aria-current={isActive ? "page" : undefined}
+            className={`${styles.navLink} ${isActive ? styles.navLinkActive : ""}`}
+            href={link.href}
+            key={link.href}
+          >
+            {link.label}
+          </Link>
+        );
+      })}
+    </nav>
   );
 }
