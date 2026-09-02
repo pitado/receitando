@@ -1,4 +1,5 @@
 .footer {
+  background: var(--color-surface);
   border-top: 1px solid var(--color-border);
   isolation: isolate;
   margin-top: auto;
@@ -8,80 +9,79 @@
 
 .footer::before {
   background-image: url("/receitando-footer-art.png");
-  background-position: center;
-  background-repeat: repeat-x;
-  background-size: auto 122%;
+  background-position: right bottom;
+  background-repeat: no-repeat;
+  background-size: auto 115%;
+  bottom: 0;
   content: "";
-  filter: sepia(0.75) saturate(0.72) hue-rotate(325deg) brightness(1.04);
-  inset: 0;
-  opacity: 0.58;
+  filter: sepia(0.55) saturate(0.7) hue-rotate(330deg);
+  opacity: 0.16;
+  pointer-events: none;
   position: absolute;
-  z-index: -2;
-}
-
-.footer::after {
-  background: linear-gradient(
-    90deg,
-    color-mix(in srgb, var(--color-background) 80%, transparent),
-    color-mix(in srgb, var(--color-background) 70%, transparent),
-    color-mix(in srgb, var(--color-background) 80%, transparent)
-  );
-  content: "";
-  inset: 0;
-  position: absolute;
+  right: -2rem;
+  top: 0;
+  width: min(34rem, 48vw);
   z-index: -1;
 }
 
 .inner {
-  align-items: center;
+  align-items: end;
   display: grid;
-  gap: var(--space-3);
-  min-height: clamp(7.5rem, 9vw, 9rem);
-  padding-block: clamp(1.1rem, 2vw, 1.6rem) 0.85rem;
+  gap: var(--space-5);
+  min-height: clamp(10rem, 16vw, 13rem);
+  padding-block: clamp(2.3rem, 5vw, 3.7rem) 1.1rem;
 }
 
 .brandBlock {
   display: grid;
-  gap: var(--space-1);
-  max-width: 26rem;
+  gap: var(--space-2);
+  max-width: 27rem;
 }
 
 .brand {
   color: var(--color-text);
   font-family: var(--font-editorial), Georgia, serif;
-  font-size: 1.35rem;
-  font-weight: 700;
-  letter-spacing: -0.03em;
+  font-size: 1.6rem;
+  font-weight: 620;
+  letter-spacing: -0.035em;
   text-decoration: none;
 }
 
 .description,
 .copyright {
   color: var(--color-text-muted);
-  font-size: 0.8rem;
-  line-height: 1.4;
+  font-size: 0.78rem;
+  line-height: 1.5;
   margin: 0;
+}
+
+.description {
+  max-width: 23rem;
 }
 
 .links {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2) var(--space-4);
+  gap: 0.7rem 1.3rem;
 }
 
 .link {
+  border-bottom: 1px solid transparent;
   color: var(--color-text-muted);
-  font-size: 0.84rem;
-  font-weight: 700;
+  font-size: 0.82rem;
+  font-weight: 680;
+  padding-bottom: 0.12rem;
   text-decoration: none;
+  transition: border-color var(--transition-fast), color var(--transition-fast);
 }
 
 .link:hover {
+  border-bottom-color: var(--color-primary);
   color: var(--color-primary-dark);
 }
 
 .copyright {
-  border-top: 1px solid color-mix(in srgb, var(--color-border) 78%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--color-border) 82%, transparent);
   padding-top: var(--space-3);
 }
 
@@ -97,11 +97,11 @@
 
 @media (max-width: 36rem) {
   .footer::before {
-    background-size: auto 118%;
+    opacity: 0.1;
+    width: 65vw;
   }
 
   .inner {
-    min-height: 8.5rem;
-    padding-block: 1rem 0.8rem;
+    min-height: 10rem;
   }
 }
