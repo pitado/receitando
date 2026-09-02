@@ -1,7 +1,7 @@
 .hero {
   --hero-paper: #f8f5ef;
   background:
-    radial-gradient(circle at 84% 7%, color-mix(in srgb, var(--color-sage-soft) 72%, transparent) 0 12rem, transparent 12.1rem),
+    radial-gradient(circle at 84% 8%, color-mix(in srgb, var(--color-sage-soft) 74%, transparent) 0 10rem, transparent 10.1rem),
     var(--hero-paper);
   border-bottom: 1px solid color-mix(in srgb, var(--color-sage) 18%, var(--color-border));
   overflow: hidden;
@@ -10,42 +10,21 @@
 
 .heroShell {
   display: grid;
-  gap: clamp(3.25rem, 6vw, 5.8rem);
-  padding-block: clamp(2.4rem, 5vw, 4.4rem) clamp(3.5rem, 7vw, 6rem);
-}
-
-.brandStage {
-  display: grid;
-  gap: clamp(1.2rem, 2.5vw, 2rem);
-}
-
-.brandMeta {
-  align-items: center;
-  color: var(--color-text-muted);
-  display: flex;
-  font-size: 0.68rem;
-  font-weight: 720;
-  justify-content: space-between;
-  letter-spacing: 0.085em;
-  text-transform: uppercase;
-}
-
-.brandMeta span:last-child {
-  color: var(--color-sage);
+  gap: clamp(3rem, 6vw, 5rem);
+  padding-block: clamp(3rem, 5.5vw, 4.8rem) clamp(3.4rem, 6vw, 5.2rem);
 }
 
 .heroGrid {
-  align-items: stretch;
+  align-items: center;
   display: grid;
-  gap: clamp(2.5rem, 6vw, 6rem);
+  gap: clamp(2.7rem, 6vw, 5.5rem);
 }
 
 .copy {
   align-content: start;
   display: grid;
-  gap: 1.25rem;
-  max-width: 43rem;
-  padding-block: clamp(0rem, 2vw, 1.25rem);
+  gap: 1.22rem;
+  max-width: 44rem;
   position: relative;
   z-index: 2;
 }
@@ -55,8 +34,8 @@
   color: var(--color-primary-dark);
   display: flex;
   font-size: 0.72rem;
-  font-weight: 780;
-  gap: 0.65rem;
+  font-weight: 790;
+  gap: 0.62rem;
   letter-spacing: 0.085em;
   margin: 0;
   text-transform: uppercase;
@@ -73,59 +52,61 @@
 .copy h1 {
   color: var(--color-text);
   font-family: var(--font-editorial), Georgia, serif;
-  font-size: clamp(3rem, 6.3vw, 5.6rem);
+  font-size: clamp(3.35rem, 6vw, 5.85rem);
   font-weight: 570;
-  letter-spacing: -0.06em;
+  letter-spacing: -0.064em;
   line-height: 0.92;
   margin: 0;
-  max-width: 10.4ch;
+  max-width: 9.8ch;
   text-wrap: balance;
 }
 
 .description {
   color: var(--color-text-muted);
-  font-size: clamp(1rem, 1.45vw, 1.14rem);
-  line-height: 1.64;
+  font-size: clamp(1.02rem, 1.4vw, 1.16rem);
+  line-height: 1.67;
   margin: 0;
-  max-width: 37rem;
+  max-width: 39rem;
 }
 
 .searchForm {
   align-items: stretch;
-  background: var(--color-card);
-  border: 1px solid color-mix(in srgb, var(--color-sage) 24%, var(--color-border));
-  border-radius: 1.15rem;
-  box-shadow: 0 1.1rem 3rem color-mix(in srgb, var(--color-text) 7%, transparent);
+  background: #fffdf9;
+  border: 1px solid color-mix(in srgb, var(--color-sage) 26%, var(--color-border));
+  border-radius: 1.35rem;
+  box-shadow: 0 1.25rem 3.2rem color-mix(in srgb, var(--color-text) 8%, transparent);
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  margin-top: 0.4rem;
-  max-width: 44rem;
-  padding: 0.35rem;
+  margin-top: 0.35rem;
+  max-width: 47rem;
+  padding: 0.4rem;
   transition: border-color var(--transition-fast), box-shadow var(--transition-base), transform var(--transition-base);
 }
 
 .searchForm:focus-within {
   border-color: var(--color-sage);
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-sage) 14%, transparent), 0 1.25rem 3.4rem color-mix(in srgb, var(--color-text) 9%, transparent);
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--color-sage) 14%, transparent),
+    0 1.35rem 3.6rem color-mix(in srgb, var(--color-text) 10%, transparent);
   transform: translateY(-2px);
 }
 
 .searchField {
   align-items: center;
   display: flex;
-  gap: 0.72rem;
+  gap: 0.76rem;
   min-width: 0;
-  padding-inline: 0.9rem;
+  padding-inline: 0.95rem 0.45rem;
 }
 
 .searchField svg {
   fill: none;
-  flex: 0 0 1.1rem;
-  height: 1.1rem;
+  flex: 0 0 1.15rem;
+  height: 1.15rem;
   stroke: var(--color-sage);
   stroke-linecap: round;
   stroke-width: 1.8;
-  width: 1.1rem;
+  width: 1.15rem;
 }
 
 .searchField input {
@@ -133,7 +114,8 @@
   border: 0;
   color: var(--color-text);
   font: inherit;
-  min-height: 3.45rem;
+  font-size: 1rem;
+  min-height: 4rem;
   min-width: 0;
   outline: 0;
   padding: 0;
@@ -145,21 +127,45 @@
   opacity: 1;
 }
 
+.clearButton {
+  align-items: center;
+  background: var(--color-surface);
+  border: 1px solid transparent;
+  border-radius: 50%;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  display: inline-flex;
+  flex: 0 0 2rem;
+  font: inherit;
+  font-size: 1.25rem;
+  height: 2rem;
+  justify-content: center;
+  line-height: 1;
+  transition: background-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
+  width: 2rem;
+}
+
+.clearButton:hover {
+  background: var(--color-sage-soft);
+  color: var(--color-text);
+  transform: rotate(8deg);
+}
+
 .searchButton {
   align-items: center;
   background: var(--color-primary);
   border: 1px solid var(--color-primary);
-  border-radius: 0.88rem;
+  border-radius: 1rem;
   color: var(--color-on-primary);
   cursor: pointer;
   display: inline-flex;
   font: inherit;
-  font-size: 0.88rem;
-  font-weight: 780;
-  gap: 1.15rem;
+  font-size: 0.94rem;
+  font-weight: 800;
+  gap: 1rem;
   justify-content: space-between;
-  min-height: 3.45rem;
-  padding: 0.8rem 1rem 0.8rem 1.25rem;
+  min-height: 4rem;
+  padding: 0.88rem 1rem 0.88rem 1.3rem;
   transition: background-color var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
 }
 
@@ -168,10 +174,10 @@
   background: color-mix(in srgb, white 16%, transparent);
   border-radius: 50%;
   display: inline-flex;
-  height: 1.75rem;
+  height: 1.9rem;
   justify-content: center;
   transition: transform var(--transition-base);
-  width: 1.75rem;
+  width: 1.9rem;
 }
 
 .searchButton:hover {
@@ -185,6 +191,7 @@
 }
 
 .searchButton:focus-visible,
+.clearButton:focus-visible,
 .chips button:focus-visible {
   outline: 3px solid var(--color-focus);
   outline-offset: 2px;
@@ -196,12 +203,12 @@
   display: flex;
   flex-wrap: wrap;
   font-size: 0.72rem;
-  gap: 0.65rem 0.8rem;
-  margin-top: 0.1rem;
+  gap: 0.62rem 0.8rem;
+  margin-top: 0.08rem;
 }
 
 .suggestions > span {
-  font-weight: 740;
+  font-weight: 760;
   letter-spacing: 0.045em;
   text-transform: uppercase;
 }
@@ -213,16 +220,19 @@
 }
 
 .chips button {
+  align-items: center;
   background: transparent;
   border: 1px solid color-mix(in srgb, var(--color-sage) 26%, var(--color-border));
   border-radius: 999px;
   color: var(--color-sage);
   cursor: pointer;
+  display: inline-flex;
   font: inherit;
-  font-size: 0.72rem;
-  font-weight: 660;
+  font-size: 0.74rem;
+  font-weight: 680;
+  gap: 0.22rem;
   line-height: 1;
-  padding: 0.52rem 0.72rem;
+  padding: 0.55rem 0.76rem;
   transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
 }
 
@@ -233,39 +243,95 @@
   transform: translateY(-1px);
 }
 
+.chips .chipSelected {
+  background: var(--color-sage);
+  border-color: var(--color-sage);
+  color: #fffdf8;
+}
+
+.chips .chipSelected:hover {
+  background: color-mix(in srgb, var(--color-sage) 88%, black);
+  color: white;
+}
+
+.selectionStatus {
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
+  margin: -0.3rem 0 0;
+}
+
+.metrics {
+  display: grid;
+  gap: 0.6rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 0.25rem;
+  max-width: 41rem;
+}
+
+.metric {
+  background: color-mix(in srgb, white 42%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-sage) 17%, var(--color-border));
+  border-radius: 1rem;
+  display: grid;
+  gap: 0.25rem;
+  min-width: 0;
+  padding: 0.9rem 0.95rem;
+}
+
+.metric strong {
+  color: var(--color-primary-dark);
+  font-size: 0.7rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.06em;
+}
+
+.metric span {
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
 .visual {
+  display: grid;
+  min-width: 0;
+}
+
+.visualCard {
   background: #dce5d7;
   border: 1px solid color-mix(in srgb, var(--color-sage) 32%, transparent);
-  border-radius: clamp(1.5rem, 4vw, 3rem);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, white 36%, transparent);
-  min-height: clamp(29rem, 48vw, 38rem);
+  border-radius: clamp(1.6rem, 4vw, 2.8rem);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, white 36%, transparent),
+    0 1.5rem 3.6rem color-mix(in srgb, var(--color-sage) 12%, transparent);
+  min-height: clamp(29rem, 45vw, 36rem);
   overflow: hidden;
-  padding: clamp(1.25rem, 3vw, 2.1rem);
+  padding: clamp(1.25rem, 2.7vw, 2rem);
   position: relative;
 }
 
-.visual::before {
+.visualCard::before {
   border: 1px solid color-mix(in srgb, var(--color-sage) 18%, transparent);
   border-radius: 50%;
   content: "";
-  height: clamp(18rem, 30vw, 26rem);
+  height: clamp(17rem, 27vw, 23rem);
   left: 50%;
   position: absolute;
-  top: 53%;
+  top: 51%;
   transform: translate(-50%, -50%);
-  width: clamp(18rem, 30vw, 26rem);
+  width: clamp(17rem, 27vw, 23rem);
 }
 
 .visualHeader {
   align-items: center;
   display: flex;
   font-size: 0.66rem;
-  font-weight: 760;
+  font-weight: 770;
   justify-content: space-between;
   letter-spacing: 0.08em;
   position: relative;
   text-transform: uppercase;
-  z-index: 3;
+  z-index: 4;
 }
 
 .visualHeader span {
@@ -277,7 +343,7 @@
   border: 1px solid color-mix(in srgb, var(--color-sage) 22%, transparent);
   border-radius: 999px;
   color: var(--color-text);
-  padding: 0.5rem 0.7rem;
+  padding: 0.5rem 0.72rem;
 }
 
 .plate {
@@ -285,12 +351,12 @@
   border: 1px solid color-mix(in srgb, var(--color-text) 10%, transparent);
   border-radius: 50%;
   box-shadow: 0 1.6rem 3.4rem color-mix(in srgb, var(--color-sage) 19%, transparent);
-  height: clamp(15rem, 25vw, 22rem);
-  left: 52%;
+  height: clamp(15rem, 24vw, 20.5rem);
+  left: 50%;
   position: absolute;
-  top: 48%;
+  top: 49%;
   transform: translate(-50%, -50%) rotate(-4deg);
-  width: clamp(15rem, 25vw, 22rem);
+  width: clamp(15rem, 24vw, 20.5rem);
 }
 
 .plateRing {
@@ -304,9 +370,9 @@
 .herbTwo {
   background: var(--color-sage);
   border-radius: 95% 5% 82% 18% / 82% 16% 84% 18%;
-  height: 3.7rem;
+  height: 3.55rem;
   position: absolute;
-  width: 1.8rem;
+  width: 1.72rem;
 }
 
 .herbOne {
@@ -330,26 +396,26 @@
   position: absolute;
   top: 50%;
   transform: rotate(64deg);
-  width: 2.4rem;
+  width: 2.3rem;
 }
 
 .tomato {
   background: var(--color-primary);
   border-radius: 52% 48% 50% 50%;
   box-shadow: inset -0.45rem -0.45rem 0 color-mix(in srgb, var(--color-primary-dark) 28%, transparent);
-  height: 4.4rem;
+  height: 4.3rem;
   left: 47%;
   position: absolute;
   top: 38%;
-  width: 4.4rem;
+  width: 4.3rem;
 }
 
 .tomato::before {
   background: var(--color-sage);
   border-radius: 90% 10% 90% 10%;
   content: "";
-  height: 1.6rem;
-  left: 1.3rem;
+  height: 1.55rem;
+  left: 1.28rem;
   position: absolute;
   top: -0.55rem;
   transform: rotate(35deg);
@@ -361,49 +427,72 @@
   border: 1px solid color-mix(in srgb, var(--color-text) 8%, transparent);
   border-radius: 48% 52% 55% 45% / 58% 43% 57% 42%;
   bottom: 27%;
-  height: 5.3rem;
+  height: 5.1rem;
   left: 35%;
   position: absolute;
   transform: rotate(-12deg);
-  width: 6.3rem;
+  width: 6.05rem;
 }
 
 .egg::after {
   background: var(--color-highlight);
   border-radius: 50%;
   content: "";
-  height: 2.4rem;
-  left: 1.9rem;
+  height: 2.3rem;
+  left: 1.85rem;
   position: absolute;
-  top: 1.35rem;
-  width: 2.4rem;
+  top: 1.3rem;
+  width: 2.3rem;
+}
+
+.ingredientCloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  left: 1.35rem;
+  max-width: 58%;
+  position: absolute;
+  top: 4.25rem;
+  z-index: 5;
+}
+
+.ingredientCloud span {
+  background: color-mix(in srgb, #f8f5ef 92%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-sage) 22%, transparent);
+  border-radius: 999px;
+  color: #566b50;
+  font-size: 0.64rem;
+  font-weight: 760;
+  padding: 0.42rem 0.62rem;
 }
 
 .recipeTicket {
   background: #f8f5ef;
   border: 1px solid color-mix(in srgb, var(--color-primary) 20%, var(--color-border));
   border-radius: 1.15rem;
-  bottom: clamp(1.2rem, 3vw, 2rem);
+  bottom: clamp(1.2rem, 3vw, 1.8rem);
   box-shadow: 0 1.2rem 2.8rem color-mix(in srgb, var(--color-text) 10%, transparent);
   display: grid;
   gap: 0.3rem;
-  left: clamp(1.2rem, 3vw, 2rem);
-  max-width: min(17rem, 72%);
+  left: clamp(1.2rem, 3vw, 1.8rem);
+  max-width: min(18rem, 72%);
   padding: 1rem 1.1rem;
   position: absolute;
-  transform: rotate(1.5deg);
-  z-index: 4;
+  transform: rotate(1.3deg);
+  z-index: 5;
 }
 
 .recipeTicket > span {
   color: var(--color-primary-dark);
-  font-size: 0.66rem;
-  font-weight: 800;
+  font-size: 0.64rem;
+  font-weight: 810;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
 .recipeTicket strong {
   font-family: var(--font-editorial), Georgia, serif;
-  font-size: clamp(1.25rem, 2vw, 1.65rem);
+  font-size: clamp(1.2rem, 2vw, 1.6rem);
   font-weight: 600;
   letter-spacing: -0.035em;
   line-height: 1.05;
@@ -423,19 +512,19 @@
   color: var(--color-on-primary);
   display: flex;
   flex-direction: column;
-  height: clamp(6rem, 10vw, 8rem);
+  height: clamp(6rem, 9vw, 7.5rem);
   justify-content: center;
   position: absolute;
-  right: clamp(1rem, 2.4vw, 1.8rem);
+  right: clamp(1rem, 2.4vw, 1.6rem);
   text-align: center;
-  top: 20%;
-  transform: rotate(9deg);
-  width: clamp(6rem, 10vw, 8rem);
-  z-index: 4;
+  top: 21%;
+  transform: rotate(8deg);
+  width: clamp(6rem, 9vw, 7.5rem);
+  z-index: 5;
 }
 
 .stamp span {
-  font-size: 0.56rem;
+  font-size: 0.54rem;
   font-weight: 680;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -443,11 +532,29 @@
 
 .stamp strong {
   font-family: var(--font-editorial), Georgia, serif;
-  font-size: clamp(0.95rem, 1.6vw, 1.2rem);
+  font-size: clamp(0.95rem, 1.6vw, 1.17rem);
   font-weight: 620;
   line-height: 0.95;
   margin-top: 0.22rem;
   max-width: 5rem;
+}
+
+.brandSignature {
+  align-items: center;
+  border-top: 1px solid color-mix(in srgb, var(--color-sage) 17%, var(--color-border));
+  display: grid;
+  gap: 0.85rem;
+  justify-items: center;
+  padding-top: clamp(2.6rem, 5vw, 3.8rem);
+  text-align: center;
+}
+
+.signatureKicker {
+  color: var(--color-sage);
+  font-size: 0.68rem;
+  font-weight: 790;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
 }
 
 .flavorRail {
@@ -469,153 +576,119 @@
   flex-shrink: 0;
 }
 
-.flavorSet > span {
+.flavorSet span {
   align-items: center;
   display: inline-flex;
-  font-family: var(--font-editorial), Georgia, serif;
-  font-size: clamp(1rem, 1.7vw, 1.3rem);
-  font-weight: 570;
-  gap: 1.4rem;
-  padding-right: 1.4rem;
+  font-size: 0.82rem;
+  font-weight: 720;
+  gap: 0.8rem;
+  letter-spacing: 0.03em;
+  padding-inline: 1.4rem;
+  text-transform: lowercase;
   white-space: nowrap;
 }
 
 .flavorSet i {
-  color: var(--color-highlight);
-  font-family: var(--font-interface), Arial, sans-serif;
-  font-size: 0.72rem;
+  color: color-mix(in srgb, var(--color-highlight) 88%, white);
   font-style: normal;
 }
 
 @keyframes flavor-scroll {
+  from {
+    transform: translateX(0);
+  }
   to {
     transform: translateX(-50%);
   }
 }
 
-@media (min-width: 48rem) {
+@media (min-width: 64rem) {
   .heroGrid {
-    grid-template-columns: minmax(0, 0.94fr) minmax(24rem, 0.78fr);
-  }
-
-  .visual {
-    transform: rotate(1.2deg);
+    grid-template-columns: minmax(0, 1.06fr) minmax(22rem, 0.84fr);
   }
 }
 
-@media (min-width: 72rem) {
-  .heroGrid {
-    grid-template-columns: minmax(0, 0.9fr) minmax(28rem, 0.72fr);
+@media (max-width: 63.99rem) {
+  .metrics {
+    max-width: none;
+  }
+
+  .visualCard {
+    min-height: 30rem;
   }
 }
 
 @media (max-width: 47.99rem) {
   .hero {
     background:
-      radial-gradient(circle at 108% 8%, color-mix(in srgb, var(--color-sage-soft) 66%, transparent) 0 8rem, transparent 8.1rem),
+      radial-gradient(circle at 100% 2%, color-mix(in srgb, var(--color-sage-soft) 66%, transparent) 0 7rem, transparent 7.1rem),
       var(--hero-paper);
   }
 
   .heroShell {
     gap: 2.8rem;
-    padding-block: 2rem 3.4rem;
-  }
-
-  .brandMeta {
-    align-items: flex-start;
-    display: grid;
-    gap: 0.3rem;
-  }
-
-  .brandMeta span:last-child {
-    display: none;
-  }
-
-  .heroGrid {
-    gap: 2.3rem;
-  }
-
-  .copy {
-    gap: 1.05rem;
+    padding-block: 2.45rem 3.2rem;
   }
 
   .copy h1 {
-    font-size: clamp(2.75rem, 13vw, 4.4rem);
+    font-size: clamp(3.05rem, 15vw, 4.7rem);
     max-width: 9ch;
   }
 
   .searchForm {
-    background: transparent;
-    border: 0;
-    box-shadow: none;
-    gap: 0.6rem;
     grid-template-columns: 1fr;
-    padding: 0;
+    padding: 0.35rem;
   }
 
-  .searchForm:focus-within {
-    border: 0;
-    box-shadow: none;
-    transform: none;
-  }
-
-  .searchField {
-    background: var(--color-card);
-    border: 1px solid color-mix(in srgb, var(--color-sage) 25%, var(--color-border));
-    border-radius: 1rem;
-    box-shadow: var(--shadow-button);
+  .searchField input {
     min-height: 3.6rem;
   }
 
-  .searchField:focus-within {
-    border-color: var(--color-sage);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-sage) 14%, transparent);
-  }
-
   .searchButton {
-    width: 100%;
+    min-height: 3.5rem;
   }
 
-  .suggestions {
-    align-items: flex-start;
-    display: grid;
+  .metrics {
+    grid-template-columns: 1fr;
   }
 
-  .visual {
-    min-height: 31rem;
+  .metric {
+    align-items: center;
+    grid-template-columns: auto 1fr;
   }
 
-  .stamp {
-    right: 0.75rem;
-    top: 17%;
-  }
-
-  .recipeTicket {
-    max-width: 76%;
-  }
-
-  .flavorTrack {
-    animation-duration: 22s;
-  }
-}
-
-@media (max-width: 25rem) {
-  .visual {
+  .visualCard {
     min-height: 27rem;
   }
 
+  .ingredientCloud {
+    max-width: 67%;
+  }
+
+  .recipeTicket {
+    max-width: 78%;
+  }
+
   .stamp {
-    height: 5.3rem;
-    width: 5.3rem;
+    height: 5.8rem;
+    width: 5.8rem;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .searchForm,
+  .clearButton,
+  .searchButton,
+  .chips button,
   .flavorTrack {
     animation: none;
+    transition: none;
   }
 
-  .searchButton:hover span:last-child {
+  .searchForm:focus-within,
+  .clearButton:hover,
+  .searchButton:hover,
+  .chips button:hover {
     transform: none;
   }
 }

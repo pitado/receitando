@@ -1,7 +1,12 @@
 .wrapper {
   display: grid;
-  gap: 0.55rem;
+  gap: 0.72rem;
   width: 100%;
+}
+
+.centered {
+  justify-items: center;
+  text-align: center;
 }
 
 .wordmark {
@@ -10,17 +15,16 @@
   border: 0;
   color: #2b211a;
   cursor: pointer;
-  display: block;
+  display: inline-block;
   font-family: var(--font-editorial), Georgia, serif;
-  font-size: clamp(4.2rem, 12.3vw, 10.9rem);
+  font-size: clamp(3.7rem, 9.4vw, 7.7rem);
   font-weight: 590;
   letter-spacing: -0.075em;
-  line-height: 0.76;
+  line-height: 0.82;
   margin: 0;
   overflow: visible;
-  padding: 0.08em 0.08em 0.16em 0;
+  padding: 0.09em 0.12em 0.18em;
   position: relative;
-  text-align: left;
   touch-action: manipulation;
   width: fit-content;
 }
@@ -28,20 +32,20 @@
 .wordmark::after {
   background: var(--color-primary);
   border-radius: 999px;
-  bottom: 0.03em;
+  bottom: 0.015em;
   content: "";
   height: 0.055em;
-  left: 0;
-  max-width: 13rem;
+  left: 50%;
+  max-width: 11rem;
   position: absolute;
-  transform-origin: left center;
-  transition: transform 320ms cubic-bezier(0.2, 0.8, 0.2, 1);
-  width: 18%;
+  transform: translateX(-50%);
+  transition: width 320ms cubic-bezier(0.16, 1, 0.3, 1);
+  width: 22%;
 }
 
 .wordmark:hover::after,
 .wordmark:focus-visible::after {
-  transform: scaleX(1.55);
+  width: 30%;
 }
 
 .wordmark:focus-visible {
@@ -58,51 +62,106 @@
 
 .bites {
   inset: 0;
-  overflow: hidden;
+  overflow: visible;
   pointer-events: none;
   position: absolute;
 }
 
 .bite {
-  animation: bite-in 360ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  --crumb-direction: -1;
+  animation: bite-in 300ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  height: calc(var(--bite-size) * 0.82);
+  position: absolute;
+  transform: translateX(-50%);
+  width: calc(var(--bite-size) * 1.38);
+}
+
+.biteTop {
+  top: -0.06em;
+}
+
+.biteBottom {
+  --crumb-direction: 1;
+  bottom: 0.1em;
+}
+
+.tooth {
   background: var(--bite-background);
   border-radius: 50%;
+  height: var(--bite-size);
   position: absolute;
-  transform: translate(-50%, -50%);
+  width: var(--bite-size);
 }
 
-.bite::before,
-.bite::after {
-  animation: crumb-pop 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
-  background: var(--color-text);
-  border-radius: 50%;
-  content: "";
-  height: 0.16em;
+.biteTop .tooth {
+  top: calc(var(--bite-size) * -0.5);
+}
+
+.biteBottom .tooth {
+  bottom: calc(var(--bite-size) * -0.48);
+}
+
+.toothOne {
+  left: -3%;
+  transform: scale(0.78);
+}
+
+.toothTwo {
+  left: 27%;
+  transform: scale(1);
+}
+
+.toothThree {
+  right: -3%;
+  transform: scale(0.76);
+}
+
+.crumb {
+  animation: crumb-pop 640ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  background: color-mix(in srgb, var(--color-primary-dark) 78%, var(--color-text));
+  border-radius: 50% 45% 55% 42%;
+  height: 0.22rem;
   position: absolute;
-  width: 0.16em;
+  right: -0.15rem;
+  top: 48%;
+  width: 0.22rem;
 }
 
-.bite::before {
-  right: -0.12em;
-  top: 0.16em;
+.crumbOne {
+  animation-delay: 40ms;
 }
 
-.bite::after {
-  bottom: 0.12em;
-  right: -0.27em;
-  transform: scale(0.62);
+.crumbTwo {
+  animation-delay: 90ms;
+  height: 0.16rem;
+  right: -0.42rem;
+  top: 32%;
+  transform: rotate(24deg);
+  width: 0.28rem;
+}
+
+.crumbThree {
+  animation-delay: 130ms;
+  height: 0.13rem;
+  right: 0.02rem;
+  top: 70%;
+  width: 0.13rem;
 }
 
 .hint {
   align-items: center;
   color: var(--color-text-muted);
   display: inline-flex;
-  font-size: clamp(0.69rem, 1vw, 0.8rem);
-  font-weight: 650;
-  gap: 0.45rem;
+  font-size: clamp(0.7rem, 1vw, 0.8rem);
+  font-weight: 670;
+  gap: 0.48rem;
   letter-spacing: 0.015em;
   margin: 0;
   width: fit-content;
+}
+
+.centered .hint {
+  justify-content: center;
 }
 
 .hint span {
@@ -112,40 +171,42 @@
   border-radius: 50%;
   color: var(--color-sage);
   display: inline-flex;
-  height: 1.55rem;
+  height: 1.6rem;
   justify-content: center;
-  width: 1.55rem;
+  width: 1.6rem;
 }
 
 @keyframes bite-in {
   from {
     opacity: 0;
-    transform: translate(-50%, -50%) scale(0.25);
+    transform: translateX(-50%) scale(0.6);
   }
   to {
     opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
+    transform: translateX(-50%) scale(1);
   }
 }
 
 @keyframes crumb-pop {
   0% {
     opacity: 0;
-    transform: translate(0, 0) scale(0.2);
+    translate: 0 0;
+    scale: 0.2;
   }
-  45% {
-    opacity: 0.75;
+  34% {
+    opacity: 0.95;
   }
   100% {
     opacity: 0;
-    transform: translate(0.8em, -0.45em) scale(1);
+    translate: 0.85rem calc(var(--crumb-direction) * 0.7rem);
+    rotate: 48deg;
+    scale: 1.05;
   }
 }
 
 @media (max-width: 47.99rem) {
   .wordmark {
-    font-size: clamp(3.8rem, 20vw, 6.5rem);
-    line-height: 0.82;
+    font-size: clamp(3rem, 17vw, 5.4rem);
   }
 
   .hint {
@@ -155,8 +216,11 @@
 
 @media (prefers-reduced-motion: reduce) {
   .bite,
-  .bite::before,
-  .bite::after {
+  .crumb {
     animation: none;
+  }
+
+  .wordmark::after {
+    transition: none;
   }
 }

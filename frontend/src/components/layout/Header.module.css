@@ -1,56 +1,33 @@
 .header {
-  background: color-mix(in srgb, var(--color-background) 88%, transparent);
-  border-bottom: 1px solid color-mix(in srgb, var(--color-sage) 16%, var(--color-border));
-  backdrop-filter: blur(18px) saturate(1.08);
+  background: color-mix(in srgb, var(--color-background) 94%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-border) 86%, transparent);
+  backdrop-filter: blur(18px) saturate(1.06);
   position: sticky;
   top: 0;
-  z-index: 20;
+  z-index: 30;
 }
 
 .inner {
   align-items: center;
   display: grid;
-  gap: 0.55rem 0.9rem;
-  grid-template-areas:
-    "brand auth"
-    "nav nav";
+  gap: 0.75rem;
   grid-template-columns: minmax(0, 1fr) auto;
-  min-height: 4.7rem;
-  padding-block: 0.6rem;
+  min-height: 4.9rem;
+  padding-block: 0.55rem;
 }
 
-.brand {
-  align-items: center;
-  display: inline-flex;
-  flex-shrink: 0;
-  grid-area: brand;
-  min-width: 0;
-  text-decoration: none;
-  transition: opacity var(--transition-fast), transform var(--transition-fast);
-}
-
-.brand:hover {
-  opacity: 0.82;
-  transform: translateY(-1px);
-}
-
-.brandLogo {
-  display: block;
-  height: auto;
-  max-width: 100%;
-  width: clamp(9.5rem, 42vw, 11.5rem);
+.balance {
+  display: none;
 }
 
 .navigation {
   align-items: center;
   display: flex;
-  gap: 0.25rem;
-  grid-area: nav;
-  margin-inline: calc(var(--page-gutter) * -1);
+  gap: 0.22rem;
+  min-width: 0;
   overflow-x: auto;
-  padding: 0.15rem var(--page-gutter) 0.2rem;
+  padding: 0.18rem 0.1rem 0.22rem;
   scrollbar-width: none;
-  width: calc(100% + (var(--page-gutter) * 2));
 }
 
 .navigation::-webkit-scrollbar {
@@ -63,8 +40,8 @@
   color: var(--color-text-muted);
   flex-shrink: 0;
   font-size: 0.82rem;
-  font-weight: 690;
-  padding: 0.5rem 0.72rem;
+  font-weight: 710;
+  padding: 0.58rem 0.78rem;
   text-decoration: none;
   transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
   white-space: nowrap;
@@ -77,21 +54,26 @@
   transform: translateY(-1px);
 }
 
+.navLinkActive,
+.navLinkActive:hover {
+  background: var(--color-text);
+  border-color: var(--color-text);
+  color: var(--color-on-primary);
+}
+
 .login {
   align-items: center;
   background: var(--color-primary);
   border: 1px solid var(--color-primary);
   border-radius: 999px;
-  box-shadow: none;
   color: var(--color-on-primary);
   display: inline-flex;
   flex-shrink: 0;
   font-size: 0.8rem;
-  font-weight: 780;
-  grid-area: auth;
+  font-weight: 790;
   justify-content: center;
-  min-height: 2.55rem;
-  padding: 0.55rem 0.9rem;
+  min-height: 2.6rem;
+  padding: 0.58rem 0.96rem;
   text-decoration: none;
   touch-action: manipulation;
   transition: background-color var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
@@ -106,7 +88,6 @@
 
 .authPlaceholder {
   display: block;
-  grid-area: auth;
   min-height: 2.5rem;
   min-width: 4rem;
 }
@@ -115,7 +96,6 @@
   align-items: center;
   display: inline-flex;
   flex-shrink: 0;
-  grid-area: auth;
   min-width: 0;
 }
 
@@ -157,39 +137,42 @@
   display: none;
 }
 
-@media (min-width: 48rem) {
+@media (min-width: 62rem) {
   .inner {
-    display: flex;
-    gap: clamp(1rem, 2.2vw, 2rem);
-    justify-content: space-between;
-    min-height: 5.15rem;
+    grid-template-columns: 1fr auto 1fr;
+    min-height: 5.2rem;
     padding-block: 0;
   }
 
-  .brandLogo {
-    width: 12.4rem;
+  .balance {
+    display: block;
   }
 
   .navigation {
-    background: color-mix(in srgb, var(--color-card) 48%, transparent);
-    border: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
+    background: color-mix(in srgb, var(--color-card) 72%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-border) 82%, transparent);
     border-radius: 999px;
-    gap: 0.15rem;
-    margin-inline: 0;
+    gap: 0.14rem;
+    justify-self: center;
     overflow: visible;
-    padding: 0.2rem;
-    width: auto;
+    padding: 0.23rem;
   }
 
   .navLink {
-    font-size: 0.84rem;
-    padding: 0.52rem 0.68rem;
+    font-size: 0.86rem;
+    padding: 0.6rem 0.84rem;
+  }
+
+  .login,
+  .account,
+  .authPlaceholder {
+    justify-self: end;
   }
 
   .login {
     font-size: 0.86rem;
-    min-height: 2.75rem;
-    padding: 0.62rem 1rem;
+    min-height: 2.78rem;
+    padding: 0.62rem 1.04rem;
   }
 
   .authPlaceholder {
@@ -270,25 +253,24 @@
   }
 }
 
-@media (max-width: 35rem) {
-  .brandLogo {
-    width: min(9.8rem, 47vw);
+@media (max-width: 39rem) {
+  .inner {
+    gap: 0.45rem;
   }
 
   .navLink {
-    font-size: 0.79rem;
+    font-size: 0.78rem;
+    padding-inline: 0.66rem;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .brand,
   .navLink,
   .login,
   .accountName {
     transition: none;
   }
 
-  .brand:hover,
   .navLink:hover,
   .login:hover,
   .accountName:hover {
