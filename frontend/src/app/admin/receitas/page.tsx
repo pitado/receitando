@@ -15,7 +15,6 @@ import { getCurrentUser } from "@/services/auth.service";
 import styles from "./page.module.css";
 
 type AccessState = "loading" | "admin" | "anonymous" | "forbidden";
-
 type Filter = RecipeSubmissionStatus;
 
 const FILTERS: Array<{ value: Filter; label: string }> = [
@@ -97,9 +96,11 @@ export default function AdminRecipesPage() {
   }, []);
 
   useEffect(() => {
-    if (access === "admin") {
+    if (access !== "admin") return;
+    const timer = window.setTimeout(() => {
       void loadSubmissions(filter);
-    }
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, [access, filter, loadSubmissions]);
 
   async function handleDecision(
