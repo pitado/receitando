@@ -14,16 +14,16 @@ export default function LoginPage() {
     <div className={styles.page}>
       <div className={`container ${styles.shell}`}>
         <section className={styles.intro} aria-labelledby="login-title">
-          <span className={styles.eyebrow}>SUA COZINHA, DO SEU JEITO</span>
-          <h1 id="login-title">Entre e continue de onde parou.</h1>
+          <span className={styles.eyebrow}>Sua cozinha, do seu jeito</span>
+          <h1 id="login-title">Continue de onde parou.</h1>
           <p>
-            Salve suas receitas favoritas, organize sua despensa e deixe o
-            Receitando entender melhor o que você tem em casa.
+            Salve receitas, organize sua despensa e encontre ideias que fazem
+            sentido com o que você já tem em casa.
           </p>
 
           <div className={styles.note}>
             <span aria-hidden="true">✦</span>
-            <p>Menos desperdício. Mais ideias para o que já está na cozinha.</p>
+            <p>Menos desperdício. Mais possibilidades para a sua cozinha.</p>
           </div>
         </section>
 

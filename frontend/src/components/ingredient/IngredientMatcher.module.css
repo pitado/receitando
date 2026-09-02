@@ -6,41 +6,43 @@
 .panel {
   background: var(--color-card);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
+  border-radius: 1.35rem;
   box-shadow: var(--shadow-card);
   display: grid;
   gap: var(--space-5);
-  padding: clamp(1.15rem, 2.5vw, 1.65rem);
+  padding: clamp(1.2rem, 2.5vw, 1.7rem);
 }
 
 .suggestions {
   align-items: center;
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2);
+  gap: 0.45rem;
 }
 
 .suggestions > span {
   color: var(--color-text-muted);
-  font-size: 0.82rem;
-  font-weight: 700;
-  margin-right: var(--space-1);
+  font-size: 0.8rem;
+  font-weight: 680;
+  margin-right: 0.2rem;
 }
 
 .suggestion {
   appearance: none;
-  background: transparent;
-  border: 0;
-  border-radius: var(--radius-pill);
-  color: var(--color-primary-dark);
+  background: var(--color-sage-soft);
+  border: 1px solid transparent;
+  border-radius: 0.65rem;
+  color: var(--color-text-muted);
   cursor: pointer;
-  font-size: 0.82rem;
-  font-weight: 750;
-  padding: 0.32rem 0.48rem;
+  font-size: 0.8rem;
+  font-weight: 720;
+  padding: 0.42rem 0.6rem;
 }
 
 .suggestion:hover:not(:disabled) {
-  background: var(--color-surface);
+  background: color-mix(in srgb, var(--color-sage-soft) 72%, white);
+  border-color: color-mix(in srgb, var(--color-sage) 28%, var(--color-border));
+  color: var(--color-text);
 }
 
 .suggestion:disabled {
@@ -50,11 +52,12 @@
 }
 
 .listBlock {
-  border-block: 1px solid var(--color-border);
+  background: var(--color-surface);
+  border-radius: 1rem;
   display: grid;
   gap: var(--space-4);
   min-height: 7rem;
-  padding-block: var(--space-5);
+  padding: 1rem;
 }
 
 .listHeading {
@@ -65,13 +68,13 @@
 }
 
 .listHeading span:first-child {
-  font-size: 0.9rem;
-  font-weight: 800;
+  font-size: 0.88rem;
+  font-weight: 760;
 }
 
 .listHeading span:last-child {
   color: var(--color-text-muted);
-  font-size: 0.78rem;
+  font-size: 0.76rem;
 }
 
 .chips {
@@ -83,28 +86,28 @@
 
 .noIngredients {
   color: var(--color-text-muted);
-  font-size: 0.92rem;
-  line-height: 1.6;
+  font-size: 0.9rem;
+  line-height: 1.55;
   margin: 0;
 }
 
 .pantryButton {
   appearance: none;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-button);
+  background: var(--color-sage-soft);
+  border: 1px solid color-mix(in srgb, var(--color-sage) 20%, var(--color-border));
+  border-radius: 0.9rem;
   color: var(--color-text);
   cursor: pointer;
   display: grid;
   gap: 0.22rem;
-  padding: 0.82rem 1rem;
+  padding: 0.85rem 0.95rem;
   text-align: left;
   width: 100%;
 }
 
 .pantryButton strong {
   color: var(--color-primary-dark);
-  font-size: 0.88rem;
+  font-size: 0.86rem;
 }
 
 .pantryButton span {
@@ -114,7 +117,7 @@
 }
 
 .pantryButton:hover:not(:disabled) {
-  border-color: var(--color-primary-dark);
+  border-color: color-mix(in srgb, var(--color-sage) 45%, var(--color-border));
 }
 
 .pantryButton:disabled {
@@ -128,41 +131,38 @@
 
 .idle {
   align-items: center;
-  background: var(--color-surface);
-  border: 1px dashed var(--color-surface-secondary);
-  border-radius: var(--radius-card);
+  background: var(--color-sage-soft);
+  border: 1px solid color-mix(in srgb, var(--color-sage) 22%, var(--color-border));
+  border-radius: 1.35rem;
   display: flex;
   gap: var(--space-5);
   min-height: 12rem;
-  padding: clamp(1.5rem, 5vw, 2.5rem);
+  padding: clamp(1.5rem, 5vw, 2.4rem);
 }
 
 .idleMark {
   align-items: center;
-  background: var(--color-primary-dark);
-  border-radius: 1rem 1rem 1rem 0.3rem;
+  background: var(--color-primary);
+  border-radius: 0.85rem;
   color: var(--color-on-primary);
   display: inline-flex;
   flex: 0 0 auto;
-  font-family: var(--font-editorial), Georgia, serif;
-  font-size: 1.45rem;
-  font-weight: 700;
-  height: 3.5rem;
+  font-size: 1.2rem;
+  font-weight: 780;
+  height: 3.3rem;
   justify-content: center;
-  transform: rotate(-3deg);
-  width: 3.5rem;
+  width: 3.3rem;
 }
 
 .idle strong {
   display: block;
-  font-family: var(--font-editorial), Georgia, serif;
-  font-size: 1.35rem;
-  font-weight: 650;
+  font-size: 1.2rem;
+  font-weight: 760;
 }
 
 .idle p {
   color: var(--color-text-muted);
-  line-height: 1.6;
+  line-height: 1.55;
   margin: var(--space-2) 0 0;
 }
 
@@ -182,51 +182,54 @@
 
 .resultEyebrow {
   color: var(--color-primary-dark) !important;
-  font-size: 0.76rem !important;
-  font-weight: 850;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  font-size: 0.74rem !important;
+  font-weight: 760;
+  letter-spacing: 0.01em;
+  text-transform: none;
 }
 
 .resultHeading h2 {
   font-family: var(--font-editorial), Georgia, serif;
   font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 570;
+  letter-spacing: -0.035em;
   margin: var(--space-2) 0 0;
 }
 
 .resultHeading p {
   color: var(--color-text-muted);
-  font-size: 0.88rem;
+  font-size: 0.86rem;
   margin: 0 0 0.3rem;
   max-width: 32rem;
 }
 
 .grid {
   display: grid;
-  gap: clamp(1.15rem, 2vw, 1.6rem);
+  gap: clamp(1.1rem, 2vw, 1.5rem);
 }
 
 .seeAll {
   align-items: center;
-  background: var(--color-primary-dark);
-  border: 1px solid var(--color-primary-dark);
+  background: var(--color-primary);
+  border: 1px solid var(--color-primary);
   border-radius: var(--radius-button);
   box-shadow: var(--shadow-button);
   color: var(--color-on-primary);
   display: inline-flex;
-  font-weight: 800;
+  font-weight: 760;
   gap: var(--space-3);
   justify-content: center;
   justify-self: start;
-  min-height: 3.2rem;
-  padding: 0.8rem 1.2rem;
+  min-height: 3.1rem;
+  padding: 0.78rem 1.15rem;
   text-decoration: none;
-  transition: background-color var(--transition-fast), transform var(--transition-fast);
+  transition: background-color var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .seeAll:hover {
-  background: var(--color-action-hover);
-  transform: translateY(-1px);
+  background: var(--color-primary-dark);
+  border-color: var(--color-primary-dark);
+  box-shadow: var(--shadow-button-hover);
 }
 
 @media (min-width: 50rem) {

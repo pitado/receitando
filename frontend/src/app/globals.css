@@ -1,27 +1,27 @@
 :root {
-  --color-background: #f6f0e6;
-  --color-background-translucent: #f6f0e6f2;
-  --color-surface: #eee4d5;
-  --color-surface-secondary: #e4d2bd;
-  --color-card: #fffaf2;
-  --color-text: #2b2118;
-  --color-text-muted: #736659;
-  --color-primary: #b65334;
-  --color-primary-dark: #8f3e29;
-  --color-action-hover: #753020;
-  --color-accent: #d9a34b;
-  --color-border: #d8ccbd;
-  --color-on-primary: #fffaf2;
-  --color-highlight: #e3bf73;
-  --color-sage: #718062;
-  --color-sage-soft: #dde1d3;
-  --color-success-surface: #e9eee1;
-  --color-success-border: #aebc9c;
+  --color-background: #f8f5ef;
+  --color-background-translucent: #f8f5eff0;
+  --color-surface: #f0e9df;
+  --color-surface-secondary: #e7d8ca;
+  --color-card: #fffdf8;
+  --color-text: #2b211a;
+  --color-text-muted: #74685e;
+  --color-primary: #c05a38;
+  --color-primary-dark: #99442d;
+  --color-action-hover: #813723;
+  --color-accent: #dfaa58;
+  --color-border: #dfd5cb;
+  --color-on-primary: #fffaf4;
+  --color-highlight: #edca86;
+  --color-sage: #6f8167;
+  --color-sage-soft: #e2e8dc;
+  --color-success-surface: #ebf0e5;
+  --color-success-border: #b4c2a6;
   --color-success-text: #40503a;
-  --color-error-surface: #f5e5dc;
-  --color-focus: #6d7760;
-  --color-shadow: #3b2a1d10;
-  --color-shadow-strong: #3b2a1d1b;
+  --color-error-surface: #f7e8df;
+  --color-focus: #6f8167;
+  --color-shadow: #2b211a10;
+  --color-shadow-strong: #2b211a18;
 
   --font-interface: var(--font-inter);
   --font-editorial: var(--font-fraunces);
@@ -40,17 +40,17 @@
   --space-11: 5rem;
   --space-12: 6rem;
 
-  --radius-button: 0.38rem;
-  --radius-card: 0.58rem;
+  --radius-button: 0.8rem;
+  --radius-card: 1.25rem;
   --radius-pill: 999px;
   --radius-round: 50%;
   --page-gutter: clamp(1rem, 4vw, 2.25rem);
   --container-width: 76rem;
 
-  --shadow-button: none;
-  --shadow-button-hover: none;
-  --shadow-card: none;
-  --shadow-card-hover: none;
+  --shadow-button: 0 0.35rem 1.1rem var(--color-shadow);
+  --shadow-button-hover: 0 0.5rem 1.4rem var(--color-shadow-strong);
+  --shadow-card: 0 1rem 2.6rem var(--color-shadow);
+  --shadow-card-hover: 0 1.25rem 3rem var(--color-shadow-strong);
 
   --transition-fast: 150ms ease;
   --transition-base: 220ms ease;

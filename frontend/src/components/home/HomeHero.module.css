@@ -1,6 +1,5 @@
 .hero {
   background: var(--color-background);
-  border-bottom: 1px solid var(--color-border);
   overflow: hidden;
   position: relative;
 }
@@ -9,37 +8,27 @@
   align-items: center;
   display: grid;
   gap: clamp(2.5rem, 5vw, 5rem);
-  min-height: clamp(34rem, 72vh, 44rem);
+  min-height: clamp(36rem, 72vh, 45rem);
   padding-block: clamp(3rem, 6vw, 5.5rem);
   position: relative;
 }
 
 .copy {
   display: grid;
-  gap: 1.25rem;
+  gap: 1.2rem;
   max-width: 45rem;
   position: relative;
   z-index: 2;
 }
 
-.copy::before {
-  background: var(--color-sage);
-  content: "";
-  height: 1px;
-  margin-bottom: 0.35rem;
-  opacity: 0.65;
-  width: 4.5rem;
-}
-
 .eyebrow {
   color: var(--color-primary-dark);
   display: inline-flex;
-  font-size: 0.72rem;
-  font-weight: 780;
+  font-size: 0.78rem;
+  font-weight: 760;
   gap: 0.4rem;
-  letter-spacing: 0.09em;
+  letter-spacing: 0.01em;
   margin: 0;
-  text-transform: uppercase;
 }
 
 .eyebrowMark {
@@ -49,10 +38,11 @@
 .copy h1 {
   color: var(--color-text);
   font-family: var(--font-editorial), Georgia, serif;
-  font-weight: 580;
-  letter-spacing: -0.052em;
-  line-height: 0.95;
+  font-weight: 560;
+  letter-spacing: -0.05em;
+  line-height: 0.96;
   margin: 0;
+  max-width: 11ch;
   text-wrap: balance;
 }
 
@@ -61,43 +51,44 @@
   font-size: clamp(1rem, 1.4vw, 1.12rem);
   line-height: 1.62;
   margin: 0;
-  max-width: 38rem;
+  max-width: 37rem;
 }
 
 .searchForm {
   align-items: stretch;
   background: var(--color-card);
-  border: 1px solid var(--color-text);
-  border-radius: 0.45rem;
+  border: 1px solid var(--color-border);
+  border-radius: 1rem;
+  box-shadow: var(--shadow-card);
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   margin-top: 0.45rem;
   max-width: 46rem;
-  padding: 0.25rem;
+  padding: 0.3rem;
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .searchForm:focus-within {
-  border-color: var(--color-sage);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-sage) 18%, transparent);
+  border-color: color-mix(in srgb, var(--color-sage) 60%, var(--color-border));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-sage) 13%, transparent), var(--shadow-card);
 }
 
 .searchField {
   align-items: center;
   display: flex;
-  gap: 0.65rem;
+  gap: 0.7rem;
   min-width: 0;
-  padding-inline: 0.8rem;
+  padding-inline: 0.85rem;
 }
 
 .searchField svg {
   fill: none;
-  flex: 0 0 1.1rem;
-  height: 1.1rem;
+  flex: 0 0 1.15rem;
+  height: 1.15rem;
   stroke: var(--color-text-muted);
   stroke-linecap: round;
   stroke-width: 1.7;
-  width: 1.1rem;
+  width: 1.15rem;
 }
 
 .searchField input {
@@ -105,7 +96,7 @@
   border: 0;
   color: var(--color-text);
   font: inherit;
-  min-height: 3.15rem;
+  min-height: 3.35rem;
   min-width: 0;
   outline: 0;
   padding: 0;
@@ -113,26 +104,27 @@
 }
 
 .searchField input::placeholder {
-  color: #948578;
+  color: #95877b;
   opacity: 1;
 }
 
 .searchButton {
-  background: var(--color-primary-dark);
-  border: 1px solid var(--color-primary-dark);
-  border-radius: 0.3rem;
+  background: var(--color-primary);
+  border: 1px solid var(--color-primary);
+  border-radius: 0.8rem;
   color: var(--color-on-primary);
   cursor: pointer;
   font: inherit;
   font-weight: 760;
-  min-height: 3.15rem;
-  padding: 0.7rem 1.3rem;
-  transition: background-color var(--transition-fast), border-color var(--transition-fast);
+  min-height: 3.35rem;
+  padding: 0.75rem 1.35rem;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .searchButton:hover {
-  background: var(--color-action-hover);
-  border-color: var(--color-action-hover);
+  background: var(--color-primary-dark);
+  border-color: var(--color-primary-dark);
+  box-shadow: var(--shadow-button-hover);
 }
 
 .searchButton:focus-visible,
@@ -146,68 +138,83 @@
   color: var(--color-text-muted);
   display: flex;
   flex-wrap: wrap;
-  font-size: 0.76rem;
-  gap: 0.5rem 0.8rem;
+  font-size: 0.78rem;
+  gap: 0.55rem 0.75rem;
   margin-top: 0.05rem;
 }
 
 .chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.35rem 0.7rem;
+  gap: 0.4rem;
 }
 
 .chips button {
-  background: transparent;
-  border: 0;
-  border-bottom: 1px solid var(--color-border);
-  border-radius: 0;
+  background: var(--color-sage-soft);
+  border: 1px solid transparent;
+  border-radius: 0.65rem;
   color: var(--color-text-muted);
   cursor: pointer;
   font: inherit;
   font-size: 0.75rem;
   line-height: 1;
-  padding: 0.2rem 0 0.22rem;
-  transition: border-color var(--transition-fast), color var(--transition-fast);
+  padding: 0.48rem 0.7rem;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
 }
 
 .chips button:hover {
-  border-bottom-color: var(--color-primary);
-  color: var(--color-primary-dark);
+  background: color-mix(in srgb, var(--color-sage-soft) 75%, white);
+  border-color: color-mix(in srgb, var(--color-sage) 30%, var(--color-border));
+  color: var(--color-text);
 }
 
 .visual {
   align-self: stretch;
   display: grid;
-  min-height: 27rem;
+  min-height: 28rem;
   place-items: end center;
   position: relative;
 }
 
 .organicShape {
-  background: var(--color-sage-soft);
-  border: 1px solid color-mix(in srgb, var(--color-sage) 28%, transparent);
-  border-radius: 48% 52% 45% 55% / 55% 45% 55% 45%;
-  bottom: 6%;
-  height: 72%;
+  background: #efd9cb;
+  border-radius: 2rem;
+  bottom: 4%;
+  height: 78%;
   position: absolute;
-  right: 4%;
-  transform: rotate(-3deg);
-  width: 82%;
+  right: 2%;
+  transform: rotate(-2deg);
+  width: 88%;
+}
+
+.organicShape::before {
+  background: var(--color-sage-soft);
+  border-radius: 1.7rem;
+  content: "";
+  height: 38%;
+  left: -8%;
+  position: absolute;
+  top: 8%;
+  transform: rotate(-8deg);
+  width: 42%;
 }
 
 .organicShape::after {
-  border: 1px solid color-mix(in srgb, var(--color-primary) 30%, transparent);
-  border-radius: inherit;
+  background: var(--color-highlight);
+  border-radius: 50%;
+  bottom: 8%;
   content: "";
-  inset: 0.8rem -0.7rem -0.55rem 0.65rem;
+  height: 5.5rem;
+  opacity: 0.7;
   position: absolute;
+  right: 9%;
+  width: 5.5rem;
 }
 
 .character {
-  filter: saturate(0.94) contrast(0.98);
+  filter: saturate(0.98) contrast(1);
   height: auto;
-  max-height: 38rem;
+  max-height: 39rem;
   object-fit: contain;
   object-position: center bottom;
   position: relative;
@@ -217,29 +224,29 @@
 
 @media (min-width: 48rem) {
   .inner {
-    grid-template-columns: minmax(0, 1.12fr) minmax(20rem, 0.88fr);
+    grid-template-columns: minmax(0, 1.08fr) minmax(20rem, 0.92fr);
   }
 
   .visual {
     margin-bottom: calc(clamp(3rem, 6vw, 5.5rem) * -1);
-    margin-top: calc(clamp(3rem, 6vw, 5.5rem) * -0.28);
+    margin-top: calc(clamp(3rem, 6vw, 5.5rem) * -0.25);
   }
 }
 
 @media (min-width: 70rem) {
   .inner {
-    grid-template-columns: minmax(0, 58%) minmax(0, 42%);
+    grid-template-columns: minmax(0, 56%) minmax(0, 44%);
   }
 
   .character {
-    transform: translateX(1rem);
+    transform: translateX(0.5rem);
   }
 }
 
 @media (max-width: 47.99rem) {
   .inner {
     min-height: auto;
-    padding-block: 2.7rem 0;
+    padding-block: 2.6rem 0;
   }
 
   .copy {
@@ -247,7 +254,7 @@
   }
 
   .copy h1 {
-    font-size: clamp(2.85rem, 13vw, 4.5rem) !important;
+    font-size: clamp(2.75rem, 12vw, 4.2rem) !important;
   }
 
   .searchForm {
@@ -266,14 +273,15 @@
 
   .searchField {
     background: var(--color-card);
-    border: 1px solid var(--color-text);
-    border-radius: 0.4rem;
-    min-height: 3.45rem;
+    border: 1px solid var(--color-border);
+    border-radius: 0.95rem;
+    box-shadow: var(--shadow-button);
+    min-height: 3.5rem;
   }
 
   .searchField:focus-within {
     border-color: var(--color-sage);
-    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-sage) 18%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-sage) 14%, transparent);
   }
 
   .searchButton {
@@ -286,20 +294,20 @@
   }
 
   .visual {
-    min-height: 20rem;
-    margin-top: 0.5rem;
+    min-height: 21rem;
+    margin-top: 0.6rem;
   }
 
   .organicShape {
-    bottom: -2%;
-    height: 78%;
-    left: 9%;
+    bottom: -1%;
+    height: 80%;
+    left: 8%;
     right: auto;
-    width: 80%;
+    width: 84%;
   }
 
   .character {
-    max-height: 29rem;
-    width: min(92vw, 33rem);
+    max-height: 30rem;
+    width: min(94vw, 34rem);
   }
 }

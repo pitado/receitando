@@ -8,25 +8,25 @@
   color: var(--color-text-muted);
   display: flex;
   flex-wrap: wrap;
-  font-size: 0.86rem;
+  font-size: 0.84rem;
   gap: var(--space-2);
 }
 
 .breadcrumb a {
   color: var(--color-primary-dark);
-  font-weight: 750;
+  font-weight: 720;
   text-decoration: none;
 }
 
 .breadcrumb a:hover {
   text-decoration: underline;
-  text-underline-offset: 0.22em;
+  text-underline-offset: 0.2em;
 }
 
 .header {
   align-items: stretch;
   display: grid;
-  gap: var(--space-7);
+  gap: clamp(1.5rem, 4vw, 3rem);
 }
 
 .intro {
@@ -38,11 +38,10 @@
 .eyebrow,
 .sectionNumber {
   color: var(--color-primary-dark);
-  font-size: var(--font-size-small);
-  font-weight: 850;
-  letter-spacing: 0.12em;
+  font-size: 0.76rem;
+  font-weight: 760;
+  letter-spacing: 0.01em;
   margin: 0;
-  text-transform: uppercase;
 }
 
 .titleRow {
@@ -55,73 +54,70 @@
 
 .intro h1 {
   font-family: var(--font-editorial), Georgia, serif;
-  font-size: clamp(3rem, 9vw, 5.75rem);
-  font-weight: 620;
+  font-size: clamp(2.8rem, 7vw, 5.25rem);
+  font-weight: 560;
   letter-spacing: -0.05em;
   line-height: 0.96;
   margin: 0;
+  text-wrap: balance;
 }
 
 .description {
   color: var(--color-text-muted);
-  font-size: clamp(1.05rem, 2vw, 1.2rem);
-  line-height: 1.7;
+  font-size: clamp(1.02rem, 2vw, 1.16rem);
+  line-height: 1.65;
   margin: 0;
-  max-width: 43rem;
+  max-width: 42rem;
 }
 
 .facts {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-3);
+  gap: 0.65rem;
   margin: 0;
 }
 
 .facts div {
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-button);
+  border-radius: 0.8rem;
   display: grid;
-  gap: var(--space-1);
-  min-width: 8.5rem;
-  padding: var(--space-3) var(--space-4);
+  gap: 0.18rem;
+  min-width: 7.8rem;
+  padding: 0.75rem 0.9rem;
 }
 
 .facts dt {
   color: var(--color-text-muted);
-  font-size: 0.73rem;
-  font-weight: 750;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
+  font-size: 0.7rem;
+  font-weight: 700;
 }
 
 .facts dd {
-  font-weight: 800;
+  font-size: 0.9rem;
+  font-weight: 780;
   margin: 0;
 }
 
 .tags {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2);
+  gap: 0.45rem;
 }
 
 .tags span {
-  background: var(--color-card);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-pill);
+  background: var(--color-sage-soft);
+  border-radius: 0.65rem;
   color: var(--color-text-muted);
-  font-size: 0.78rem;
-  font-weight: 750;
-  padding: 0.4rem 0.65rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  padding: 0.42rem 0.6rem;
 }
 
 .visual {
   align-items: center;
   aspect-ratio: 4 / 3;
-  background: var(--color-surface-secondary);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
+  background: var(--color-sage-soft);
+  border-radius: 1.7rem;
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
@@ -134,31 +130,31 @@
 
 .visual::before,
 .visual::after {
-  background: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 18%, transparent);
   border-radius: var(--radius-round);
   content: "";
-  height: 4rem;
+  height: 5rem;
   position: absolute;
-  width: 4rem;
+  width: 5rem;
 }
 
 .visual::before {
-  left: -1rem;
-  top: 1.5rem;
+  left: -1.4rem;
+  top: 1.3rem;
 }
 
 .visual::after {
-  background: var(--color-highlight);
-  bottom: -1.25rem;
-  height: 6rem;
-  right: 1.5rem;
-  width: 6rem;
+  background: color-mix(in srgb, var(--color-highlight) 65%, transparent);
+  bottom: -1.8rem;
+  height: 7rem;
+  right: 1rem;
+  width: 7rem;
 }
 
 .plate {
   align-items: center;
   background: var(--color-card);
-  border: 1rem solid var(--color-background);
+  border: 0.75rem solid color-mix(in srgb, var(--color-card) 65%, var(--color-surface));
   border-radius: var(--radius-round);
   box-shadow: var(--shadow-card);
   display: flex;
@@ -180,7 +176,7 @@
 .visual p {
   color: var(--color-text);
   font-size: 0.82rem;
-  font-weight: 750;
+  font-weight: 720;
   margin: 0;
   text-align: center;
   z-index: 1;
@@ -196,16 +192,16 @@
 }
 
 .imageCredit {
-  background: var(--color-card);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-button);
-  bottom: var(--space-3);
+  background: color-mix(in srgb, var(--color-card) 94%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-border) 75%, transparent);
+  border-radius: 0.65rem;
+  bottom: 0.8rem;
   color: var(--color-text) !important;
-  font-size: 0.72rem !important;
+  font-size: 0.7rem !important;
   font-weight: 650 !important;
-  left: var(--space-3);
+  left: 0.8rem;
   line-height: 1.4;
-  max-width: calc(100% - (var(--space-3) * 2));
+  max-width: calc(100% - 1.6rem);
   padding: 0.45rem 0.6rem;
   position: absolute;
   text-align: left !important;
@@ -220,8 +216,8 @@
 
 .content {
   display: grid;
-  gap: var(--space-8);
-  padding-top: clamp(2rem, 6vw, 4rem);
+  gap: clamp(2rem, 5vw, 4rem);
+  padding-top: clamp(1.5rem, 5vw, 3.5rem);
 }
 
 .ingredients,
@@ -229,13 +225,20 @@
   min-width: 0;
 }
 
+.ingredients {
+  background: var(--color-sage-soft);
+  border: 1px solid color-mix(in srgb, var(--color-sage) 20%, var(--color-border));
+  border-radius: 1.4rem;
+  padding: clamp(1.3rem, 3vw, 1.8rem);
+}
+
 .ingredients h2,
 .instructions h2 {
   font-family: var(--font-editorial), Georgia, serif;
-  font-size: clamp(2rem, 5vw, 3rem);
-  font-weight: 650;
+  font-size: clamp(1.9rem, 4vw, 2.7rem);
+  font-weight: 570;
   letter-spacing: -0.035em;
-  margin: var(--space-2) 0 var(--space-6);
+  margin: var(--space-2) 0 var(--space-5);
 }
 
 .ingredients ul,
@@ -247,18 +250,23 @@
 
 .ingredients li {
   align-items: center;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-sage) 18%, var(--color-border));
   display: grid;
   gap: var(--space-3);
   grid-template-columns: auto minmax(0, 1fr);
-  padding-block: var(--space-4);
+  padding-block: 0.8rem;
+}
+
+.ingredients li:last-child {
+  border-bottom: 0;
 }
 
 .check {
-  border: 2px solid var(--color-surface-secondary);
+  background: var(--color-card);
+  border: 2px solid color-mix(in srgb, var(--color-sage) 42%, var(--color-border));
   border-radius: 0.35rem;
-  height: 1.25rem;
-  width: 1.25rem;
+  height: 1.2rem;
+  width: 1.2rem;
 }
 
 .ingredients li > span:last-child {
@@ -269,40 +277,46 @@
 }
 
 .ingredients strong {
-  font-weight: 750;
+  font-weight: 720;
 }
 
 .ingredients small {
   color: var(--color-text-muted);
-  font-size: 0.88rem;
+  font-size: 0.84rem;
 }
 
 .instructions ol {
   display: grid;
-  gap: var(--space-3);
+  gap: 0.85rem;
 }
 
 .instructions li {
   align-items: start;
   background: var(--color-card);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-button);
+  border-radius: 1rem;
   display: grid;
   gap: var(--space-4);
   grid-template-columns: auto minmax(0, 1fr);
-  padding: var(--space-5);
+  padding: 1.1rem 1.2rem;
 }
 
 .instructions li > span {
-  color: var(--color-text);
-  font-family: var(--font-editorial), Georgia, serif;
-  font-size: 1.25rem;
-  font-weight: 700;
+  align-items: center;
+  background: var(--color-primary);
+  border-radius: 0.65rem;
+  color: var(--color-on-primary);
+  display: inline-flex;
+  font-size: 0.82rem;
+  font-weight: 780;
+  height: 2rem;
+  justify-content: center;
+  min-width: 2rem;
 }
 
 .instructions li p,
 .noInstructions {
-  line-height: 1.7;
+  line-height: 1.68;
   margin: 0;
 }
 
@@ -312,11 +326,16 @@
 
 @media (min-width: 50rem) {
   .header {
-    grid-template-columns: minmax(0, 1.05fr) minmax(20rem, 0.95fr);
+    grid-template-columns: minmax(0, 1fr) minmax(22rem, 0.95fr);
   }
 
   .content {
     align-items: start;
-    grid-template-columns: minmax(17rem, 0.72fr) minmax(0, 1.28fr);
+    grid-template-columns: minmax(18rem, 0.72fr) minmax(0, 1.28fr);
+  }
+
+  .ingredients {
+    position: sticky;
+    top: 7rem;
   }
 }

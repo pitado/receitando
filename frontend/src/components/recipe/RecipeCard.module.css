@@ -1,11 +1,18 @@
 .card {
-  background: transparent;
-  border-bottom: 1px solid var(--color-border);
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: 1.2rem;
   display: flex;
   flex-direction: column;
   min-height: 100%;
-  padding-bottom: 1.15rem;
+  overflow: hidden;
   position: relative;
+  transition: border-color var(--transition-fast), background-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.card:hover {
+  border-color: color-mix(in srgb, var(--color-sage) 32%, var(--color-border));
+  box-shadow: var(--shadow-card);
 }
 
 .cardOverlay {
@@ -16,33 +23,31 @@
 
 .cardOverlay:focus-visible {
   outline: 3px solid var(--color-focus);
-  outline-offset: 4px;
+  outline-offset: -3px;
 }
 
 .visual {
   align-items: flex-end;
   aspect-ratio: 4 / 3;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  background: var(--color-sage-soft);
   display: flex;
   gap: var(--space-2);
   justify-content: space-between;
   overflow: hidden;
-  padding: 0.75rem;
+  padding: 0.8rem;
   position: relative;
 }
 
 .visual::before {
-  border: 1px solid color-mix(in srgb, var(--color-sage) 50%, transparent);
+  background: color-mix(in srgb, var(--color-primary) 17%, transparent);
   border-radius: 50%;
   content: "";
-  height: 6rem;
+  height: 7rem;
   left: 50%;
-  opacity: 0.35;
   position: absolute;
   top: 50%;
   transform: translate(-50%, -50%);
-  width: 6rem;
+  width: 7rem;
 }
 
 .visualWithImage {
@@ -57,21 +62,17 @@
 .category,
 .status {
   background: color-mix(in srgb, var(--color-card) 92%, transparent);
-  border: 1px solid color-mix(in srgb, var(--color-border) 82%, transparent);
-  border-radius: 0.2rem;
+  border: 1px solid color-mix(in srgb, var(--color-border) 80%, transparent);
+  border-radius: 0.55rem;
   color: var(--color-text-muted);
-  font-size: 0.68rem;
+  font-size: 0.7rem;
   font-weight: 760;
-  letter-spacing: 0.04em;
-  padding: 0.35rem 0.48rem;
-  text-transform: uppercase;
+  padding: 0.38rem 0.52rem;
   z-index: 1;
 }
 
 .status {
   color: var(--color-primary-dark);
-  letter-spacing: 0;
-  text-transform: none;
 }
 
 .body {
@@ -79,7 +80,7 @@
   flex: 1;
   flex-direction: column;
   gap: 0.8rem;
-  padding: 1rem 0 0;
+  padding: 1.15rem;
 }
 
 .heading {
@@ -93,8 +94,8 @@
   color: var(--color-text);
   font-family: var(--font-editorial), Georgia, serif;
   font-size: clamp(1.45rem, 2.5vw, 1.9rem);
-  font-weight: 610;
-  letter-spacing: -0.028em;
+  font-weight: 590;
+  letter-spacing: -0.03em;
   line-height: 1.08;
   margin: 0;
   text-wrap: balance;
@@ -112,12 +113,11 @@
 }
 
 .details {
-  border-top: 1px solid color-mix(in srgb, var(--color-border) 72%, transparent);
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem 1rem;
   margin-top: auto;
-  padding-top: 0.75rem;
+  padding-top: 0.55rem;
 }
 
 .detail {
@@ -127,11 +127,14 @@
 }
 
 .matchMessage {
+  background: color-mix(in srgb, var(--color-sage-soft) 72%, var(--color-card));
+  border-radius: 0.7rem;
   color: var(--color-sage);
-  font-size: 0.86rem;
+  font-size: 0.84rem;
   font-weight: 720;
   line-height: 1.45;
   margin: 0;
+  padding: 0.65rem 0.75rem;
 }
 
 .actions {
@@ -144,17 +147,16 @@
 
 .cardLink {
   align-items: center;
-  border-bottom: 1px solid transparent;
   color: var(--color-primary-dark);
   display: inline-flex;
   font-size: 0.86rem;
   font-weight: 760;
   gap: var(--space-2);
-  padding-bottom: 0.1rem;
 }
 
 .card:hover .cardLink {
-  border-bottom-color: var(--color-primary-dark);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
 }
 
 .favoriteAction {
@@ -163,7 +165,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .cardLink {
+  .card {
     transition: none;
   }
 }

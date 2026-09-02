@@ -1,12 +1,12 @@
 .form {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: 1.4rem;
+  box-shadow: var(--shadow-card);
   display: grid;
   gap: 1.15rem;
-  padding: clamp(1rem, 3vw, 2rem);
-  border: 1px solid color-mix(in srgb, var(--color-text, #2a1608) 14%, transparent);
-  border-radius: 1.5rem;
-  background: color-mix(in srgb, var(--color-surface, #fff6e9) 88%, white);
-  box-shadow: 0 1.2rem 3rem rgba(42, 22, 8, 0.08);
   min-width: 0;
+  padding: clamp(1.1rem, 3vw, 2rem);
 }
 
 .form label {
@@ -17,36 +17,36 @@
 }
 
 .form small {
+  color: var(--color-text-muted);
   font-weight: 500;
-  opacity: 0.62;
 }
 
 .form input,
 .form textarea,
 .form select {
-  width: 100%;
-  border: 1px solid rgba(42, 22, 8, 0.2);
-  border-radius: 0.95rem;
-  background: #fffdf8;
-  color: #2a1608;
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: 0.9rem;
+  color: var(--color-text);
   font: inherit;
   font-size: 1rem;
   font-weight: 500;
-  padding: 0.85rem 0.95rem;
   outline: none;
-  transition: border-color 160ms ease, box-shadow 160ms ease;
+  padding: 0.85rem 0.95rem;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  width: 100%;
 }
 
 .form textarea {
-  resize: vertical;
   line-height: 1.55;
+  resize: vertical;
 }
 
 .form input:focus,
 .form textarea:focus,
 .form select:focus {
-  border-color: #7c9a6e;
-  box-shadow: 0 0 0 3px rgba(124, 154, 110, 0.15);
+  border-color: var(--color-sage);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-sage) 14%, transparent);
 }
 
 .gridTwo,
@@ -65,13 +65,13 @@
 }
 
 .photoField {
+  background: var(--color-sage-soft);
+  border: 1px solid color-mix(in srgb, var(--color-sage) 22%, var(--color-border));
+  border-radius: 1.1rem;
   display: grid;
   gap: 0.9rem;
-  border: 1px dashed rgba(42, 22, 8, 0.26);
-  border-radius: 1.2rem;
-  background: rgba(255, 253, 248, 0.7);
-  padding: 1rem;
   min-width: 0;
+  padding: 1rem;
 }
 
 .photoHeading {
@@ -87,27 +87,27 @@
 }
 
 .photoHeading p {
-  color: color-mix(in srgb, #2a1608 68%, transparent);
-  font-size: 0.88rem;
+  color: var(--color-text-muted);
+  font-size: 0.86rem;
   font-weight: 500;
   line-height: 1.45;
   margin: 0.25rem 0 0;
 }
 
 .photoHeading > span {
-  color: color-mix(in srgb, #2a1608 58%, transparent);
+  color: var(--color-text-muted);
   flex-shrink: 0;
-  font-size: 0.76rem;
-  font-weight: 650;
+  font-size: 0.74rem;
+  font-weight: 620;
   line-height: 1.35;
   text-align: right;
 }
 
 .photoPicker {
   align-items: center;
-  border: 1px solid rgba(42, 22, 8, 0.17);
-  border-radius: 1rem;
-  background: #fffdf8;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: 0.9rem;
   cursor: pointer;
   display: flex !important;
   gap: 0.8rem !important;
@@ -127,21 +127,21 @@
 
 .photoPickerButton {
   align-items: center;
-  background: #2a1608;
-  border-radius: 999px;
-  color: #fff6e9;
+  background: var(--color-primary);
+  border-radius: 0.7rem;
+  color: var(--color-on-primary);
   display: inline-flex;
   flex-shrink: 0;
-  font-size: 0.88rem;
-  font-weight: 800;
+  font-size: 0.86rem;
+  font-weight: 760;
   justify-content: center;
   min-height: 2.45rem;
   padding: 0.55rem 0.9rem;
 }
 
 .photoPickerName {
-  color: color-mix(in srgb, #2a1608 70%, transparent);
-  font-size: 0.88rem;
+  color: var(--color-text-muted);
+  font-size: 0.86rem;
   font-weight: 600;
   min-width: 0;
   overflow: hidden;
@@ -150,8 +150,8 @@
 }
 
 .photoPicker:focus-within {
-  border-color: #7c9a6e;
-  box-shadow: 0 0 0 3px rgba(124, 154, 110, 0.15);
+  border-color: var(--color-sage);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-sage) 14%, transparent);
 }
 
 .photoPreview {
@@ -169,15 +169,15 @@
 }
 
 .photoPreview span {
-  color: color-mix(in srgb, #2a1608 62%, transparent);
-  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  font-size: 0.76rem;
   font-weight: 600;
 }
 
 .notice {
-  border-radius: 1rem;
-  background: rgba(124, 154, 110, 0.13);
-  padding: 1rem 1.1rem;
+  background: var(--color-surface);
+  border-radius: 0.9rem;
+  padding: 0.95rem 1rem;
 }
 
 .notice strong {
@@ -188,37 +188,45 @@
 .notice p,
 .success,
 .error {
-  margin: 0;
   line-height: 1.5;
+  margin: 0;
 }
 
 .success,
 .error {
-  border-radius: 0.9rem;
-  padding: 0.85rem 1rem;
+  border-radius: 0.85rem;
   font-weight: 700;
+  padding: 0.85rem 1rem;
 }
 
 .success {
-  background: rgba(124, 154, 110, 0.16);
+  background: var(--color-success-surface);
+  color: var(--color-success-text);
 }
 
 .error {
-  background: rgba(194, 69, 44, 0.12);
+  background: var(--color-error-surface);
+  color: var(--color-primary-dark);
 }
 
 .submit {
-  justify-self: start;
-  border: 0;
-  border-radius: 999px;
-  background: #c2452c;
-  color: white;
+  background: var(--color-primary);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-button);
+  box-shadow: var(--shadow-button);
+  color: var(--color-on-primary);
   cursor: pointer;
   font: inherit;
-  font-weight: 800;
-  min-height: 3.2rem;
-  padding: 0.9rem 1.35rem;
+  font-weight: 760;
+  justify-self: start;
+  min-height: 3.15rem;
+  padding: 0.85rem 1.3rem;
   touch-action: manipulation;
+}
+
+.submit:hover:not(:disabled) {
+  background: var(--color-primary-dark);
+  border-color: var(--color-primary-dark);
 }
 
 .submit:disabled {
@@ -227,17 +235,16 @@
 }
 
 .honeypot {
-  position: absolute !important;
-  left: -10000px !important;
-  width: 1px !important;
   height: 1px !important;
+  left: -10000px !important;
   opacity: 0 !important;
+  position: absolute !important;
+  width: 1px !important;
 }
 
 @media (max-width: 760px) {
   .form {
     border-radius: 1.15rem;
-    box-shadow: 0 0.8rem 2rem rgba(42, 22, 8, 0.06);
     gap: 1rem;
     padding: 1rem;
   }
