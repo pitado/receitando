@@ -58,7 +58,7 @@ test("busca global do header abre o catálogo já filtrado", async ({ page }) =>
   });
 
   await page.goto("/");
-  const search = page.getByLabel("Pesquisar receitas");
+  const search = page.getByRole("searchbox", { name: "Pesquisar receitas" });
   await expect(search).toBeVisible();
   await search.fill("bolo de cenoura");
   await search.press("Enter");
