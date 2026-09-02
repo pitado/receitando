@@ -7,13 +7,14 @@
 
 .personalCard {
   align-items: end;
-  border-bottom: 1px solid var(--color-border);
-  border-top: 1px solid var(--color-border);
+  background: var(--color-sage-soft);
+  border: 1px solid color-mix(in srgb, var(--color-sage) 22%, var(--color-border));
+  border-radius: 1.5rem;
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-6);
   justify-content: space-between;
-  padding-block: clamp(1.7rem, 4vw, 2.5rem);
+  padding: clamp(1.6rem, 4vw, 2.4rem);
 }
 
 .personalCard h2,
@@ -21,12 +22,12 @@
 .statLead h2,
 .manifesto h2 {
   font-family: var(--font-editorial), Georgia, serif;
-  letter-spacing: -0.045em;
+  letter-spacing: -0.042em;
 }
 
 .personalCard h2 {
-  font-size: clamp(2rem, 5vw, 3.25rem);
-  font-weight: 590;
+  font-size: clamp(2rem, 4.5vw, 3.15rem);
+  font-weight: 580;
   line-height: 1;
   margin: 0 0 var(--space-3);
   max-width: 42rem;
@@ -40,73 +41,74 @@
 
 .eyebrow {
   color: var(--color-primary-dark);
-  font-size: 0.7rem;
+  font-size: 0.76rem;
   font-weight: 760;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.01em;
   margin: 0 0 var(--space-2);
-  text-transform: uppercase;
 }
 
 .sectionHeader {
   align-items: end;
-  border-bottom: 1px solid var(--color-border);
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-5);
   justify-content: space-between;
   margin-bottom: var(--space-7);
-  padding-bottom: 1.1rem;
 }
 
 .sectionHeader h2 {
-  font-size: clamp(2.3rem, 6vw, 4.2rem);
-  font-weight: 580;
-  line-height: 0.98;
+  font-size: clamp(2.2rem, 5.4vw, 3.9rem);
+  font-weight: 570;
+  line-height: 0.99;
   margin: 0;
 }
 
 .textLink {
-  border-bottom: 1px solid var(--color-border);
   color: var(--color-primary-dark);
   font-size: 0.88rem;
-  font-weight: 720;
-  padding-bottom: 0.15rem;
+  font-weight: 740;
   text-decoration: none;
-  transition: border-color var(--transition-fast), color var(--transition-fast);
 }
 
 .textLink:hover {
-  border-bottom-color: var(--color-primary-dark);
+  text-decoration: underline;
+  text-underline-offset: 0.22em;
 }
 
 .recipeGrid,
 .commentGrid {
   display: grid;
-  gap: 1.6rem;
+  gap: 1rem;
 }
 
 .recipeCard {
-  border-bottom: 1px solid var(--color-border);
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: 1.2rem;
   color: var(--color-text);
   display: grid;
   gap: 0.8rem;
   min-height: 15rem;
-  padding: 0 0 1.35rem;
+  padding: 1.35rem;
   text-decoration: none;
+  transition: border-color var(--transition-fast), background-color var(--transition-fast);
+}
+
+.recipeCard:hover {
+  background: color-mix(in srgb, var(--color-card) 92%, var(--color-sage-soft));
+  border-color: color-mix(in srgb, var(--color-sage) 34%, var(--color-border));
 }
 
 .recipeMeta {
   color: var(--color-primary-dark);
-  font-size: 0.68rem;
+  font-size: 0.72rem;
   font-weight: 760;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
 }
 
 .recipeCard h3 {
   font-family: var(--font-editorial), Georgia, serif;
-  font-size: clamp(1.75rem, 4vw, 2.3rem);
-  font-weight: 590;
+  font-size: clamp(1.65rem, 3.4vw, 2.2rem);
+  font-weight: 580;
   letter-spacing: -0.035em;
   line-height: 1;
   margin: 0;
@@ -133,13 +135,8 @@
 }
 
 .recipeFooter strong {
-  border-bottom: 1px solid transparent;
   color: var(--color-primary-dark);
   margin-left: auto;
-}
-
-.recipeCard:hover .recipeFooter strong {
-  border-bottom-color: var(--color-primary-dark);
 }
 
 .statsSection {
@@ -157,24 +154,23 @@
 }
 
 .statLead h2 {
-  font-size: clamp(2.2rem, 5vw, 3.6rem);
-  font-weight: 560;
+  font-size: clamp(2.15rem, 4.8vw, 3.5rem);
+  font-weight: 550;
   line-height: 1;
   margin: 0;
   max-width: 38rem;
 }
 
 .stat {
-  border-top: 1px solid color-mix(in srgb, var(--color-on-primary) 24%, transparent);
   display: grid;
   gap: 0.35rem;
-  padding-top: var(--space-4);
 }
 
 .stat strong {
-  font-family: var(--font-editorial), Georgia, serif;
-  font-size: clamp(2.5rem, 6vw, 4.2rem);
-  font-weight: 560;
+  font-family: var(--font-interface), Arial, sans-serif;
+  font-size: clamp(2.35rem, 5vw, 3.8rem);
+  font-weight: 780;
+  letter-spacing: -0.05em;
   line-height: 1;
 }
 
@@ -184,13 +180,21 @@
 }
 
 .commentCard {
-  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 1.2rem;
   color: var(--color-text);
   display: grid;
   gap: var(--space-4);
   min-height: 12rem;
-  padding-top: 1.2rem;
+  padding: 1.3rem;
   text-decoration: none;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.commentCard:hover {
+  background: var(--color-card);
+  border-color: color-mix(in srgb, var(--color-primary) 28%, var(--color-border));
 }
 
 .authorRow {
@@ -218,19 +222,20 @@
 
 .commentCard blockquote {
   font-family: var(--font-editorial), Georgia, serif;
-  font-size: clamp(1.25rem, 2.5vw, 1.55rem);
+  font-size: clamp(1.2rem, 2.2vw, 1.5rem);
   line-height: 1.32;
   margin: 0;
 }
 
 .commentEmpty {
   align-items: center;
-  border-bottom: 1px solid var(--color-border);
-  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 1.25rem;
   display: grid;
   gap: var(--space-5);
   grid-template-columns: auto minmax(0, 1fr) auto;
-  padding-block: clamp(1.4rem, 4vw, 2rem);
+  padding: clamp(1.4rem, 4vw, 2rem);
 }
 
 .commentEmpty > span {
@@ -247,9 +252,8 @@
 }
 
 .commentEmpty strong {
-  font-family: var(--font-editorial), Georgia, serif;
-  font-size: clamp(1.4rem, 3vw, 1.9rem);
-  font-weight: 590;
+  font-size: clamp(1.2rem, 2.7vw, 1.65rem);
+  font-weight: 760;
 }
 
 .commentEmpty p {
@@ -259,7 +263,7 @@
 }
 
 .manifesto {
-  border-top: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-surface-secondary) 52%, var(--color-background));
 }
 
 .manifestoInner {
@@ -268,9 +272,9 @@
 }
 
 .manifesto h2 {
-  font-size: clamp(2.7rem, 7vw, 5rem);
-  font-weight: 570;
-  line-height: 0.96;
+  font-size: clamp(2.6rem, 6.2vw, 4.7rem);
+  font-weight: 560;
+  line-height: 0.97;
   margin: 0 0 var(--space-5);
 }
 
@@ -313,10 +317,10 @@
   background-position: -420px -47px;
   filter: brightness(1.45) saturate(0.75);
   height: 178px;
-  opacity: 0.16;
+  opacity: 0.15;
   right: 1.5rem;
   top: 0.25rem;
-  transform: scale(1.45) rotate(6deg);
+  transform: scale(1.4) rotate(6deg);
   width: 181px;
 }
 
@@ -324,9 +328,9 @@
   background-position: -649px -27px;
   bottom: -1.6rem;
   height: 210px;
-  opacity: 0.18;
+  opacity: 0.16;
   right: 0.8rem;
-  transform: scale(1.7) rotate(7deg);
+  transform: scale(1.65) rotate(7deg);
   width: 141px;
 }
 
@@ -345,12 +349,6 @@
   .recipeGrid,
   .commentGrid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .recipeCard + .recipeCard,
-  .commentCard + .commentCard {
-    border-left: 1px solid var(--color-border);
-    padding-left: 1.5rem;
   }
 
   .statsGrid {
