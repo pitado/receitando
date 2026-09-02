@@ -1,7 +1,7 @@
 .hero {
   --hero-paper: #f8f5ef;
   background:
-    radial-gradient(circle at 84% 8%, color-mix(in srgb, var(--color-sage-soft) 74%, transparent) 0 10rem, transparent 10.1rem),
+    radial-gradient(circle at 86% 4%, color-mix(in srgb, var(--color-sage-soft) 72%, transparent) 0 8.5rem, transparent 8.6rem),
     var(--hero-paper);
   border-bottom: 1px solid color-mix(in srgb, var(--color-sage) 18%, var(--color-border));
   overflow: hidden;
@@ -10,21 +10,21 @@
 
 .heroShell {
   display: grid;
-  gap: clamp(3rem, 6vw, 5rem);
-  padding-block: clamp(3rem, 5.5vw, 4.8rem) clamp(3.4rem, 6vw, 5.2rem);
+  gap: clamp(2.15rem, 4vw, 3.5rem);
+  padding-block: clamp(1.55rem, 2.8vw, 2.35rem) clamp(2.35rem, 4.4vw, 3.5rem);
 }
 
 .heroGrid {
   align-items: center;
   display: grid;
-  gap: clamp(2.7rem, 6vw, 5.5rem);
+  gap: clamp(2rem, 4.5vw, 4.25rem);
 }
 
 .copy {
   align-content: start;
   display: grid;
-  gap: 1.22rem;
-  max-width: 44rem;
+  gap: 1rem;
+  max-width: 46rem;
   position: relative;
   z-index: 2;
 }
@@ -52,21 +52,21 @@
 .copy h1 {
   color: var(--color-text);
   font-family: var(--font-editorial), Georgia, serif;
-  font-size: clamp(3.35rem, 6vw, 5.85rem);
+  font-size: clamp(3.8rem, 6.7vw, 6.6rem);
   font-weight: 570;
-  letter-spacing: -0.064em;
-  line-height: 0.92;
+  letter-spacing: -0.067em;
+  line-height: 0.89;
   margin: 0;
-  max-width: 9.8ch;
+  max-width: 10.2ch;
   text-wrap: balance;
 }
 
 .description {
   color: var(--color-text-muted);
-  font-size: clamp(1.02rem, 1.4vw, 1.16rem);
-  line-height: 1.67;
+  font-size: clamp(1.04rem, 1.5vw, 1.2rem);
+  line-height: 1.62;
   margin: 0;
-  max-width: 39rem;
+  max-width: 40rem;
 }
 
 .searchForm {
@@ -74,11 +74,11 @@
   background: #fffdf9;
   border: 1px solid color-mix(in srgb, var(--color-sage) 26%, var(--color-border));
   border-radius: 1.35rem;
-  box-shadow: 0 1.25rem 3.2rem color-mix(in srgb, var(--color-text) 8%, transparent);
+  box-shadow: 0 1.15rem 3rem color-mix(in srgb, var(--color-text) 8%, transparent);
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  margin-top: 0.35rem;
-  max-width: 47rem;
+  margin-top: 0.18rem;
+  max-width: 48rem;
   padding: 0.4rem;
   transition: border-color var(--transition-fast), box-shadow var(--transition-base), transform var(--transition-base);
 }
@@ -87,7 +87,7 @@
   border-color: var(--color-sage);
   box-shadow:
     0 0 0 4px color-mix(in srgb, var(--color-sage) 14%, transparent),
-    0 1.35rem 3.6rem color-mix(in srgb, var(--color-text) 10%, transparent);
+    0 1.3rem 3.5rem color-mix(in srgb, var(--color-text) 10%, transparent);
   transform: translateY(-2px);
 }
 
@@ -101,12 +101,12 @@
 
 .searchField svg {
   fill: none;
-  flex: 0 0 1.15rem;
-  height: 1.15rem;
+  flex: 0 0 1.18rem;
+  height: 1.18rem;
   stroke: var(--color-sage);
   stroke-linecap: round;
   stroke-width: 1.8;
-  width: 1.15rem;
+  width: 1.18rem;
 }
 
 .searchField input {
@@ -114,8 +114,8 @@
   border: 0;
   color: var(--color-text);
   font: inherit;
-  font-size: 1rem;
-  min-height: 4rem;
+  font-size: 1.03rem;
+  min-height: 3.85rem;
   min-width: 0;
   outline: 0;
   padding: 0;
@@ -160,12 +160,12 @@
   cursor: pointer;
   display: inline-flex;
   font: inherit;
-  font-size: 0.94rem;
+  font-size: 0.95rem;
   font-weight: 800;
   gap: 1rem;
   justify-content: space-between;
-  min-height: 4rem;
-  padding: 0.88rem 1rem 0.88rem 1.3rem;
+  min-height: 3.85rem;
+  padding: 0.84rem 1rem 0.84rem 1.3rem;
   transition: background-color var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
 }
 
@@ -203,8 +203,8 @@
   display: flex;
   flex-wrap: wrap;
   font-size: 0.72rem;
-  gap: 0.62rem 0.8rem;
-  margin-top: 0.08rem;
+  gap: 0.58rem 0.75rem;
+  margin-top: 0.02rem;
 }
 
 .suggestions > span {
@@ -216,7 +216,7 @@
 .chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.42rem;
+  gap: 0.4rem;
 }
 
 .chips button {
@@ -232,7 +232,7 @@
   font-weight: 680;
   gap: 0.22rem;
   line-height: 1;
-  padding: 0.55rem 0.76rem;
+  padding: 0.52rem 0.74rem;
   transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
 }
 
@@ -243,6 +243,7 @@
   transform: translateY(-1px);
 }
 
+.chipSelected,
 .chips .chipSelected {
   background: var(--color-sage);
   border-color: var(--color-sage);
@@ -256,40 +257,40 @@
 
 .selectionStatus {
   color: var(--color-text-muted);
-  font-size: 0.78rem;
-  line-height: 1.45;
-  margin: -0.3rem 0 0;
+  font-size: 0.76rem;
+  line-height: 1.4;
+  margin: -0.22rem 0 0;
 }
 
 .metrics {
   display: grid;
-  gap: 0.6rem;
+  gap: 0.55rem;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  margin-top: 0.25rem;
+  margin-top: 0.1rem;
   max-width: 41rem;
 }
 
 .metric {
   background: color-mix(in srgb, white 42%, transparent);
   border: 1px solid color-mix(in srgb, var(--color-sage) 17%, var(--color-border));
-  border-radius: 1rem;
+  border-radius: 0.95rem;
   display: grid;
-  gap: 0.25rem;
+  gap: 0.22rem;
   min-width: 0;
-  padding: 0.9rem 0.95rem;
+  padding: 0.72rem 0.82rem;
 }
 
 .metric strong {
   color: var(--color-primary-dark);
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.06em;
 }
 
 .metric span {
   color: var(--color-text-muted);
-  font-size: 0.78rem;
-  line-height: 1.35;
+  font-size: 0.76rem;
+  line-height: 1.3;
 }
 
 .visual {
@@ -303,10 +304,10 @@
   border-radius: clamp(1.6rem, 4vw, 2.8rem);
   box-shadow:
     inset 0 0 0 1px color-mix(in srgb, white 36%, transparent),
-    0 1.5rem 3.6rem color-mix(in srgb, var(--color-sage) 12%, transparent);
-  min-height: clamp(29rem, 45vw, 36rem);
+    0 1.35rem 3.2rem color-mix(in srgb, var(--color-sage) 12%, transparent);
+  min-height: clamp(26rem, 39vw, 32rem);
   overflow: hidden;
-  padding: clamp(1.25rem, 2.7vw, 2rem);
+  padding: clamp(1.2rem, 2.4vw, 1.8rem);
   position: relative;
 }
 
@@ -314,12 +315,12 @@
   border: 1px solid color-mix(in srgb, var(--color-sage) 18%, transparent);
   border-radius: 50%;
   content: "";
-  height: clamp(17rem, 27vw, 23rem);
+  height: clamp(16rem, 24vw, 21rem);
   left: 50%;
   position: absolute;
-  top: 51%;
+  top: 49%;
   transform: translate(-50%, -50%);
-  width: clamp(17rem, 27vw, 23rem);
+  width: clamp(16rem, 24vw, 21rem);
 }
 
 .visualHeader {
@@ -343,20 +344,20 @@
   border: 1px solid color-mix(in srgb, var(--color-sage) 22%, transparent);
   border-radius: 999px;
   color: var(--color-text);
-  padding: 0.5rem 0.72rem;
+  padding: 0.48rem 0.7rem;
 }
 
 .plate {
   background: #fffdf8;
   border: 1px solid color-mix(in srgb, var(--color-text) 10%, transparent);
   border-radius: 50%;
-  box-shadow: 0 1.6rem 3.4rem color-mix(in srgb, var(--color-sage) 19%, transparent);
-  height: clamp(15rem, 24vw, 20.5rem);
+  box-shadow: 0 1.4rem 3rem color-mix(in srgb, var(--color-sage) 19%, transparent);
+  height: clamp(14rem, 22vw, 18.8rem);
   left: 50%;
   position: absolute;
-  top: 49%;
+  top: 48%;
   transform: translate(-50%, -50%) rotate(-4deg);
-  width: clamp(15rem, 24vw, 20.5rem);
+  width: clamp(14rem, 22vw, 18.8rem);
 }
 
 .plateRing {
@@ -370,9 +371,9 @@
 .herbTwo {
   background: var(--color-sage);
   border-radius: 95% 5% 82% 18% / 82% 16% 84% 18%;
-  height: 3.55rem;
+  height: 3.35rem;
   position: absolute;
-  width: 1.72rem;
+  width: 1.62rem;
 }
 
 .herbOne {
@@ -396,30 +397,30 @@
   position: absolute;
   top: 50%;
   transform: rotate(64deg);
-  width: 2.3rem;
+  width: 2.2rem;
 }
 
 .tomato {
   background: var(--color-primary);
   border-radius: 52% 48% 50% 50%;
   box-shadow: inset -0.45rem -0.45rem 0 color-mix(in srgb, var(--color-primary-dark) 28%, transparent);
-  height: 4.3rem;
+  height: 4rem;
   left: 47%;
   position: absolute;
   top: 38%;
-  width: 4.3rem;
+  width: 4rem;
 }
 
 .tomato::before {
   background: var(--color-sage);
   border-radius: 90% 10% 90% 10%;
   content: "";
-  height: 1.55rem;
-  left: 1.28rem;
+  height: 1.45rem;
+  left: 1.2rem;
   position: absolute;
-  top: -0.55rem;
+  top: -0.5rem;
   transform: rotate(35deg);
-  width: 0.72rem;
+  width: 0.68rem;
 }
 
 .egg {
@@ -427,32 +428,32 @@
   border: 1px solid color-mix(in srgb, var(--color-text) 8%, transparent);
   border-radius: 48% 52% 55% 45% / 58% 43% 57% 42%;
   bottom: 27%;
-  height: 5.1rem;
+  height: 4.8rem;
   left: 35%;
   position: absolute;
   transform: rotate(-12deg);
-  width: 6.05rem;
+  width: 5.7rem;
 }
 
 .egg::after {
   background: var(--color-highlight);
   border-radius: 50%;
   content: "";
-  height: 2.3rem;
-  left: 1.85rem;
+  height: 2.15rem;
+  left: 1.75rem;
   position: absolute;
-  top: 1.3rem;
-  width: 2.3rem;
+  top: 1.25rem;
+  width: 2.15rem;
 }
 
 .ingredientCloud {
   display: flex;
   flex-wrap: wrap;
   gap: 0.35rem;
-  left: 1.35rem;
+  left: 1.3rem;
   max-width: 58%;
   position: absolute;
-  top: 4.25rem;
+  top: 4rem;
   z-index: 5;
 }
 
@@ -463,20 +464,20 @@
   color: #566b50;
   font-size: 0.64rem;
   font-weight: 760;
-  padding: 0.42rem 0.62rem;
+  padding: 0.4rem 0.6rem;
 }
 
 .recipeTicket {
   background: #f8f5ef;
   border: 1px solid color-mix(in srgb, var(--color-primary) 20%, var(--color-border));
-  border-radius: 1.15rem;
-  bottom: clamp(1.2rem, 3vw, 1.8rem);
-  box-shadow: 0 1.2rem 2.8rem color-mix(in srgb, var(--color-text) 10%, transparent);
+  border-radius: 1.1rem;
+  bottom: clamp(1rem, 2.5vw, 1.5rem);
+  box-shadow: 0 1rem 2.5rem color-mix(in srgb, var(--color-text) 10%, transparent);
   display: grid;
-  gap: 0.3rem;
-  left: clamp(1.2rem, 3vw, 1.8rem);
+  gap: 0.28rem;
+  left: clamp(1rem, 2.5vw, 1.5rem);
   max-width: min(18rem, 72%);
-  padding: 1rem 1.1rem;
+  padding: 0.9rem 1rem;
   position: absolute;
   transform: rotate(1.3deg);
   z-index: 5;
@@ -484,7 +485,7 @@
 
 .recipeTicket > span {
   color: var(--color-primary-dark);
-  font-size: 0.64rem;
+  font-size: 0.62rem;
   font-weight: 810;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -492,7 +493,7 @@
 
 .recipeTicket strong {
   font-family: var(--font-editorial), Georgia, serif;
-  font-size: clamp(1.2rem, 2vw, 1.6rem);
+  font-size: clamp(1.16rem, 1.8vw, 1.5rem);
   font-weight: 600;
   letter-spacing: -0.035em;
   line-height: 1.05;
@@ -500,9 +501,9 @@
 
 .recipeTicket p {
   color: var(--color-text-muted);
-  font-size: 0.68rem;
-  line-height: 1.35;
-  margin: 0.2rem 0 0;
+  font-size: 0.67rem;
+  line-height: 1.32;
+  margin: 0.18rem 0 0;
 }
 
 .stamp {
@@ -512,19 +513,19 @@
   color: var(--color-on-primary);
   display: flex;
   flex-direction: column;
-  height: clamp(6rem, 9vw, 7.5rem);
+  height: clamp(5.5rem, 8vw, 6.8rem);
   justify-content: center;
   position: absolute;
-  right: clamp(1rem, 2.4vw, 1.6rem);
+  right: clamp(0.9rem, 2vw, 1.4rem);
   text-align: center;
   top: 21%;
   transform: rotate(8deg);
-  width: clamp(6rem, 9vw, 7.5rem);
+  width: clamp(5.5rem, 8vw, 6.8rem);
   z-index: 5;
 }
 
 .stamp span {
-  font-size: 0.54rem;
+  font-size: 0.52rem;
   font-weight: 680;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -532,79 +533,24 @@
 
 .stamp strong {
   font-family: var(--font-editorial), Georgia, serif;
-  font-size: clamp(0.95rem, 1.6vw, 1.17rem);
+  font-size: clamp(0.9rem, 1.4vw, 1.08rem);
   font-weight: 620;
   line-height: 0.95;
-  margin-top: 0.22rem;
-  max-width: 5rem;
+  margin-top: 0.2rem;
+  max-width: 4.7rem;
 }
 
 .brandSignature {
   align-items: center;
-  border-top: 1px solid color-mix(in srgb, var(--color-sage) 17%, var(--color-border));
   display: grid;
-  gap: 0.85rem;
   justify-items: center;
-  padding-top: clamp(2.6rem, 5vw, 3.8rem);
+  padding-top: clamp(1.15rem, 2.2vw, 1.8rem);
   text-align: center;
-}
-
-.signatureKicker {
-  color: var(--color-sage);
-  font-size: 0.68rem;
-  font-weight: 790;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-}
-
-.flavorRail {
-  background: var(--color-sage);
-  color: #f7f4ed;
-  overflow: hidden;
-  padding-block: 0.72rem;
-}
-
-.flavorTrack {
-  animation: flavor-scroll 28s linear infinite;
-  display: flex;
-  width: max-content;
-}
-
-.flavorSet {
-  align-items: center;
-  display: flex;
-  flex-shrink: 0;
-}
-
-.flavorSet span {
-  align-items: center;
-  display: inline-flex;
-  font-size: 0.82rem;
-  font-weight: 720;
-  gap: 0.8rem;
-  letter-spacing: 0.03em;
-  padding-inline: 1.4rem;
-  text-transform: lowercase;
-  white-space: nowrap;
-}
-
-.flavorSet i {
-  color: color-mix(in srgb, var(--color-highlight) 88%, white);
-  font-style: normal;
-}
-
-@keyframes flavor-scroll {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
 }
 
 @media (min-width: 64rem) {
   .heroGrid {
-    grid-template-columns: minmax(0, 1.06fr) minmax(22rem, 0.84fr);
+    grid-template-columns: minmax(0, 1.08fr) minmax(22rem, 0.82fr);
   }
 }
 
@@ -614,25 +560,37 @@
   }
 
   .visualCard {
-    min-height: 30rem;
+    min-height: 28rem;
   }
 }
 
 @media (max-width: 47.99rem) {
   .hero {
     background:
-      radial-gradient(circle at 100% 2%, color-mix(in srgb, var(--color-sage-soft) 66%, transparent) 0 7rem, transparent 7.1rem),
+      radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--color-sage-soft) 64%, transparent) 0 6.5rem, transparent 6.6rem),
       var(--hero-paper);
   }
 
   .heroShell {
-    gap: 2.8rem;
-    padding-block: 2.45rem 3.2rem;
+    gap: 1.9rem;
+    padding-block: 1.3rem 2.35rem;
+  }
+
+  .heroGrid {
+    gap: 1.9rem;
+  }
+
+  .copy {
+    gap: 0.9rem;
   }
 
   .copy h1 {
-    font-size: clamp(3.05rem, 15vw, 4.7rem);
-    max-width: 9ch;
+    font-size: clamp(3.2rem, 14.5vw, 5rem);
+    max-width: 9.3ch;
+  }
+
+  .description {
+    font-size: 1rem;
   }
 
   .searchForm {
@@ -641,11 +599,11 @@
   }
 
   .searchField input {
-    min-height: 3.6rem;
+    min-height: 3.5rem;
   }
 
   .searchButton {
-    min-height: 3.5rem;
+    min-height: 3.45rem;
   }
 
   .metrics {
@@ -658,7 +616,7 @@
   }
 
   .visualCard {
-    min-height: 27rem;
+    min-height: 25rem;
   }
 
   .ingredientCloud {
@@ -666,12 +624,16 @@
   }
 
   .recipeTicket {
-    max-width: 78%;
+    max-width: 80%;
   }
 
   .stamp {
-    height: 5.8rem;
-    width: 5.8rem;
+    height: 5.35rem;
+    width: 5.35rem;
+  }
+
+  .brandSignature {
+    padding-top: 0.8rem;
   }
 }
 
@@ -679,9 +641,7 @@
   .searchForm,
   .clearButton,
   .searchButton,
-  .chips button,
-  .flavorTrack {
-    animation: none;
+  .chips button {
     transition: none;
   }
 
