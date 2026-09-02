@@ -9,103 +9,55 @@
 
 .inner {
   align-items: center;
-  display: grid;
-  gap: 0.72rem;
-  grid-template-columns: minmax(0, 1fr) auto;
-  min-height: 4.2rem;
-  padding-block: 0.42rem;
+  display: flex;
+  gap: 0.7rem;
+  justify-content: center;
+  min-height: 3.65rem;
+  padding-block: 0.28rem;
 }
 
-.balance {
+.navigation {
+  align-items: center;
+  background: color-mix(in srgb, var(--color-card) 78%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-border) 82%, transparent);
+  border-radius: 999px;
+  display: flex;
+  gap: 0.08rem;
+  min-width: 0;
+  overflow-x: auto;
+  padding: 0.18rem;
+  scrollbar-width: none;
+}
+
+.navigation::-webkit-scrollbar {
   display: none;
 }
 
-.headerSearch {
-  align-items: center;
-  background: color-mix(in srgb, var(--color-card) 82%, var(--color-sage-soft));
-  border: 1px solid color-mix(in srgb, var(--color-sage) 20%, var(--color-border));
-  border-radius: 0.95rem;
-  display: grid;
-  gap: 0.58rem;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  min-height: 2.8rem;
-  min-width: 0;
-  padding: 0.28rem 0.45rem 0.28rem 0.82rem;
-  transition:
-    background-color var(--transition-fast),
-    border-color var(--transition-fast),
-    box-shadow var(--transition-fast),
-    transform var(--transition-fast);
-  width: 100%;
+.navLink {
+  border: 1px solid transparent;
+  border-radius: 999px;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+  font-size: 0.82rem;
+  font-weight: 720;
+  padding: 0.5rem 0.72rem;
+  text-decoration: none;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
+  white-space: nowrap;
 }
 
-.headerSearch:focus-within {
-  background: var(--color-card);
-  border-color: color-mix(in srgb, var(--color-sage) 58%, var(--color-border));
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-sage) 12%, transparent);
+.navLink:hover {
+  background: var(--color-sage-soft);
+  border-color: color-mix(in srgb, var(--color-sage) 18%, transparent);
+  color: var(--color-text);
   transform: translateY(-1px);
 }
 
-.headerSearchIcon {
-  align-items: center;
-  color: var(--color-text-muted);
-  display: inline-flex;
-  justify-content: center;
-}
-
-.headerSearchIcon svg {
-  fill: none;
-  height: 1.08rem;
-  stroke: currentColor;
-  stroke-linecap: round;
-  stroke-width: 1.8;
-  width: 1.08rem;
-}
-
-.headerSearch input {
-  appearance: none;
-  background: transparent;
-  border: 0;
-  color: var(--color-text);
-  font: inherit;
-  font-size: 0.9rem;
-  min-height: 2.1rem;
-  min-width: 0;
-  outline: 0;
-  padding: 0;
-  width: 100%;
-}
-
-.headerSearch input::-webkit-search-cancel-button {
-  display: none;
-}
-
-.headerSearch input::placeholder {
-  color: color-mix(in srgb, var(--color-text-muted) 82%, transparent);
-  opacity: 1;
-}
-
-.headerSearchClear {
-  align-items: center;
-  background: color-mix(in srgb, var(--color-text-muted) 14%, transparent);
-  border: 0;
-  border-radius: 50%;
-  color: var(--color-text-muted);
-  cursor: pointer;
-  display: inline-flex;
-  font: inherit;
-  font-size: 1rem;
-  height: 1.8rem;
-  justify-content: center;
-  line-height: 1;
-  padding: 0;
-  transition: background-color var(--transition-fast), color var(--transition-fast);
-  width: 1.8rem;
-}
-
-.headerSearchClear:hover {
-  background: color-mix(in srgb, var(--color-sage) 18%, transparent);
-  color: var(--color-text);
+.navLinkActive,
+.navLinkActive:hover {
+  background: var(--color-text);
+  border-color: var(--color-text);
+  color: var(--color-on-primary);
 }
 
 .login {
@@ -119,15 +71,11 @@
   font-size: 0.82rem;
   font-weight: 790;
   justify-content: center;
-  min-height: 2.6rem;
-  padding: 0.56rem 0.98rem;
+  min-height: 2.45rem;
+  padding: 0.5rem 0.9rem;
   text-decoration: none;
   touch-action: manipulation;
-  transition:
-    background-color var(--transition-fast),
-    border-color var(--transition-fast),
-    box-shadow var(--transition-fast),
-    transform var(--transition-fast);
+  transition: background-color var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
 }
 
 .login:hover {
@@ -139,7 +87,8 @@
 
 .authPlaceholder {
   display: block;
-  min-height: 2.5rem;
+  flex-shrink: 0;
+  min-height: 2.4rem;
   min-width: 4rem;
 }
 
@@ -158,16 +107,12 @@
   color: var(--color-text-muted);
   display: inline-flex;
   justify-content: center;
-  min-height: 2.5rem;
-  min-width: 2.5rem;
-  padding: 0.2rem;
+  min-height: 2.42rem;
+  min-width: 2.42rem;
+  padding: 0.18rem;
   text-decoration: none;
   touch-action: manipulation;
-  transition:
-    border-color var(--transition-fast),
-    color var(--transition-fast),
-    background-color var(--transition-fast),
-    transform var(--transition-fast);
+  transition: border-color var(--transition-fast), color var(--transition-fast), background-color var(--transition-fast), transform var(--transition-fast);
 }
 
 .accountName:hover {
@@ -180,10 +125,10 @@
 .accountAvatar {
   border-radius: 50%;
   display: block;
-  flex: 0 0 1.92rem;
-  height: 1.92rem;
+  flex: 0 0 1.86rem;
+  height: 1.86rem;
   overflow: hidden;
-  width: 1.92rem;
+  width: 1.86rem;
 }
 
 .accountCopy,
@@ -194,65 +139,50 @@
 
 @media (min-width: 62rem) {
   .inner {
-    grid-template-columns: 1fr minmax(24rem, 36rem) 1fr;
-    min-height: 4.45rem;
-    padding-block: 0;
+    min-height: 3.8rem;
   }
 
-  .balance {
-    display: block;
+  .navigation {
+    overflow: visible;
   }
 
-  .headerSearch {
-    justify-self: center;
-  }
-
-  .headerSearch input {
-    font-size: 0.93rem;
-  }
-
-  .login,
-  .account,
-  .authPlaceholder {
-    justify-self: end;
+  .navLink {
+    font-size: 0.86rem;
+    padding: 0.54rem 0.8rem;
   }
 
   .login {
-    font-size: 0.88rem;
-    min-height: 2.7rem;
-    padding: 0.6rem 1.08rem;
-  }
-
-  .authPlaceholder {
-    min-width: 5rem;
+    font-size: 0.86rem;
+    min-height: 2.52rem;
+    padding: 0.54rem 0.96rem;
   }
 
   .account {
-    gap: 0.62rem;
+    gap: 0.5rem;
   }
 
   .accountName {
-    gap: 0.58rem;
-    min-height: 2.72rem;
-    padding: 0.28rem 0.6rem 0.28rem 0.28rem;
+    gap: 0.52rem;
+    min-height: 2.58rem;
+    padding: 0.22rem 0.54rem 0.22rem 0.22rem;
   }
 
   .accountAvatar {
-    flex-basis: 1.98rem;
-    height: 1.98rem;
-    width: 1.98rem;
+    flex-basis: 1.92rem;
+    height: 1.92rem;
+    width: 1.92rem;
   }
 
   .accountCopy {
     display: flex;
     flex-direction: column;
     line-height: 1.05;
-    max-width: 7.5rem;
+    max-width: 7rem;
     min-width: 0;
   }
 
   .accountCopy strong {
-    font-size: 0.84rem;
+    font-size: 0.8rem;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -260,9 +190,9 @@
 
   .accountCopy small {
     color: var(--color-text-muted);
-    font-size: 0.64rem;
+    font-size: 0.62rem;
     font-weight: 620;
-    margin-top: 0.18rem;
+    margin-top: 0.16rem;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -270,7 +200,7 @@
 
   .accountArrow {
     display: inline;
-    font-size: 1rem;
+    font-size: 0.95rem;
     line-height: 1;
     opacity: 0.45;
   }
@@ -283,10 +213,10 @@
     cursor: pointer;
     display: inline-block;
     font: inherit;
-    font-size: 0.78rem;
+    font-size: 0.75rem;
     font-weight: 690;
-    min-height: 2.3rem;
-    padding: 0.42rem 0.6rem;
+    min-height: 2.2rem;
+    padding: 0.38rem 0.54rem;
     transition: background-color var(--transition-fast), color var(--transition-fast);
   }
 
@@ -301,37 +231,37 @@
   }
 }
 
-@media (max-width: 39rem) {
+@media (max-width: 47.99rem) {
   .inner {
-    gap: 0.5rem;
-    min-height: 3.95rem;
-  }
-
-  .headerSearch {
-    border-radius: 0.8rem;
     gap: 0.45rem;
-    min-height: 2.55rem;
-    padding-left: 0.68rem;
+    justify-content: space-between;
+    min-height: 3.55rem;
+    padding-inline: 0.25rem;
   }
 
-  .headerSearch input {
-    font-size: 0.84rem;
+  .navigation {
+    flex: 1 1 auto;
+  }
+
+  .navLink {
+    font-size: 0.77rem;
+    padding: 0.46rem 0.62rem;
   }
 
   .login {
-    min-height: 2.45rem;
-    padding-inline: 0.82rem;
+    min-height: 2.35rem;
+    padding-inline: 0.78rem;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .headerSearch,
+  .navLink,
   .login,
   .accountName {
     transition: none;
   }
 
-  .headerSearch:focus-within,
+  .navLink:hover,
   .login:hover,
   .accountName:hover {
     transform: none;
