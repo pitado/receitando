@@ -43,7 +43,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
           <Footer />
         </div>
         <Script
-          data-cf-beacon='{"token":"9e4c4741bb994dc4bcb2be109eda0298"}'
+          data-cf-beacon='{"token":"4ac2ba328abd4b14a0b6a245f2fc12ab"}'
           src="https://static.cloudflareinsights.com/beacon.min.js"
           strategy="afterInteractive"
           type="module"
