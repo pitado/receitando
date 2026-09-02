@@ -1,5 +1,3 @@
-import Image from "next/image";
-
 import { HomeHero } from "@/components/home/HomeHero";
 import { HomeLiveSections } from "@/components/home/HomeLiveSections";
 import { SectionTitle } from "@/components/ui/SectionTitle";
@@ -11,37 +9,8 @@ export default function HomePage() {
     <main className={styles.page}>
       <HomeHero />
 
-      <section
-        aria-label="Ideias da cozinha"
-        className={styles.editorialRibbon}
-        style={{ position: "relative" }}
-      >
-        <div
-          aria-hidden="true"
-          style={{
-            left: "0.75rem",
-            opacity: 0.5,
-            pointerEvents: "none",
-            position: "absolute",
-            top: "1rem",
-            transform: "rotate(-7deg)",
-            width: "clamp(10rem, 15vw, 15rem)",
-            zIndex: 0,
-          }}
-        >
-          <Image
-            alt=""
-            height={635}
-            src="/receitando-beet.webp"
-            style={{ display: "block", height: "auto", width: "100%" }}
-            width={408}
-          />
-        </div>
-
-        <div
-          className={`container ${styles.ribbonGrid}`}
-          style={{ position: "relative", zIndex: 1 }}
-        >
+      <section aria-label="Ideias da cozinha" className={styles.editorialRibbon}>
+        <div className={`container ${styles.ribbonGrid}`}>
           <article className={`${styles.kitchenNote} ${styles.noteWarm}`}>
             <span className={styles.miniEyebrow}>Saiu da despensa</span>
             <strong>um jantar possível</strong>
@@ -80,17 +49,17 @@ export default function HomePage() {
           </SectionTitle>
           <ol className={styles.steps}>
             <li className={styles.step}>
-              <span>1</span>
+              <span>01</span>
               <strong>Conte o que você tem</strong>
               <p>Digite os ingredientes disponíveis em casa.</p>
             </li>
             <li className={styles.step}>
-              <span>2</span>
+              <span>02</span>
               <strong>Compare as possibilidades</strong>
               <p>Veja a compatibilidade e o que ainda está faltando.</p>
             </li>
             <li className={styles.step}>
-              <span>3</span>
+              <span>03</span>
               <strong>Escolha e cozinhe</strong>
               <p>Abra a receita completa e coloque a mão na massa.</p>
             </li>
