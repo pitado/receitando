@@ -1,5 +1,5 @@
 .header {
-  background: var(--color-background-translucent);
+  background: color-mix(in srgb, var(--color-background) 94%, white);
   border-bottom: 1px solid var(--color-border);
   position: sticky;
   top: 0;
@@ -9,13 +9,13 @@
 .inner {
   align-items: center;
   display: grid;
-  gap: 0.55rem 0.9rem;
+  gap: 0.5rem 0.9rem;
   grid-template-areas:
     "brand auth"
     "nav nav";
   grid-template-columns: minmax(0, 1fr) auto;
-  min-height: 4.8rem;
-  padding-block: 0.65rem;
+  min-height: 4.55rem;
+  padding-block: 0.55rem;
 }
 
 .brand {
@@ -31,17 +31,17 @@
   display: block;
   height: auto;
   max-width: 100%;
-  width: clamp(10.7rem, 46vw, 13rem);
+  width: clamp(9.5rem, 42vw, 11.4rem);
 }
 
 .navigation {
   align-items: center;
   display: flex;
-  gap: var(--space-1);
+  gap: 1.15rem;
   grid-area: nav;
   margin-inline: calc(var(--page-gutter) * -1);
   overflow-x: auto;
-  padding-inline: var(--page-gutter);
+  padding: 0.1rem var(--page-gutter) 0.2rem;
   scrollbar-width: none;
   width: calc(100% + (var(--page-gutter) * 2));
 }
@@ -51,51 +51,51 @@
 }
 
 .navLink {
-  border-radius: var(--radius-button);
+  border-bottom: 1px solid transparent;
   color: var(--color-text-muted);
   flex-shrink: 0;
-  font-size: 0.88rem;
-  font-weight: 700;
-  padding: 0.62rem 0.72rem;
+  font-size: 0.84rem;
+  font-weight: 680;
+  padding: 0.38rem 0 0.32rem;
   text-decoration: none;
-  transition:
-    background-color var(--transition-fast),
-    color var(--transition-fast);
+  transition: border-color var(--transition-fast), color var(--transition-fast);
   white-space: nowrap;
 }
 
 .navLink:hover {
-  background: var(--color-surface);
-  color: var(--color-primary-dark);
+  border-bottom-color: var(--color-primary);
+  color: var(--color-text);
 }
 
 .login {
   align-items: center;
   background: var(--color-text);
-  border-radius: 999px;
+  border: 1px solid var(--color-text);
+  border-radius: var(--radius-button);
   color: var(--color-background);
   display: inline-flex;
   flex-shrink: 0;
-  font-size: 0.86rem;
-  font-weight: 800;
+  font-size: 0.82rem;
+  font-weight: 760;
   grid-area: auth;
   justify-content: center;
-  min-height: 2.55rem;
-  padding: 0.55rem 0.85rem;
+  min-height: 2.45rem;
+  padding: 0.5rem 0.75rem;
   text-decoration: none;
   touch-action: manipulation;
-  transition: background-color var(--transition-fast);
+  transition: background-color var(--transition-fast), border-color var(--transition-fast);
 }
 
 .login:hover {
   background: var(--color-primary-dark);
+  border-color: var(--color-primary-dark);
 }
 
 .authPlaceholder {
   display: block;
   grid-area: auth;
-  min-height: 2.55rem;
-  min-width: 4.25rem;
+  min-height: 2.45rem;
+  min-width: 4rem;
 }
 
 .account {
@@ -108,36 +108,31 @@
 
 .accountName {
   align-items: center;
-  border: 1px solid var(--color-border);
-  border-radius: 999px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-button);
   color: var(--color-text-muted);
   display: inline-flex;
   justify-content: center;
-  min-height: 2.65rem;
-  min-width: 2.65rem;
-  padding: 0.25rem;
+  min-height: 2.55rem;
+  min-width: 2.55rem;
+  padding: 0.22rem;
   text-decoration: none;
   touch-action: manipulation;
-  transition:
-    background-color var(--transition-fast),
-    border-color var(--transition-fast),
-    color var(--transition-fast),
-    transform var(--transition-fast);
+  transition: border-color var(--transition-fast), color var(--transition-fast);
 }
 
 .accountName:hover {
-  background: var(--color-surface);
-  border-color: var(--color-primary);
-  color: var(--color-primary-dark);
+  border-color: var(--color-border);
+  color: var(--color-text);
 }
 
 .accountAvatar {
   border-radius: 50%;
   display: block;
-  flex: 0 0 2.05rem;
-  height: 2.05rem;
+  flex: 0 0 2rem;
+  height: 2rem;
   overflow: hidden;
-  width: 2.05rem;
+  width: 2rem;
 }
 
 .accountCopy,
@@ -149,73 +144,66 @@
 @media (min-width: 48rem) {
   .inner {
     display: flex;
-    gap: var(--space-5);
+    gap: clamp(1.2rem, 3vw, 2.5rem);
     justify-content: space-between;
-    min-height: 6.25rem;
+    min-height: 5.45rem;
     padding-block: 0;
   }
 
   .brandLogo {
-    width: 15.5rem;
+    width: 12.6rem;
   }
 
   .navigation {
-    gap: var(--space-2);
+    gap: clamp(1rem, 2vw, 1.65rem);
     margin-inline: 0;
     overflow: visible;
-    padding-inline: 0;
+    padding: 0;
     width: auto;
   }
 
   .navLink {
-    font-size: 1rem;
-    padding: 0.7rem 1rem;
+    font-size: 0.92rem;
+    padding-block: 0.42rem 0.35rem;
   }
 
   .login {
-    border-radius: var(--radius-button);
-    font-size: 0.94rem;
-    min-height: 2.85rem;
-    padding: 0.65rem 1.05rem;
+    font-size: 0.9rem;
+    min-height: 2.7rem;
+    padding: 0.58rem 0.92rem;
   }
 
   .authPlaceholder {
-    min-width: 5.2rem;
+    min-width: 5rem;
   }
 
   .account {
-    gap: 0.7rem;
+    gap: 0.65rem;
   }
 
   .accountName {
-    border-color: transparent;
-    gap: 0.65rem;
-    min-height: 3rem;
-    padding: 0.38rem 0.6rem 0.38rem 0.4rem;
-  }
-
-  .accountName:hover {
-    border-color: var(--color-border);
-    transform: translateY(-1px);
+    gap: 0.6rem;
+    min-height: 2.8rem;
+    padding: 0.3rem 0.45rem 0.3rem 0.3rem;
   }
 
   .accountAvatar {
     border: 1px solid var(--color-border);
-    flex-basis: 2.15rem;
-    height: 2.15rem;
-    width: 2.15rem;
+    flex-basis: 2.05rem;
+    height: 2.05rem;
+    width: 2.05rem;
   }
 
   .accountCopy {
     display: flex;
     flex-direction: column;
     line-height: 1.05;
-    max-width: 8rem;
+    max-width: 7.5rem;
     min-width: 0;
   }
 
   .accountCopy strong {
-    font-size: 0.92rem;
+    font-size: 0.86rem;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -223,9 +211,9 @@
 
   .accountCopy small {
     color: var(--color-text-muted);
-    font-size: 0.69rem;
-    font-weight: 650;
-    margin-top: 0.2rem;
+    font-size: 0.66rem;
+    font-weight: 620;
+    margin-top: 0.18rem;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -233,31 +221,28 @@
 
   .accountArrow {
     display: inline;
-    font-size: 1.2rem;
+    font-size: 1rem;
     line-height: 1;
-    opacity: 0.65;
+    opacity: 0.45;
   }
 
   .logout {
     background: transparent;
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-button);
-    color: var(--color-text);
+    border: 0;
+    border-bottom: 1px solid var(--color-border);
+    border-radius: 0;
+    color: var(--color-text-muted);
     cursor: pointer;
     display: inline-block;
     font: inherit;
-    font-size: 0.9rem;
-    font-weight: 750;
-    min-height: 2.85rem;
-    padding: 0.6rem 0.95rem;
-    transition:
-      background-color var(--transition-fast),
-      border-color var(--transition-fast),
-      color var(--transition-fast);
+    font-size: 0.82rem;
+    font-weight: 680;
+    min-height: 2.4rem;
+    padding: 0.4rem 0.15rem 0.3rem;
+    transition: border-color var(--transition-fast), color var(--transition-fast);
   }
 
   .logout:hover:not(:disabled) {
-    background: var(--color-surface);
     border-color: var(--color-primary);
     color: var(--color-primary-dark);
   }
@@ -270,11 +255,10 @@
 
 @media (max-width: 35rem) {
   .brandLogo {
-    width: min(10.8rem, 50vw);
+    width: min(9.8rem, 47vw);
   }
 
   .navLink {
-    font-size: 0.84rem;
-    padding: 0.58rem 0.66rem;
+    font-size: 0.81rem;
   }
 }
