@@ -111,6 +111,7 @@ export function HomeHero() {
               <div className={styles.chips}>
                 {SUGGESTED_INGREDIENTS.map((ingredient) => (
                   <button
+                    aria-label={ingredient}
                     key={ingredient}
                     onClick={() => addIngredient(ingredient)}
                     type="button"
