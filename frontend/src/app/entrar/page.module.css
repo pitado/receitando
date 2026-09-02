@@ -1,7 +1,5 @@
 .page {
-  background:
-    radial-gradient(circle at 18% 20%, color-mix(in srgb, var(--color-surface-secondary) 52%, transparent), transparent 27rem),
-    var(--color-background);
+  background: var(--color-background);
 }
 
 .shell {
@@ -9,83 +7,86 @@
   display: grid;
   gap: clamp(2.5rem, 7vw, 6rem);
   grid-template-columns: minmax(0, 1fr);
-  min-height: calc(100vh - 10rem);
+  min-height: calc(100vh - 9rem);
   padding-block: clamp(3rem, 8vw, 6rem);
 }
 
 .intro {
-  max-width: 38rem;
+  max-width: 39rem;
 }
 
 .eyebrow {
   color: var(--color-primary-dark);
   display: inline-block;
-  font-size: 0.76rem;
-  font-weight: 850;
-  letter-spacing: 0.16em;
+  font-size: 0.7rem;
+  font-weight: 760;
+  letter-spacing: 0.1em;
   margin-bottom: var(--space-4);
 }
 
 .intro h1 {
   font-family: var(--font-editorial), Georgia, serif;
-  font-size: clamp(2.8rem, 7vw, 5.5rem);
-  font-weight: 650;
+  font-size: clamp(2.8rem, 7vw, 5.25rem);
+  font-weight: 570;
   letter-spacing: -0.055em;
   line-height: 0.98;
   margin: 0;
-  max-width: 11ch;
+  max-width: 12ch;
+  text-wrap: balance;
 }
 
 .intro > p {
   color: var(--color-text-muted);
-  font-size: clamp(1rem, 2vw, 1.12rem);
-  line-height: 1.75;
+  font-size: clamp(1rem, 2vw, 1.1rem);
+  line-height: 1.68;
   margin: var(--space-6) 0 0;
   max-width: 34rem;
 }
 
 .note {
   align-items: flex-start;
+  border-top: 1px solid var(--color-border);
   display: flex;
   gap: var(--space-3);
   margin-top: var(--space-7);
   max-width: 30rem;
+  padding-top: var(--space-4);
 }
 
 .note > span {
-  color: var(--color-primary);
-  font-size: 1.2rem;
+  color: var(--color-sage);
+  font-size: 1rem;
   line-height: 1.4;
 }
 
 .note p {
   color: var(--color-text);
-  font-size: 0.93rem;
-  font-weight: 650;
+  font-size: 0.9rem;
+  font-weight: 620;
   line-height: 1.55;
   margin: 0;
 }
 
 .card {
   background: var(--color-card);
-  border: 1px solid var(--color-border);
-  border-radius: calc(var(--radius-card) + 0.35rem);
-  box-shadow: var(--shadow-card);
-  padding: clamp(1.5rem, 5vw, 2.4rem);
+  border-bottom: 1px solid var(--color-text);
+  border-top: 1px solid var(--color-text);
+  padding: clamp(1.5rem, 5vw, 2.35rem) 0;
   width: 100%;
 }
 
 .cardHeader > span {
   color: var(--color-primary-dark);
-  font-size: 0.76rem;
-  font-weight: 850;
-  letter-spacing: 0.1em;
+  font-size: 0.7rem;
+  font-weight: 760;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .cardHeader h2 {
   font-family: var(--font-editorial), Georgia, serif;
-  font-size: clamp(2rem, 5vw, 2.8rem);
+  font-size: clamp(2rem, 5vw, 2.7rem);
+  font-weight: 590;
   letter-spacing: -0.04em;
   line-height: 1.05;
   margin: var(--space-2) 0 var(--space-3);
@@ -93,7 +94,7 @@
 
 .cardHeader p {
   color: var(--color-text-muted);
-  line-height: 1.6;
+  line-height: 1.55;
   margin: 0;
 }
 
@@ -109,22 +110,19 @@
 }
 
 .field > span {
-  font-size: 0.88rem;
-  font-weight: 750;
+  font-size: 0.84rem;
+  font-weight: 700;
 }
 
 .field input {
   background: var(--color-background);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-button);
+  border-radius: 0.3rem;
   color: var(--color-text);
   font-size: 1rem;
-  min-height: 3.35rem;
-  padding: 0.85rem 1rem;
-  transition:
-    border-color var(--transition-fast),
-    box-shadow var(--transition-fast),
-    background-color var(--transition-fast);
+  min-height: 3.2rem;
+  padding: 0.8rem 0.9rem;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background-color var(--transition-fast);
   width: 100%;
 }
 
@@ -134,8 +132,8 @@
 
 .field input:focus {
   background: var(--color-card);
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 0.22rem color-mix(in srgb, var(--color-primary) 16%, transparent);
+  border-color: var(--color-sage);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-sage) 16%, transparent);
 }
 
 .field input:disabled {
@@ -155,54 +153,48 @@
   align-items: center;
   color: var(--color-text-muted);
   display: inline-flex;
-  font-size: 0.86rem;
+  font-size: 0.82rem;
   gap: var(--space-2);
 }
 
 .remember input {
-  accent-color: var(--color-primary);
+  accent-color: var(--color-sage);
   height: 1rem;
   width: 1rem;
 }
 
 .comingSoon {
   color: var(--color-text-muted);
-  font-size: 0.8rem;
+  font-size: 0.78rem;
 }
 
 .formError {
-  background: color-mix(in srgb, var(--color-primary) 9%, var(--color-card));
-  border: 1px solid color-mix(in srgb, var(--color-primary) 32%, var(--color-border));
-  border-radius: var(--radius-button);
+  background: var(--color-error-surface);
+  border-left: 3px solid var(--color-primary);
   color: var(--color-primary-dark);
-  font-size: 0.86rem;
+  font-size: 0.84rem;
   line-height: 1.5;
   margin: calc(var(--space-2) * -1) 0 0;
-  padding: 0.8rem 0.9rem;
+  padding: 0.75rem 0.85rem;
 }
 
 .submit {
   background: var(--color-text);
-  border: 0;
+  border: 1px solid var(--color-text);
   border-radius: var(--radius-button);
-  box-shadow: var(--shadow-button);
   color: var(--color-background);
   cursor: pointer;
-  font-weight: 800;
-  min-height: 3.35rem;
-  padding: 0.85rem 1rem;
+  font-weight: 760;
+  min-height: 3.2rem;
+  padding: 0.8rem 1rem;
   touch-action: manipulation;
-  transition:
-    background-color var(--transition-fast),
-    box-shadow var(--transition-fast),
-    transform var(--transition-fast);
+  transition: background-color var(--transition-fast), border-color var(--transition-fast);
   width: 100%;
 }
 
 .submit:hover:not(:disabled) {
   background: var(--color-primary-dark);
-  box-shadow: var(--shadow-button-hover);
-  transform: translateY(-1px);
+  border-color: var(--color-primary-dark);
 }
 
 .submit:disabled {
@@ -214,7 +206,7 @@
   align-items: center;
   color: var(--color-text-muted);
   display: flex;
-  font-size: 0.76rem;
+  font-size: 0.74rem;
   gap: var(--space-3);
   margin-block: var(--space-6) var(--space-5);
 }
@@ -229,19 +221,20 @@
 
 .signup {
   color: var(--color-text-muted);
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   margin: 0;
   text-align: center;
 }
 
 .signup a {
+  border-bottom: 1px solid var(--color-border);
   color: var(--color-primary-dark);
-  font-weight: 800;
+  font-weight: 720;
   text-decoration: none;
 }
 
 .signup a:hover {
-  text-decoration: underline;
+  border-bottom-color: var(--color-primary-dark);
 }
 
 @media (min-width: 56rem) {
@@ -252,34 +245,30 @@
   .card {
     justify-self: end;
     max-width: 29rem;
+    padding-inline: 0.2rem;
   }
 }
 
 @media (max-width: 40rem) {
-  .page {
-    background: var(--color-background);
-  }
-
   .shell {
     align-items: stretch;
-    gap: 1.4rem;
+    gap: 1.6rem;
     min-height: auto;
-    padding-block: 1.35rem 2.25rem;
+    padding-block: 1.8rem 2.5rem;
   }
 
   .eyebrow {
-    font-size: 0.68rem;
+    font-size: 0.66rem;
     margin-bottom: 0.7rem;
   }
 
   .intro h1 {
-    font-size: clamp(2.15rem, 10.5vw, 3rem);
+    font-size: clamp(2.2rem, 10.5vw, 3.2rem);
     line-height: 1;
-    max-width: 12ch;
   }
 
   .intro > p {
-    font-size: 0.95rem;
+    font-size: 0.94rem;
     line-height: 1.55;
     margin-top: 0.9rem;
   }
@@ -289,9 +278,7 @@
   }
 
   .card {
-    border-radius: 1.15rem;
-    box-shadow: 0 0.8rem 2rem color-mix(in srgb, var(--color-text) 7%, transparent);
-    padding: 1.15rem;
+    padding-block: 1.4rem;
   }
 
   .cardHeader h2 {
@@ -299,18 +286,13 @@
   }
 
   .cardHeader p {
-    font-size: 0.9rem;
+    font-size: 0.88rem;
     line-height: 1.5;
   }
 
   .form {
     gap: 1rem;
     margin-top: 1.45rem;
-  }
-
-  .formMeta {
-    align-items: center;
-    flex-direction: row;
   }
 
   .divider {
