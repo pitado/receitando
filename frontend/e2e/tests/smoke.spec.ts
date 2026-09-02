@@ -19,12 +19,17 @@ test("home carrega e leva ingredientes ao combinador", async ({ page }) => {
   await expect(
     page.getByRole("heading", {
       level: 1,
-      name: "Abra a despensa. A receita começa aqui.",
+      name: "Cozinhe com o que você já tem.",
     }),
   ).toBeVisible();
 
-  await page.getByRole("button", { name: "arroz", exact: true }).click();
-  await page.getByRole("button", { name: "tomate", exact: true }).click();
+  const arroz = page.getByRole("button", { name: "arroz", exact: true });
+  const tomate = page.getByRole("button", { name: "tomate", exact: true });
+
+  await arroz.click();
+  await tomate.click();
+  await expect(arroz).toHaveAttribute("aria-pressed", "true");
+  await expect(tomate).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByLabel("Ingredientes que você tem")).toHaveValue("arroz, tomate");
 
   await page.getByRole("button", { name: "Buscar receitas" }).click();
