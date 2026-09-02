@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 import { installApiMock } from "./api-mock";
 
-test("home carrega e leva ingredientes ao combinador", async ({ page }) => {
+test("home carrega, morde a marca e leva ingredientes ao combinador", async ({ page }) => {
   await installApiMock(page, {
     "GET /api/home-feed": async () => ({
       body: {
@@ -22,6 +22,11 @@ test("home carrega e leva ingredientes ao combinador", async ({ page }) => {
       name: "Cozinhe com o que você já tem.",
     }),
   ).toBeVisible();
+
+  const wordmark = page.getByTestId("bite-wordmark");
+  await expect(wordmark).toBeVisible();
+  await wordmark.click({ position: { x: 90, y: 8 } });
+  await expect(page.getByTestId("bite-mark")).toHaveCount(1);
 
   const arroz = page.getByRole("button", { name: "arroz", exact: true });
   const tomate = page.getByRole("button", { name: "tomate", exact: true });
