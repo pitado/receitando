@@ -1,0 +1,180 @@
+.brand {
+  --bite-background: #f8f5ef;
+  align-items: center;
+  display: inline-flex;
+  flex-shrink: 0;
+  min-width: 0;
+  overflow: visible;
+  position: relative;
+  text-decoration: none;
+  touch-action: manipulation;
+  width: clamp(10.9rem, 42vw, 13.2rem);
+}
+
+.logo {
+  display: block;
+  height: auto;
+  max-width: 100%;
+  position: relative;
+  width: 100%;
+  z-index: 1;
+}
+
+.bites {
+  inset: 0;
+  overflow: visible;
+  pointer-events: none;
+  position: absolute;
+  z-index: 2;
+}
+
+.bite {
+  --bite-size: 30px;
+  animation: bite-settle 300ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  height: var(--bite-size);
+  pointer-events: none;
+  position: absolute;
+  width: calc(var(--bite-size) * 1.25);
+}
+
+.biteTop {
+  top: -1px;
+  transform: translateX(-50%);
+  transform-origin: center top;
+}
+
+.biteBottom {
+  bottom: -1px;
+  transform: translateX(-50%) rotate(180deg);
+  transform-origin: center bottom;
+}
+
+.mouth,
+.tooth {
+  background: var(--bite-background);
+  display: block;
+  position: absolute;
+}
+
+.mouth {
+  border-radius: 0 0 52% 52%;
+  height: 44%;
+  left: 15%;
+  top: -1px;
+  width: 70%;
+}
+
+.tooth {
+  border-radius: 50%;
+  bottom: 8%;
+}
+
+.toothOne {
+  height: 46%;
+  left: 9%;
+  width: 39%;
+}
+
+.toothTwo {
+  bottom: -2%;
+  height: 56%;
+  left: 34%;
+  width: 44%;
+}
+
+.toothThree {
+  height: 44%;
+  right: 7%;
+  width: 37%;
+}
+
+.crumb {
+  animation: crumb-fly 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  background: var(--color-text);
+  border-radius: 35% 65% 52% 48%;
+  display: block;
+  height: calc(var(--bite-size) * 0.11);
+  position: absolute;
+  width: calc(var(--bite-size) * 0.14);
+}
+
+.crumbOne {
+  right: -5%;
+  top: 33%;
+  transform: rotate(24deg);
+}
+
+.crumbTwo {
+  animation-delay: 45ms;
+  right: 6%;
+  top: 58%;
+  transform: rotate(-18deg) scale(0.72);
+}
+
+.brand:hover .logo,
+.brand:focus-visible .logo {
+  transform: translateY(-1px);
+}
+
+.brand:focus-visible {
+  border-radius: 0.3rem;
+  outline: 3px solid var(--color-focus);
+  outline-offset: 5px;
+}
+
+.logo {
+  transition: transform var(--transition-fast);
+}
+
+@keyframes bite-settle {
+  from {
+    opacity: 0;
+    scale: 0.45;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+@keyframes crumb-fly {
+  0% {
+    opacity: 0;
+    translate: 0 0;
+  }
+  35% {
+    opacity: 0.75;
+  }
+  100% {
+    opacity: 0;
+    translate: 0.85rem -0.55rem;
+  }
+}
+
+@media (min-width: 48rem) {
+  .brand {
+    width: 14.2rem;
+  }
+}
+
+@media (max-width: 35rem) {
+  .brand {
+    width: min(10.7rem, 48vw);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bite,
+  .crumb {
+    animation: none;
+  }
+
+  .logo {
+    transition: none;
+  }
+
+  .brand:hover .logo,
+  .brand:focus-visible .logo {
+    transform: none;
+  }
+}
