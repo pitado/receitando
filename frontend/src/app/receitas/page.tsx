@@ -17,6 +17,12 @@ export const metadata: Metadata = {
 
 const INITIAL_RECIPE_LIMIT = 36;
 
+type RecipesPageProps = {
+  searchParams: Promise<{
+    q?: string | string[];
+  }>;
+};
+
 function getCatalogError(error: unknown): string {
   if (error instanceof ApiError && error.kind === "connection") {
     return "Não foi possível carregar o catálogo. Confira se a API está ligada e tente novamente.";
@@ -25,7 +31,7 @@ function getCatalogError(error: unknown): string {
   return "Não foi possível carregar o catálogo agora. Tente novamente.";
 }
 
-function emptyCatalog(): RecipeCatalogResponse {
+function emptyCatalog(query = ""): RecipeCatalogResponse {
   return {
     items: [],
     pagination: {
@@ -35,7 +41,7 @@ function emptyCatalog(): RecipeCatalogResponse {
       hasMore: false,
     },
     filters: {
-      query: "",
+      query,
       source: "",
       mealType: "",
       difficulty: "",
@@ -45,12 +51,22 @@ function emptyCatalog(): RecipeCatalogResponse {
   };
 }
 
-export default async function RecipesPage() {
-  let catalog = emptyCatalog();
+function firstParam(value: string | string[] | undefined): string {
+  if (Array.isArray(value)) return value[0]?.trim() ?? "";
+  return value?.trim() ?? "";
+}
+
+export default async function RecipesPage({ searchParams }: RecipesPageProps) {
+  const params = await searchParams;
+  const initialQuery = firstParam(params.q);
+  let catalog = emptyCatalog(initialQuery);
   let errorMessage = "";
 
   try {
-    catalog = await listRecipes({ limit: INITIAL_RECIPE_LIMIT });
+    catalog = await listRecipes({
+      limit: INITIAL_RECIPE_LIMIT,
+      query: initialQuery || undefined,
+    });
   } catch (error: unknown) {
     errorMessage = getCatalogError(error);
   }
@@ -65,7 +81,11 @@ export default async function RecipesPage() {
         Encontre uma receita para hoje
       </SectionTitle>
 
-      <RecipesCatalog initialCatalog={catalog} initialError={errorMessage} />
+      <RecipesCatalog
+        initialCatalog={catalog}
+        initialError={errorMessage}
+        key={initialQuery || "catalogo"}
+      />
     </div>
   );
 }

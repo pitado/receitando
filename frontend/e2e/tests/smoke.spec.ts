@@ -46,6 +46,26 @@ test("home carrega, morde a marca e leva ingredientes ao combinador", async ({ p
   await expect(page.getByLabel("Adicione um ingrediente")).toBeVisible();
 });
 
+test("busca global do header abre o catálogo já filtrado", async ({ page }) => {
+  await installApiMock(page, {
+    "GET /api/home-feed": async () => ({
+      body: {
+        popular: [],
+        recentComments: [],
+        totals: { recipes: 12, comments: 3, likes: 8 },
+      },
+    }),
+  });
+
+  await page.goto("/");
+  const search = page.getByRole("searchbox", { name: "Pesquisar receitas" });
+  await expect(search).toBeVisible();
+  await search.fill("bolo de cenoura");
+  await search.press("Enter");
+
+  await expect(page).toHaveURL(/\/receitas\?q=bolo(?:\+|%20)de(?:\+|%20)cenoura$/);
+});
+
 test("despensa sem sessão pede autenticação", async ({ page }) => {
   await page.goto("/despensa");
 
