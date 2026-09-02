@@ -11,7 +11,7 @@
 .emptyState {
   background: var(--color-card);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
+  border-radius: 1.35rem;
   padding: clamp(2rem, 6vw, 4rem);
 }
 
@@ -20,33 +20,39 @@
 .profileCard h2,
 .editorCard h2 {
   font-family: var(--font-editorial), Georgia, serif;
-  letter-spacing: -0.045em;
+  letter-spacing: -0.04em;
 }
 
 .emptyState h1,
 .hero h1 {
-  font-size: clamp(2.6rem, 7vw, 5.3rem);
-  line-height: 0.96;
+  font-size: clamp(2.4rem, 6vw, 4.6rem);
+  font-weight: 560;
+  line-height: 0.98;
   margin: 0;
 }
 
 .emptyState > p:not(.eyebrow) {
   color: var(--color-text-muted);
-  line-height: 1.7;
+  line-height: 1.65;
   max-width: 36rem;
 }
 
 .hero {
   align-items: center;
+  background: var(--color-sage-soft);
+  border: 1px solid color-mix(in srgb, var(--color-sage) 20%, var(--color-border));
+  border-radius: 1.5rem;
   display: flex;
   gap: clamp(1.2rem, 4vw, 2rem);
-  padding-block: clamp(1rem, 3vw, 2rem);
+  padding: clamp(1.4rem, 4vw, 2.3rem);
 }
 
 .avatar {
   aspect-ratio: 1;
-  border: 1px solid var(--color-border);
+  background: var(--color-card);
+  border: 3px solid var(--color-card);
   border-radius: 50%;
+  box-shadow: var(--shadow-button);
   display: block;
   flex: 0 0 clamp(4.5rem, 10vw, 7rem);
   height: clamp(4.5rem, 10vw, 7rem);
@@ -57,16 +63,16 @@
 .eyebrow,
 .cardLabel {
   color: var(--color-primary-dark);
-  font-size: 0.76rem;
-  font-weight: 850;
-  letter-spacing: 0.14em;
+  font-size: 0.74rem;
+  font-weight: 760;
+  letter-spacing: 0.01em;
   margin: 0 0 var(--space-2);
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .greeting {
   color: var(--color-text-muted);
-  font-size: clamp(1rem, 2vw, 1.16rem);
+  font-size: clamp(1rem, 2vw, 1.14rem);
   margin: var(--space-3) 0 0;
 }
 
@@ -74,7 +80,7 @@
 .editorCard {
   background: var(--color-card);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
+  border-radius: 1.35rem;
   padding: clamp(1.5rem, 4vw, 2.3rem);
 }
 
@@ -88,7 +94,8 @@
 
 .profileCard h2,
 .editorCard h2 {
-  font-size: clamp(1.9rem, 4vw, 2.7rem);
+  font-size: clamp(1.8rem, 4vw, 2.55rem);
+  font-weight: 570;
   margin: 0 0 var(--space-2);
 }
 
@@ -100,7 +107,7 @@
 
 .profileCard .handle {
   color: var(--color-primary-dark);
-  font-weight: 800;
+  font-weight: 760;
   margin-bottom: 0.35rem;
 }
 
@@ -114,29 +121,34 @@
 .secondaryAction {
   border-radius: var(--radius-button);
   font: inherit;
-  font-weight: 800;
-  min-height: 2.9rem;
-  padding: 0.78rem 1rem;
+  font-weight: 760;
+  min-height: 2.95rem;
+  padding: 0.76rem 1rem;
   text-decoration: none;
 }
 
 .primaryAction {
   align-items: center;
-  background: var(--color-text);
-  color: var(--color-background);
+  background: var(--color-primary);
+  box-shadow: var(--shadow-button);
+  color: var(--color-on-primary);
   display: inline-flex;
 }
 
+.primaryAction:hover {
+  background: var(--color-primary-dark);
+}
+
 .secondaryAction {
-  background: transparent;
+  background: var(--color-card);
   border: 1px solid var(--color-border);
   color: var(--color-text);
   cursor: pointer;
 }
 
 .secondaryAction:hover {
-  background: var(--color-surface-secondary);
-  border-color: var(--color-primary);
+  background: var(--color-sage-soft);
+  border-color: color-mix(in srgb, var(--color-sage) 30%, var(--color-border));
 }
 
 .editorCard {
@@ -158,17 +170,22 @@
 
 .closeEditor {
   align-items: center;
-  background: transparent;
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: 50%;
+  border-radius: 0.65rem;
   color: var(--color-text-muted);
   cursor: pointer;
   display: inline-flex;
   flex: 0 0 2.4rem;
-  font-size: 1.5rem;
+  font-size: 1.35rem;
   height: 2.4rem;
   justify-content: center;
   line-height: 1;
+}
+
+.closeEditor:hover {
+  background: var(--color-error-surface);
+  color: var(--color-primary-dark);
 }
 
 .editorForm {
@@ -190,14 +207,14 @@
 .field > span,
 .avatarPicker legend {
   color: var(--color-text);
-  font-size: 0.9rem;
-  font-weight: 800;
+  font-size: 0.88rem;
+  font-weight: 720;
 }
 
 .field input {
-  background: var(--color-background);
+  background: #fff;
   border: 1px solid var(--color-border);
-  border-radius: 14px;
+  border-radius: 0.85rem;
   color: var(--color-text);
   font: inherit;
   min-height: 3.15rem;
@@ -207,28 +224,28 @@
 }
 
 .field input:focus {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 16%, transparent);
+  border-color: var(--color-sage);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-sage) 14%, transparent);
 }
 
 .field small {
   color: var(--color-text-muted);
-  font-size: 0.78rem;
+  font-size: 0.76rem;
 }
 
 .handleInput {
   align-items: center;
-  background: var(--color-background);
+  background: #fff;
   border: 1px solid var(--color-border);
-  border-radius: 14px;
+  border-radius: 0.85rem;
   display: flex;
   min-height: 3.15rem;
   overflow: hidden;
 }
 
 .handleInput:focus-within {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 16%, transparent);
+  border-color: var(--color-sage);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-sage) 14%, transparent);
 }
 
 .handleInput strong {
@@ -263,30 +280,27 @@
 
 .avatarOption {
   align-items: center;
-  background: var(--color-background);
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: 18px;
+  border-radius: 1rem;
   cursor: pointer;
   display: grid;
   gap: 0.55rem;
   justify-items: center;
   padding: 0.85rem;
   position: relative;
-  transition:
-    border-color var(--transition-fast),
-    transform var(--transition-fast),
-    background-color var(--transition-fast);
+  transition: border-color var(--transition-fast), background-color var(--transition-fast);
 }
 
 .avatarOption:hover {
-  border-color: var(--color-primary);
-  transform: translateY(-2px);
+  background: var(--color-sage-soft);
+  border-color: color-mix(in srgb, var(--color-sage) 35%, var(--color-border));
 }
 
 .avatarOptionSelected {
-  background: var(--color-surface-secondary);
-  border-color: var(--color-primary);
-  box-shadow: inset 0 0 0 1px var(--color-primary);
+  background: var(--color-sage-soft);
+  border-color: var(--color-sage);
+  box-shadow: inset 0 0 0 1px var(--color-sage);
 }
 
 .avatarOption input {
@@ -298,7 +312,7 @@
 }
 
 .avatarPreview {
-  border: 1px solid var(--color-border);
+  border: 2px solid var(--color-card);
   border-radius: 50%;
   display: block;
   height: 4.7rem;
@@ -306,27 +320,27 @@
 }
 
 .avatarOption span {
-  font-size: 0.82rem;
-  font-weight: 750;
+  font-size: 0.8rem;
+  font-weight: 720;
 }
 
 .editError,
 .editSuccess {
-  border-radius: 14px;
-  font-size: 0.9rem;
+  border-radius: 0.85rem;
+  font-size: 0.88rem;
   line-height: 1.5;
   margin: 0;
   padding: 0.85rem 1rem;
 }
 
 .editError {
-  background: #FBE3D9;
+  background: var(--color-error-surface);
   color: #9A3425;
 }
 
 .editSuccess {
-  background: #EEF3E8;
-  color: #49643D;
+  background: var(--color-success-surface);
+  color: var(--color-success-text);
 }
 
 .editorActions {
@@ -340,21 +354,27 @@
   border-radius: var(--radius-button);
   cursor: pointer;
   font: inherit;
-  font-weight: 800;
-  min-height: 2.9rem;
-  padding: 0.78rem 1.1rem;
+  font-weight: 760;
+  min-height: 2.95rem;
+  padding: 0.76rem 1.1rem;
 }
 
 .cancelButton {
-  background: transparent;
+  background: var(--color-card);
   border: 1px solid var(--color-border);
   color: var(--color-text-muted);
 }
 
 .saveButton {
-  background: var(--color-text);
-  border: 1px solid var(--color-text);
-  color: var(--color-background);
+  background: var(--color-primary);
+  border: 1px solid var(--color-primary);
+  box-shadow: var(--shadow-button);
+  color: var(--color-on-primary);
+}
+
+.saveButton:hover {
+  background: var(--color-primary-dark);
+  border-color: var(--color-primary-dark);
 }
 
 .cancelButton:disabled,
@@ -370,27 +390,30 @@
 }
 
 .statCard {
-  background: var(--color-surface-secondary);
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
+  border-radius: 1.15rem;
   color: var(--color-text);
   display: grid;
   gap: var(--space-2);
   padding: clamp(1.4rem, 4vw, 2rem);
   text-decoration: none;
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  transition: background-color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.statCard:nth-child(2) {
+  background: var(--color-sage-soft);
 }
 
 .statCard:hover {
-  box-shadow: var(--shadow-card);
-  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--color-primary) 28%, var(--color-border));
 }
 
 .statCard > span {
   color: var(--color-primary-dark);
-  font-family: var(--font-editorial), Georgia, serif;
-  font-size: clamp(2.6rem, 6vw, 4rem);
-  font-weight: 700;
+  font-size: clamp(2.4rem, 5vw, 3.6rem);
+  font-weight: 800;
+  letter-spacing: -0.05em;
   line-height: 1;
 }
 
@@ -404,10 +427,11 @@
 
 .tip {
   align-items: flex-start;
-  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
+  border-radius: 1rem;
   display: flex;
   gap: var(--space-3);
-  padding-top: var(--space-6);
+  padding: 1rem;
 }
 
 .tip > span {
