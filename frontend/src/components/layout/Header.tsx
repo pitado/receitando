@@ -1,7 +1,7 @@
-import Image from "next/image";
 import Link from "next/link";
 
 import { AuthControls } from "./AuthControls";
+import { InteractiveBrand } from "./InteractiveBrand";
 import styles from "./Header.module.css";
 
 const links = [
@@ -16,16 +16,9 @@ export function Header() {
   return (
     <header className={styles.header}>
       <div className={`container ${styles.inner}`}>
-        <Link aria-label="Receitando — página inicial" className={styles.brand} href="/">
-          <Image
-            alt="Receitando"
-            className={styles.brandLogo}
-            height={110}
-            priority
-            src="/receitando-logo.svg"
-            width={520}
-          />
-        </Link>
+        <div className={styles.brandSlot}>
+          <InteractiveBrand />
+        </div>
 
         <nav aria-label="Navegação principal" className={styles.navigation}>
           {links.map((link) => (
