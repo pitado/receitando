@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import type { MouseEvent } from "react";
+import type { CSSProperties, MouseEvent } from "react";
 
 import styles from "./InteractiveBrand.module.css";
 
@@ -76,7 +76,7 @@ export function InteractiveBrand() {
             style={{
               "--bite-size": `${bite.size}px`,
               left: `${bite.x}%`,
-            } as React.CSSProperties}
+            } as CSSProperties}
           >
             <i className={styles.mouth} />
             <i className={`${styles.tooth} ${styles.toothOne}`} />
