@@ -59,6 +59,7 @@ jobs:
         run: |
           node --check scripts/import-wikibooks-v2.mjs
           node --check scripts/canonicalize-ingredients.mjs
+          node --check scripts/mirror-wikibooks-images-to-r2.mjs
       - name: Aplicar migrations
         run: npm run migrate:remote
       - name: Importar receitas com imagens livres
@@ -68,3 +69,5 @@ jobs:
           LIMIT: ${{ inputs.limit }}
       - name: Canonicalizar ingredientes importados
         run: node scripts/canonicalize-ingredients.mjs
+      - name: Copiar imagens importadas para o R2
+        run: node scripts/mirror-wikibooks-images-to-r2.mjs
