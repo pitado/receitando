@@ -1,8 +1,7 @@
 .shell {
-  background: var(--color-card);
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-card);
+  border-radius: 1.25rem;
   display: grid;
   gap: var(--space-5);
   margin-block: clamp(1.5rem, 4vw, 2.5rem);
@@ -26,15 +25,16 @@
 .eyebrow {
   color: var(--color-primary-dark);
   font-size: 0.74rem;
-  font-weight: 850;
-  letter-spacing: 0.1em;
+  font-weight: 760;
+  letter-spacing: 0.01em;
   margin: 0;
-  text-transform: uppercase;
 }
 
 .shell h2 {
   font-family: var(--font-editorial), Georgia, serif;
-  font-size: clamp(1.55rem, 3vw, 2.15rem);
+  font-size: clamp(1.55rem, 3vw, 2.1rem);
+  font-weight: 570;
+  letter-spacing: -0.03em;
   line-height: 1.05;
   margin: 0;
 }
@@ -46,47 +46,55 @@
 }
 
 .heading > span {
-  background: var(--color-surface-secondary);
-  border-radius: var(--radius-pill);
-  font-size: 0.78rem;
-  font-weight: 800;
-  padding: 0.5rem 0.72rem;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: 0.7rem;
+  font-size: 0.76rem;
+  font-weight: 740;
+  padding: 0.48rem 0.65rem;
 }
 
 .shell > a,
 .footer button {
-  background: var(--color-primary-dark);
-  border: 1px solid var(--color-primary-dark);
+  background: var(--color-primary);
+  border: 1px solid var(--color-primary);
   border-radius: var(--radius-button);
+  box-shadow: var(--shadow-button);
   color: var(--color-on-primary);
   cursor: pointer;
   font: inherit;
   font-size: 0.84rem;
-  font-weight: 800;
+  font-weight: 740;
   justify-self: start;
   padding: 0.72rem 1rem;
   text-decoration: none;
 }
 
+.shell > a:hover,
+.footer button:hover:not(:disabled) {
+  background: var(--color-primary-dark);
+  border-color: var(--color-primary-dark);
+}
+
 .notice,
 .error,
 .complete {
-  border-radius: 0.9rem;
+  border-radius: 0.85rem;
   padding: 0.9rem 1rem;
 }
 
 .notice {
-  background: var(--color-surface);
+  background: var(--color-card);
 }
 
 .error {
-  background: var(--color-surface-secondary);
-  border: 1px solid var(--color-border);
+  background: var(--color-error-surface);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 22%, var(--color-border));
   color: var(--color-primary-dark) !important;
 }
 
 .complete {
-  background: color-mix(in srgb, var(--color-accent, #7c9a6e) 13%, var(--color-background));
+  background: var(--color-sage-soft);
   display: grid;
   gap: 0.2rem;
 }
@@ -98,7 +106,7 @@
 
 .list {
   display: grid;
-  gap: var(--space-2);
+  gap: 0.65rem;
   list-style: none;
   margin: 0;
   padding: 0;
@@ -106,7 +114,7 @@
 
 .list li {
   align-items: center;
-  background: var(--color-background);
+  background: var(--color-card);
   border: 1px solid var(--color-border);
   border-radius: 0.85rem;
   display: grid;
@@ -116,8 +124,15 @@
 }
 
 .list li > span {
-  color: var(--color-primary-dark);
-  font-size: 1.15rem;
+  align-items: center;
+  background: var(--color-sage-soft);
+  border-radius: 0.55rem;
+  color: var(--color-sage);
+  display: inline-flex;
+  font-size: 1rem;
+  height: 2rem;
+  justify-content: center;
+  width: 2rem;
 }
 
 .list li > div {
@@ -128,18 +143,17 @@
 .list small,
 .footer small {
   color: var(--color-text-muted);
-  font-size: 0.76rem;
+  font-size: 0.75rem;
   line-height: 1.45;
 }
 
 .footer {
   align-items: center;
-  border-top: 1px solid var(--color-border);
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-4);
   justify-content: space-between;
-  padding-top: var(--space-4);
+  padding-top: var(--space-2);
 }
 
 .footer small {
