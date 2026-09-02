@@ -16,14 +16,6 @@ const SUGGESTED_INGREDIENTS = [
   "cenoura",
 ];
 
-const FLAVOR_WORDS = [
-  "menos desperdício",
-  "mais improviso",
-  "a sua despensa primeiro",
-  "receitas possíveis",
-  "pitadas da comunidade",
-];
-
 function parseIngredients(value: string): string[] {
   const seen = new Set<string>();
 
@@ -207,23 +199,7 @@ export function HomeHero() {
         </div>
 
         <div className={styles.brandSignature}>
-          <span className={styles.signatureKicker}>uma marca para brincar — e lembrar</span>
           <BiteWordmark centered />
-        </div>
-      </div>
-
-      <div aria-hidden="true" className={styles.flavorRail}>
-        <div className={styles.flavorTrack}>
-          {[0, 1].map((copy) => (
-            <div className={styles.flavorSet} key={copy}>
-              {FLAVOR_WORDS.map((word) => (
-                <span key={`${copy}-${word}`}>
-                  {word}
-                  <i>✦</i>
-                </span>
-              ))}
-            </div>
-          ))}
         </div>
       </div>
     </section>
