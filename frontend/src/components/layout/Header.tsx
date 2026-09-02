@@ -6,7 +6,6 @@ export function Header() {
   return (
     <header className={styles.header}>
       <div className={`container ${styles.inner}`}>
-        <span aria-hidden="true" className={styles.balance} />
         <HeaderNav />
         <AuthControls />
       </div>
