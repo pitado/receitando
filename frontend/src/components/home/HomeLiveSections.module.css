@@ -2,19 +2,18 @@
 .section,
 .statsSection,
 .manifesto {
-  padding-block: clamp(3.5rem, 8vw, 6.5rem);
+  padding-block: clamp(3.8rem, 8vw, 6.5rem);
 }
 
 .personalCard {
-  align-items: center;
-  background: var(--color-surface-secondary);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
+  align-items: end;
+  border-bottom: 1px solid var(--color-border);
+  border-top: 1px solid var(--color-border);
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-5);
+  gap: var(--space-6);
   justify-content: space-between;
-  padding: clamp(1.5rem, 4vw, 2.4rem);
+  padding-block: clamp(1.7rem, 4vw, 2.5rem);
 }
 
 .personalCard h2,
@@ -26,95 +25,96 @@
 }
 
 .personalCard h2 {
-  font-size: clamp(2rem, 5vw, 3.4rem);
+  font-size: clamp(2rem, 5vw, 3.25rem);
+  font-weight: 590;
   line-height: 1;
   margin: 0 0 var(--space-3);
+  max-width: 42rem;
 }
 
 .personalCard p:not(.eyebrow) {
   color: var(--color-text-muted);
-  line-height: 1.65;
+  line-height: 1.6;
   margin: 0;
 }
 
 .eyebrow {
   color: var(--color-primary-dark);
-  font-size: 0.76rem;
-  font-weight: 850;
-  letter-spacing: 0.14em;
+  font-size: 0.7rem;
+  font-weight: 760;
+  letter-spacing: 0.1em;
   margin: 0 0 var(--space-2);
   text-transform: uppercase;
 }
 
 .sectionHeader {
   align-items: end;
+  border-bottom: 1px solid var(--color-border);
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-4);
+  gap: var(--space-5);
   justify-content: space-between;
   margin-bottom: var(--space-7);
+  padding-bottom: 1.1rem;
 }
 
 .sectionHeader h2 {
-  font-size: clamp(2.4rem, 6vw, 4.4rem);
+  font-size: clamp(2.3rem, 6vw, 4.2rem);
+  font-weight: 580;
   line-height: 0.98;
   margin: 0;
 }
 
 .textLink {
+  border-bottom: 1px solid var(--color-border);
   color: var(--color-primary-dark);
-  font-weight: 800;
+  font-size: 0.88rem;
+  font-weight: 720;
+  padding-bottom: 0.15rem;
   text-decoration: none;
+  transition: border-color var(--transition-fast), color var(--transition-fast);
 }
 
 .textLink:hover {
-  text-decoration: underline;
-  text-underline-offset: 0.25em;
+  border-bottom-color: var(--color-primary-dark);
 }
 
 .recipeGrid,
 .commentGrid {
   display: grid;
-  gap: var(--space-4);
+  gap: 1.6rem;
 }
 
 .recipeCard {
-  background: var(--color-card);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
+  border-bottom: 1px solid var(--color-border);
   color: var(--color-text);
   display: grid;
-  gap: var(--space-3);
-  min-height: 18rem;
-  padding: clamp(1.35rem, 3vw, 1.8rem);
+  gap: 0.8rem;
+  min-height: 15rem;
+  padding: 0 0 1.35rem;
   text-decoration: none;
-  transition: box-shadow var(--transition-fast), transform var(--transition-fast);
-}
-
-.recipeCard:hover,
-.commentCard:hover {
-  box-shadow: var(--shadow-card);
-  transform: translateY(-2px);
 }
 
 .recipeMeta {
   color: var(--color-primary-dark);
-  font-size: 0.75rem;
-  font-weight: 850;
-  letter-spacing: 0.08em;
+  font-size: 0.68rem;
+  font-weight: 760;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
 }
 
 .recipeCard h3 {
   font-family: var(--font-editorial), Georgia, serif;
-  font-size: clamp(1.75rem, 4vw, 2.35rem);
+  font-size: clamp(1.75rem, 4vw, 2.3rem);
+  font-weight: 590;
+  letter-spacing: -0.035em;
   line-height: 1;
   margin: 0;
 }
 
 .recipeCard > p {
   color: var(--color-text-muted);
-  line-height: 1.6;
+  line-height: 1.55;
   margin: 0;
 }
 
@@ -129,21 +129,27 @@
 
 .recipeFooter span {
   color: var(--color-text-muted);
-  font-size: 0.82rem;
+  font-size: 0.78rem;
 }
 
 .recipeFooter strong {
+  border-bottom: 1px solid transparent;
+  color: var(--color-primary-dark);
   margin-left: auto;
 }
 
+.recipeCard:hover .recipeFooter strong {
+  border-bottom-color: var(--color-primary-dark);
+}
+
 .statsSection {
-  background: var(--color-primary-dark);
+  background: var(--color-text);
   color: var(--color-on-primary);
 }
 
 .statsGrid {
   display: grid;
-  gap: var(--space-6);
+  gap: var(--space-7);
 }
 
 .statsSection .eyebrow {
@@ -151,14 +157,15 @@
 }
 
 .statLead h2 {
-  font-size: clamp(2.2rem, 5vw, 3.7rem);
+  font-size: clamp(2.2rem, 5vw, 3.6rem);
+  font-weight: 560;
   line-height: 1;
   margin: 0;
   max-width: 38rem;
 }
 
 .stat {
-  border-top: 1px solid color-mix(in srgb, var(--color-on-primary) 25%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--color-on-primary) 24%, transparent);
   display: grid;
   gap: 0.35rem;
   padding-top: var(--space-4);
@@ -166,27 +173,24 @@
 
 .stat strong {
   font-family: var(--font-editorial), Georgia, serif;
-  font-size: clamp(2.6rem, 6vw, 4.5rem);
-  font-weight: 600;
+  font-size: clamp(2.5rem, 6vw, 4.2rem);
+  font-weight: 560;
   line-height: 1;
 }
 
 .stat span {
   color: color-mix(in srgb, var(--color-on-primary) 72%, transparent);
-  font-size: 0.9rem;
+  font-size: 0.84rem;
 }
 
 .commentCard {
-  background: var(--color-card);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
+  border-top: 1px solid var(--color-border);
   color: var(--color-text);
   display: grid;
   gap: var(--space-4);
-  min-height: 13rem;
-  padding: clamp(1.35rem, 3vw, 1.8rem);
+  min-height: 12rem;
+  padding-top: 1.2rem;
   text-decoration: none;
-  transition: box-shadow var(--transition-fast), transform var(--transition-fast);
 }
 
 .authorRow {
@@ -196,45 +200,45 @@
 }
 
 .avatar {
-  flex: 0 0 2.8rem;
-  height: 2.8rem;
-  width: 2.8rem;
+  flex: 0 0 2.6rem;
+  height: 2.6rem;
+  width: 2.6rem;
 }
 
 .authorRow > div {
   display: grid;
-  gap: 0.15rem;
+  gap: 0.12rem;
 }
 
 .authorRow span,
 .commentCard small {
   color: var(--color-text-muted);
-  font-size: 0.78rem;
+  font-size: 0.75rem;
 }
 
 .commentCard blockquote {
   font-family: var(--font-editorial), Georgia, serif;
-  font-size: 1.35rem;
-  line-height: 1.35;
+  font-size: clamp(1.25rem, 2.5vw, 1.55rem);
+  line-height: 1.32;
   margin: 0;
 }
 
 .commentEmpty {
   align-items: center;
-  background: color-mix(in srgb, var(--color-surface-secondary) 68%, var(--color-card));
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
+  border-bottom: 1px solid var(--color-border);
+  border-top: 1px solid var(--color-border);
   display: grid;
   gap: var(--space-5);
   grid-template-columns: auto minmax(0, 1fr) auto;
-  padding: clamp(1.5rem, 4vw, 2.2rem);
+  padding-block: clamp(1.4rem, 4vw, 2rem);
 }
 
 .commentEmpty > span {
-  color: color-mix(in srgb, var(--color-primary) 35%, transparent);
+  color: var(--color-primary);
   font-family: var(--font-editorial), Georgia, serif;
-  font-size: clamp(4rem, 9vw, 6.5rem);
+  font-size: clamp(4rem, 9vw, 6rem);
   line-height: 0.7;
+  opacity: 0.45;
 }
 
 .commentEmpty > div {
@@ -244,7 +248,8 @@
 
 .commentEmpty strong {
   font-family: var(--font-editorial), Georgia, serif;
-  font-size: clamp(1.45rem, 3vw, 2rem);
+  font-size: clamp(1.4rem, 3vw, 1.9rem);
+  font-weight: 590;
 }
 
 .commentEmpty p {
@@ -259,18 +264,20 @@
 
 .manifestoInner {
   max-width: 58rem;
+  padding-right: clamp(0rem, 14vw, 10rem);
 }
 
 .manifesto h2 {
-  font-size: clamp(2.7rem, 7vw, 5.2rem);
+  font-size: clamp(2.7rem, 7vw, 5rem);
+  font-weight: 570;
   line-height: 0.96;
   margin: 0 0 var(--space-5);
 }
 
 .manifesto p:not(.eyebrow) {
   color: var(--color-text-muted);
-  font-size: clamp(1.05rem, 2vw, 1.2rem);
-  line-height: 1.7;
+  font-size: clamp(1.02rem, 2vw, 1.16rem);
+  line-height: 1.68;
   margin: 0 0 var(--space-5);
   max-width: 45rem;
 }
@@ -287,78 +294,51 @@
 }
 
 .vegetableSection::after {
+  display: none;
+}
+
+.withTomatoes::after,
+.withLettuce::after {
   background-image: url("/home-vegetables-sprite.webp");
   background-repeat: no-repeat;
   background-size: 1000px 470px;
   content: "";
-  filter: saturate(0.82) sepia(0.06);
+  display: block;
   pointer-events: none;
   position: absolute;
-  transform-origin: center;
   z-index: 0;
-}
-
-.withBeet::after {
-  background-position: -25px -28px;
-  bottom: -1.5rem;
-  height: 212px;
-  left: -0.5rem;
-  opacity: 0.32;
-  transform: scale(2) rotate(-8deg);
-  width: 118px;
-}
-
-.withBroccoli::after {
-  background-position: -209px -37px;
-  height: 190px;
-  opacity: 0.3;
-  right: 0.5rem;
-  top: 50%;
-  transform: translateY(-50%) scale(2.05) rotate(5deg);
-  width: 172px;
 }
 
 .withTomatoes::after {
   background-position: -420px -47px;
-  filter: brightness(1.45) saturate(0.85);
+  filter: brightness(1.45) saturate(0.75);
   height: 178px;
-  mix-blend-mode: screen;
-  opacity: 0.28;
+  opacity: 0.16;
   right: 1.5rem;
-  top: -0.25rem;
-  transform: scale(1.8) rotate(7deg);
+  top: 0.25rem;
+  transform: scale(1.45) rotate(6deg);
   width: 181px;
-}
-
-.withCarrots::after {
-  background-position: -848px -16px;
-  height: 224px;
-  left: 0;
-  opacity: 0.3;
-  top: 18%;
-  transform: scale(2) rotate(-7deg);
-  width: 119px;
 }
 
 .withLettuce::after {
   background-position: -649px -27px;
-  bottom: -1rem;
+  bottom: -1.6rem;
   height: 210px;
-  opacity: 0.32;
-  right: 0.5rem;
-  transform: scale(2.25) rotate(7deg);
+  opacity: 0.18;
+  right: 0.8rem;
+  transform: scale(1.7) rotate(7deg);
   width: 141px;
 }
 
 .srOnly {
+  clip: rect(0, 0, 0, 0);
   height: 1px;
   margin: -1px;
   overflow: hidden;
   padding: 0;
   position: absolute;
-  width: 1px;
-  clip: rect(0, 0, 0, 0);
   white-space: nowrap;
+  width: 1px;
 }
 
 @media (min-width: 48rem) {
@@ -367,9 +347,15 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
+  .recipeCard + .recipeCard,
+  .commentCard + .commentCard {
+    border-left: 1px solid var(--color-border);
+    padding-left: 1.5rem;
+  }
+
   .statsGrid {
     align-items: end;
-    grid-template-columns: 1.5fr repeat(3, minmax(0, 0.55fr));
+    grid-template-columns: 1.45fr repeat(3, minmax(0, 0.55fr));
   }
 }
 
@@ -389,7 +375,8 @@
     font-size: 4rem;
   }
 
-  .vegetableSection::after {
+  .withTomatoes::after,
+  .withLettuce::after {
     display: none;
   }
 }
