@@ -46,3 +46,5 @@ jobs:
         run: npm run migrate:remote
       - name: Deploy Worker
         run: npm run deploy
+      - name: Mirror Wikibooks catalog images to R2
+        run: node scripts/mirror-wikibooks-images-to-r2.mjs
