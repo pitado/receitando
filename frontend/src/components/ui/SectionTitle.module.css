@@ -1,23 +1,23 @@
 .sectionTitle {
   display: grid;
-  gap: 0.7rem;
+  gap: 0.65rem;
   max-width: 46rem;
 }
 
 .eyebrow {
   color: var(--color-primary-dark);
-  font-size: 0.7rem;
+  font-size: 0.76rem;
   font-weight: 760;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.01em;
   margin: 0;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .title {
   font-family: var(--font-editorial), Georgia, serif;
-  font-size: clamp(2.15rem, 5vw, 3.55rem);
-  font-weight: 580;
-  letter-spacing: -0.042em;
+  font-size: clamp(2.05rem, 4.5vw, 3.35rem);
+  font-weight: 570;
+  letter-spacing: -0.04em;
   line-height: 1;
   margin: 0;
   text-wrap: balance;
@@ -33,14 +33,4 @@
 .centered {
   margin-inline: auto;
   text-align: center;
-}
-
-.centered::after {
-  background: var(--color-sage);
-  content: "";
-  height: 1px;
-  justify-self: center;
-  margin-top: 0.35rem;
-  opacity: 0.6;
-  width: 4rem;
 }
