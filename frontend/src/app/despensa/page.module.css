@@ -16,7 +16,7 @@
   align-self: start;
   background: var(--color-card);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
+  border-radius: 1.35rem;
   box-shadow: var(--shadow-card);
   display: grid;
   gap: var(--space-5);
@@ -32,17 +32,17 @@
 .formIntro p,
 .loginState > p {
   color: var(--color-primary-dark);
-  font-size: 0.75rem;
-  font-weight: 850;
-  letter-spacing: 0.1em;
+  font-size: 0.74rem;
+  font-weight: 760;
   margin: 0;
-  text-transform: uppercase;
 }
 
 .formIntro h2,
 .loginState h2 {
   font-family: var(--font-editorial), Georgia, serif;
-  font-size: clamp(1.8rem, 3.4vw, 2.55rem);
+  font-size: clamp(1.8rem, 3.4vw, 2.5rem);
+  font-weight: 570;
+  letter-spacing: -0.035em;
   line-height: 1.02;
   margin: 0;
 }
@@ -62,39 +62,39 @@
 
 .searchBox label,
 .expiryField label {
-  font-size: 0.84rem;
-  font-weight: 800;
+  font-size: 0.82rem;
+  font-weight: 720;
 }
 
 .expiryField label span {
   color: var(--color-text-muted);
   font-size: 0.72rem;
-  font-weight: 650;
+  font-weight: 620;
   margin-left: 0.35rem;
 }
 
 .searchBox input,
 .expiryField input {
-  background: var(--color-background);
+  background: #fff;
   border: 1px solid var(--color-border);
-  border-radius: 1rem;
+  border-radius: 0.9rem;
   color: var(--color-text);
   font: inherit;
-  min-height: 3.4rem;
+  min-height: 3.35rem;
   outline: none;
-  padding: 0.9rem 1rem;
+  padding: 0.85rem 0.95rem;
   width: 100%;
 }
 
 .searchBox input:focus,
 .expiryField input:focus {
-  border-color: var(--color-primary-dark);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary-dark) 12%, transparent);
+  border-color: var(--color-sage);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-sage) 14%, transparent);
 }
 
 .expiryField small {
   color: var(--color-text-muted);
-  font-size: 0.75rem;
+  font-size: 0.74rem;
   line-height: 1.45;
 }
 
@@ -112,23 +112,23 @@
 }
 
 .suggestionHeading strong {
-  font-size: 0.88rem;
+  font-size: 0.86rem;
 }
 
 .suggestionHeading span {
   color: var(--color-text-muted);
-  font-size: 0.75rem;
+  font-size: 0.74rem;
 }
 
 .suggestions {
   display: grid;
-  gap: var(--space-2);
+  gap: 0.6rem;
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .suggestions button {
   align-items: center;
-  background: var(--color-background);
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: 0.9rem;
   color: var(--color-text);
@@ -137,13 +137,13 @@
   gap: 0.1rem var(--space-2);
   grid-template-columns: auto minmax(0, 1fr);
   min-width: 0;
-  padding: 0.8rem 0.85rem;
+  padding: 0.75rem 0.8rem;
   text-align: left;
 }
 
 .suggestions button:hover {
-  background: var(--color-surface);
-  border-color: var(--color-primary-dark);
+  background: var(--color-sage-soft);
+  border-color: color-mix(in srgb, var(--color-sage) 35%, var(--color-border));
 }
 
 .suggestions button:disabled {
@@ -153,16 +153,16 @@
 
 .suggestions button > span {
   align-items: center;
-  background: var(--color-surface-secondary);
-  border-radius: 999px;
+  background: var(--color-card);
+  border-radius: 0.55rem;
   color: var(--color-primary-dark);
   display: inline-flex;
   font-size: 1rem;
   font-weight: 900;
   grid-row: 1 / span 2;
-  height: 1.75rem;
+  height: 1.8rem;
   justify-content: center;
-  width: 1.75rem;
+  width: 1.8rem;
 }
 
 .suggestions strong {
@@ -174,7 +174,7 @@
 
 .suggestions small {
   color: var(--color-text-muted);
-  font-size: 0.72rem;
+  font-size: 0.71rem;
   overflow: hidden;
   text-overflow: ellipsis;
   text-transform: capitalize;
@@ -198,8 +198,8 @@
 }
 
 .error {
-  background: var(--color-surface-secondary);
-  border: 1px solid var(--color-border);
+  background: var(--color-error-surface);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 22%, var(--color-border));
   color: var(--color-primary-dark);
 }
 
@@ -208,19 +208,24 @@
 }
 
 .loginState a {
-  background: var(--color-text);
-  border-radius: 0.9rem;
-  color: var(--color-background);
-  font-weight: 850;
-  padding: 0.9rem 1rem;
+  background: var(--color-primary);
+  border-radius: var(--radius-button);
+  box-shadow: var(--shadow-button);
+  color: var(--color-on-primary);
+  font-weight: 760;
+  padding: 0.85rem 1rem;
   text-align: center;
   text-decoration: none;
+}
+
+.loginState a:hover {
+  background: var(--color-primary-dark);
 }
 
 .preview {
   background: var(--color-card);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
+  border-radius: 1.4rem;
   box-shadow: var(--shadow-card);
   min-width: 0;
   overflow: hidden;
@@ -228,8 +233,8 @@
 
 .previewHeader {
   align-items: end;
-  background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
+  background: var(--color-sage-soft);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-sage) 18%, var(--color-border));
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-4);
@@ -239,32 +244,33 @@
 
 .previewHeader p {
   color: var(--color-primary-dark);
-  font-size: 0.75rem;
-  font-weight: 850;
-  letter-spacing: 0.1em;
+  font-size: 0.74rem;
+  font-weight: 760;
   margin: 0 0 var(--space-2);
-  text-transform: uppercase;
 }
 
 .previewHeader h2 {
   font-family: var(--font-editorial), Georgia, serif;
   font-size: clamp(1.75rem, 3.2vw, 2.35rem);
+  font-weight: 570;
+  letter-spacing: -0.03em;
   line-height: 1.05;
   margin: 0;
 }
 
 .previewHeader > span {
-  background: var(--color-surface-secondary);
-  border-radius: var(--radius-pill);
+  background: var(--color-card);
+  border: 1px solid color-mix(in srgb, var(--color-sage) 18%, var(--color-border));
+  border-radius: 0.75rem;
   color: var(--color-text);
   flex: none;
   font-size: 0.78rem;
-  font-weight: 800;
-  padding: 0.5rem 0.75rem;
+  font-weight: 760;
+  padding: 0.5rem 0.7rem;
 }
 
 .expiryAlert {
-  background: color-mix(in srgb, var(--color-accent, #7c9a6e) 12%, var(--color-background));
+  background: color-mix(in srgb, var(--color-highlight) 14%, var(--color-card));
   border-bottom: 1px solid var(--color-border);
   display: grid;
   gap: var(--space-3);
@@ -277,7 +283,7 @@
 }
 
 .expiryAlert > div strong {
-  font-size: 0.94rem;
+  font-size: 0.92rem;
 }
 
 .expiryAlert > div span {
@@ -298,25 +304,25 @@
 .expiryAlert li {
   background: var(--color-card);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-pill);
+  border-radius: 0.65rem;
   display: inline-flex;
   gap: 0.45rem;
-  padding: 0.45rem 0.7rem;
+  padding: 0.45rem 0.65rem;
 }
 
 .expiryAlert li strong,
 .expiryAlert li span {
-  font-size: 0.75rem;
+  font-size: 0.74rem;
 }
 
 .expiryAlert li span {
   color: var(--color-primary-dark);
-  font-weight: 800;
+  font-weight: 760;
 }
 
 .items {
   display: grid;
-  gap: var(--space-2);
+  gap: 0.65rem;
   list-style: none;
   margin: 0;
   padding: var(--space-4) clamp(1.25rem, 4vw, 2rem);
@@ -347,14 +353,14 @@
 
 .itemInfo > span {
   color: var(--color-text-muted);
-  font-size: 0.75rem;
+  font-size: 0.74rem;
   text-transform: capitalize;
 }
 
 .itemInfo > small {
   color: var(--color-text-muted);
-  font-size: 0.72rem;
-  font-weight: 750;
+  font-size: 0.71rem;
+  font-weight: 720;
 }
 
 .expiryWarning {
@@ -372,9 +378,8 @@
 
 .itemExpiry > span {
   color: var(--color-text-muted);
-  font-size: 0.67rem;
-  font-weight: 800;
-  text-transform: uppercase;
+  font-size: 0.66rem;
+  font-weight: 720;
 }
 
 .itemExpiry input {
@@ -395,18 +400,18 @@
 .amount {
   color: var(--color-primary-dark);
   font-size: 0.78rem;
-  font-weight: 800;
+  font-weight: 760;
 }
 
 .remove {
   align-items: center;
-  background: transparent;
+  background: var(--color-card);
   border: 1px solid var(--color-border);
-  border-radius: 999px;
+  border-radius: 0.6rem;
   color: var(--color-text-muted);
   cursor: pointer;
   display: inline-flex;
-  font-size: 1.05rem;
+  font-size: 1rem;
   height: 2rem;
   justify-content: center;
   padding: 0;
@@ -414,7 +419,8 @@
 }
 
 .remove:hover {
-  border-color: var(--color-primary-dark);
+  background: var(--color-error-surface);
+  border-color: color-mix(in srgb, var(--color-primary) 30%, var(--color-border));
   color: var(--color-primary-dark);
 }
 
@@ -446,13 +452,18 @@
 }
 
 .previewFooter a {
-  background: var(--color-primary-dark);
-  border-radius: var(--radius-pill);
-  color: var(--color-background);
+  background: var(--color-primary);
+  border-radius: var(--radius-button);
+  box-shadow: var(--shadow-button);
+  color: var(--color-on-primary);
   font-size: 0.84rem;
-  font-weight: 800;
-  padding: 0.68rem 0.95rem;
+  font-weight: 760;
+  padding: 0.7rem 0.95rem;
   text-decoration: none;
+}
+
+.previewFooter a:hover {
+  background: var(--color-primary-dark);
 }
 
 .empty {
@@ -465,6 +476,7 @@
 .empty strong {
   font-family: var(--font-editorial), Georgia, serif;
   font-size: 1.5rem;
+  font-weight: 570;
 }
 
 .empty span,
