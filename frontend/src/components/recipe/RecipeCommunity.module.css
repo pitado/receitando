@@ -1,5 +1,4 @@
 .community {
-  border-top: 1px solid var(--color-border);
   display: grid;
   gap: var(--space-5);
   margin-top: clamp(2.5rem, 6vw, 5rem);
@@ -8,16 +7,17 @@
 
 .heading p {
   color: var(--color-primary-dark);
-  font-size: 0.76rem;
-  font-weight: 850;
-  letter-spacing: 0.14em;
+  font-size: 0.74rem;
+  font-weight: 760;
+  letter-spacing: 0.01em;
   margin: 0 0 var(--space-2);
 }
 
 .heading h2 {
   font-family: var(--font-editorial), Georgia, serif;
-  font-size: clamp(2.2rem, 5vw, 4rem);
-  letter-spacing: -0.045em;
+  font-size: clamp(2.1rem, 4.8vw, 3.7rem);
+  font-weight: 560;
+  letter-spacing: -0.04em;
   line-height: 1;
   margin: 0;
 }
@@ -31,7 +31,7 @@
 .votes {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-3);
+  gap: 0.6rem;
 }
 
 .vote,
@@ -39,31 +39,27 @@
   align-items: center;
   background: var(--color-card);
   border: 1px solid var(--color-border);
-  border-radius: 999px;
+  border-radius: 0.8rem;
   color: var(--color-text);
   cursor: pointer;
   display: inline-flex;
   gap: 0.55rem;
-  min-height: 3rem;
-  padding: 0.65rem 1rem;
-  transition:
-    background-color var(--transition-fast),
-    border-color var(--transition-fast),
-    color var(--transition-fast),
-    transform var(--transition-fast);
+  min-height: 2.9rem;
+  padding: 0.62rem 0.9rem;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
 }
 
 .vote:hover:not(:disabled),
 .voteActive:hover:not(:disabled) {
-  border-color: var(--color-primary);
-  color: var(--color-primary-dark);
-  transform: translateY(-1px);
+  background: var(--color-sage-soft);
+  border-color: color-mix(in srgb, var(--color-sage) 34%, var(--color-border));
+  color: var(--color-text);
 }
 
 .voteActive {
-  background: var(--color-surface-secondary);
-  border-color: var(--color-primary);
-  color: var(--color-primary-dark);
+  background: var(--color-sage-soft);
+  border-color: var(--color-sage);
+  color: var(--color-sage);
 }
 
 .voteIcon {
@@ -80,41 +76,41 @@
 .vote small,
 .voteActive small {
   color: var(--color-text-muted);
-  font-weight: 800;
+  font-weight: 760;
 }
 
 .commentForm {
-  background: var(--color-card);
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
+  border-radius: 1.25rem;
   display: grid;
   gap: var(--space-3);
-  padding: clamp(1.2rem, 3vw, 1.8rem);
+  padding: clamp(1.2rem, 3vw, 1.7rem);
 }
 
 .commentForm label {
-  font-family: var(--font-editorial), Georgia, serif;
-  font-size: 1.45rem;
-  font-weight: 700;
+  font-size: 1.1rem;
+  font-weight: 760;
 }
 
 .commentForm textarea,
 .editBox textarea {
-  background: var(--color-background);
+  background: #fff;
   border: 1px solid var(--color-border);
-  border-radius: 1rem;
+  border-radius: 0.9rem;
   color: var(--color-text);
   font: inherit;
   line-height: 1.6;
   min-height: 7rem;
-  padding: 1rem;
+  padding: 0.95rem;
   resize: vertical;
   width: 100%;
 }
 
 .commentForm textarea:focus,
 .editBox textarea:focus {
-  border-color: var(--color-primary);
+  border-color: var(--color-sage);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-sage) 14%, transparent);
   outline: none;
 }
 
@@ -137,15 +133,21 @@
   border-radius: var(--radius-button);
   cursor: pointer;
   font: inherit;
-  font-weight: 800;
+  font-weight: 740;
 }
 
 .commentForm button {
-  background: var(--color-text);
-  border: 0;
-  color: var(--color-background);
-  min-height: 2.7rem;
+  background: var(--color-primary);
+  border: 1px solid var(--color-primary);
+  box-shadow: var(--shadow-button);
+  color: var(--color-on-primary);
+  min-height: 2.8rem;
   padding: 0.65rem 1rem;
+}
+
+.commentForm button:hover:not(:disabled) {
+  background: var(--color-primary-dark);
+  border-color: var(--color-primary-dark);
 }
 
 button:disabled {
@@ -154,9 +156,9 @@ button:disabled {
 }
 
 .message {
-  background: var(--color-surface-secondary);
-  border-radius: 0.9rem;
-  color: var(--color-primary-dark);
+  background: var(--color-sage-soft);
+  border-radius: 0.85rem;
+  color: var(--color-sage);
   margin: 0;
   padding: 0.85rem 1rem;
 }
@@ -173,18 +175,18 @@ button:disabled {
 }
 
 .commentsTitle h3 {
-  font-family: var(--font-editorial), Georgia, serif;
-  font-size: 1.8rem;
+  font-size: 1.3rem;
+  font-weight: 760;
   margin: 0;
 }
 
 .commentsTitle span {
   align-items: center;
-  background: var(--color-surface-secondary);
-  border-radius: 999px;
+  background: var(--color-surface);
+  border-radius: 0.55rem;
   display: inline-flex;
-  font-size: 0.8rem;
-  font-weight: 800;
+  font-size: 0.78rem;
+  font-weight: 760;
   height: 1.7rem;
   justify-content: center;
   min-width: 1.7rem;
@@ -192,24 +194,27 @@ button:disabled {
 }
 
 .empty {
-  border: 1px dashed var(--color-border);
-  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 1rem;
   color: var(--color-text-muted);
-  padding: 1.5rem;
+  padding: 1.4rem;
 }
 
 .comment {
   align-items: flex-start;
-  border-bottom: 1px solid var(--color-border);
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: 1rem;
   display: flex;
   gap: var(--space-3);
-  padding-block: 1.3rem;
+  padding: 1.15rem;
 }
 
 .avatar {
-  flex: 0 0 3.1rem;
-  height: 3.1rem;
-  width: 3.1rem;
+  flex: 0 0 3rem;
+  height: 3rem;
+  width: 3rem;
 }
 
 .commentBody {
@@ -232,19 +237,19 @@ button:disabled {
 .commentMeta span,
 .commentMeta time {
   color: var(--color-text-muted);
-  font-size: 0.8rem;
+  font-size: 0.78rem;
 }
 
 .commentBody > p {
-  line-height: 1.7;
-  margin: 0.75rem 0 0;
+  line-height: 1.65;
+  margin: 0.7rem 0 0;
   white-space: pre-wrap;
 }
 
 .commentActions {
   display: flex;
-  gap: 0.8rem;
-  margin-top: 0.8rem;
+  gap: 0.55rem;
+  margin-top: 0.75rem;
 }
 
 .commentActions button,
@@ -252,7 +257,12 @@ button:disabled {
   background: transparent;
   border: 0;
   color: var(--color-primary-dark);
-  padding: 0;
+  padding: 0.35rem 0.45rem;
+}
+
+.commentActions button:hover,
+.editBox button:hover {
+  background: var(--color-surface);
 }
 
 .editBox {
@@ -262,8 +272,8 @@ button:disabled {
 }
 
 .editBox button:last-child {
-  background: var(--color-text);
-  color: var(--color-background);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
   padding: 0.55rem 0.8rem;
 }
 
