@@ -1,6 +1,7 @@
 .header {
-  background: var(--color-background-translucent);
-  border-bottom: 1px solid color-mix(in srgb, var(--color-border) 78%, transparent);
+  background: color-mix(in srgb, var(--color-background) 88%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-sage) 16%, var(--color-border));
+  backdrop-filter: blur(18px) saturate(1.08);
   position: sticky;
   top: 0;
   z-index: 20;
@@ -9,13 +10,13 @@
 .inner {
   align-items: center;
   display: grid;
-  gap: 0.5rem 0.9rem;
+  gap: 0.55rem 0.9rem;
   grid-template-areas:
     "brand auth"
     "nav nav";
   grid-template-columns: minmax(0, 1fr) auto;
-  min-height: 4.65rem;
-  padding-block: 0.55rem;
+  min-height: 4.7rem;
+  padding-block: 0.6rem;
 }
 
 .brand {
@@ -25,19 +26,25 @@
   grid-area: brand;
   min-width: 0;
   text-decoration: none;
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
+}
+
+.brand:hover {
+  opacity: 0.82;
+  transform: translateY(-1px);
 }
 
 .brandLogo {
   display: block;
   height: auto;
   max-width: 100%;
-  width: clamp(9.7rem, 42vw, 11.7rem);
+  width: clamp(9.5rem, 42vw, 11.5rem);
 }
 
 .navigation {
   align-items: center;
   display: flex;
-  gap: 0.35rem;
+  gap: 0.25rem;
   grid-area: nav;
   margin-inline: calc(var(--page-gutter) * -1);
   overflow-x: auto;
@@ -51,46 +58,50 @@
 }
 
 .navLink {
-  border-radius: 0.7rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
   color: var(--color-text-muted);
   flex-shrink: 0;
-  font-size: 0.84rem;
-  font-weight: 680;
-  padding: 0.5rem 0.7rem;
+  font-size: 0.82rem;
+  font-weight: 690;
+  padding: 0.5rem 0.72rem;
   text-decoration: none;
-  transition: background-color var(--transition-fast), color var(--transition-fast);
+  transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
   white-space: nowrap;
 }
 
 .navLink:hover {
   background: var(--color-sage-soft);
+  border-color: color-mix(in srgb, var(--color-sage) 18%, transparent);
   color: var(--color-text);
+  transform: translateY(-1px);
 }
 
 .login {
   align-items: center;
   background: var(--color-primary);
   border: 1px solid var(--color-primary);
-  border-radius: 0.75rem;
-  box-shadow: var(--shadow-button);
+  border-radius: 999px;
+  box-shadow: none;
   color: var(--color-on-primary);
   display: inline-flex;
   flex-shrink: 0;
-  font-size: 0.82rem;
-  font-weight: 760;
+  font-size: 0.8rem;
+  font-weight: 780;
   grid-area: auth;
   justify-content: center;
-  min-height: 2.5rem;
-  padding: 0.52rem 0.8rem;
+  min-height: 2.55rem;
+  padding: 0.55rem 0.9rem;
   text-decoration: none;
   touch-action: manipulation;
-  transition: background-color var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
+  transition: background-color var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
 }
 
 .login:hover {
   background: var(--color-primary-dark);
   border-color: var(--color-primary-dark);
-  box-shadow: var(--shadow-button-hover);
+  box-shadow: var(--shadow-button);
+  transform: translateY(-1px);
 }
 
 .authPlaceholder {
@@ -112,7 +123,7 @@
   align-items: center;
   background: var(--color-card);
   border: 1px solid var(--color-border);
-  border-radius: 0.8rem;
+  border-radius: 999px;
   color: var(--color-text-muted);
   display: inline-flex;
   justify-content: center;
@@ -121,13 +132,14 @@
   padding: 0.22rem;
   text-decoration: none;
   touch-action: manipulation;
-  transition: border-color var(--transition-fast), color var(--transition-fast), background-color var(--transition-fast);
+  transition: border-color var(--transition-fast), color var(--transition-fast), background-color var(--transition-fast), transform var(--transition-fast);
 }
 
 .accountName:hover {
   background: var(--color-sage-soft);
   border-color: color-mix(in srgb, var(--color-sage) 35%, var(--color-border));
   color: var(--color-text);
+  transform: translateY(-1px);
 }
 
 .accountAvatar {
@@ -148,33 +160,36 @@
 @media (min-width: 48rem) {
   .inner {
     display: flex;
-    gap: clamp(1.1rem, 2.4vw, 2.2rem);
+    gap: clamp(1rem, 2.2vw, 2rem);
     justify-content: space-between;
-    min-height: 5.35rem;
+    min-height: 5.15rem;
     padding-block: 0;
   }
 
   .brandLogo {
-    width: 12.8rem;
+    width: 12.4rem;
   }
 
   .navigation {
-    gap: 0.3rem;
+    background: color-mix(in srgb, var(--color-card) 48%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
+    border-radius: 999px;
+    gap: 0.15rem;
     margin-inline: 0;
     overflow: visible;
-    padding: 0;
+    padding: 0.2rem;
     width: auto;
   }
 
   .navLink {
-    font-size: 0.91rem;
-    padding: 0.55rem 0.72rem;
+    font-size: 0.84rem;
+    padding: 0.52rem 0.68rem;
   }
 
   .login {
-    font-size: 0.9rem;
+    font-size: 0.86rem;
     min-height: 2.75rem;
-    padding: 0.6rem 0.95rem;
+    padding: 0.62rem 1rem;
   }
 
   .authPlaceholder {
@@ -188,7 +203,7 @@
   .accountName {
     gap: 0.6rem;
     min-height: 2.85rem;
-    padding: 0.3rem 0.5rem 0.3rem 0.3rem;
+    padding: 0.3rem 0.62rem 0.3rem 0.3rem;
   }
 
   .accountAvatar {
@@ -206,7 +221,7 @@
   }
 
   .accountCopy strong {
-    font-size: 0.86rem;
+    font-size: 0.84rem;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -214,7 +229,7 @@
 
   .accountCopy small {
     color: var(--color-text-muted);
-    font-size: 0.66rem;
+    font-size: 0.64rem;
     font-weight: 620;
     margin-top: 0.18rem;
     overflow: hidden;
@@ -232,15 +247,15 @@
   .logout {
     background: transparent;
     border: 0;
-    border-radius: 0.65rem;
+    border-radius: 999px;
     color: var(--color-text-muted);
     cursor: pointer;
     display: inline-block;
     font: inherit;
-    font-size: 0.82rem;
-    font-weight: 680;
+    font-size: 0.78rem;
+    font-weight: 690;
     min-height: 2.4rem;
-    padding: 0.45rem 0.55rem;
+    padding: 0.45rem 0.62rem;
     transition: background-color var(--transition-fast), color var(--transition-fast);
   }
 
@@ -257,10 +272,26 @@
 
 @media (max-width: 35rem) {
   .brandLogo {
-    width: min(9.9rem, 47vw);
+    width: min(9.8rem, 47vw);
   }
 
   .navLink {
-    font-size: 0.81rem;
+    font-size: 0.79rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brand,
+  .navLink,
+  .login,
+  .accountName {
+    transition: none;
+  }
+
+  .brand:hover,
+  .navLink:hover,
+  .login:hover,
+  .accountName:hover {
+    transform: none;
   }
 }

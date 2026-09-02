@@ -19,7 +19,7 @@ test("home carrega e leva ingredientes ao combinador", async ({ page }) => {
   await expect(
     page.getByRole("heading", {
       level: 1,
-      name: "Cozinhe com o que você já tem.",
+      name: "Abra a despensa. A receita começa aqui.",
     }),
   ).toBeVisible();
 
