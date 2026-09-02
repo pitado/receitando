@@ -47,10 +47,10 @@
   --page-gutter: clamp(1rem, 4vw, 2.25rem);
   --container-width: 76rem;
 
-  --shadow-button: 0 0.3rem 0.8rem var(--color-shadow);
-  --shadow-button-hover: 0 0.45rem 1rem var(--color-shadow-strong);
-  --shadow-card: 0 0.8rem 2rem var(--color-shadow);
-  --shadow-card-hover: 0 1rem 2.2rem var(--color-shadow-strong);
+  --shadow-button: none;
+  --shadow-button-hover: none;
+  --shadow-card: none;
+  --shadow-card-hover: none;
 
   --transition-fast: 150ms ease;
   --transition-base: 220ms ease;
