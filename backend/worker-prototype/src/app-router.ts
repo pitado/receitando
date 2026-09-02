@@ -41,7 +41,12 @@ function isPantryRoute(path: string): boolean {
 }
 
 function isRecipeSubmissionRoute(path: string): boolean {
-  return path === "/api/recipe-submissions" || path.startsWith("/api/recipe-submission-images/");
+  return (
+    path === "/api/recipe-submissions" ||
+    path.startsWith("/api/recipe-submission-images/") ||
+    path === "/api/admin/recipe-submissions" ||
+    path.startsWith("/api/admin/recipe-submissions/")
+  );
 }
 
 function isSocialRoute(path: string): boolean {
