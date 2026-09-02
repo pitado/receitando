@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Fraunces, Inter } from "next/font/google";
+import Script from "next/script";
 import type { ReactNode } from "react";
 
 import { Footer } from "@/components/layout/Footer";
@@ -41,6 +42,12 @@ export default function RootLayout({ children }: RootLayoutProps) {
           <main>{children}</main>
           <Footer />
         </div>
+        <Script
+          data-cf-beacon='{"token":"9e4c4741bb994dc4bcb2be109eda0298"}'
+          src="https://static.cloudflareinsights.com/beacon.min.js"
+          strategy="afterInteractive"
+          type="module"
+        />
       </body>
     </html>
   );
