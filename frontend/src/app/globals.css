@@ -1,25 +1,27 @@
 :root {
-  --color-background: #fff7f0;
-  --color-background-translucent: #fff7f0f2;
-  --color-surface: #f7e5d9;
-  --color-surface-secondary: #f1c8b0;
-  --color-card: #fffdfa;
-  --color-text: #3a2520;
-  --color-text-muted: #7a5d53;
-  --color-primary: #d46949;
-  --color-primary-dark: #a84a34;
-  --color-action-hover: #873a2a;
-  --color-accent: #efa16c;
-  --color-border: #e8d2c5;
-  --color-on-primary: #fffaf5;
-  --color-highlight: #f7ba7f;
-  --color-success-surface: #edf3df;
-  --color-success-border: #b7c98b;
-  --color-success-text: #40532e;
-  --color-error-surface: #fce8df;
-  --color-focus: #7c3728;
-  --color-shadow: #6e38251a;
-  --color-shadow-strong: #6e38252e;
+  --color-background: #f6f0e6;
+  --color-background-translucent: #f6f0e6f2;
+  --color-surface: #eee4d5;
+  --color-surface-secondary: #e4d2bd;
+  --color-card: #fffaf2;
+  --color-text: #2b2118;
+  --color-text-muted: #736659;
+  --color-primary: #b65334;
+  --color-primary-dark: #8f3e29;
+  --color-action-hover: #753020;
+  --color-accent: #d9a34b;
+  --color-border: #d8ccbd;
+  --color-on-primary: #fffaf2;
+  --color-highlight: #e3bf73;
+  --color-sage: #718062;
+  --color-sage-soft: #dde1d3;
+  --color-success-surface: #e9eee1;
+  --color-success-border: #aebc9c;
+  --color-success-text: #40503a;
+  --color-error-surface: #f5e5dc;
+  --color-focus: #6d7760;
+  --color-shadow: #3b2a1d10;
+  --color-shadow-strong: #3b2a1d1b;
 
   --font-interface: var(--font-inter);
   --font-editorial: var(--font-fraunces);
@@ -38,17 +40,17 @@
   --space-11: 5rem;
   --space-12: 6rem;
 
-  --radius-button: 0.8rem;
-  --radius-card: 1.35rem;
+  --radius-button: 0.38rem;
+  --radius-card: 0.58rem;
   --radius-pill: 999px;
   --radius-round: 50%;
-  --page-gutter: clamp(1rem, 4vw, 2rem);
-  --container-width: 74rem;
+  --page-gutter: clamp(1rem, 4vw, 2.25rem);
+  --container-width: 76rem;
 
-  --shadow-button: 0 0.35rem 0.9rem var(--color-shadow);
-  --shadow-button-hover: 0 0.5rem 1.1rem var(--color-shadow-strong);
-  --shadow-card: 0 1rem 2.5rem var(--color-shadow);
-  --shadow-card-hover: 0 1.15rem 2.75rem var(--color-shadow-strong);
+  --shadow-button: none;
+  --shadow-button-hover: none;
+  --shadow-card: none;
+  --shadow-card-hover: none;
 
   --transition-fast: 150ms ease;
   --transition-base: 220ms ease;
@@ -71,6 +73,7 @@ body {
   margin: 0;
   min-height: 100vh;
   overflow-x: hidden;
+  text-rendering: optimizeLegibility;
 }
 
 body > div {
@@ -108,12 +111,12 @@ select {
 }
 
 :focus-visible {
-  outline: 0.2rem solid var(--color-focus);
+  outline: 0.18rem solid var(--color-focus);
   outline-offset: 0.2rem;
 }
 
 ::selection {
-  background: var(--color-surface-secondary);
+  background: var(--color-highlight);
   color: var(--color-text);
 }
 

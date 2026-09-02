@@ -5,12 +5,11 @@
 
 .pantryPanel {
   align-items: center;
-  background: linear-gradient(120deg, var(--color-surface), var(--color-card));
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  border-left: 3px solid var(--color-sage);
   display: grid;
   gap: var(--space-5);
-  padding: clamp(1.25rem, 3vw, 2rem);
+  padding: clamp(1.2rem, 3vw, 1.8rem) clamp(1.2rem, 3vw, 2rem);
 }
 
 .pantryPanel > div {
@@ -20,8 +19,8 @@
 
 .pantryEyebrow {
   color: var(--color-primary-dark);
-  font-size: 0.75rem;
-  font-weight: 850;
+  font-size: 0.7rem;
+  font-weight: 760;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -29,13 +28,14 @@
 .pantryPanel strong {
   color: var(--color-text);
   font-family: var(--font-editorial), Georgia, serif;
-  font-size: clamp(1.4rem, 3vw, 2rem);
-  line-height: 1.1;
+  font-size: clamp(1.45rem, 3vw, 2rem);
+  font-weight: 590;
+  line-height: 1.08;
 }
 
 .pantryPanel p {
   color: var(--color-text-muted);
-  line-height: 1.6;
+  line-height: 1.58;
   margin: 0;
   max-width: 48rem;
 }
@@ -43,23 +43,25 @@
 .pantryButton {
   align-items: center;
   background: var(--color-primary-dark);
-  border: 0;
+  border: 1px solid var(--color-primary-dark);
   border-radius: var(--radius-button);
   color: var(--color-background);
   cursor: pointer;
   display: inline-flex;
   font: inherit;
-  font-size: 0.9rem;
-  font-weight: 800;
+  font-size: 0.86rem;
+  font-weight: 740;
   justify-content: center;
-  min-height: 3rem;
-  padding: 0.75rem 1rem;
+  min-height: 2.85rem;
+  padding: 0.7rem 0.95rem;
   text-align: center;
   text-decoration: none;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast);
 }
 
 .pantryButton:hover {
-  opacity: 0.9;
+  background: var(--color-action-hover);
+  border-color: var(--color-action-hover);
 }
 
 .matchSummary {
@@ -79,31 +81,35 @@
 
 .matchSummary span {
   color: var(--color-primary-dark);
-  font-size: 0.78rem;
-  font-weight: 850;
+  font-size: 0.72rem;
+  font-weight: 760;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 
 .matchSummary strong {
   color: var(--color-text);
-  font-size: 1.05rem;
+  font-size: 1rem;
 }
 
 .matchSummary button {
   background: transparent;
   border: 0;
+  border-bottom: 1px solid var(--color-border);
   color: var(--color-primary-dark);
   cursor: pointer;
   font: inherit;
-  font-size: 0.86rem;
-  font-weight: 800;
-  padding: 0;
-  text-decoration: underline;
-  text-underline-offset: 0.22em;
+  font-size: 0.82rem;
+  font-weight: 720;
+  padding: 0 0 0.12rem;
+}
+
+.matchSummary button:hover {
+  border-bottom-color: var(--color-primary-dark);
 }
 
 .toolbar {
-  align-items: center;
+  align-items: end;
   border-bottom: 1px solid var(--color-border);
   display: grid;
   gap: var(--space-4);
@@ -118,8 +124,8 @@
 
 .searchField label {
   color: var(--color-text);
-  font-size: 0.82rem;
-  font-weight: 800;
+  font-size: 0.78rem;
+  font-weight: 720;
 }
 
 .searchControl {
@@ -127,9 +133,9 @@
 }
 
 .searchIcon {
-  color: var(--color-primary-dark);
-  font-size: 1.35rem;
-  left: 0.95rem;
+  color: var(--color-text-muted);
+  font-size: 1.15rem;
+  left: 0.85rem;
   line-height: 1;
   pointer-events: none;
   position: absolute;
@@ -141,27 +147,27 @@
   appearance: none;
   background: var(--color-card);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-pill);
+  border-radius: 0.38rem;
   color: var(--color-text);
-  min-height: 3.15rem;
+  min-height: 3rem;
   min-width: 0;
-  padding: 0.75rem 3rem 0.75rem 2.8rem;
+  padding: 0.7rem 2.8rem 0.7rem 2.55rem;
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
   width: 100%;
 }
 
 .searchField input::placeholder {
   color: var(--color-text-muted);
-  opacity: 0.72;
+  opacity: 0.7;
 }
 
 .searchField input:hover {
-  border-color: var(--color-accent);
+  border-color: var(--color-text-muted);
 }
 
 .searchField input:focus {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 14%, transparent);
+  border-color: var(--color-sage);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-sage) 16%, transparent);
   outline: none;
 }
 
@@ -169,83 +175,79 @@
   align-items: center;
   background: transparent;
   border: 0;
-  border-radius: var(--radius-round);
   color: var(--color-text-muted);
   cursor: pointer;
   display: inline-flex;
   font: inherit;
-  font-size: 1.3rem;
+  font-size: 1.2rem;
   height: 2rem;
   justify-content: center;
   padding: 0;
   position: absolute;
-  right: 0.65rem;
+  right: 0.55rem;
   top: 50%;
   transform: translateY(-50%);
   width: 2rem;
 }
 
 .clearSearch:hover {
-  background: var(--color-surface);
-  color: var(--color-text);
+  color: var(--color-primary-dark);
 }
 
 .searchHint {
   color: var(--color-text-muted);
-  font-size: 0.74rem;
+  font-size: 0.72rem;
   line-height: 1.4;
 }
 
 .count {
   align-items: baseline;
-  background: var(--color-card);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-pill);
   display: inline-flex;
   gap: var(--space-2);
   justify-self: start;
-  padding: 0.62rem 0.9rem;
   white-space: nowrap;
 }
 
 .count strong {
   color: var(--color-primary-dark);
   font-family: var(--font-editorial), Georgia, serif;
-  font-size: 1.35rem;
+  font-size: 1.5rem;
+  font-weight: 590;
 }
 
 .count span {
   color: var(--color-text-muted);
-  font-size: 0.8rem;
-  font-weight: 700;
+  font-size: 0.78rem;
+  font-weight: 650;
 }
 
 .grid {
   display: grid;
-  gap: var(--space-5);
+  gap: 2rem 1.5rem;
 }
 
 .pagination {
   align-items: center;
+  border-top: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
   justify-content: center;
-  padding-top: var(--space-2);
+  padding-top: var(--space-6);
   text-align: center;
 }
 
 .pagination button {
-  background: var(--color-card);
+  background: transparent;
   border: 1px solid var(--color-primary-dark);
   border-radius: var(--radius-button);
   color: var(--color-primary-dark);
   cursor: pointer;
   font: inherit;
-  font-size: 0.9rem;
-  font-weight: 800;
-  min-height: 3rem;
-  padding: 0.75rem 1.15rem;
+  font-size: 0.86rem;
+  font-weight: 720;
+  min-height: 2.8rem;
+  padding: 0.68rem 1.05rem;
 }
 
 .pagination button:hover:not(:disabled) {
@@ -261,13 +263,13 @@
 .pagination span,
 .pagination p {
   color: var(--color-text-muted);
-  font-size: 0.76rem;
+  font-size: 0.74rem;
   margin: 0;
 }
 
 .pagination p {
   color: var(--color-primary-dark);
-  font-weight: 700;
+  font-weight: 680;
 }
 
 @media (min-width: 36rem) {
