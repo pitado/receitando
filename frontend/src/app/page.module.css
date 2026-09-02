@@ -3,33 +3,31 @@
 }
 
 .editorialRibbon {
-  border-bottom: 1px solid var(--color-border);
-  padding-block: clamp(2.5rem, 6vw, 4.5rem);
+  padding-block: clamp(2.2rem, 5vw, 4rem);
 }
 
 .ribbonGrid {
   display: grid;
-  gap: 0;
+  gap: 1rem;
 }
 
 .kitchenNote {
+  border: 1px solid var(--color-border);
+  border-radius: 1.35rem;
   min-height: 12rem;
-  padding: 1.25rem 3.5rem 1.25rem 0;
+  overflow: hidden;
+  padding: 1.4rem 4rem 1.4rem 1.4rem;
   position: relative;
-}
-
-.kitchenNote + .kitchenNote {
-  border-top: 1px solid var(--color-border);
 }
 
 .kitchenNote strong {
   display: block;
   font-family: var(--font-editorial), Georgia, serif;
-  font-size: clamp(1.55rem, 3vw, 2.15rem);
+  font-size: clamp(1.45rem, 2.7vw, 2rem);
   font-weight: 590;
   letter-spacing: -0.03em;
-  line-height: 1.02;
-  max-width: 12rem;
+  line-height: 1.04;
+  max-width: 13rem;
 }
 
 .kitchenNote p {
@@ -43,29 +41,33 @@
 .miniEyebrow {
   color: var(--color-primary-dark);
   display: block;
-  font-size: 0.66rem;
+  font-size: 0.72rem;
   font-weight: 760;
-  letter-spacing: 0.09em;
   margin-bottom: 0.55rem;
-  text-transform: uppercase;
 }
 
-.noteWarm,
-.noteLight,
+.noteWarm {
+  background: color-mix(in srgb, var(--color-surface-secondary) 78%, white);
+}
+
+.noteLight {
+  background: var(--color-card);
+}
+
 .noteGreen {
-  background: transparent;
+  background: var(--color-sage-soft);
 }
 
 .tomatoArt,
 .eggArt,
 .leafArt {
-  bottom: 1.1rem;
+  bottom: 1rem;
   display: block;
-  height: 3.25rem;
-  opacity: 0.82;
+  height: 3.6rem;
+  opacity: 0.88;
   position: absolute;
-  right: 0.4rem;
-  width: 3.25rem;
+  right: 1rem;
+  width: 3.6rem;
 }
 
 .tomatoArt {
@@ -79,7 +81,7 @@
   border-radius: 100% 0 100% 0;
   content: "";
   height: 1rem;
-  left: 1.05rem;
+  left: 1.15rem;
   position: absolute;
   top: -0.3rem;
   transform: rotate(38deg);
@@ -87,12 +89,12 @@
 }
 
 .tomatoArt::after {
-  left: 1.65rem;
+  left: 1.8rem;
   transform: rotate(-25deg);
 }
 
 .eggArt {
-  background: var(--color-card);
+  background: #fffdf8;
   border: 1px solid var(--color-border);
   border-radius: 48% 52% 55% 45% / 58% 43% 57% 42%;
   transform: rotate(-8deg);
@@ -101,11 +103,11 @@
 .eggArt i {
   background: var(--color-highlight);
   border-radius: 50%;
-  height: 1.25rem;
-  left: 0.95rem;
+  height: 1.35rem;
+  left: 1.05rem;
   position: absolute;
-  top: 0.95rem;
-  width: 1.25rem;
+  top: 1.05rem;
+  width: 1.35rem;
 }
 
 .leafArt {
@@ -118,52 +120,55 @@
   background: var(--color-background);
   content: "";
   height: 1px;
-  left: 0.45rem;
+  left: 0.5rem;
   opacity: 0.75;
   position: absolute;
-  top: 1.55rem;
-  width: 2.35rem;
+  top: 1.7rem;
+  width: 2.55rem;
 }
 
 .howItWorks {
-  border-top: 1px solid var(--color-border);
+  background: var(--color-card);
   padding-block: clamp(4rem, 9vw, 7rem);
 }
 
 .steps {
   display: grid;
-  gap: 0;
+  gap: clamp(1.4rem, 3vw, 2.4rem);
   list-style: none;
   margin: clamp(2.5rem, 6vw, 4rem) 0 0;
   padding: 0;
 }
 
 .step {
-  border-top: 1px solid var(--color-border);
+  border-top: 3px solid var(--color-surface-secondary);
   display: grid;
   gap: 0.55rem;
-  grid-template-columns: 3.5rem minmax(0, 1fr);
-  padding-block: 1.35rem;
+  grid-template-columns: 3.4rem minmax(0, 1fr);
+  padding-top: 1.15rem;
 }
 
-.step:last-child {
-  border-bottom: 1px solid var(--color-border);
+.step:nth-child(2) {
+  border-top-color: var(--color-sage);
+}
+
+.step:nth-child(3) {
+  border-top-color: var(--color-primary);
 }
 
 .step > span {
-  color: var(--color-primary-dark);
-  font-family: var(--font-editorial), Georgia, serif;
-  font-size: 1.05rem;
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
   font-variant-numeric: tabular-nums;
+  font-weight: 760;
   grid-row: 1 / span 2;
-  padding-top: 0.15rem;
+  padding-top: 0.18rem;
 }
 
 .step strong {
-  font-family: var(--font-editorial), Georgia, serif;
-  font-size: clamp(1.35rem, 3vw, 1.7rem);
-  font-weight: 600;
-  letter-spacing: -0.025em;
+  font-size: clamp(1.15rem, 2.2vw, 1.4rem);
+  font-weight: 760;
+  letter-spacing: -0.02em;
 }
 
 .step p {
@@ -174,20 +179,7 @@
 
 @media (min-width: 48rem) {
   .ribbonGrid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .kitchenNote {
-    padding: 1.5rem 4rem 1.5rem 1.5rem;
-  }
-
-  .kitchenNote:first-child {
-    padding-left: 0;
-  }
-
-  .kitchenNote + .kitchenNote {
-    border-left: 1px solid var(--color-border);
-    border-top: 0;
+    grid-template-columns: 1.08fr 0.96fr 0.96fr;
   }
 
   .steps {
@@ -196,19 +188,18 @@
 
   .step {
     align-content: start;
-    border-bottom: 1px solid var(--color-border);
     grid-template-columns: 1fr;
-    min-height: 13rem;
-    padding: 1.5rem 1.8rem 1.5rem 0;
-  }
-
-  .step + .step {
-    border-left: 1px solid var(--color-border);
-    padding-left: 1.8rem;
+    min-height: 10rem;
   }
 
   .step > span {
     grid-row: auto;
-    margin-bottom: 1.8rem;
+    margin-bottom: 1rem;
+  }
+}
+
+@media (max-width: 47.99rem) {
+  .kitchenNote {
+    min-height: 10.5rem;
   }
 }
