@@ -17,24 +17,24 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "@opennextjs/cloudflare": "^1.20.2",
-    "next": "16.3.2",
+    "@opennextjs/cloudflare": "^1.20.5",
+    "next": "16.3.4",
     "react": "19.2.8",
     "react-dom": "19.2.8"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^7.0.1",
-    "@testing-library/react": "^16.3.2",
+    "@testing-library/react": "^16.3.3",
     "@types/node": "24.13.3",
     "@types/react": "19.2.18",
-    "@types/react-dom": "19.2.4",
+    "@types/react-dom": "19.2.5",
     "@vitest/coverage-v8": "^4.1.11",
     "eslint": "9.39.1",
-    "eslint-config-next": "16.3.2",
+    "eslint-config-next": "16.3.4",
     "jsdom": "^30.0.1",
     "typescript": "6.0.3",
     "vitest": "^4.1.11",
-    "wrangler": "^4.125.0"
+    "wrangler": "^4.127.1"
   },
   "engines": {
     "node": ">=20.9.0 <25"
