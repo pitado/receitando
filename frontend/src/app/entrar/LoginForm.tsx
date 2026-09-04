@@ -9,6 +9,14 @@ import { login } from "@/services/auth.service";
 
 import styles from "./page.module.css";
 
+function destinationAfterLogin(): string {
+  const next = new URLSearchParams(window.location.search).get("next");
+  if (!next || !next.startsWith("/") || next.startsWith("//")) {
+    return "/despensa";
+  }
+  return next;
+}
+
 export function LoginForm() {
   const router = useRouter();
   const [error, setError] = useState("");
@@ -28,7 +36,7 @@ export function LoginForm() {
 
     try {
       await login(email, password, remember);
-      router.replace("/despensa");
+      router.replace(destinationAfterLogin());
       router.refresh();
     } catch (requestError: unknown) {
       if (requestError instanceof ApiError) {
