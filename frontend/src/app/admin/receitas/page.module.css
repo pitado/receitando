@@ -73,6 +73,7 @@
 .refresh,
 .approveButton,
 .rejectButton,
+.cancelRejectButton,
 .primaryLink,
 .secondaryLink {
   border-radius: var(--radius-pill);
@@ -86,6 +87,7 @@
 
 .filter,
 .refresh,
+.cancelRejectButton,
 .secondaryLink {
   background: var(--color-card);
   border: 1px solid var(--color-border);
@@ -109,6 +111,7 @@
 .refresh:hover,
 .approveButton:hover,
 .rejectButton:hover,
+.cancelRejectButton:hover,
 .primaryLink:hover,
 .secondaryLink:hover {
   box-shadow: var(--shadow-button-hover);
@@ -119,7 +122,8 @@
 .activeFilter:disabled,
 .refresh:disabled,
 .approveButton:disabled,
-.rejectButton:disabled {
+.rejectButton:disabled,
+.cancelRejectButton:disabled {
   cursor: wait;
   opacity: 0.62;
   transform: none;
@@ -304,10 +308,70 @@
   padding-top: 1.2rem;
 }
 
+.rejectionPanel {
+  background: var(--color-error-surface);
+  border: 1px solid #e9b69f;
+  border-radius: 1rem;
+  display: grid;
+  gap: 0.9rem;
+  margin-top: 1.5rem;
+  padding: 1rem;
+}
+
+.rejectionField {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.rejectionField > span {
+  color: #7d2d1e;
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.rejectionField > span small {
+  font-weight: 650;
+}
+
+.rejectionField textarea {
+  background: var(--color-card);
+  border: 1px solid #d7a99b;
+  border-radius: 0.85rem;
+  color: var(--color-text);
+  font: inherit;
+  line-height: 1.5;
+  min-height: 6.5rem;
+  outline: none;
+  padding: 0.8rem 0.9rem;
+  resize: vertical;
+  width: 100%;
+}
+
+.rejectionField textarea:focus {
+  border-color: #b85d49;
+  box-shadow: 0 0 0 3px color-mix(in srgb, #b85d49 14%, transparent);
+}
+
+.rejectionField > small {
+  color: #8f5d50;
+  font-size: 0.72rem;
+  justify-self: end;
+}
+
+.rejectionActions {
+  display: flex;
+  gap: 0.7rem;
+  justify-content: flex-end;
+}
+
 .rejectButton {
   background: transparent;
   border: 1px solid #d7a99b;
   color: #8f3d2c;
+}
+
+.rejectionPanel .rejectButton {
+  background: var(--color-card);
 }
 
 .approveButton {
@@ -387,7 +451,7 @@
   .toolbar {
     align-items: stretch;
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .filter,
@@ -407,8 +471,8 @@
 
   .imageWrap img,
   .noImage {
-    min-height: 16rem;
     max-height: 22rem;
+    min-height: 16rem;
   }
 
   .titleRow {
@@ -416,13 +480,15 @@
     gap: 0.5rem;
   }
 
-  .actions {
+  .actions,
+  .rejectionActions {
     display: grid;
     grid-template-columns: 1fr;
   }
 
   .approveButton,
-  .rejectButton {
+  .rejectButton,
+  .cancelRejectButton {
     width: 100%;
   }
 }

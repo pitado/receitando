@@ -15,12 +15,13 @@ import { getCurrentUser } from "@/services/auth.service";
 import styles from "./page.module.css";
 
 type AccessState = "loading" | "admin" | "anonymous" | "forbidden";
-type Filter = RecipeSubmissionStatus;
+type Filter = RecipeSubmissionStatus | "ALL";
 
 const FILTERS: Array<{ value: Filter; label: string }> = [
   { value: "PENDING", label: "Pendentes" },
   { value: "APPROVED", label: "Aprovadas" },
   { value: "REJECTED", label: "Rejeitadas" },
+  { value: "ALL", label: "Todas" },
 ];
 
 const DIFFICULTY_LABEL: Record<AdminRecipeSubmission["difficulty"], string> = {
@@ -46,12 +47,18 @@ function statusLabel(status: RecipeSubmissionStatus): string {
   return "Pendente";
 }
 
+function filterLabel(filter: Filter): string {
+  return FILTERS.find((item) => item.value === filter)?.label.toLowerCase() ?? "receitas";
+}
+
 export default function AdminRecipesPage() {
   const [access, setAccess] = useState<AccessState>("loading");
   const [filter, setFilter] = useState<Filter>("PENDING");
   const [submissions, setSubmissions] = useState<AdminRecipeSubmission[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [rejectingId, setRejectingId] = useState<string | null>(null);
+  const [rejectionReason, setRejectionReason] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -106,18 +113,30 @@ export default function AdminRecipesPage() {
   async function handleDecision(
     submission: AdminRecipeSubmission,
     decision: "APPROVED" | "REJECTED",
+    reason?: string,
   ) {
-    const verb = decision === "APPROVED" ? "aprovar" : "rejeitar";
-    if (!window.confirm(`Tem certeza que deseja ${verb} “${submission.title}”?`)) return;
+    if (
+      decision === "APPROVED" &&
+      !window.confirm(`Tem certeza que deseja aprovar e publicar “${submission.title}”?`)
+    ) {
+      return;
+    }
 
     setBusyId(submission.id);
     setError(null);
     setMessage(null);
 
     try {
-      const response = await moderateRecipeSubmission(submission.id, decision);
+      const response = await moderateRecipeSubmission(submission.id, decision, reason);
       setMessage(response.message);
-      setSubmissions((current) => current.filter((item) => item.id !== submission.id));
+      setRejectingId(null);
+      setRejectionReason("");
+
+      if (filter === "ALL") {
+        await loadSubmissions(filter);
+      } else {
+        setSubmissions((current) => current.filter((item) => item.id !== submission.id));
+      }
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Não foi possível concluir a análise.");
     } finally {
@@ -163,6 +182,8 @@ export default function AdminRecipesPage() {
     );
   }
 
+  const selectedFilterLabel = filterLabel(filter);
+
   return (
     <section className={`container ${styles.page}`}>
       <header className={styles.hero}>
@@ -173,7 +194,7 @@ export default function AdminRecipesPage() {
         </div>
         <div className={styles.counter}>
           <strong>{submissions.length}</strong>
-          <span>{FILTERS.find((item) => item.value === filter)?.label.toLowerCase()}</span>
+          <span>{filter === "ALL" ? "receitas" : selectedFilterLabel}</span>
         </div>
       </header>
 
@@ -185,6 +206,8 @@ export default function AdminRecipesPage() {
             key={item.value}
             onClick={() => {
               setMessage(null);
+              setRejectingId(null);
+              setRejectionReason("");
               setFilter(item.value);
             }}
             role="tab"
@@ -213,7 +236,11 @@ export default function AdminRecipesPage() {
       {!isLoading && submissions.length === 0 ? (
         <div className={styles.empty}>
           <strong>Nada por aqui.</strong>
-          <span>Não há receitas {FILTERS.find((item) => item.value === filter)?.label.toLowerCase()} agora.</span>
+          <span>
+            {filter === "ALL"
+              ? "Nenhuma receita foi enviada para moderação ainda."
+              : `Não há receitas ${selectedFilterLabel} agora.`}
+          </span>
         </div>
       ) : null}
 
@@ -273,12 +300,65 @@ export default function AdminRecipesPage() {
                 <p className={styles.contact}>Contato informado: {submission.authorEmail}</p>
               ) : null}
 
-              {submission.status === "PENDING" ? (
+              {submission.reviewedAt ? (
+                <p className={styles.reviewInfo}>Analisada em {formatDate(submission.reviewedAt)}.</p>
+              ) : null}
+
+              {submission.status === "PENDING" && rejectingId === submission.id ? (
+                <div className={styles.rejectionPanel}>
+                  <label className={styles.rejectionField}>
+                    <span>Motivo da rejeição <small>(opcional)</small></span>
+                    <textarea
+                      autoFocus
+                      disabled={busyId === submission.id}
+                      maxLength={300}
+                      onChange={(event) => setRejectionReason(event.target.value)}
+                      placeholder="Ex.: faltam informações no modo de preparo."
+                      rows={3}
+                      value={rejectionReason}
+                    />
+                    <small>{rejectionReason.length}/300 caracteres</small>
+                  </label>
+                  <div className={styles.rejectionActions}>
+                    <button
+                      className={styles.cancelRejectButton}
+                      disabled={busyId === submission.id}
+                      onClick={() => {
+                        setRejectingId(null);
+                        setRejectionReason("");
+                      }}
+                      type="button"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      className={styles.rejectButton}
+                      disabled={busyId === submission.id}
+                      onClick={() =>
+                        void handleDecision(
+                          submission,
+                          "REJECTED",
+                          rejectionReason.trim() || undefined,
+                        )
+                      }
+                      type="button"
+                    >
+                      {busyId === submission.id ? "Processando…" : "Confirmar rejeição"}
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+
+              {submission.status === "PENDING" && rejectingId !== submission.id ? (
                 <div className={styles.actions}>
                   <button
                     className={styles.rejectButton}
                     disabled={busyId === submission.id}
-                    onClick={() => void handleDecision(submission, "REJECTED")}
+                    onClick={() => {
+                      setRejectingId(submission.id);
+                      setRejectionReason("");
+                      setMessage(null);
+                    }}
                     type="button"
                   >
                     Rejeitar

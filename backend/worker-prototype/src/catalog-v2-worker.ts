@@ -137,11 +137,11 @@ async function listCatalogV2(request: Request, env: Env): Promise<Response> {
   const sort = sortFrom(url.searchParams.get("sort"), Boolean(search));
 
   const fromParts = ["FROM recipes r"];
-  // O catálogo público usa apenas o acervo livre que foi validado no Wikilivros
-  // e exige uma imagem real associada à receita. Isso evita seeds/demos e cards
-  // com foto ausente ou sem procedência.
+  // O catálogo público aceita o acervo validado do Wikilivros e as receitas da
+  // comunidade que já passaram pela moderação. Seeds/demos continuam de fora,
+  // e todos os cards precisam ter imagem real associada à receita.
   const where: string[] = [
-    "lower(COALESCE(r.external_source, '')) = 'wikibooks'",
+    "(lower(COALESCE(r.external_source, '')) = 'wikibooks' OR r.source_type = 'USER')",
     "r.image_url IS NOT NULL",
     "trim(r.image_url) <> ''",
   ];

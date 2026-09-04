@@ -6,6 +6,10 @@ vi.mock("@/services/api-client", () => ({
 
 import { apiRequest } from "@/services/api-client";
 
+import {
+  listRecipeSubmissions,
+  moderateRecipeSubmission,
+} from "./admin-recipe-submissions.service";
 import { addFavorite, listFavorites, removeFavorite } from "./favorites.service";
 import { getIngredients, getPantry, removePantryItem, savePantryItem } from "./pantry.service";
 import {
@@ -125,5 +129,26 @@ describe("contratos dos serviços HTTP", () => {
       method: "DELETE",
       signal: controller.signal,
     });
+  });
+
+  it("lista todas as submissões e envia o motivo da rejeição para a moderação", async () => {
+    await listRecipeSubmissions("ALL");
+    await moderateRecipeSubmission("submission/1", "REJECTED", "Faltam etapas do preparo.");
+
+    expect(apiRequestMock).toHaveBeenNthCalledWith(
+      1,
+      "/api/admin/recipe-submissions?status=ALL",
+    );
+    expect(apiRequestMock).toHaveBeenNthCalledWith(
+      2,
+      "/api/admin/recipe-submissions/submission%2F1",
+      {
+        method: "PATCH",
+        body: JSON.stringify({
+          status: "REJECTED",
+          reason: "Faltam etapas do preparo.",
+        }),
+      },
+    );
   });
 });

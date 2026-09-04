@@ -196,6 +196,11 @@ export function AccountClient() {
           <p>{user.email}</p>
         </div>
         <div className={styles.actions}>
+          {user.role === "ADMIN" ? (
+            <Link className={styles.secondaryAction} href="/admin/receitas">
+              Moderar receitas
+            </Link>
+          ) : null}
           <button className={styles.secondaryAction} onClick={openEditor} type="button">
             Editar perfil
           </button>

@@ -86,6 +86,14 @@ test("catálogo v2 retorna item leve, total real e hasMore", async () => {
   });
   assert.equal("instructions" in payload.items[0], false);
   assert.equal("ingredients" in payload.items[0], false);
+
+  const countCall = db.calls.find(
+    (call) => call.op === "first" && call.sql.startsWith("SELECT COUNT(*) AS total"),
+  );
+  assert.ok(countCall);
+  assert.match(countCall.sql, /lower\(COALESCE\(r\.external_source, ''\)\) = 'wikibooks'/);
+  assert.match(countCall.sql, /r\.source_type = 'USER'/);
+  assert.match(countCall.sql, /r\.image_url IS NOT NULL/);
 });
 
 test("catálogo v2 aplica busca, filtros e ordenação popular", async () => {
