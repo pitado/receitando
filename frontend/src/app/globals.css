@@ -115,6 +115,25 @@ select {
   outline-offset: 0.2rem;
 }
 
+.skip-link {
+  background: var(--color-text);
+  border-radius: var(--radius-button);
+  color: var(--color-on-primary);
+  font-weight: 700;
+  left: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  position: fixed;
+  text-decoration: none;
+  top: var(--space-4);
+  transform: translateY(calc(-100% - var(--space-10)));
+  transition: transform var(--transition-fast);
+  z-index: 1000;
+}
+
+.skip-link:focus-visible {
+  transform: translateY(0);
+}
+
 ::selection {
   background: var(--color-highlight);
   color: var(--color-text);
