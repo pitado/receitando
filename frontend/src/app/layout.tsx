@@ -37,9 +37,14 @@ export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html className={`${inter.variable} ${fraunces.variable}`} lang="pt-BR">
       <body>
+        <a className="skip-link" href="#conteudo-principal">
+          Pular para o conteúdo principal
+        </a>
         <div className="app-shell">
           <Header />
-          <main>{children}</main>
+          <main id="conteudo-principal" tabIndex={-1}>
+            {children}
+          </main>
           <Footer />
         </div>
         <Script
