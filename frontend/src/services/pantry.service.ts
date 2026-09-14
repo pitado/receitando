@@ -1,5 +1,7 @@
 import { apiRequest } from "@/services/api-client";
 
+export const PANTRY_CHANGED_EVENT = "receitando:pantry-changed";
+
 export interface PantryItem {
   id: string;
   quantity: number | null;
@@ -21,6 +23,10 @@ export interface IngredientOption {
   usageCount?: number;
 }
 
+function notifyPantryChanged() {
+  if (typeof window !== "undefined") window.dispatchEvent(new Event(PANTRY_CHANGED_EVENT));
+}
+
 export function getPantry(): Promise<PantryItem[]> {
   return apiRequest<PantryItem[]>("/api/pantry");
 }
@@ -29,7 +35,7 @@ export function getIngredients(): Promise<IngredientOption[]> {
   return apiRequest<IngredientOption[]>("/api/ingredients");
 }
 
-export function savePantryItem(
+export async function savePantryItem(
   ingredientId: string,
   quantity: number | null,
   unit: string | null,
@@ -44,12 +50,16 @@ export function savePantryItem(
 
   if (expiresAt !== undefined) payload.expiresAt = expiresAt;
 
-  return apiRequest<PantryItem[]>("/api/pantry", {
+  const pantry = await apiRequest<PantryItem[]>("/api/pantry", {
     method: "POST",
     body: JSON.stringify(payload),
   });
+  notifyPantryChanged();
+  return pantry;
 }
 
-export function removePantryItem(id: string): Promise<PantryItem[]> {
-  return apiRequest<PantryItem[]>(`/api/pantry/${encodeURIComponent(id)}`, { method: "DELETE" });
+export async function removePantryItem(id: string): Promise<PantryItem[]> {
+  const pantry = await apiRequest<PantryItem[]>(`/api/pantry/${encodeURIComponent(id)}`, { method: "DELETE" });
+  notifyPantryChanged();
+  return pantry;
 }
