@@ -10,28 +10,13 @@
   font-size: 0.82rem;
   font-weight: 800;
   gap: 0.4rem;
-  min-height: 2.35rem;
-  padding: 0.45rem 0.75rem;
-  transition:
-    background-color var(--transition-fast),
-    border-color var(--transition-fast),
-    color var(--transition-fast),
-    transform var(--transition-fast);
+  justify-content: center;
+  min-height: 2.75rem;
+  min-width: 2.75rem;
+  padding: 0.55rem 0.78rem;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
 }
-
-.button:hover:not(:disabled) {
-  border-color: var(--color-primary);
-  color: var(--color-primary-dark);
-  transform: translateY(-1px);
-}
-
-.active {
-  background: var(--color-surface);
-  border-color: var(--color-primary);
-  color: var(--color-primary-dark);
-}
-
-.button:disabled {
-  cursor: wait;
-  opacity: 0.6;
-}
+.button:hover:not(:disabled) { border-color: var(--color-primary); color: var(--color-primary-dark); transform: translateY(-1px); }
+.active { background: var(--color-surface); border-color: var(--color-primary); color: var(--color-primary-dark); }
+.button:disabled { cursor: wait; opacity: 0.6; }
+@media (prefers-reduced-motion: reduce) { .button { transition: none; } .button:hover:not(:disabled) { transform: none; } }
