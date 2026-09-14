@@ -1,6 +1,6 @@
 # API do Receitando
 
-A API de produção roda em **Cloudflare Workers**, usa **Cloudflare D1** e responde em JSON.
+A API de produção roda em **Cloudflare Workers**, usa **Cloudflare D1** para dados relacionais e **Cloudflare R2** para imagens enviadas pela comunidade. As rotas de aplicação respondem em JSON, exceto a entrega de imagens do R2.
 
 Base de produção:
 
@@ -17,7 +17,7 @@ http://localhost:8787
 ## Convenções
 
 - rotas da aplicação usam `/api`;
-- corpos usam JSON;
+- corpos usam JSON, exceto o envio de receita/foto, que aceita `multipart/form-data`;
 - erros seguem, em geral, `{ "statusCode": number, "message": string }`;
 - no navegador, rotas autenticadas usam cookie de sessão `HttpOnly` enviado com `credentials: "include"`;
 - o token bruto de sessão não faz parte do contrato público de login/cadastro;
@@ -44,11 +44,16 @@ Clientes não-browser podem usar `Authorization: Bearer <token>` quando possuír
 | `POST` | `/api/auth/reset-password` | público | definir nova senha |
 | `GET` | `/api/sources` | público | listar fontes do catálogo |
 | `GET` | `/api/ingredients` | público | listar ingredientes do catálogo |
-| `GET` | `/api/recipes` | público | listar/buscar receitas |
+| `GET` | `/api/recipes` | público | catálogo legado/busca |
+| `GET` | `/api/v2/recipes` | público | catálogo atual com filtros, ordenação e paginação |
 | `GET` | `/api/recipes/:slug` | público | detalhe por slug |
 | `POST` | `/api/recipes/match` | público | matching por ingredientes |
 | `GET` | `/api/recipes/match/pantry` | autenticado | matching usando a despensa |
 | `POST` | `/api/recipes/:slug/adapt` | público/autenticado quando `usePantry=true` | adaptar rendimento, faltas e substituições |
+| `POST` | `/api/recipe-submissions` | público/autenticado | enviar receita da comunidade |
+| `GET` | `/api/recipe-submission-images/:key` | público | servir imagem de submissão armazenada no R2 |
+| `GET` | `/api/admin/recipe-submissions` | ADMIN | listar fila de moderação |
+| `PATCH` | `/api/admin/recipe-submissions/:id` | ADMIN | aprovar ou rejeitar submissão |
 | `GET` | `/api/pantry` | autenticado | listar despensa |
 | `POST` | `/api/pantry` | autenticado | adicionar/atualizar item |
 | `DELETE` | `/api/pantry/:itemId` | autenticado | remover item próprio |
@@ -65,6 +70,8 @@ Clientes não-browser podem usar `Authorization: Bearer <token>` quando possuír
 | `GET` | `/api/home-feed` | público | feed e totais da home |
 
 A rota de detalhe é **`GET /api/recipes/:slug`**. Não existe contrato público `/api/recipes/slug/:slug`.
+
+A página `/receitas` usa **`GET /api/v2/recipes`**. O endpoint aceita `q`, `source`, `mealType`, `difficulty`, `maxPrepMinutes`, `sort`, `limit` e `offset`.
 
 ## Autenticação
 
@@ -168,18 +175,30 @@ Uma troca bem-sucedida invalida as sessões existentes do usuário.
 
 ## Receitas
 
-### Listagem e busca
+### Catálogo v2 usado pelo frontend
+
+`GET /api/v2/recipes`
+
+Parâmetros:
+
+- `q`: busca textual por título/descrição via FTS5;
+- `source`: filtro por fonte externa;
+- `mealType`: filtro por tipo de refeição;
+- `difficulty`: `FACIL`, `MEDIA` ou `DIFICIL`;
+- `maxPrepMinutes`: tempo máximo de preparo, limitado a 1440;
+- `sort`: `relevance`, `recent`, `popular`, `quick` ou `title`;
+- `limit`: 1–60, padrão 36;
+- `offset`: paginação.
+
+Sem busca, `relevance` é normalizado para `recent`. Com `q`, a busca monta uma consulta FTS5 com até oito tokens distintos e usa `bm25()` para relevância.
+
+O catálogo público v2 inclui receitas do Wikilivros e receitas da comunidade já aprovadas (`source_type = 'USER'`). Seeds/demos ficam fora e os cards precisam possuir `image_url`.
+
+### Catálogo legado
 
 `GET /api/recipes`
 
-Parâmetros principais:
-
-- `limit`: 1–60; padrão 36;
-- `offset`: paginação;
-- `q`: busca textual;
-- `source`: filtro de fonte, como `wikibooks`.
-
-Quando `q` é informado, a API consulta a tabela virtual FTS5 `recipe_search` e ordena por relevância com `bm25()`.
+Permanece disponível para os fluxos antigos e para contratos usados pelo matching/detalhe. A página `/receitas` não usa mais essa listagem como endpoint principal.
 
 ### Detalhe
 
@@ -351,7 +370,70 @@ O objeto `pantry` da resposta informa:
 
 O motor não inventa densidade para comparar massa e volume incompatíveis e pode recusar uma substituição quando o ingrediente possui papel estrutural naquele preparo.
 
-## Favoritos e comunidade
+## Receitas da comunidade
+
+### Enviar receita
+
+`POST /api/recipe-submissions`
+
+O endpoint aceita submissão anônima ou autenticada. Quando há sessão válida, o `user_id` é associado; sem sessão, ele permanece `NULL`.
+
+O frontend envia `multipart/form-data`. No fluxo atual da interface, a foto é obrigatória. O Worker também mantém compatibilidade com um `imageUrl` HTTPS legado quando não recebe arquivo.
+
+Validações principais:
+
+| Campo | Regra |
+| --- | --- |
+| nome do autor | mínimo 2 caracteres |
+| e-mail | válido ou vazio |
+| título | mínimo 3 caracteres |
+| descrição | mínimo 10 caracteres |
+| ingredientes | 2–50 itens, até 180 caracteres cada |
+| preparo | 1–30 passos, até 500 caracteres cada |
+| foto | JPG/PNG/WebP real, até 12 MB |
+
+A API detecta o tipo da imagem pelos bytes do arquivo, não confia apenas no nome/extensão e grava o objeto em `submissions/AAAA/MM/{id}.{ext}` no binding R2 `RECIPE_IMAGES`.
+
+Se o upload no R2 ocorrer, mas a gravação da submissão no D1 falhar, a API remove o objeto recém-enviado antes de responder `500`.
+
+Submissões válidas nascem com `status = 'PENDING'`.
+
+### Imagens das submissões
+
+`GET /api/recipe-submission-images/:key`
+
+A rota aceita somente chaves sob `submissions/`, rejeita travessia de caminho, recupera o objeto do R2 e responde com `X-Content-Type-Options: nosniff`.
+
+### Moderação administrativa
+
+`GET /api/admin/recipe-submissions?status=PENDING`
+
+Lista até 200 submissões, ordenadas pela mais recente. Filtros aceitos: `PENDING`, `APPROVED`, `REJECTED` e `ALL`.
+
+`PATCH /api/admin/recipe-submissions/:id`
+
+```json
+{
+  "status": "APPROVED"
+}
+```
+
+ou:
+
+```json
+{
+  "status": "REJECTED",
+  "reason": "Motivo opcional"
+}
+```
+
+As duas rotas exigem sessão de usuário com `role = 'ADMIN'`. Usuário não autorizado recebe `403`.
+
+A moderação registra `reviewed_by` e `reviewed_at`. Rejeições podem registrar `rejection_reason`. Aprovações publicam uma receita com `source_type = 'USER'`, preenchem `published_recipe_id` e tornam a receita elegível para o catálogo v2.
+
+Uma submissão que já saiu de `PENDING` não pode ser analisada novamente.
+
+## Favoritos e comunidade social
 
 Favoritos, votos e comentários são vinculados ao usuário autenticado nas operações de escrita. Edição/exclusão de comentários validam o dono antes da mutação.
 
@@ -366,11 +448,13 @@ A suíte da API chama `fetch()` dos Workers reais com um D1 simulado para valida
 Os testes cobrem, entre outros pontos:
 
 - canonicalização e staples;
-- FTS5;
+- FTS5 e catálogo v2;
 - autenticação e sessão;
 - rate limiting;
 - despensa;
-- favoritos e comunidade;
+- favoritos e comunidade social;
+- submissão de receita e armazenamento de foto no R2 simulado;
+- autorização ADMIN e moderação;
 - matching;
 - adaptação de receitas;
 - comparação segura de unidades.
