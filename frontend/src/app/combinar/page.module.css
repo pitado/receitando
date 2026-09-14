@@ -38,7 +38,32 @@
   font-size: clamp(1rem, 1.8vw, 1.16rem);
   line-height: 1.7;
   margin: var(--space-5) 0 0;
-  max-width: 45rem;
+  max-width: 43rem;
+}
+
+.explainer {
+  background: color-mix(in srgb, var(--color-card) 68%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-sage) 22%, var(--color-border));
+  border-radius: 0.9rem;
+  color: var(--color-text-muted);
+  margin-top: var(--space-5);
+  max-width: 43rem;
+  padding: 0.75rem 0.9rem;
+}
+
+.explainer summary {
+  color: var(--color-primary-dark);
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 760;
+  min-height: 2rem;
+  padding: 0.25rem 0;
+}
+
+.explainer p {
+  font-size: 0.84rem;
+  line-height: 1.6;
+  margin: 0.65rem 0 0;
 }
 
 .matcherSection {

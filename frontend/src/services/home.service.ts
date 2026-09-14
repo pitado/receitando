@@ -10,6 +10,7 @@ export interface HomePopularRecipe {
   servings: number;
   mealType: string;
   difficulty: RecipeDifficulty;
+  imageUrl: string | null;
   likes: number;
   favorites: number;
   comments: number;

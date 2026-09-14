@@ -1,18 +1,19 @@
 .card {
   background: var(--color-card);
   border: 1px solid var(--color-border);
-  border-radius: 1.2rem;
+  border-radius: 1.3rem;
   display: flex;
   flex-direction: column;
   min-height: 100%;
   overflow: hidden;
   position: relative;
-  transition: border-color var(--transition-fast), background-color var(--transition-fast), box-shadow var(--transition-fast);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-base), transform var(--transition-base);
 }
 
 .card:hover {
-  border-color: color-mix(in srgb, var(--color-sage) 32%, var(--color-border));
+  border-color: color-mix(in srgb, var(--color-sage) 34%, var(--color-border));
   box-shadow: var(--shadow-card);
+  transform: translateY(-3px);
 }
 
 .cardOverlay {
@@ -38,36 +39,51 @@
   position: relative;
 }
 
-.visual::before {
-  background: color-mix(in srgb, var(--color-primary) 17%, transparent);
-  border-radius: 50%;
-  content: "";
-  height: 7rem;
-  left: 50%;
+.recipeImage {
+  object-fit: cover;
+  transition: transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.card:hover .recipeImage {
+  transform: scale(1.035);
+}
+
+.imageShade {
+  background: linear-gradient(180deg, transparent 44%, color-mix(in srgb, var(--color-text) 46%, transparent));
+  inset: 0;
   position: absolute;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: 7rem;
 }
 
-.visualWithImage {
-  background-position: center;
-  background-size: cover;
+.imageFallback {
+  align-items: center;
+  background:
+    radial-gradient(circle at 75% 24%, color-mix(in srgb, var(--color-highlight) 64%, transparent) 0 2.8rem, transparent 2.9rem),
+    radial-gradient(circle at 36% 65%, color-mix(in srgb, var(--color-primary) 22%, transparent) 0 4rem, transparent 4.1rem),
+    var(--color-sage-soft);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  position: absolute;
 }
 
-.visualWithImage::before {
-  display: none;
+.imageFallback span {
+  color: var(--color-sage);
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: 1.3rem;
+  font-weight: 650;
+  transform: rotate(-4deg);
 }
 
 .category,
 .status {
   background: color-mix(in srgb, var(--color-card) 92%, transparent);
   border: 1px solid color-mix(in srgb, var(--color-border) 80%, transparent);
-  border-radius: 0.55rem;
+  border-radius: 0.6rem;
   color: var(--color-text-muted);
   font-size: 0.7rem;
   font-weight: 760;
-  padding: 0.38rem 0.52rem;
+  padding: 0.4rem 0.55rem;
+  position: relative;
   z-index: 1;
 }
 
@@ -165,7 +181,13 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .card {
+  .card,
+  .recipeImage {
     transition: none;
+  }
+
+  .card:hover,
+  .card:hover .recipeImage {
+    transform: none;
   }
 }

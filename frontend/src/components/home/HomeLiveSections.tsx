@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -33,16 +34,10 @@ export function HomeLiveSections() {
 
     async function load() {
       const feedResult = await Promise.allSettled([getHomeFeed()]);
-      if (!cancelled && feedResult[0].status === "fulfilled") {
-        setFeed(feedResult[0].value);
-      }
+      if (!cancelled && feedResult[0].status === "fulfilled") setFeed(feedResult[0].value);
 
       if (hasAuthSessionHint()) {
-        const accountResult = await Promise.allSettled([
-          getCurrentUser(),
-          getPantry(),
-          matchRecipesFromPantry(),
-        ]);
+        const accountResult = await Promise.allSettled([getCurrentUser(), getPantry(), matchRecipesFromPantry()]);
         if (!cancelled) {
           if (accountResult[0].status === "fulfilled") setUser(accountResult[0].value);
           if (accountResult[1].status === "fulfilled") setPantryCount(accountResult[1].value.length);
@@ -54,14 +49,13 @@ export function HomeLiveSections() {
     }
 
     void load();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, []);
 
   const ready = matches.filter((recipe) => recipe.status === "READY").slice(0, 3);
   const almost = matches.filter((recipe) => recipe.status === "ALMOST_READY").slice(0, 3);
   const suggestions = ready.length > 0 ? ready : almost;
+  const visibleRecipes = (suggestions.length > 0 ? suggestions : feed?.popular ?? []).slice(0, 3);
   const recentComments = feed?.recentComments ?? [];
 
   return (
@@ -77,7 +71,7 @@ export function HomeLiveSections() {
                 {ready.length > 0 ? <> e <strong>{ready.length}</strong> {ready.length === 1 ? "receita pronta" : "receitas prontas"} para ir ao fogo.</> : "."}
               </p>
             </div>
-            <Link href="/receitas" className={styles.textLink}>Ver minhas combinações →</Link>
+            <Link href="/combinar" className={styles.textLink}>Ver minhas combinações →</Link>
           </div>
         </section>
       ) : null}
@@ -92,22 +86,38 @@ export function HomeLiveSections() {
             <Link href="/receitas" className={styles.textLink}>Ver todas →</Link>
           </div>
 
-          <div className={styles.recipeGrid}>
-            {(suggestions.length > 0 ? suggestions : feed?.popular ?? []).slice(0, 3).map((recipe) => (
-              <Link className={styles.recipeCard} href={`/receitas/${recipe.slug}`} key={recipe.id}>
-                <span className={styles.recipeMeta}>
-                  {"compatibility" in recipe ? `${recipe.compatibility}% compatível` : recipe.mealType || "Receita da casa"}
-                </span>
-                <h3>{recipe.title}</h3>
-                <p>{recipe.description}</p>
-                <div className={styles.recipeFooter}>
-                  <span>{recipe.prepMinutes} min</span>
-                  {"likes" in recipe ? <span>{recipe.likes} gostaram</span> : null}
-                  <strong>Ver receita →</strong>
-                </div>
-              </Link>
-            ))}
-          </div>
+          {visibleRecipes.length > 0 ? (
+            <div className={styles.recipeGrid}>
+              {visibleRecipes.map((recipe) => (
+                <Link className={styles.recipeCard} href={`/receitas/${recipe.slug}`} key={recipe.id}>
+                  <div className={styles.recipeVisual}>
+                    {recipe.imageUrl ? (
+                      <Image alt={`Foto de ${recipe.title}`} fill sizes="(min-width: 768px) 33vw, 100vw" src={recipe.imageUrl} />
+                    ) : (
+                      <span aria-hidden="true" className={styles.recipeFallback}>Receitando</span>
+                    )}
+                    <span className={styles.recipeMeta}>
+                      {"compatibility" in recipe ? `${recipe.compatibility}% compatível` : recipe.mealType || "Receita da casa"}
+                    </span>
+                  </div>
+                  <div className={styles.recipeBody}>
+                    <h3>{recipe.title}</h3>
+                    <p>{recipe.description}</p>
+                    <div className={styles.recipeFooter}>
+                      <span>{recipe.prepMinutes > 0 ? `${recipe.prepMinutes} min` : "tempo livre"}</span>
+                      {"likes" in recipe ? <span>{recipe.likes} gostaram</span> : null}
+                      <strong>Ver receita →</strong>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className={styles.recipeEmpty}>
+              <strong>{loaded ? "O caderno está esperando a próxima receita." : "Escolhendo receitas para você..."}</strong>
+              <p>{loaded ? "Explore o catálogo enquanto novas receitas aparecem por aqui." : "Só um instante enquanto a cozinha responde."}</p>
+            </div>
+          )}
         </div>
       </section>
 
@@ -156,11 +166,7 @@ export function HomeLiveSections() {
               <span aria-hidden="true">“</span>
               <div>
                 <strong>{loaded ? "A cozinha ficou quietinha por enquanto." : "Buscando as últimas pitadas..."}</strong>
-                <p>
-                  {loaded
-                    ? "Abra uma receita, conte como ficou e deixe a primeira pitada da conversa."
-                    : "Os comentários mais recentes aparecem aqui assim que a cozinha responder."}
-                </p>
+                <p>{loaded ? "Abra uma receita, conte como ficou e deixe a primeira pitada da conversa." : "Os comentários mais recentes aparecem aqui assim que a cozinha responder."}</p>
               </div>
               {loaded ? <Link href="/receitas" className={styles.textLink}>Escolher uma receita →</Link> : null}
             </div>

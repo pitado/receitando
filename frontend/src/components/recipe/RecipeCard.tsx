@@ -1,13 +1,10 @@
+import Image from "next/image";
 import Link from "next/link";
 
 import { CompatibilityBadge } from "@/components/recipe/CompatibilityBadge";
 import { FavoriteButton } from "@/components/recipe/FavoriteButton";
 import { formatPrepTime } from "@/lib/format";
-import type {
-  MatchIngredient,
-  RecipeDifficulty,
-  RecipeMatchStatus,
-} from "@/types/recipe";
+import type { MatchIngredient, RecipeDifficulty, RecipeMatchStatus } from "@/types/recipe";
 
 import styles from "./RecipeCard.module.css";
 
@@ -43,13 +40,9 @@ const difficultyLabels: Record<RecipeDifficulty, string> = {
   DIFICIL: "Difícil",
 };
 
-function buildMissingMessage(
-  compatibility: number | undefined,
-  missingIngredients: MatchIngredient[] | undefined,
-): string | null {
+function buildMissingMessage(compatibility: number | undefined, missingIngredients: MatchIngredient[] | undefined): string | null {
   if (compatibility === undefined) return null;
   if (compatibility === 100 || !missingIngredients?.length) return "Você tem tudo ✓";
-
   const label = missingIngredients.length === 1 ? "Falta" : "Faltam";
   return `${label}: ${missingIngredients.map((item) => item.name).join(", ")}`;
 }
@@ -73,28 +66,29 @@ export function RecipeCard({
   title,
 }: RecipeCardProps) {
   const missingMessage = buildMissingMessage(compatibility, missingIngredients);
-  const imageStyle = imageUrl
-    ? { backgroundImage: `linear-gradient(180deg, rgba(42, 22, 8, 0.02), rgba(42, 22, 8, 0.32)), url("${imageUrl.replaceAll('"', '%22')}")` }
-    : undefined;
   const hasPrepTime = typeof prepMinutes === "number" && prepMinutes > 0;
   const hasServings = typeof servings === "number" && servings > 0;
   const recipeHref = `/receitas/${slug}`;
 
   return (
     <article className={styles.card}>
-      <Link
-        aria-label={`Abrir receita ${title}`}
-        className={styles.cardOverlay}
-        href={recipeHref}
-      />
+      <Link aria-label={`Abrir receita ${title}`} className={styles.cardOverlay} href={recipeHref} />
 
-      <div
-        aria-label={imageUrl ? `Foto de ${title}` : undefined}
-        aria-hidden={imageUrl ? undefined : true}
-        className={`${styles.visual} ${imageUrl ? styles.visualWithImage : ""}`}
-        role={imageUrl ? "img" : undefined}
-        style={imageStyle}
-      >
+      <div className={styles.visual}>
+        {imageUrl ? (
+          <Image
+            alt={`Foto de ${title}`}
+            className={styles.recipeImage}
+            fill
+            sizes="(min-width: 1088px) 33vw, (min-width: 672px) 50vw, 100vw"
+            src={imageUrl}
+          />
+        ) : (
+          <div aria-hidden="true" className={styles.imageFallback}>
+            <span>Receitando</span>
+          </div>
+        )}
+        <div aria-hidden="true" className={styles.imageShade} />
         <span className={styles.category}>{mealType || "Receita"}</span>
         {status ? <span className={styles.status}>{statusLabels[status]}</span> : null}
       </div>
@@ -110,11 +104,7 @@ export function RecipeCard({
         {hasPrepTime || hasServings || (difficulty && !externalSource) || (externalSource && sourceName) ? (
           <div className={styles.details}>
             {hasPrepTime ? <span className={styles.detail}>◷ {formatPrepTime(prepMinutes)}</span> : null}
-            {hasServings ? (
-              <span className={styles.detail}>
-                ◌ {servings} {servings === 1 ? "porção" : "porções"}
-              </span>
-            ) : null}
+            {hasServings ? <span className={styles.detail}>◌ {servings} {servings === 1 ? "porção" : "porções"}</span> : null}
             {difficulty && !externalSource ? <span className={styles.detail}>◇ {difficultyLabels[difficulty]}</span> : null}
             {externalSource && sourceName ? <span className={styles.detail}>Fonte: {sourceName}</span> : null}
           </div>
@@ -123,9 +113,7 @@ export function RecipeCard({
         {missingMessage ? <p className={styles.matchMessage}>{missingMessage}</p> : null}
 
         <div className={styles.actions}>
-          <span className={styles.cardLink}>
-            Ver receita <span aria-hidden="true">→</span>
-          </span>
+          <span className={styles.cardLink}>Ver receita <span aria-hidden="true">→</span></span>
           <div className={styles.favoriteAction}>
             <FavoriteButton
               initialFavorite={initialFavorite}

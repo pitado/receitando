@@ -10,10 +10,7 @@ type CombinePageProps = {
 
 function parseIngredients(value?: string | string[]): string[] {
   const rawValue = Array.isArray(value) ? value[0] : value;
-
-  if (!rawValue) {
-    return [];
-  }
+  if (!rawValue) return [];
 
   return rawValue
     .split(",")
@@ -27,21 +24,20 @@ export default async function CombinePage({ searchParams }: CombinePageProps) {
   const initialIngredients = parseIngredients(params.ingredientes);
 
   return (
-    <main className={styles.page}>
+    <div className={styles.page}>
       <section className={styles.hero}>
         <div className={`container ${styles.heroContainer}`}>
           <p className={styles.eyebrow}>Combinações da sua cozinha</p>
           <h1>O que dá para fazer?</h1>
           <p className={styles.description}>
-            Conte o que tem na cozinha. A gente junta os pontos e organiza as
-            receitas da maior compatibilidade para a menor.
+            Conte o que tem em casa e descubra as receitas que mais combinam com a sua cozinha agora.
           </p>
-          <p className={styles.description}>
-            Nesta versão, a compatibilidade considera se você tem ou não cada
-            ingrediente, sem comparar quantidades ou unidades. Itens básicos como
-            água, sal, pimenta e óleo não reduzem a pontuação quando estiverem
-            marcados como básicos no catálogo.
-          </p>
+          <details className={styles.explainer}>
+            <summary>Como calculamos a compatibilidade?</summary>
+            <p>
+              Comparamos os ingredientes obrigatórios da receita com a sua lista. Itens básicos como água, sal, pimenta e óleo não reduzem a pontuação quando estão marcados como básicos no catálogo. Quantidades e unidades ainda não entram no cálculo.
+            </p>
+          </details>
         </div>
       </section>
 
@@ -50,6 +46,6 @@ export default async function CombinePage({ searchParams }: CombinePageProps) {
           <IngredientMatcher initialIngredients={initialIngredients} />
         </div>
       </section>
-    </main>
+    </div>
   );
 }
