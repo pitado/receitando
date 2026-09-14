@@ -53,9 +53,7 @@ function nonNegativeInt(value: string | null): number {
 
 function difficultyFrom(value: string | null): RecipeDifficulty | "" {
   const normalized = (value ?? "").trim().toUpperCase();
-  if (normalized === "FACIL" || normalized === "MEDIA" || normalized === "DIFICIL") {
-    return normalized;
-  }
+  if (normalized === "FACIL" || normalized === "MEDIA" || normalized === "DIFICIL") return normalized;
   return "";
 }
 
@@ -82,9 +80,7 @@ function maxPrepMinutesFrom(value: string | null): number | null {
 }
 
 function orderBy(sort: CatalogSort, hasSearch: boolean): string {
-  if (sort === "relevance" && hasSearch) {
-    return "bm25(recipe_search), r.title COLLATE NOCASE ASC";
-  }
+  if (sort === "relevance" && hasSearch) return "bm25(recipe_search), r.title COLLATE NOCASE ASC";
   if (sort === "popular") {
     return `(
       COALESCE((SELECT COUNT(*) FROM recipe_votes rv WHERE rv.recipe_id = r.id AND rv.vote = 'LIKE'), 0) * 4 +
@@ -92,12 +88,8 @@ function orderBy(sort: CatalogSort, hasSearch: boolean): string {
       COALESCE((SELECT COUNT(*) FROM recipe_comments rc WHERE rc.recipe_id = r.id), 0)
     ) DESC, r.updated_at DESC, r.title COLLATE NOCASE ASC`;
   }
-  if (sort === "quick") {
-    return "CASE WHEN r.prep_minutes > 0 THEN 0 ELSE 1 END, r.prep_minutes ASC, r.title COLLATE NOCASE ASC";
-  }
-  if (sort === "title") {
-    return "r.title COLLATE NOCASE ASC";
-  }
+  if (sort === "quick") return "CASE WHEN r.prep_minutes > 0 THEN 0 ELSE 1 END, r.prep_minutes ASC, r.title COLLATE NOCASE ASC";
+  if (sort === "title") return "r.title COLLATE NOCASE ASC";
   return "r.updated_at DESC, r.title COLLATE NOCASE ASC";
 }
 
@@ -137,9 +129,6 @@ async function listCatalogV2(request: Request, env: Env): Promise<Response> {
   const sort = sortFrom(url.searchParams.get("sort"), Boolean(search));
 
   const fromParts = ["FROM recipes r"];
-  // O catálogo público aceita o acervo validado do Wikilivros e as receitas da
-  // comunidade que já passaram pela moderação. Seeds/demos continuam de fora,
-  // e todos os cards precisam ter imagem real associada à receita.
   const where: string[] = [
     "(lower(COALESCE(r.external_source, '')) = 'wikibooks' OR r.source_type = 'USER')",
     "r.image_url IS NOT NULL",
@@ -152,7 +141,9 @@ async function listCatalogV2(request: Request, env: Env): Promise<Response> {
     where.push("recipe_search MATCH ?");
     bindings.push(search);
   }
-  if (source) {
+  if (source === "community") {
+    where.push("r.source_type = 'USER'");
+  } else if (source) {
     where.push("lower(r.external_source) = ?");
     bindings.push(source);
   }
@@ -211,30 +202,15 @@ async function listCatalogV2(request: Request, env: Env): Promise<Response> {
     mealType: row.mealType,
     difficulty: row.difficulty,
     imageUrl: row.imageUrl,
-    source: {
-      name: row.sourceName,
-      externalSource: row.externalSource,
-    },
+    source: { name: row.sourceName, externalSource: row.externalSource },
     tags: tags.get(row.id) ?? [],
   }));
 
-  const filters: CatalogFilterState = {
-    query,
-    source,
-    mealType,
-    difficulty,
-    maxPrepMinutes,
-    sort,
-  };
+  const filters: CatalogFilterState = { query, source, mealType, difficulty, maxPrepMinutes, sort };
 
   return json(request, env, {
     items,
-    pagination: {
-      total,
-      limit,
-      offset,
-      hasMore: offset + items.length < total,
-    },
+    pagination: { total, limit, offset, hasMore: offset + items.length < total },
     filters,
   });
 }
@@ -242,12 +218,8 @@ async function listCatalogV2(request: Request, env: Env): Promise<Response> {
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const path = new URL(request.url).pathname.replace(/\/+$/, "") || "/";
-    if (path !== "/api/v2/recipes") {
-      return apiError(request, env, 404, "Rota não encontrada.");
-    }
-    if (request.method !== "GET") {
-      return apiError(request, env, 405, "Método não permitido.");
-    }
+    if (path !== "/api/v2/recipes") return apiError(request, env, 404, "Rota não encontrada.");
+    if (request.method !== "GET") return apiError(request, env, 405, "Método não permitido.");
     return listCatalogV2(request, env);
   },
 };
