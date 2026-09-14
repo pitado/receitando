@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { normalizeIngredientName } from "@/lib/normalize-ingredient";
@@ -15,7 +14,6 @@ const SEARCH_DELAY_MS = 180;
 const MIN_QUERY_LENGTH = 2;
 
 export function GlobalHeaderSearch() {
-  const pathname = usePathname();
   const rootRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const ingredientCache = useRef<IngredientOption[] | null>(null);
@@ -52,14 +50,7 @@ export function GlobalHeaderSearch() {
 
   useEffect(() => {
     const trimmed = query.trim();
-    setFeedback("");
-
-    if (trimmed.length < MIN_QUERY_LENGTH) {
-      setRecipes([]);
-      setIngredients([]);
-      setLoading(false);
-      return;
-    }
+    if (trimmed.length < MIN_QUERY_LENGTH) return;
 
     const controller = new AbortController();
     const timer = window.setTimeout(async () => {
@@ -73,11 +64,7 @@ export function GlobalHeaderSearch() {
         ingredientCache.current = options;
         const normalized = normalizeIngredientName(trimmed);
         setRecipes(catalog.items.slice(0, 5));
-        setIngredients(
-          options
-            .filter((item) => item.normalizedName.includes(normalized) || normalizeIngredientName(item.name).includes(normalized))
-            .slice(0, 5),
-        );
+        setIngredients(options.filter((item) => item.normalizedName.includes(normalized) || normalizeIngredientName(item.name).includes(normalized)).slice(0, 5));
       } catch {
         if (!controller.signal.aborted) setFeedback("Não foi possível buscar agora.");
       } finally {
@@ -91,11 +78,18 @@ export function GlobalHeaderSearch() {
     };
   }, [query]);
 
-  useEffect(() => {
-    setOpen(false);
-  }, [pathname]);
-
   const allResultsUrl = useMemo(() => `/receitas?q=${encodeURIComponent(query.trim())}`, [query]);
+
+  function handleQueryChange(value: string) {
+    setQuery(value);
+    setOpen(true);
+    setFeedback("");
+    if (value.trim().length < MIN_QUERY_LENGTH) {
+      setRecipes([]);
+      setIngredients([]);
+      setLoading(false);
+    }
+  }
 
   async function addIngredient(ingredient: IngredientOption) {
     if (addingId || addedIds.has(ingredient.id)) return;
@@ -117,35 +111,22 @@ export function GlobalHeaderSearch() {
 
   return (
     <div className={`${styles.globalSearch} ${open ? styles.globalSearchOpen : ""}`} ref={rootRef}>
-      <button
-        aria-expanded={open}
-        aria-haspopup="dialog"
-        aria-label="Buscar receitas e ingredientes"
-        className={styles.mobileSearchTrigger}
-        onClick={() => {
-          setOpen(true);
-          window.requestAnimationFrame(() => inputRef.current?.focus());
-        }}
-        type="button"
-      >
-        <span aria-hidden="true">⌕</span>
-      </button>
+      <button aria-expanded={open} aria-haspopup="dialog" aria-label="Buscar receitas e ingredientes" className={styles.mobileSearchTrigger} onClick={() => { setOpen(true); window.requestAnimationFrame(() => inputRef.current?.focus()); }} type="button"><span aria-hidden="true">⌕</span></button>
 
       <div aria-label="Busca global" className={styles.searchSurface} role="search">
         <div className={styles.searchInputRow}>
           <span aria-hidden="true" className={styles.searchIcon}>⌕</span>
           <input
+            aria-autocomplete="list"
             aria-controls="global-search-results"
             aria-expanded={open && hasQuery}
             aria-label="Buscar receitas ou ingredientes"
             autoComplete="off"
-            onChange={(event) => {
-              setQuery(event.target.value);
-              setOpen(true);
-            }}
+            onChange={(event) => handleQueryChange(event.target.value)}
             onFocus={() => setOpen(true)}
             placeholder="Buscar receita ou ingrediente"
             ref={inputRef}
+            role="combobox"
             type="search"
             value={query}
           />
@@ -160,46 +141,24 @@ export function GlobalHeaderSearch() {
 
             {!loading && recipes.length > 0 ? (
               <section aria-labelledby="global-recipes-title" className={styles.searchGroup}>
-                <div className={styles.searchGroupHeading}>
-                  <h2 id="global-recipes-title">Receitas</h2>
-                  <Link href={allResultsUrl}>Ver todas</Link>
-                </div>
+                <div className={styles.searchGroupHeading}><h2 id="global-recipes-title">Receitas</h2><Link href={allResultsUrl} onClick={() => setOpen(false)}>Ver todas</Link></div>
                 <div className={styles.searchList}>
-                  {recipes.map((recipe) => (
-                    <Link className={styles.recipeSearchResult} href={`/receitas/${recipe.slug}`} key={recipe.id}>
-                      <span>{recipe.title}</span>
-                      <small>{recipe.prepMinutes} min · {recipe.mealType || "Receita"}</small>
-                    </Link>
-                  ))}
+                  {recipes.map((recipe) => <Link className={styles.recipeSearchResult} href={`/receitas/${recipe.slug}`} key={recipe.id} onClick={() => setOpen(false)}><span>{recipe.title}</span><small>{recipe.prepMinutes} min · {recipe.mealType || "Receita"}</small></Link>)}
                 </div>
               </section>
             ) : null}
 
             {!loading && ingredients.length > 0 ? (
               <section aria-labelledby="global-pantry-title" className={styles.searchGroup}>
-                <div className={styles.searchGroupHeading}>
-                  <h2 id="global-pantry-title">Despensa</h2>
-                </div>
+                <div className={styles.searchGroupHeading}><h2 id="global-pantry-title">Despensa</h2></div>
                 <div className={styles.searchList}>
                   {ingredients.map((ingredient) => {
                     const added = addedIds.has(ingredient.id);
-                    return (
-                      <div className={styles.ingredientSearchResult} key={ingredient.id}>
-                        <span><strong>{ingredient.name}</strong><small>{ingredient.category}</small></span>
-                        <button
-                          disabled={addingId === ingredient.id || added}
-                          onClick={() => void addIngredient(ingredient)}
-                          type="button"
-                        >
-                          {added ? "Adicionado" : addingId === ingredient.id ? "Adicionando…" : "Adicionar"}
-                        </button>
-                      </div>
-                    );
+                    return <div className={styles.ingredientSearchResult} key={ingredient.id}><span><strong>{ingredient.name}</strong><small>{ingredient.category}</small></span><button disabled={addingId === ingredient.id || added} onClick={() => void addIngredient(ingredient)} type="button">{added ? "Adicionado" : addingId === ingredient.id ? "Adicionando…" : "Adicionar"}</button></div>;
                   })}
                 </div>
               </section>
             ) : null}
-
             {feedback ? <p className={styles.searchFeedback}>{feedback}</p> : null}
           </div>
         ) : null}
