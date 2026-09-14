@@ -85,6 +85,7 @@ Quando não existe substituição considerada confiável para aquele contexto, o
 
 - catálogo navegável e detalhe completo;
 - busca textual indexada com SQLite FTS5;
+- catálogo v2 com busca, filtros, ordenação e paginação;
 - catálogo canônico de ingredientes e aliases;
 - normalização conservadora de variações de ingredientes;
 - equivalência por IDs canônicos, sem substring como regra de matching;
@@ -111,6 +112,19 @@ Quando não existe substituição considerada confiável para aquele contexto, o
 - edição e exclusão apenas do próprio comentário;
 - feed da home com receitas populares, comentários recentes e totais.
 
+### Comunidade e moderação
+
+- página `/enviar-receita` com formulário para compartilhar receitas com a comunidade;
+- envio permitido para usuário autenticado ou anônimo; `recipe_submissions.user_id` é opcional;
+- no fluxo atual do frontend, a foto do prato é obrigatória; o upload do arquivo é feito em `multipart/form-data` e armazenado no Cloudflare R2;
+- a API também mantém compatibilidade com uma URL HTTPS legada de imagem quando não recebe arquivo;
+- arquivos enviados são limitados a 12 MB e aceitam somente conteúdo detectado como `image/jpeg`, `image/png` ou `image/webp`;
+- cada envio aceita até 50 ingredientes e até 30 passos de preparo;
+- submissões nascem como `PENDING` e seguem para `APPROVED` ou `REJECTED` após revisão;
+- painel `/admin/receitas` restrito a usuários com `role = 'ADMIN'`;
+- moderação registra `reviewed_by`, `reviewed_at`, `rejection_reason` e, quando aprovada, `published_recipe_id`;
+- receitas aprovadas são publicadas com `source_type = 'USER'` e passam a aparecer no catálogo v2.
+
 ### Segurança
 
 - PBKDF2 via Web Crypto para senhas;
@@ -120,6 +134,9 @@ Quando não existe substituição considerada confiável para aquele contexto, o
 - CORS credenciado restrito às origens configuradas;
 - statements SQL parametrizados com `.bind()`;
 - autorização por usuário em despensa, favoritos, votos e comentários;
+- autorização por papel (`role = 'ADMIN'`) nas rotas de moderação;
+- validação do tipo real e do tamanho das imagens enviadas pela comunidade;
+- remoção do objeto recém-enviado no R2 quando a persistência da submissão falha depois do upload;
 - rate limiting em login, cadastro e solicitação de recuperação;
 - resposta genérica no reset para reduzir enumeração de contas;
 - secrets fora do repositório;
@@ -156,8 +173,9 @@ OpenNext / Cloudflare Worker
    ▼
 API Cloudflare Worker
    │
-   ├── Cloudflare D1
-   └── Resend
+   ├── Cloudflare D1        dados relacionais
+   ├── Cloudflare R2        imagens enviadas pela comunidade
+   └── Resend               e-mail de recuperação de senha
 ```
 
 O frontend nunca acessa o banco diretamente.
@@ -172,9 +190,11 @@ session-cookie-worker
 app-router
    ├── auth-rate-limit-worker
    ├── home-worker
-   ├── catalog64-worker
+   ├── catalog-v2-worker
+   ├── recipe-submission-worker
    ├── recipe-adaptation-worker
    ├── social-worker
+   ├── catalog64-worker
    ├── profile-worker
    ├── password-reset-worker
    ├── pantry-worker
@@ -197,11 +217,16 @@ Detalhes: [`docs/architecture.md`](docs/architecture.md).
 | `POST` | `/api/auth/reset-password` | trocar senha |
 | `GET` | `/api/sources` | fontes do catálogo |
 | `GET` | `/api/ingredients` | ingredientes canônicos |
-| `GET` | `/api/recipes` | catálogo e busca |
+| `GET` | `/api/recipes` | catálogo legado e busca |
+| `GET` | `/api/v2/recipes` | catálogo com filtros e paginação |
 | `GET` | `/api/recipes/:slug` | detalhe da receita |
 | `POST` | `/api/recipes/match` | matching manual |
 | `GET` | `/api/recipes/match/pantry` | matching pela despensa |
 | `POST` | `/api/recipes/:slug/adapt` | adaptar receita/substituições |
+| `POST` | `/api/recipe-submissions` | enviar receita da comunidade |
+| `GET` | `/api/recipe-submission-images/:key` | imagem enviada, servida do R2 |
+| `GET` | `/api/admin/recipe-submissions` | fila de moderação (somente ADMIN) |
+| `PATCH` | `/api/admin/recipe-submissions/:id` | aprovar ou rejeitar envio |
 | `GET` / `POST` | `/api/pantry` | listar/adicionar/atualizar despensa |
 | `DELETE` | `/api/pantry/:itemId` | remover item |
 | `GET` / `POST` | `/api/favorites` | favoritos |
@@ -211,6 +236,8 @@ Detalhes: [`docs/architecture.md`](docs/architecture.md).
 | `GET` / `POST` | `/api/recipes/:recipeId/comments` | comentários |
 | `PATCH` / `DELETE` | `/api/recipe-comments/:commentId` | comentário próprio |
 | `GET` | `/api/home-feed` | feed da home |
+
+A página `/receitas` usa efetivamente `GET /api/v2/recipes`. Esse endpoint aceita `q`, `source`, `mealType`, `difficulty`, `maxPrepMinutes`, `sort`, `limit` e `offset`.
 
 Documentação completa: [`docs/api.md`](docs/api.md).
 
@@ -244,6 +271,8 @@ Compostos semanticamente diferentes permanecem separados: `óleo` não equivale 
 
 Produção utiliza **Cloudflare D1**. O schema inclui usuários, sessões, catálogo canônico de ingredientes, aliases, receitas, despensa, favoritos, recuperação de senha, comunidade, atribuição de conteúdo, rate limiting e busca FTS5.
 
+As imagens enviadas pela comunidade ficam no **Cloudflare R2**, no bucket ligado por `RECIPE_IMAGES`, e são servidas pela rota `/api/recipe-submission-images/:key`. O conteúdo binário da imagem não é armazenado no D1; o banco guarda a URL associada à submissão/receita.
+
 A coluna `pantry_items.expires_at` já fazia parte do schema original e agora é usada pela interface de validade; portanto, essa evolução não exigiu uma migration nova.
 
 Migrations:
@@ -259,6 +288,7 @@ Detalhes: [`docs/database.md`](docs/database.md).
 ```text
 receitando/
 ├── frontend/                       aplicação Next.js
+│   └── e2e/                        suíte Playwright
 ├── backend/
 │   ├── README.md
 │   └── worker-prototype/           API atual de produção
@@ -268,9 +298,12 @@ receitando/
 │       └── tests/                  testes da API
 ├── docs/                           documentação oficial
 ├── .github/                        CI, deploy, Dependabot e templates
+├── AUTHORS.md
 ├── CHANGELOG.md
 ├── CONTRIBUTING.md
 ├── SECURITY.md
+├── receitando-requisitos.md
+├── receitando-casos-de-uso.md
 ├── LICENSE
 └── README.md
 ```
@@ -281,15 +314,15 @@ A implementação antiga em NestJS + Prisma + PostgreSQL foi retirada da árvore
 
 **Frontend:** Next.js 16, React 19, TypeScript, App Router, OpenNext e Cloudflare Workers.
 
-**API:** Cloudflare Workers, TypeScript, Wrangler, Cloudflare D1, Web Crypto API e Resend.
+**API:** Cloudflare Workers, TypeScript, Wrangler, Cloudflare D1, Cloudflare R2, Web Crypto API e Resend.
 
-**Infraestrutura:** GitHub Actions, Cloudflare Workers, Cloudflare D1 e Dependabot.
+**Infraestrutura:** GitHub Actions, Cloudflare Workers, Cloudflare D1, Cloudflare R2 e Dependabot.
 
 ## Desenvolvimento local
 
 Pré-requisitos:
 
-- Node.js 20.9+;
+- Node.js **20.9 ou superior, abaixo da versão 25** (faixa suportada: 20.9–24.x; CI validando com Node 22);
 - npm 10+.
 
 ### Frontend
@@ -320,6 +353,24 @@ Endereços padrão:
 - frontend: `http://localhost:3000`;
 - API: `http://localhost:8787`.
 
+### Variáveis e secrets
+
+Variáveis públicas da API definidas em `backend/worker-prototype/wrangler.jsonc`:
+
+- `FRONTEND_URL` — lista de origens permitidas pelo CORS, separadas por vírgula; inclui produção, `www`, endereço `workers.dev` e `localhost`;
+- `EMAIL_FROM` — remetente usado nos e-mails transacionais de recuperação de senha.
+
+Secret do Worker, nunca versionado no repositório:
+
+- `RESEND_API_KEY` — obrigatório para o envio do código de recuperação de senha pelo Resend.
+
+Secrets usados pelos workflows de deploy/importação:
+
+- `CLOUDFLARE_API_TOKEN`;
+- `CLOUDFLARE_ACCOUNT_ID`.
+
+O token de deploy deve ter as permissões de edição necessárias nos recursos usados pelo fluxo — Workers Scripts, D1 e R2. O bucket `receitando-recipe-images` é pré-criado, portanto o workflow não depende de permissão administrativa para listar ou criar buckets R2.
+
 ## Qualidade e testes
 
 Frontend:
@@ -341,11 +392,39 @@ npm test
 npm run dry-run
 ```
 
+E2E em Chromium com Playwright:
+
+```bash
+cd frontend/e2e
+npm ci
+npx playwright install --with-deps chromium
+npm test
+```
+
 A suíte combina testes unitários e testes de rota com D1 simulado. O repositório também possui E2E em navegador com Playwright.
+
+### Acessibilidade e SEO
+
+- o layout possui skip link **“Pular para o conteúdo principal”**, direcionado a `#conteudo-principal`, com estado `:focus-visible` para navegação por teclado;
+- `frontend/src/app/robots.ts` bloqueia indexação de `/admin/`, `/conta/`, `/despensa/`, `/favoritos/`, `/entrar` e `/cadastro`;
+- `frontend/src/app/sitemap.ts` inclui as páginas públicas principais e gera as entradas do catálogo em lotes paginados de 100 receitas.
 
 ## Deploy
 
 Frontend e API possuem workflows separados, e a importação do catálogo é independente do deploy.
+
+### Workflows do GitHub Actions
+
+| Workflow | Função |
+| --- | --- |
+| **Frontend CI** (`ci.yml`) | lint, typecheck, testes com cobertura e build |
+| **API Worker CI** (`api-worker-ci.yml`) | typecheck, testes e dry-run |
+| **E2E Playwright** (`e2e.yml`) | Chromium real e artefatos retidos por 7 dias |
+| **Deploy Cloudflare** (`deploy-cloudflare.yml`) | valida, compila e publica o frontend |
+| **Deploy API Cloudflare** (`deploy-api-cloudflare.yml`) | valida a API, aplica migrations e publica o Worker |
+| **Importar receitas do Wikilivros** (`import-wikibooks.yml`) | execução manual com escolha de categoria e meta de receitas |
+
+Todos os seis workflows configuram Node.js 22.
 
 Guia operacional: [`docs/deploy.md`](docs/deploy.md).
 
@@ -359,9 +438,13 @@ Guia operacional: [`docs/deploy.md`](docs/deploy.md).
 - [`docs/api.md`](docs/api.md) — contrato HTTP;
 - [`docs/database.md`](docs/database.md) — D1, índices e migrations;
 - [`docs/catalogo.md`](docs/catalogo.md) — receitas, imagens e licenças;
+- [`docs/motor-adaptacao.md`](docs/motor-adaptacao.md) — motor de adaptação e substituições;
+- [`docs/mobile-upload-login.md`](docs/mobile-upload-login.md) — upload de receitas e login em mobile;
 - [`docs/testes.md`](docs/testes.md) — estratégia de testes;
 - [`docs/deploy.md`](docs/deploy.md) — CI/deploy/operação;
 - [`docs/estrutura-repositorio.md`](docs/estrutura-repositorio.md) — estrutura do código;
+- [`receitando-requisitos.md`](receitando-requisitos.md) — análise de requisitos;
+- [`receitando-casos-de-uso.md`](receitando-casos-de-uso.md) — casos de uso;
 - [`frontend/README.md`](frontend/README.md) — frontend;
 - [`backend/worker-prototype/README.md`](backend/worker-prototype/README.md) — API atual;
 - [`CONTRIBUTING.md`](CONTRIBUTING.md) — contribuição;
@@ -373,4 +456,4 @@ O código original do Receitando é disponibilizado sob **GNU Affero General Pub
 
 ---
 
-Projeto acadêmico em evolução, com produção baseada em **Next.js + Cloudflare Workers + Cloudflare D1 + GitHub Actions**.
+Projeto acadêmico em evolução, com produção baseada em **Next.js + Cloudflare Workers + Cloudflare D1 + Cloudflare R2 + GitHub Actions**.

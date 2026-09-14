@@ -8,13 +8,22 @@ O usuário pode navegar pelo catálogo e abrir detalhes de cada receita.
 
 Cada receita pode apresentar título, descrição, ingredientes/quantidades, modo de preparo, categoria, dificuldade, imagem, tags e informações de procedência/licença.
 
-O catálogo operacional é alimentado pelo fluxo **Wikilivros + Wikimedia Commons**.
+A página `/receitas` usa o endpoint **`GET /api/v2/recipes`**, com paginação, filtros e ordenação. O catálogo público reúne o acervo validado do Wikilivros e receitas da comunidade que já foram aprovadas e publicadas.
 
-## 2. Busca textual
+## 2. Busca textual e filtros
 
 A listagem de receitas permite pesquisa textual por `q`.
 
 A API utiliza SQLite **FTS5** sobre título e descrição, com busca por termos/prefixos e ordenação por relevância. A busca principal não depende de `LIKE '%termo%'` em toda a tabela de receitas.
+
+O catálogo v2 também permite filtrar por:
+
+- fonte (`source`);
+- tipo de refeição (`mealType`);
+- dificuldade (`difficulty`);
+- tempo máximo (`maxPrepMinutes`).
+
+Ordenações aceitas: `relevance`, `recent`, `popular`, `quick` e `title`.
 
 ## 3. Matching por ingredientes
 
@@ -187,17 +196,64 @@ Usuários autenticados podem salvar/remover favoritos e registrar/remover `LIKE`
 
 Comentários podem ser listados publicamente. Criação exige autenticação e edição/exclusão validam o dono do registro.
 
-## 10. Feed da home
+## 10. Receitas da comunidade
+
+A navegação principal inclui **Enviar receita**, que leva a `/enviar-receita`.
+
+O envio pode ser feito com ou sem conta. Quando há sessão válida, a API associa `user_id`; quando não há, a submissão permanece anônima no vínculo de conta.
+
+O formulário atual exige:
+
+- nome do autor;
+- título;
+- descrição;
+- pelo menos 2 ingredientes;
+- pelo menos 1 passo de preparo;
+- foto do prato.
+
+O e-mail do autor, tempo, porções e tipo de refeição são opcionais.
+
+Limites do envio:
+
+- até 50 ingredientes;
+- até 30 passos;
+- foto de até 12 MB;
+- tipos reais aceitos: JPG, PNG e WebP.
+
+A foto é enviada em `multipart/form-data`. A API valida a assinatura do arquivo e armazena o objeto no Cloudflare R2 (`RECIPE_IMAGES`). Se a persistência no D1 falhar depois do upload, o objeto criado é removido.
+
+Toda submissão válida nasce com `status = 'PENDING'` e não entra automaticamente no catálogo.
+
+## 11. Moderação administrativa
+
+O painel `/admin/receitas` é restrito a usuários com `role = 'ADMIN'`.
+
+O administrador pode filtrar a fila por `PENDING`, `APPROVED`, `REJECTED` ou `ALL`, revisar conteúdo e decidir entre aprovação ou rejeição.
+
+A moderação registra:
+
+- `reviewed_by`;
+- `reviewed_at`;
+- `rejection_reason` quando informado;
+- `published_recipe_id` quando a submissão é aprovada.
+
+Uma submissão já analisada não pode ser analisada novamente.
+
+Na aprovação, a API cria a receita com `source_type = 'USER'`, adiciona os ingredientes canônicos/relações necessárias e publica o item no catálogo v2.
+
+## 12. Feed da home
 
 `GET /api/home-feed` consolida receitas populares, comentários recentes e totais usados pela página inicial.
 
-## 11. Estados de interface
+## 13. Estados de interface
 
 O frontend possui tratamento de carregamento, erro, conteúdo vazio, página 404 e feedback de ações autenticadas.
 
 A tela `/combinar` explica a regra de compatibilidade e, no modo despensa, informa que a validade é usada apenas para priorizar resultados próximos.
 
-## 12. Importação e canonicalização
+As telas de envio e moderação também possuem estados de envio, sucesso, erro, acesso negado e conteúdo vazio.
+
+## 14. Importação e canonicalização
 
 A operação de catálogo é separada da navegação do usuário.
 
@@ -212,40 +268,45 @@ O fluxo atual:
 7. grava receitas em lotes;
 8. canonicaliza variações de ingredientes;
 9. preserva aliases;
-10. marca staples e otimiza o banco.
+10. marca staples e otimiza o banco;
+11. espelha imagens operacionais para o R2.
 
 Scripts ativos:
 
 ```text
 backend/worker-prototype/scripts/import-wikibooks-v2.mjs
 backend/worker-prototype/scripts/canonicalize-ingredients.mjs
+backend/worker-prototype/scripts/mirror-wikibooks-images-to-r2.mjs
 ```
 
-## 13. Tratamento de conteúdo externo
+## 15. Tratamento de conteúdo externo
 
 O conteúdo culinário aproveitado do Wikilivros é convertido para texto pelo importador. A tela de receita renderiza strings React e não HTML bruto da fonte externa.
 
 Metadados da receita e da imagem são preservados separadamente para atribuição.
 
-## 14. API e persistência
+## 16. API e persistência
 
-A API é organizada em autenticação/perfil, recuperação, fontes, ingredientes, receitas/matching, adaptação de receita, despensa, favoritos, votos, comentários e home.
+A API é organizada em autenticação/perfil, recuperação, catálogo v2, fontes, ingredientes, receitas/matching, adaptação, submissões/moderação, despensa, favoritos, votos, comentários e home.
 
-A produção usa Cloudflare D1 para usuários, sessões, catálogo canônico, aliases, FTS5, despensa, favoritos, recuperação, comunidade, procedência e rate limiting.
+A produção usa Cloudflare D1 para usuários, sessões, catálogo canônico, aliases, FTS5, despensa, favoritos, recuperação, comunidade, procedência, submissões/moderação e rate limiting.
+
+Cloudflare R2 armazena as imagens enviadas pela comunidade e imagens operacionais espelhadas do catálogo. As fotos de submissões são servidas pela API em `/api/recipe-submission-images/:key`.
 
 Detalhes:
 
 - [`api.md`](api.md)
 - [`database.md`](database.md)
+- [`architecture.md`](architecture.md)
 
-## 15. Qualidade
+## 17. Qualidade
 
 O frontend possui testes com Vitest/Testing Library e fluxo E2E com Playwright.
 
-A API possui testes de regras puras e testes de rota com D1 simulado, incluindo canonicalização, staples, FTS5, autenticação, autorização, rate limiting, catálogo, matching, adaptação de receitas, recuperação e interação social.
+A API possui testes de regras puras e testes de rota com D1 simulado, incluindo canonicalização, staples, FTS5, autenticação, autorização, rate limiting, catálogo v2, matching, adaptação de receitas, recuperação, interação social e submissão/moderação de receitas.
 
 CI também executa lint/typecheck/build/dry-run conforme o componente.
 
-## 16. Relação com o escopo
+## 18. Relação com o escopo
 
 Este documento descreve **o que existe na implementação**. [`escopo.md`](escopo.md) define objetivos, requisitos e critérios acadêmicos usados como referência para o projeto.
