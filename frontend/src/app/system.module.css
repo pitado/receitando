@@ -2,6 +2,46 @@
   padding-block: clamp(3rem, 9vw, 7rem);
 }
 
+.pageSkeleton {
+  display: grid;
+  gap: 1rem;
+}
+
+.skeletonTitle,
+.skeletonCopy,
+.skeletonCards > span {
+  animation: system-skeleton 1.4s ease-in-out infinite;
+  background: linear-gradient(90deg, var(--color-surface) 25%, var(--color-card) 50%, var(--color-surface) 75%);
+  background-size: 200% 100%;
+  display: block;
+}
+
+.skeletonTitle {
+  border-radius: 999px;
+  height: 2.8rem;
+  max-width: 32rem;
+  width: 70%;
+}
+
+.skeletonCopy {
+  border-radius: 999px;
+  height: 1rem;
+  max-width: 42rem;
+  width: 90%;
+}
+
+.skeletonCards {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+.skeletonCards > span {
+  aspect-ratio: 4 / 3;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+}
+
 .action {
   align-items: center;
   background: var(--color-primary-dark);
@@ -14,12 +54,26 @@
   min-height: 3rem;
   padding: 0.75rem 1.2rem;
   text-decoration: none;
-  transition: background-color var(--transition-fast),
-    box-shadow var(--transition-fast), transform var(--transition-fast);
+  transition: background-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
 }
 
 .action:hover {
   background: var(--color-action-hover);
   box-shadow: var(--shadow-button-hover);
   transform: translateY(-1px);
+}
+
+@keyframes system-skeleton {
+  from { background-position: 100% 0; }
+  to { background-position: -100% 0; }
+}
+
+@media (min-width: 48rem) {
+  .skeletonCards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeletonTitle,
+  .skeletonCopy,
+  .skeletonCards > span { animation: none; }
 }

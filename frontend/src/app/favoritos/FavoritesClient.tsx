@@ -62,7 +62,7 @@ export function FavoritesClient() {
     );
   }
 
-  if (loading) return <LoadingState label="Abrindo seu caderno de receitas…" />;
+  if (loading) return <LoadingState label="Carregando favoritos…" />;
   if (error) return <ErrorState message={error} />;
 
   if (recipes.length === 0) {

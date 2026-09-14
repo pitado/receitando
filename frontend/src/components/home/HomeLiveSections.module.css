@@ -9,10 +9,7 @@
 .personalCard { align-items: end; display: flex; flex-wrap: wrap; gap: var(--space-6); justify-content: space-between; padding-block: clamp(1rem, 3vw, 2rem); }
 .personalCard h2, .sectionHeader h2, .statLead h2, .manifesto h2 { font-family: var(--font-editorial), Georgia, serif; letter-spacing: -0.052em; }
 .personalCard h2 { font-size: clamp(2.7rem, 6vw, 4.8rem); font-weight: 570; line-height: 0.94; margin: 0 0 var(--space-4); max-width: 44rem; }
-.personalCard p:not(.eyebrow) { color: #556450; font-size: clamp(1rem, 1.5vw, 1.12rem); line-height: 1.65; margin: 0; }
-
-.eyebrow { align-items: center; color: var(--color-primary-dark); display: flex; font-size: 0.68rem; font-weight: 800; gap: 0.55rem; letter-spacing: 0.075em; margin: 0 0 var(--space-3); text-transform: uppercase; }
-.eyebrow::before { background: currentColor; border-radius: 50%; content: ""; height: 0.42rem; width: 0.42rem; }
+.personalCard p { color: #556450; font-size: clamp(1rem, 1.5vw, 1.12rem); line-height: 1.65; margin: 0; }
 
 .section { background: var(--color-background); }
 .sectionHeader { align-items: end; display: flex; flex-wrap: wrap; gap: var(--space-5); justify-content: space-between; margin-bottom: clamp(2.4rem, 5vw, 4rem); }
@@ -21,7 +18,7 @@
 .textLink { align-items: center; border-bottom: 1px solid currentColor; color: var(--color-primary-dark); display: inline-flex; font-size: 0.82rem; font-weight: 760; gap: 0.4rem; min-height: 2.75rem; padding-block: 0.6rem 0.25rem; text-decoration: none; transition: color var(--transition-fast), transform var(--transition-fast); }
 .textLink:hover { color: var(--color-primary); transform: translateX(2px); }
 
-.recipeGrid, .commentGrid { display: grid; gap: 1rem; }
+.recipeGrid, .commentGrid, .recipeSkeletonGrid, .commentSkeletonGrid { display: grid; gap: 1rem; }
 .recipeCard { background: var(--color-card); border: 1px solid var(--color-border); border-radius: 1.4rem; color: var(--color-text); display: flex; flex-direction: column; min-height: 100%; overflow: hidden; text-decoration: none; transition: border-color 220ms ease, box-shadow 260ms ease, transform 260ms cubic-bezier(0.16, 1, 0.3, 1); }
 .recipeCard:hover { border-color: color-mix(in srgb, var(--color-sage) 38%, var(--color-border)); box-shadow: 0 1.5rem 3.5rem color-mix(in srgb, var(--color-text) 9%, transparent); transform: translateY(-4px); }
 .recipeVisual { aspect-ratio: 4 / 3; background: var(--color-sage-soft); overflow: hidden; position: relative; }
@@ -40,10 +37,21 @@
 .recipeEmpty strong { font-family: var(--font-editorial), Georgia, serif; font-size: 1.6rem; }
 .recipeEmpty p { color: var(--color-text-muted); margin: 0; }
 
+.recipeSkeleton, .commentSkeleton { background: var(--color-card); border: 1px solid var(--color-border); border-radius: 1.3rem; overflow: hidden; padding: 1rem; }
+.recipeSkeleton { display: grid; gap: 0.75rem; padding: 0 0 1rem; }
+.skeletonImage, .skeletonLineWide, .skeletonLine, .skeletonLineShort, .skeletonAvatar { background: linear-gradient(90deg, var(--color-surface) 25%, var(--color-card) 50%, var(--color-surface) 75%); background-size: 200% 100%; display: block; animation: skeleton-pulse 1.4s ease-in-out infinite; }
+.skeletonImage { aspect-ratio: 4 / 3; }
+.skeletonLineWide, .skeletonLine, .skeletonLineShort { border-radius: 999px; height: 0.8rem; margin-inline: 1rem; }
+.skeletonLineWide { width: 70%; }
+.skeletonLine { width: 52%; }
+.skeletonLineShort { width: 34%; }
+.commentSkeleton { display: grid; gap: 0.8rem; min-height: 12rem; }
+.skeletonAvatar { border-radius: 50%; height: 2.6rem; width: 2.6rem; }
+.commentSkeleton .skeletonLineWide, .commentSkeleton .skeletonLine { margin-inline: 0; }
+
 .statsSection { background: #718368; color: #f8f5ef; overflow: hidden; position: relative; }
 .statsSection::after { border: 1px solid color-mix(in srgb, #f8f5ef 15%, transparent); border-radius: 50%; content: ""; height: 26rem; position: absolute; right: -8rem; top: -10rem; width: 26rem; }
 .statsGrid { display: grid; gap: clamp(2rem, 5vw, 4rem); position: relative; z-index: 1; }
-.statsSection .eyebrow { color: #f1d08c; }
 .statLead h2 { font-size: clamp(2.7rem, 5.8vw, 4.8rem); font-weight: 560; line-height: 0.92; margin: 0; max-width: 10ch; }
 .stat { border-top: 1px solid color-mix(in srgb, #f8f5ef 22%, transparent); display: grid; gap: 0.45rem; padding-top: 1rem; }
 .stat strong { font-family: var(--font-editorial), Georgia, serif; font-size: clamp(3rem, 6vw, 5rem); font-weight: 570; letter-spacing: -0.06em; line-height: 0.86; }
@@ -59,8 +67,7 @@
 .authorRow > div { display: grid; gap: 0.12rem; }
 .authorRow span, .commentCard small { color: var(--color-text-muted); font-size: 0.72rem; }
 .commentCard blockquote { font-family: var(--font-editorial), Georgia, serif; font-size: clamp(1.35rem, 2.6vw, 1.8rem); letter-spacing: -0.025em; line-height: 1.2; margin: 0; }
-.commentEmpty { align-items: center; background: #efe6dc; border: 1px solid var(--color-border); border-radius: 1.35rem; display: grid; gap: var(--space-5); grid-template-columns: auto minmax(0, 1fr) auto; padding: clamp(1.5rem, 4vw, 2.3rem); }
-.commentEmpty > span { color: var(--color-primary); font-family: var(--font-editorial), Georgia, serif; font-size: clamp(4rem, 9vw, 6rem); line-height: 0.7; opacity: 0.6; }
+.commentEmpty { align-items: center; background: #efe6dc; border: 1px solid var(--color-border); border-radius: 1.35rem; display: grid; gap: var(--space-5); grid-template-columns: minmax(0, 1fr) auto; padding: clamp(1.5rem, 4vw, 2.3rem); }
 .commentEmpty > div { display: grid; gap: 0.35rem; }
 .commentEmpty strong { font-family: var(--font-editorial), Georgia, serif; font-size: clamp(1.45rem, 3vw, 2rem); font-weight: 600; letter-spacing: -0.025em; }
 .commentEmpty p { color: var(--color-text-muted); line-height: 1.55; margin: 0; }
@@ -68,16 +75,17 @@
 .manifesto { background: #c45c3b; color: #fffaf4; overflow: hidden; position: relative; }
 .manifesto::after { border: 1px solid color-mix(in srgb, #fffaf4 20%, transparent); border-radius: 50%; bottom: -15rem; content: ""; height: 31rem; position: absolute; right: -7rem; width: 31rem; }
 .manifestoInner { max-width: 64rem; padding-right: clamp(0rem, 10vw, 8rem); position: relative; z-index: 1; }
-.manifesto .eyebrow { color: #f4d38f; }
 .manifesto h2 { font-size: clamp(3.2rem, 7.5vw, 6.5rem); font-weight: 560; line-height: 0.88; margin: 0 0 var(--space-6); max-width: 11ch; }
-.manifesto p:not(.eyebrow) { color: color-mix(in srgb, #fffaf4 80%, transparent); font-size: clamp(1.02rem, 2vw, 1.2rem); line-height: 1.68; margin: 0 0 var(--space-6); max-width: 43rem; }
+.manifesto p { color: color-mix(in srgb, #fffaf4 80%, transparent); font-size: clamp(1.02rem, 2vw, 1.2rem); line-height: 1.68; margin: 0 0 var(--space-6); max-width: 43rem; }
 .manifesto .textLink { color: #fffaf4; }
 
 .vegetableSection { isolation: isolate; position: relative; }
 .srOnly { clip: rect(0, 0, 0, 0); height: 1px; margin: -1px; overflow: hidden; padding: 0; position: absolute; white-space: nowrap; width: 1px; }
 
+@keyframes skeleton-pulse { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+
 @media (min-width: 48rem) {
-  .recipeGrid, .commentGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .recipeGrid, .commentGrid, .recipeSkeletonGrid, .commentSkeletonGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .recipeCard:nth-child(2) { transform: translateY(1rem); }
   .recipeCard:nth-child(2):hover { transform: translateY(calc(1rem - 4px)); }
   .statsGrid { align-items: end; grid-template-columns: 1.4fr repeat(3, minmax(0, 0.55fr)); }
@@ -87,10 +95,10 @@
   .personalCard, .sectionHeader { align-items: flex-start; flex-direction: column; }
   .sectionHeader h2, .manifesto h2, .statLead h2 { max-width: 12ch; }
   .commentEmpty { align-items: start; grid-template-columns: 1fr; }
-  .commentEmpty > span { font-size: 4rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .recipeCard, .recipeVisual img, .commentCard, .textLink { transition: none; }
   .recipeCard:hover, .recipeCard:nth-child(2), .recipeCard:nth-child(2):hover, .recipeCard:hover .recipeVisual img, .commentCard:hover, .textLink:hover { transform: none; }
+  .skeletonImage, .skeletonLineWide, .skeletonLine, .skeletonLineShort, .skeletonAvatar { animation: none; }
 }

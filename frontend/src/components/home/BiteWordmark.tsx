@@ -49,7 +49,7 @@ export function BiteWordmark({ centered = false }: BiteWordmarkProps) {
   return (
     <div className={`${styles.wrapper} ${centered ? styles.centered : ""}`}>
       <button
-        aria-label="Receitando. Clique para morder a palavra."
+        aria-label="Receitando"
         className={styles.wordmark}
         data-testid="bite-wordmark"
         onClick={addBite}
@@ -85,11 +85,6 @@ export function BiteWordmark({ centered = false }: BiteWordmarkProps) {
           ))}
         </span>
       </button>
-
-      <p className={styles.hint}>
-        <span aria-hidden="true">↗</span>
-        clique no Receitando para morder
-      </p>
     </div>
   );
 }

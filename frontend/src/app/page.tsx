@@ -40,9 +40,8 @@ export default function HomePage() {
       <section className={styles.communityCta}>
         <div className={`container ${styles.communityInner}`}>
           <div>
-            <p className={styles.communityEyebrow}>Da sua cozinha para a comunidade</p>
             <h2>Tem uma receita que merece circular?</h2>
-            <p>Compartilhe o prato que funciona na sua casa. Depois da revisão, ele pode entrar no catálogo e ganhar novas pitadas de outros cozinheiros.</p>
+            <p>Compartilhe o prato que funciona na sua casa. Depois da revisão, ele pode entrar no catálogo e receber comentários e avaliações da comunidade.</p>
           </div>
           <Link href="/enviar-receita">Enviar minha receita <span aria-hidden="true">→</span></Link>
         </div>
