@@ -1,6 +1,6 @@
 .header {
-  background: color-mix(in srgb, var(--color-background) 96%, transparent);
-  border-bottom: 1px solid color-mix(in srgb, var(--color-border) 86%, transparent);
+  background: color-mix(in srgb, var(--color-background) 94%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-border) 82%, transparent);
   backdrop-filter: blur(18px) saturate(1.06);
   position: sticky;
   top: 0;
@@ -9,28 +9,46 @@
 
 .inner {
   align-items: center;
-  display: flex;
-  gap: 0.7rem;
-  justify-content: center;
-  min-height: 3.65rem;
-  padding-block: 0.28rem;
+  display: grid;
+  gap: 0.8rem;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  min-height: 4.1rem;
+  padding-block: 0.42rem;
+}
+
+.brand {
+  color: var(--color-text);
+  display: grid;
+  line-height: 1;
+  text-decoration: none;
+}
+
+.brandWord {
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: 1.45rem;
+  font-weight: 620;
+  letter-spacing: -0.045em;
+}
+
+.brandTag {
+  color: var(--color-sage);
+  font-size: 0.58rem;
+  font-weight: 760;
+  letter-spacing: 0.08em;
+  margin-top: 0.18rem;
+  text-transform: uppercase;
 }
 
 .navigation {
   align-items: center;
-  background: color-mix(in srgb, var(--color-card) 78%, transparent);
+  background: color-mix(in srgb, var(--color-card) 76%, transparent);
   border: 1px solid color-mix(in srgb, var(--color-border) 82%, transparent);
   border-radius: 999px;
   display: flex;
   gap: 0.08rem;
+  justify-self: center;
   min-width: 0;
-  overflow-x: auto;
   padding: 0.18rem;
-  scrollbar-width: none;
-}
-
-.navigation::-webkit-scrollbar {
-  display: none;
 }
 
 .navLink {
@@ -40,7 +58,8 @@
   flex-shrink: 0;
   font-size: 0.82rem;
   font-weight: 720;
-  padding: 0.5rem 0.72rem;
+  min-height: 2.5rem;
+  padding: 0.62rem 0.76rem;
   text-decoration: none;
   transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
   white-space: nowrap;
@@ -71,8 +90,8 @@
   font-size: 0.82rem;
   font-weight: 790;
   justify-content: center;
-  min-height: 2.45rem;
-  padding: 0.5rem 0.9rem;
+  min-height: 2.75rem;
+  padding: 0.58rem 0.95rem;
   text-decoration: none;
   touch-action: manipulation;
   transition: background-color var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
@@ -88,7 +107,7 @@
 .authPlaceholder {
   display: block;
   flex-shrink: 0;
-  min-height: 2.4rem;
+  min-height: 2.75rem;
   min-width: 4rem;
 }
 
@@ -107,9 +126,9 @@
   color: var(--color-text-muted);
   display: inline-flex;
   justify-content: center;
-  min-height: 2.42rem;
-  min-width: 2.42rem;
-  padding: 0.18rem;
+  min-height: 2.75rem;
+  min-width: 2.75rem;
+  padding: 0.25rem;
   text-decoration: none;
   touch-action: manipulation;
   transition: border-color var(--transition-fast), color var(--transition-fast), background-color var(--transition-fast), transform var(--transition-fast);
@@ -125,10 +144,10 @@
 .accountAvatar {
   border-radius: 50%;
   display: block;
-  flex: 0 0 1.86rem;
-  height: 1.86rem;
+  flex: 0 0 1.95rem;
+  height: 1.95rem;
   overflow: hidden;
-  width: 1.86rem;
+  width: 1.95rem;
 }
 
 .accountCopy,
@@ -137,24 +156,10 @@
   display: none;
 }
 
-@media (min-width: 62rem) {
-  .inner {
-    min-height: 3.8rem;
-  }
-
-  .navigation {
-    overflow: visible;
-  }
-
+@media (min-width: 72rem) {
   .navLink {
     font-size: 0.86rem;
-    padding: 0.54rem 0.8rem;
-  }
-
-  .login {
-    font-size: 0.86rem;
-    min-height: 2.52rem;
-    padding: 0.54rem 0.96rem;
+    padding-inline: 0.86rem;
   }
 
   .account {
@@ -163,14 +168,7 @@
 
   .accountName {
     gap: 0.52rem;
-    min-height: 2.58rem;
-    padding: 0.22rem 0.54rem 0.22rem 0.22rem;
-  }
-
-  .accountAvatar {
-    flex-basis: 1.92rem;
-    height: 1.92rem;
-    width: 1.92rem;
+    padding: 0.3rem 0.62rem 0.3rem 0.3rem;
   }
 
   .accountCopy {
@@ -215,8 +213,8 @@
     font: inherit;
     font-size: 0.75rem;
     font-weight: 690;
-    min-height: 2.2rem;
-    padding: 0.38rem 0.54rem;
+    min-height: 2.75rem;
+    padding: 0.55rem 0.68rem;
     transition: background-color var(--transition-fast), color var(--transition-fast);
   }
 
@@ -231,26 +229,51 @@
   }
 }
 
-@media (max-width: 47.99rem) {
+@media (max-width: 58rem) {
   .inner {
-    gap: 0.45rem;
-    justify-content: space-between;
-    min-height: 3.55rem;
-    padding-inline: 0.25rem;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.5rem 0.75rem;
+    padding-block: 0.55rem 0.7rem;
+  }
+
+  .brand {
+    justify-self: start;
   }
 
   .navigation {
-    flex: 1 1 auto;
+    border-radius: 1rem;
+    flex-wrap: wrap;
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+    justify-self: stretch;
+    padding: 0.22rem;
   }
 
   .navLink {
-    font-size: 0.77rem;
-    padding: 0.46rem 0.62rem;
+    flex: 1 1 auto;
+    font-size: 0.76rem;
+    min-height: 2.75rem;
+    padding: 0.72rem 0.58rem;
+    text-align: center;
   }
 
   .login {
-    min-height: 2.35rem;
-    padding-inline: 0.78rem;
+    min-height: 2.75rem;
+  }
+}
+
+@media (max-width: 28rem) {
+  .brandTag {
+    display: none;
+  }
+
+  .navigation {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .navLink:last-child {
+    grid-column: 1 / -1;
   }
 }
 
