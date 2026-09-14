@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { type ChangeEvent, type FormEvent, useEffect, useRef, useState } from "react";
 
 import { ApiError } from "@/services/api-client";
@@ -163,7 +164,7 @@ export function RecipeSubmissionForm() {
         <div className={styles.photoField}>
           <div className={styles.photoHeading}><div><strong>Foto do prato</strong><p>No celular, toque abaixo para tirar uma foto ou escolher da galeria.</p></div><span>JPG, PNG ou WebP · até 12 MB</span></div>
           <label className={styles.photoPicker}><input accept="image/jpeg,image/png,image/webp" name="image" onChange={handleImageChange} required type="file" /><span className={styles.photoPickerButton}>Escolher foto</span><span className={styles.photoPickerName}>{imageName || "Nenhuma foto escolhida"}</span></label>
-          {previewUrl ? <div className={styles.photoPreview}>{/* eslint-disable-next-line @next/next/no-img-element -- object URL local antes do upload */}<img alt="Prévia da foto escolhida" src={previewUrl} /><span>Prévia da foto que será enviada</span></div> : null}
+          {previewUrl ? <div className={styles.photoPreview}><Image alt="Prévia da foto escolhida" height={480} src={previewUrl} unoptimized width={640} /><span>Prévia da foto que será enviada</span></div> : null}
         </div>
         <div className={styles.notice}><strong>Antes de publicar</strong><p>A receita fica em análise para evitar conteúdo duplicado, imagens sem permissão e receitas incompletas.</p></div>
       </section>
