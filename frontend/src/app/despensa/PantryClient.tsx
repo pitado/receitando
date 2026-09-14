@@ -33,6 +33,22 @@ function expirationLabel(dateValue: string | null): string | null {
   return `Validade ${day}/${month}/${year}`;
 }
 
+function optimisticPantryItem(ingredient: IngredientOption, expiresAt: string | null): PantryItem {
+  const now = new Date().toISOString();
+  return {
+    id: `optimistic-${ingredient.id}`,
+    quantity: null,
+    unit: null,
+    expiresAt,
+    createdAt: now,
+    updatedAt: now,
+    ingredientId: ingredient.id,
+    ingredientName: ingredient.name,
+    normalizedName: ingredient.normalizedName,
+    category: ingredient.category,
+  };
+}
+
 export function PantryClient() {
   const [items, setItems] = useState<PantryItem[]>([]);
   const [ingredients, setIngredients] = useState<IngredientOption[]>([]);
@@ -81,13 +97,24 @@ export function PantryClient() {
   }, [availableIngredients, normalizedQuery]);
 
   async function addIngredient(ingredient: IngredientOption) {
+    if (savingId) return;
+    const previousItems = items;
+    const previousQuery = query;
+    const previousExpiry = nextExpiry;
+    const expiry = nextExpiry || null;
+
     setSavingId(ingredient.id);
     setError(null);
+    setItems((current) => [optimisticPantryItem(ingredient, expiry), ...current]);
+    setQuery("");
+    setNextExpiry("");
+
     try {
-      setItems(await savePantryItem(ingredient.id, null, null, nextExpiry || null));
-      setQuery("");
-      setNextExpiry("");
+      setItems(await savePantryItem(ingredient.id, null, null, expiry));
     } catch (cause: unknown) {
+      setItems(previousItems);
+      setQuery(previousQuery);
+      setNextExpiry(previousExpiry);
       setError(cause instanceof ApiError ? cause.message : "Não foi possível adicionar o ingrediente.");
     } finally {
       setSavingId(null);
@@ -97,13 +124,9 @@ export function PantryClient() {
   async function handleExpiryChange(item: PantryItem, value: string) {
     setSavingId(item.ingredientId);
     setError(null);
-    try {
-      setItems(await savePantryItem(item.ingredientId, item.quantity, item.unit, value || null));
-    } catch (cause: unknown) {
-      setError(cause instanceof ApiError ? cause.message : "Não foi possível atualizar a validade.");
-    } finally {
-      setSavingId(null);
-    }
+    try { setItems(await savePantryItem(item.ingredientId, item.quantity, item.unit, value || null)); }
+    catch (cause: unknown) { setError(cause instanceof ApiError ? cause.message : "Não foi possível atualizar a validade."); }
+    finally { setSavingId(null); }
   }
 
   function showUndo(item: PantryItem) {
@@ -113,38 +136,26 @@ export function PantryClient() {
   }
 
   async function handleRemove(item: PantryItem) {
-    setSavingId(item.ingredientId);
-    setError(null);
-    try {
-      setItems(await removePantryItem(item.id));
-      showUndo(item);
-    } catch (cause: unknown) {
-      setError(cause instanceof ApiError ? cause.message : "Não foi possível remover o ingrediente.");
-    } finally {
-      setSavingId(null);
-    }
+    setSavingId(item.ingredientId); setError(null);
+    try { setItems(await removePantryItem(item.id)); showUndo(item); }
+    catch (cause: unknown) { setError(cause instanceof ApiError ? cause.message : "Não foi possível remover o ingrediente."); }
+    finally { setSavingId(null); }
   }
 
   async function undoRemove() {
     if (!undoItem) return;
     const item = undoItem;
-    setSavingId(item.ingredientId);
-    setError(null);
+    setSavingId(item.ingredientId); setError(null);
     try {
       setItems(await savePantryItem(item.ingredientId, item.quantity, item.unit, item.expiresAt));
       setUndoItem(null);
       if (undoTimer.current !== null) window.clearTimeout(undoTimer.current);
       undoTimer.current = null;
-    } catch (cause: unknown) {
-      setError(cause instanceof ApiError ? cause.message : "Não foi possível desfazer a remoção.");
-    } finally {
-      setSavingId(null);
-    }
+    } catch (cause: unknown) { setError(cause instanceof ApiError ? cause.message : "Não foi possível desfazer a remoção."); }
+    finally { setSavingId(null); }
   }
 
-  if (!authenticated && !loading) {
-    return <section className={styles.loginState}><p>SUA DESPENSA É PESSOAL</p><h2>Entre para guardar o que você tem em casa.</h2><span>Assim os ingredientes ficam salvos na sua conta e alimentam o combinador de receitas.</span><Link href="/entrar?next=/despensa">Entrar na minha conta</Link></section>;
-  }
+  if (!authenticated && !loading) return <section className={styles.loginState}><p>SUA DESPENSA É PESSOAL</p><h2>Entre para guardar o que você tem em casa.</h2><span>Assim os ingredientes ficam salvos na sua conta e alimentam o combinador de receitas.</span><Link href="/entrar?next=/despensa">Entrar na minha conta</Link></section>;
 
   return (
     <div className={styles.workspace}>
@@ -156,7 +167,6 @@ export function PantryClient() {
           <div className={styles.suggestionHeading}><strong>{query ? "Resultados" : "Sugestões para sua despensa"}</strong>{!query ? <span>mais usados nas receitas</span> : null}</div>
           {suggestions.length > 0 ? <div className={styles.suggestions}>{suggestions.map((ingredient) => <button aria-busy={savingId === ingredient.id} disabled={savingId === ingredient.id} key={ingredient.id} onClick={() => void addIngredient(ingredient)} type="button"><span>{savingId === ingredient.id ? "…" : "+"}</span><strong>{ingredient.name}</strong><small>{ingredient.category}</small></button>)}</div> : <p className={styles.noResults}>Nenhum ingrediente do catálogo corresponde a essa busca.</p>}
         </div>
-        {savingId ? <p className={styles.saving}>Atualizando sua despensa…</p> : null}
         {error ? <p className={styles.error} role="alert">{error}</p> : null}
       </section>
 
