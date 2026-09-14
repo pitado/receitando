@@ -56,5 +56,5 @@ test("despensa sem sessão pede autenticação", async ({ page }) => {
   ).toBeVisible();
   await expect(
     page.getByRole("link", { name: "Entrar na minha conta" }),
-  ).toHaveAttribute("href", "/entrar");
+  ).toHaveAttribute("href", "/entrar?next=/despensa");
 });
