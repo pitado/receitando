@@ -1,6 +1,6 @@
 # Modelo de dados atual
 
-A persistência de produção do Receitando usa **Cloudflare D1**. O schema é versionado por migrations SQL em `backend/worker-prototype/migrations/`.
+A persistência relacional de produção do Receitando usa **Cloudflare D1**. O schema é versionado por migrations SQL em `backend/worker-prototype/migrations/`. Imagens enviadas pela comunidade ficam no **Cloudflare R2** e o D1 persiste a URL associada.
 
 ## Visão geral
 
@@ -12,6 +12,7 @@ erDiagram
     USERS ||--o{ RECIPE_VOTES : avalia
     USERS ||--o{ RECIPE_COMMENTS : comenta
     USERS ||--o{ PASSWORD_RESET_CODES : solicita
+    USERS ||--o{ RECIPE_SUBMISSIONS : envia
 
     INGREDIENTS ||--o{ PANTRY_ITEMS : referencia
     INGREDIENTS ||--o{ RECIPE_INGREDIENTS : participa
@@ -24,11 +25,15 @@ erDiagram
     RECIPES ||--o{ RECIPE_COMMENTS : recebe
 ```
 
+`recipe_submissions.user_id` é opcional, portanto submissões anônimas não possuem relação com `users`.
+
 ## Tabelas principais
 
 ### `users`
 
 Contas da aplicação. Campos relevantes: `id`, `name`, `email`, `password_hash`, `role`, `handle`, `avatar_key` e timestamps. Senhas nunca são persistidas em texto puro.
+
+O campo `role` diferencia usuários comuns e administradores. As rotas de moderação exigem `role = 'ADMIN'`.
 
 ### `sessions`
 
@@ -66,6 +71,8 @@ Metadados específicos da imagem:
 - `image_license_url`;
 - `image_alt`.
 
+Receitas aprovadas da comunidade são publicadas com `source_type = 'USER'` e `source_name = 'Comunidade Receitando'`, o que as torna elegíveis no catálogo v2.
+
 ### `recipe_ingredients`
 
 Relação receita/ingrediente, com quantidade, unidade, flag `optional` e `raw_text` quando disponível. O par receita/ingrediente é único.
@@ -78,7 +85,23 @@ Despensa por usuário. Quantidade, unidade e validade são opcionais. O par usu�
 
 ### `favorites`, `recipe_votes` e `recipe_comments`
 
-Relacionamentos da comunidade. Chaves estrangeiras e chaves compostas impedem relações inválidas ou duplicadas conforme o caso.
+Relacionamentos da comunidade social. Chaves estrangeiras e chaves compostas impedem relações inválidas ou duplicadas conforme o caso.
+
+### `recipe_submissions`
+
+Fila de receitas enviadas pela comunidade. Foi criada por `0013_recipe_submissions.sql` e ampliada por `0016_recipe_submission_moderation.sql`.
+
+Campos principais:
+
+- identidade e autoria: `id`, `user_id`, `author_name`, `author_email`;
+- conteúdo: `title`, `description`, `ingredients`, `instructions`, `prep_minutes`, `servings`, `meal_type`, `difficulty`;
+- imagem: `image_url`;
+- fluxo: `status`, `created_at`, `updated_at`;
+- moderação: `reviewed_by`, `reviewed_at`, `published_recipe_id`, `rejection_reason`.
+
+`user_id` aceita `NULL`, permitindo envio anônimo. O status começa em `PENDING` e aceita apenas `PENDING`, `APPROVED` ou `REJECTED`.
+
+`published_recipe_id` possui índice único parcial quando preenchido, impedindo que duas submissões apontem para a mesma receita publicada.
 
 ### `password_reset_codes`
 
@@ -88,13 +111,36 @@ Estado temporário da recuperação de senha. Persiste hashes do código/token d
 
 Registra eventos temporários usados para limitar abuso de login, cadastro e solicitação de recuperação de senha. O identificador do bucket é persistido apenas como SHA-256.
 
+## Cloudflare R2
+
+O binário das fotos enviadas pela comunidade não fica no D1. O Worker usa o binding:
+
+```text
+RECIPE_IMAGES → receitando-recipe-images
+```
+
+Arquivos de submissão são gravados sob:
+
+```text
+submissions/AAAA/MM/{submissionId}.{ext}
+```
+
+A API persiste em `recipe_submissions.image_url` a URL servida por:
+
+```text
+/api/recipe-submission-images/:key
+```
+
+Se o upload for concluído no R2 e a inserção no D1 falhar, `recipe-submission-worker.ts` apaga o objeto recém-criado para não deixar arquivo órfão.
+
 ## Integridade referencial
 
-As migrations definem `FOREIGN KEY` com políticas `ON DELETE CASCADE` ou `ON DELETE RESTRICT` conforme a relação.
+As migrations definem `FOREIGN KEY` com políticas `ON DELETE CASCADE`, `SET NULL` ou `ON DELETE RESTRICT` conforme a relação.
 
 Exemplos:
 
 - apagar um usuário remove sessões, despensa, favoritos, votos e comentários associados;
+- em submissões, apagar o usuário associado preserva o envio e define `user_id` como `NULL`;
 - apagar uma receita remove favoritos, votos, comentários, tags e relações com ingredientes;
 - ingredientes referenciados por receitas/despensa não são removidos de forma destrutiva antes de suas relações serem tratadas.
 
@@ -111,6 +157,8 @@ idx_recipe_ingredients_recipe_id
 idx_favorites_user_created_at
 ```
 
+Submissões possuem índices por status/data, usuário/data, data de revisão e receita publicada.
+
 Também continuam existentes índices para sessões, aliases, votos, comentários, ingredientes e relações por receita/ingrediente.
 
 ## Busca textual com FTS5
@@ -124,6 +172,8 @@ recipe_search
 Ela indexa `title` e `description` e é mantida sincronizada com `recipes` por triggers de inserção, atualização e exclusão.
 
 A API consulta `recipe_search MATCH ?` e ordena por `bm25()`, permitindo termos múltiplos e prefixos sem realizar um table scan completo do catálogo a cada busca textual.
+
+Como receitas aprovadas da comunidade são inseridas em `recipes`, os triggers também as incorporam ao índice FTS5.
 
 ## Normalização e matching
 
@@ -152,13 +202,24 @@ Migrations já aplicadas são **histórico imutável**. Mesmo quando uma estrat�
 
 O sufixo `b` é intencional. Essa migration foi adicionada entre `0008_seed_catalog_v3.sql` e `0009_seed_catalog_v3b.sql` como etapa preparatória da expansão v3b e deve permanecer com esse nome.
 
+### Prefixo `0013`
+
+Existem duas migrations já compartilhadas com o prefixo `0013`:
+
+- `0013_recipe_image_attribution.sql`;
+- `0013_recipe_submissions.sql`.
+
+A colisão de prefixo é histórica. Os arquivos não devem ser renumerados retroativamente; migrations novas devem continuar com nomes inéditos.
+
 ### Migrations recentes
 
 - `0011_external_catalog.sql`: identidade de fonte externa/deduplicação;
 - `0012_recipe_source_attribution.sql`: procedência da receita;
 - `0013_recipe_image_attribution.sql`: atribuição da imagem;
+- `0013_recipe_submissions.sql`: fila de receitas enviadas pela comunidade;
 - `0014_auth_rate_limits.sql`: eventos de rate limiting;
-- `0015_matching_search_hardening.sql`: ingredientes básicos, índices adicionais e FTS5.
+- `0015_matching_search_hardening.sql`: ingredientes básicos, índices adicionais e FTS5;
+- `0016_recipe_submission_moderation.sql`: campos e índices de revisão/publicação das submissões.
 
 ## Execução
 
@@ -182,9 +243,13 @@ No deploy oficial, migrations remotas são aplicadas somente depois das validaç
 
 O schema e migrations podem ser públicos. O que deve permanecer privado são credenciais, chaves, tokens reais, códigos de recuperação e dados privados dos usuários.
 
+As imagens de submissão são validadas por conteúdo e tamanho antes de serem mantidas no R2. A rota de entrega restringe chaves ao prefixo `submissions/` e bloqueia travessia de caminho.
+
 ## Documentos relacionados
 
 - [`architecture.md`](architecture.md)
 - [`api.md`](api.md)
+- [`funcionalidades.md`](funcionalidades.md)
+- [`mobile-upload-login.md`](mobile-upload-login.md)
 - [`catalogo.md`](catalogo.md)
 - [`deploy.md`](deploy.md)
