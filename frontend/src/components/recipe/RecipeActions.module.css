@@ -1,0 +1,162 @@
+.actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  position: relative;
+}
+
+.primaryAction,
+.secondaryAction {
+  align-items: center;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 780;
+  gap: 0.45rem;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: 0.68rem 0.9rem;
+}
+
+.primaryAction {
+  background: var(--color-primary);
+  border: 1px solid var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+.secondaryAction {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+}
+
+.primaryAction:hover { background: var(--color-primary-dark); border-color: var(--color-primary-dark); }
+.secondaryAction:hover { background: var(--color-surface); }
+
+.shareStatus {
+  color: var(--color-text-muted);
+  font-size: 0.74rem;
+  min-height: 1em;
+}
+
+.cookDialog {
+  background: var(--color-background);
+  border: 0;
+  color: var(--color-text);
+  height: 100dvh;
+  margin: 0;
+  max-height: none;
+  max-width: none;
+  padding: 0;
+  width: 100vw;
+}
+
+.cookDialog::backdrop { background: var(--color-background); }
+
+.cookShell {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  height: 100%;
+  min-height: 100%;
+  touch-action: pan-y;
+}
+
+.cookHeader {
+  align-items: center;
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  padding: max(1rem, env(safe-area-inset-top)) clamp(1rem, 4vw, 2.5rem) 1rem;
+}
+
+.cookHeader > div { display: grid; gap: 0.18rem; min-width: 0; }
+.cookHeader span { color: var(--color-text-muted); font-size: 0.72rem; font-weight: 760; text-transform: uppercase; }
+.cookHeader strong { font-family: var(--font-editorial), Georgia, serif; font-size: clamp(1.2rem, 3vw, 1.7rem); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.closeButton {
+  align-items: center;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  color: var(--color-text);
+  cursor: pointer;
+  display: inline-flex;
+  flex: 0 0 2.75rem;
+  font-size: 1.45rem;
+  height: 2.75rem;
+  justify-content: center;
+  width: 2.75rem;
+}
+
+.cookStep {
+  align-content: center;
+  display: grid;
+  gap: clamp(1.2rem, 4vw, 2.2rem);
+  margin: 0 auto;
+  max-width: 62rem;
+  padding: clamp(2rem, 8vw, 6rem) clamp(1.25rem, 6vw, 4rem);
+  width: 100%;
+}
+
+.stepCounter {
+  color: var(--color-primary-dark);
+  font-size: 0.8rem;
+  font-weight: 800;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.stepText {
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: clamp(2.1rem, 7vw, 5.5rem);
+  font-weight: 560;
+  letter-spacing: -0.045em;
+  line-height: 1.02;
+  margin: 0;
+  text-wrap: balance;
+}
+
+.cookFooter {
+  align-items: center;
+  border-top: 1px solid var(--color-border);
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: auto minmax(4rem, 1fr) auto;
+  padding: 1rem clamp(1rem, 4vw, 2.5rem) max(1rem, env(safe-area-inset-bottom));
+}
+
+.cookFooter button {
+  align-items: center;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  color: var(--color-text);
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 760;
+  gap: 0.35rem;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: 0.6rem 0.8rem;
+}
+
+.cookFooter button:disabled { cursor: default; opacity: 0.4; }
+.cookFooter .nextButton { background: var(--color-primary); border-color: var(--color-primary); color: var(--color-on-primary); }
+
+.progressTrack { background: var(--color-surface); border-radius: 999px; height: 0.35rem; overflow: hidden; }
+.progressTrack span { background: var(--color-sage); display: block; height: 100%; transition: width 180ms ease; }
+
+@media (max-width: 36rem) {
+  .cookFooter { grid-template-columns: 1fr 1fr; }
+  .progressTrack { grid-column: 1 / -1; grid-row: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progressTrack span { transition: none; }
+}

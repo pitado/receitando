@@ -1,3 +1,4 @@
+.wrapper { display: inline-flex; position: relative; }
 .button {
   align-items: center;
   background: var(--color-card);
@@ -16,7 +17,8 @@
   padding: 0.55rem 0.78rem;
   transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
 }
-.button:hover:not(:disabled) { border-color: var(--color-primary); color: var(--color-primary-dark); transform: translateY(-1px); }
+.button:hover { border-color: var(--color-primary); color: var(--color-primary-dark); transform: translateY(-1px); }
 .active { background: var(--color-surface); border-color: var(--color-primary); color: var(--color-primary-dark); }
-.button:disabled { cursor: wait; opacity: 0.6; }
-@media (prefers-reduced-motion: reduce) { .button { transition: none; } .button:hover:not(:disabled) { transform: none; } }
+.button[aria-busy="true"] { cursor: progress; }
+.feedback { clip: rect(0, 0, 0, 0); clip-path: inset(50%); height: 1px; overflow: hidden; position: absolute; white-space: nowrap; width: 1px; }
+@media (prefers-reduced-motion: reduce) { .button { transition: none; } .button:hover { transform: none; } }

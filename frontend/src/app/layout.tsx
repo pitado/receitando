@@ -5,54 +5,28 @@ import type { ReactNode } from "react";
 
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
+import { PwaRegistration } from "@/components/pwa/PwaRegistration";
 
 import "./globals.css";
 
-const inter = Inter({
-  display: "swap",
-  subsets: ["latin"],
-  variable: "--font-inter",
-});
-
-const fraunces = Fraunces({
-  display: "swap",
-  subsets: ["latin"],
-  variable: "--font-fraunces",
-});
+const inter = Inter({ display: "swap", subsets: ["latin"], variable: "--font-inter" });
+const fraunces = Fraunces({ display: "swap", subsets: ["latin"], variable: "--font-fraunces" });
 
 export const metadata: Metadata = {
-  title: {
-    default: "Receitando",
-    template: "%s | Receitando",
-  },
-  description:
-    "Descubra receitas possíveis com os ingredientes que você já tem em casa.",
+  title: { default: "Receitando", template: "%s | Receitando" },
+  description: "Descubra receitas possíveis com os ingredientes que você já tem em casa.",
 };
 
-interface RootLayoutProps {
-  children: ReactNode;
-}
+interface RootLayoutProps { children: ReactNode; }
 
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html className={`${inter.variable} ${fraunces.variable}`} lang="pt-BR">
       <body>
-        <a className="skip-link" href="#conteudo-principal">
-          Pular para o conteúdo principal
-        </a>
-        <div className="app-shell">
-          <Header />
-          <main id="conteudo-principal" tabIndex={-1}>
-            {children}
-          </main>
-          <Footer />
-        </div>
-        <Script
-          data-cf-beacon='{"token":"4ac2ba328abd4b14a0b6a245f2fc12ab"}'
-          src="https://static.cloudflareinsights.com/beacon.min.js"
-          strategy="afterInteractive"
-          type="module"
-        />
+        <a className="skip-link" href="#conteudo-principal">Pular para o conteúdo principal</a>
+        <div className="app-shell"><Header /><main id="conteudo-principal" tabIndex={-1}>{children}</main><Footer /></div>
+        <PwaRegistration />
+        <Script data-cf-beacon='{"token":"4ac2ba328abd4b14a0b6a245f2fc12ab"}' src="https://static.cloudflareinsights.com/beacon.min.js" strategy="afterInteractive" type="module" />
       </body>
     </html>
   );
