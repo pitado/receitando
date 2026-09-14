@@ -22,6 +22,35 @@ function formatDate(value: string) {
   return new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short" }).format(new Date(value));
 }
 
+function RecipeSkeleton() {
+  return (
+    <div aria-hidden="true" className={styles.recipeSkeletonGrid}>
+      {[0, 1, 2].map((item) => (
+        <div className={styles.recipeSkeleton} key={item}>
+          <span className={styles.skeletonImage} />
+          <span className={styles.skeletonLineWide} />
+          <span className={styles.skeletonLine} />
+          <span className={styles.skeletonLineShort} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function CommentSkeleton() {
+  return (
+    <div aria-hidden="true" className={styles.commentSkeletonGrid}>
+      {[0, 1, 2].map((item) => (
+        <div className={styles.commentSkeleton} key={item}>
+          <span className={styles.skeletonAvatar} />
+          <span className={styles.skeletonLineWide} />
+          <span className={styles.skeletonLine} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function HomeLiveSections() {
   const [feed, setFeed] = useState<HomeFeed | null>(null);
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -64,11 +93,10 @@ export function HomeLiveSections() {
         <section className={`${styles.personalSection} ${styles.vegetableSection} ${styles.withBeet}`}>
           <div className={`container ${styles.personalCard}`}>
             <div>
-              <p className={styles.eyebrow}>SUA COZINHA HOJE</p>
               <h2>Boa, {firstName(user.name)}. Sua despensa já está trabalhando.</h2>
               <p>
                 Você tem <strong>{pantryCount}</strong> {pantryCount === 1 ? "ingrediente" : "ingredientes"} guardados
-                {ready.length > 0 ? <> e <strong>{ready.length}</strong> {ready.length === 1 ? "receita pronta" : "receitas prontas"} para ir ao fogo.</> : "."}
+                {ready.length > 0 ? <> e <strong>{ready.length}</strong> {ready.length === 1 ? "receita pronta" : "receitas prontas"} para preparar.</> : "."}
               </p>
             </div>
             <Link href="/combinar" className={styles.textLink}>Ver minhas combinações →</Link>
@@ -80,7 +108,6 @@ export function HomeLiveSections() {
         <div className="container">
           <div className={styles.sectionHeader}>
             <div>
-              <p className={styles.eyebrow}>{user ? "COM O QUE VOCÊ JÁ TEM" : "PARA COMEÇAR AGORA"}</p>
               <h2>{user ? (ready.length > 0 ? "Dá para fazer agora" : "Falta pouca coisa") : "Receitas para abrir o apetite"}</h2>
             </div>
             <Link href="/receitas" className={styles.textLink}>Ver todas →</Link>
@@ -104,7 +131,7 @@ export function HomeLiveSections() {
                     <h3>{recipe.title}</h3>
                     <p>{recipe.description}</p>
                     <div className={styles.recipeFooter}>
-                      <span>{recipe.prepMinutes > 0 ? `${recipe.prepMinutes} min` : "tempo livre"}</span>
+                      <span>{recipe.prepMinutes > 0 ? `${recipe.prepMinutes} min` : "sem tempo informado"}</span>
                       {"likes" in recipe ? <span>{recipe.likes} gostaram</span> : null}
                       <strong>Ver receita →</strong>
                     </div>
@@ -112,10 +139,12 @@ export function HomeLiveSections() {
                 </Link>
               ))}
             </div>
+          ) : !loaded ? (
+            <RecipeSkeleton />
           ) : (
             <div className={styles.recipeEmpty}>
-              <strong>{loaded ? "O caderno está esperando a próxima receita." : "Escolhendo receitas para você..."}</strong>
-              <p>{loaded ? "Explore o catálogo enquanto novas receitas aparecem por aqui." : "Só um instante enquanto a cozinha responde."}</p>
+              <strong>Nenhuma receita disponível agora.</strong>
+              <p>Explore o catálogo para ver todas as receitas.</p>
             </div>
           )}
         </div>
@@ -125,12 +154,11 @@ export function HomeLiveSections() {
         <section className={`${styles.statsSection} ${styles.vegetableSection} ${styles.withTomatoes}`}>
           <div className={`container ${styles.statsGrid}`}>
             <div className={styles.statLead}>
-              <p className={styles.eyebrow}>A COZINHA ESTÁ VIVA</p>
               <h2>Ideias que crescem quando todo mundo cozinha junto.</h2>
             </div>
-            <div className={styles.stat}><strong>{feed.totals.recipes}</strong><span>receitas no caderno</span></div>
+            <div className={styles.stat}><strong>{feed.totals.recipes}</strong><span>receitas publicadas</span></div>
             <div className={styles.stat}><strong>{feed.totals.likes}</strong><span>avaliações positivas</span></div>
-            <div className={styles.stat}><strong>{feed.totals.comments}</strong><span>pitadas compartilhadas</span></div>
+            <div className={styles.stat}><strong>{feed.totals.comments}</strong><span>comentários publicados</span></div>
           </div>
         </section>
       ) : null}
@@ -139,10 +167,9 @@ export function HomeLiveSections() {
         <div className="container">
           <div className={styles.sectionHeader}>
             <div>
-              <p className={styles.eyebrow}>A COZINHA ESTÁ CONVERSANDO</p>
               <h2>O que estão falando por aqui.</h2>
             </div>
-            <Link href="/receitas" className={styles.textLink}>Entrar na conversa →</Link>
+            <Link href="/receitas" className={styles.textLink}>Ver comentários →</Link>
           </div>
 
           {recentComments.length > 0 ? (
@@ -153,7 +180,7 @@ export function HomeLiveSections() {
                     <FoodAvatar avatarKey={comment.avatarKey} className={styles.avatar} label={`Avatar de ${comment.authorName}`} />
                     <div>
                       <strong>{comment.authorName}</strong>
-                      <span>{comment.authorHandle ? `@${comment.authorHandle}` : "cozinheiro do Receitando"} · {formatDate(comment.createdAt)}</span>
+                      <span>{comment.authorHandle ? `@${comment.authorHandle}` : "membro do Receitando"} · {formatDate(comment.createdAt)}</span>
                     </div>
                   </div>
                   <blockquote>“{comment.body}”</blockquote>
@@ -161,14 +188,15 @@ export function HomeLiveSections() {
                 </Link>
               ))}
             </div>
+          ) : !loaded ? (
+            <CommentSkeleton />
           ) : (
             <div className={styles.commentEmpty}>
-              <span aria-hidden="true">“</span>
               <div>
-                <strong>{loaded ? "A cozinha ficou quietinha por enquanto." : "Buscando as últimas pitadas..."}</strong>
-                <p>{loaded ? "Abra uma receita, conte como ficou e deixe a primeira pitada da conversa." : "Os comentários mais recentes aparecem aqui assim que a cozinha responder."}</p>
+                <strong>Ainda não há comentários.</strong>
+                <p>Abra uma receita e deixe um comentário.</p>
               </div>
-              {loaded ? <Link href="/receitas" className={styles.textLink}>Escolher uma receita →</Link> : null}
+              <Link href="/receitas" className={styles.textLink}>Escolher uma receita →</Link>
             </div>
           )}
         </div>
@@ -176,14 +204,13 @@ export function HomeLiveSections() {
 
       <section className={`${styles.manifesto} ${styles.vegetableSection} ${styles.withLettuce}`}>
         <div className={`container ${styles.manifestoInner}`}>
-          <p className={styles.eyebrow}>MENOS DESPERDÍCIO, MAIS IDEIA</p>
           <h2>Antes de pensar no que comprar, olha o que já mora na sua cozinha.</h2>
           <p>O Receitando junta despensa, receitas e experiências da comunidade para transformar ingredientes esquecidos em possibilidades reais.</p>
-          <Link href="#ingredientes" className={styles.textLink}>Começar pela minha cozinha ↑</Link>
+          <Link href="#ingredientes" className={styles.textLink}>Ver o que dá para fazer</Link>
         </div>
       </section>
 
-      {!loaded ? <span className={styles.srOnly}>Carregando sugestões da cozinha.</span> : null}
+      {!loaded ? <span className={styles.srOnly}>Carregando conteúdo.</span> : null}
     </>
   );
 }

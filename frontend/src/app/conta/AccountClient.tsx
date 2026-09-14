@@ -37,34 +37,16 @@ const NIGHT_LINES = [
 ];
 
 function greetingForHour(hour: number, variation: number) {
-  if (hour < 12) {
-    return {
-      label: "Bom dia",
-      line: MORNING_LINES[variation % MORNING_LINES.length],
-    };
-  }
-  if (hour < 18) {
-    return {
-      label: "Boa tarde",
-      line: AFTERNOON_LINES[variation % AFTERNOON_LINES.length],
-    };
-  }
-  return {
-    label: "Boa noite",
-    line: NIGHT_LINES[variation % NIGHT_LINES.length],
-  };
+  if (hour < 12) return { label: "Bom dia", line: MORNING_LINES[variation % MORNING_LINES.length] };
+  if (hour < 18) return { label: "Boa tarde", line: AFTERNOON_LINES[variation % AFTERNOON_LINES.length] };
+  return { label: "Boa noite", line: NIGHT_LINES[variation % NIGHT_LINES.length] };
 }
 
 function suggestedHandle(user: AuthUser): string {
   if (user.handle) return user.handle;
-  const emailName = user.email.split("@")[0] ?? "cozinheiro";
-  const normalized = emailName
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9_]/g, "")
-    .slice(0, 24);
-  return normalized.length >= 3 ? normalized : "cozinheiro";
+  const emailName = user.email.split("@")[0] ?? "usuario";
+  const normalized = emailName.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9_]/g, "").slice(0, 24);
+  return normalized.length >= 3 ? normalized : "usuario";
 }
 
 export function AccountClient() {
@@ -85,13 +67,11 @@ export function AccountClient() {
 
   useEffect(() => {
     let cancelled = false;
-
     async function load() {
       try {
         const currentUser = await getCurrentUser();
         const [pantry, favorites] = await Promise.all([getPantry(), listFavorites()]);
         if (cancelled) return;
-
         setUser(currentUser);
         setPantryCount(pantry.length);
         setFavoriteCount(favorites.length);
@@ -103,18 +83,12 @@ export function AccountClient() {
         if (!cancelled) setIsLoading(false);
       }
     }
-
     void load();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, []);
 
-  const firstName = user?.name.trim().split(/\s+/)[0] || "cozinheiro";
-  const greeting = useMemo(
-    () => greetingForHour(hour ?? 12, greetingVariation),
-    [hour, greetingVariation],
-  );
+  const firstName = user?.name.trim().split(/\s+/)[0] || "pessoa";
+  const greeting = useMemo(() => greetingForHour(hour ?? 12, greetingVariation), [hour, greetingVariation]);
 
   function openEditor() {
     if (!user) return;
@@ -138,36 +112,28 @@ export function AccountClient() {
     setEditError("");
     setEditMessage("");
     setIsSaving(true);
-
     try {
       const updated = await updateProfile(editName.trim(), editHandle.trim(), editAvatar);
       setUser(updated);
       setEditName(updated.name);
       setEditHandle(updated.handle ?? "");
       setEditAvatar(updated.avatarKey || "tomato");
-      setEditMessage("Perfil salvo. Sua cozinha agora tem mais a sua cara.");
+      setEditMessage("Perfil salvo.");
       window.dispatchEvent(new Event(AUTH_CHANGED_EVENT));
     } catch (error: unknown) {
-      setEditError(
-        error instanceof ApiError
-          ? error.message
-          : "Não foi possível salvar seu perfil agora. Tente novamente.",
-      );
+      setEditError(error instanceof ApiError ? error.message : "Não foi possível salvar seu perfil agora. Tente novamente.");
     } finally {
       setIsSaving(false);
     }
   }
 
-  if (isLoading) {
-    return <div className={styles.loading}>Preparando sua bancada…</div>;
-  }
+  if (isLoading) return <div className={styles.loading}>Carregando perfil…</div>;
 
   if (hasError || !user) {
     return (
       <section className={styles.emptyState}>
-        <p className={styles.eyebrow}>SUA CONTA</p>
-        <h1>Essa bancada precisa de login.</h1>
-        <p>Entre na sua conta para ver seu perfil, sua despensa e suas receitas salvas.</p>
+        <h1>Entre para acessar sua conta.</h1>
+        <p>Depois do login, você pode ver seu perfil, sua despensa e suas receitas salvas.</p>
         <Link className={styles.primaryAction} href="/entrar">Entrar</Link>
       </section>
     );
@@ -176,11 +142,7 @@ export function AccountClient() {
   return (
     <div className={styles.shell}>
       <section className={styles.hero}>
-        <FoodAvatar
-          avatarKey={user.avatarKey}
-          className={styles.avatar}
-          label={`Avatar de ${user.name}`}
-        />
+        <FoodAvatar avatarKey={user.avatarKey} className={styles.avatar} label={`Avatar de ${user.name}`} />
         <div>
           <p className={styles.eyebrow}>MINHA COZINHA</p>
           <h1>{greeting.label}, {firstName}.</h1>
@@ -196,14 +158,8 @@ export function AccountClient() {
           <p>{user.email}</p>
         </div>
         <div className={styles.actions}>
-          {user.role === "ADMIN" ? (
-            <Link className={styles.secondaryAction} href="/admin/receitas">
-              Moderar receitas
-            </Link>
-          ) : null}
-          <button className={styles.secondaryAction} onClick={openEditor} type="button">
-            Editar perfil
-          </button>
+          {user.role === "ADMIN" ? <Link className={styles.secondaryAction} href="/admin/receitas">Moderar receitas</Link> : null}
+          <button className={styles.secondaryAction} onClick={openEditor} type="button">Editar perfil</button>
           <Link className={styles.primaryAction} href="/recuperar-senha">Alterar senha</Link>
         </div>
       </section>
@@ -212,72 +168,32 @@ export function AccountClient() {
         <section className={styles.editorCard} aria-label="Editar perfil">
           <div className={styles.editorHeading}>
             <div>
-              <p className={styles.cardLabel}>DEIXE COM A SUA CARA</p>
-              <h2>Editar perfil</h2>
+              <p className={styles.cardLabel}>EDITAR PERFIL</p>
+              <h2>Dados do perfil</h2>
               <p>Seu @ é único no Receitando. A foto pode ser trocada quando quiser.</p>
             </div>
-            <button className={styles.closeEditor} onClick={closeEditor} type="button" aria-label="Fechar edição">
-              ×
-            </button>
+            <button className={styles.closeEditor} onClick={closeEditor} type="button" aria-label="Fechar edição">×</button>
           </div>
 
           <form className={styles.editorForm} onSubmit={submitProfile}>
             <div className={styles.fieldsGrid}>
-              <label className={styles.field}>
-                <span>Nome</span>
-                <input
-                  disabled={isSaving}
-                  maxLength={100}
-                  minLength={2}
-                  onChange={(event) => setEditName(event.target.value)}
-                  required
-                  type="text"
-                  value={editName}
-                />
-              </label>
-
+              <label className={styles.field}><span>Nome</span><input disabled={isSaving} maxLength={100} minLength={2} onChange={(event) => setEditName(event.target.value)} required type="text" value={editName} /></label>
               <label className={styles.field}>
                 <span>Seu @</span>
-                <div className={styles.handleInput}>
-                  <strong>@</strong>
-                  <input
-                    autoCapitalize="none"
-                    autoCorrect="off"
-                    disabled={isSaving}
-                    maxLength={24}
-                    minLength={3}
-                    onChange={(event) => setEditHandle(event.target.value.toLowerCase().replace(/^@+/, ""))}
-                    pattern="[a-z0-9][a-z0-9_]{2,23}"
-                    placeholder="seunome"
-                    required
-                    spellCheck={false}
-                    type="text"
-                    value={editHandle}
-                  />
-                </div>
+                <div className={styles.handleInput}><strong>@</strong><input autoCapitalize="none" autoCorrect="off" disabled={isSaving} maxLength={24} minLength={3} onChange={(event) => setEditHandle(event.target.value.toLowerCase().replace(/^@+/, ""))} pattern="[a-z0-9][a-z0-9_]{2,23}" placeholder="seunome" required spellCheck={false} type="text" value={editHandle} /></div>
                 <small>3 a 24 caracteres. Letras, números e _.</small>
               </label>
             </div>
 
             <fieldset className={styles.avatarPicker}>
               <legend>Escolha sua foto de perfil</legend>
-              <p>Uma coleção de ingredientes abstratos feita para o Receitando.</p>
+              <p>Escolha uma das opções abaixo.</p>
               <div className={styles.avatarGrid}>
                 {FOOD_AVATARS.map((avatar) => {
                   const selected = editAvatar === avatar.key;
                   return (
-                    <label
-                      className={`${styles.avatarOption} ${selected ? styles.avatarOptionSelected : ""}`}
-                      key={avatar.key}
-                    >
-                      <input
-                        checked={selected}
-                        disabled={isSaving}
-                        name="avatar"
-                        onChange={() => setEditAvatar(avatar.key)}
-                        type="radio"
-                        value={avatar.key}
-                      />
+                    <label className={`${styles.avatarOption} ${selected ? styles.avatarOptionSelected : ""}`} key={avatar.key}>
+                      <input checked={selected} disabled={isSaving} name="avatar" onChange={() => setEditAvatar(avatar.key)} type="radio" value={avatar.key} />
                       <FoodAvatar avatarKey={avatar.key} className={styles.avatarPreview} label={avatar.label} />
                       <span>{avatar.label}</span>
                     </label>
@@ -290,36 +206,21 @@ export function AccountClient() {
             {editMessage ? <p className={styles.editSuccess}>{editMessage}</p> : null}
 
             <div className={styles.editorActions}>
-              <button className={styles.cancelButton} disabled={isSaving} onClick={closeEditor} type="button">
-                Cancelar
-              </button>
-              <button className={styles.saveButton} disabled={isSaving} type="submit">
-                {isSaving ? "Salvando…" : "Salvar perfil"}
-              </button>
+              <button className={styles.cancelButton} disabled={isSaving} onClick={closeEditor} type="button">Cancelar</button>
+              <button className={styles.saveButton} disabled={isSaving} type="submit">{isSaving ? "Salvando…" : "Salvar perfil"}</button>
             </div>
           </form>
         </section>
       ) : null}
 
       <section className={styles.stats} aria-label="Resumo da conta">
-        <Link className={styles.statCard} href="/despensa">
-          <span>{pantryCount}</span>
-          <strong>{pantryCount === 1 ? "ingrediente na despensa" : "ingredientes na despensa"}</strong>
-          <small>Ver o que já está na cozinha →</small>
-        </Link>
-        <Link className={styles.statCard} href="/favoritos">
-          <span>{favoriteCount}</span>
-          <strong>{favoriteCount === 1 ? "receita favorita" : "receitas favoritas"}</strong>
-          <small>Abrir seu caderno →</small>
-        </Link>
+        <Link className={styles.statCard} href="/despensa"><span>{pantryCount}</span><strong>{pantryCount === 1 ? "ingrediente na despensa" : "ingredientes na despensa"}</strong><small>Ver despensa →</small></Link>
+        <Link className={styles.statCard} href="/favoritos"><span>{favoriteCount}</span><strong>{favoriteCount === 1 ? "receita favorita" : "receitas favoritas"}</strong><small>Ver favoritos →</small></Link>
       </section>
 
       <section className={styles.tip}>
         <span aria-hidden="true">✦</span>
-        <div>
-          <strong>Uma pitada de organização ajuda.</strong>
-          <p>Quanto mais completa sua despensa, melhores ficam as sugestões de receitas para o que você já tem em casa.</p>
-        </div>
+        <div><strong>Uma pitada de organização ajuda.</strong><p>Quanto mais completa sua despensa, melhores ficam as sugestões de receitas para o que você já tem em casa.</p></div>
       </section>
     </div>
   );
