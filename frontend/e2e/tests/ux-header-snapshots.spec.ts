@@ -69,7 +69,7 @@ test("busca global abre por Ctrl+K e separa receitas de ingredientes", async ({ 
   await page.goto("/");
 
   await page.keyboard.press("Control+K");
-  const input = page.getByRole("searchbox", { name: "Buscar receitas ou ingredientes" });
+  const input = page.getByRole("combobox", { name: "Buscar receitas ou ingredientes" });
   await expect(input).toBeFocused();
   await input.fill("banana");
 
