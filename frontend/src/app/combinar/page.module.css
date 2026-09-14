@@ -1,71 +1,71 @@
 .page {
   background:
-    radial-gradient(circle at 14% 10%, color-mix(in srgb, var(--color-surface-secondary) 70%, transparent), transparent 28rem),
-    radial-gradient(circle at 88% 18%, color-mix(in srgb, var(--color-highlight) 12%, transparent), transparent 24rem),
+    linear-gradient(180deg, color-mix(in srgb, var(--color-sage-soft) 38%, transparent) 0 12rem, transparent 12rem),
     var(--color-background);
   min-height: 100vh;
 }
 
 .hero {
-  padding-block: clamp(3rem, 7vw, 5.5rem) clamp(1.75rem, 4vw, 2.75rem);
+  padding-block: clamp(2.2rem, 5vw, 3.8rem) clamp(1.2rem, 3vw, 1.9rem);
 }
 
 .heroContainer,
 .matcherContainer {
-  max-width: 92rem;
+  max-width: var(--container-width);
 }
 
 .eyebrow {
   color: var(--color-primary-dark);
-  font-size: 0.76rem;
-  font-weight: 850;
-  letter-spacing: 0.12em;
-  margin: 0 0 var(--space-3);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  margin: 0 0 var(--space-2);
   text-transform: uppercase;
 }
 
 .hero h1 {
   font-family: var(--font-editorial), Georgia, serif;
-  font-size: clamp(3rem, 7vw, 5.5rem);
-  font-weight: 620;
-  letter-spacing: -0.045em;
-  line-height: 0.96;
+  font-size: clamp(2.45rem, 5.8vw, 4.45rem);
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  line-height: 0.98;
   margin: 0;
+  max-width: 12ch;
 }
 
 .description {
   color: var(--color-text-muted);
-  font-size: clamp(1rem, 1.8vw, 1.16rem);
-  line-height: 1.7;
-  margin: var(--space-5) 0 0;
-  max-width: 43rem;
+  font-size: clamp(0.96rem, 1.6vw, 1.08rem);
+  line-height: 1.58;
+  margin: var(--space-4) 0 0;
+  max-width: 40rem;
 }
 
 .explainer {
-  background: color-mix(in srgb, var(--color-card) 68%, transparent);
-  border: 1px solid color-mix(in srgb, var(--color-sage) 22%, var(--color-border));
-  border-radius: 0.9rem;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
   color: var(--color-text-muted);
-  margin-top: var(--space-5);
-  max-width: 43rem;
-  padding: 0.75rem 0.9rem;
+  margin-top: var(--space-4);
+  max-width: 40rem;
+  padding: 0.62rem 0.75rem;
 }
 
 .explainer summary {
   color: var(--color-primary-dark);
   cursor: pointer;
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   font-weight: 760;
   min-height: 2rem;
-  padding: 0.25rem 0;
+  padding: 0.2rem 0;
 }
 
 .explainer p {
-  font-size: 0.84rem;
-  line-height: 1.6;
-  margin: 0.65rem 0 0;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  margin: 0.55rem 0 0;
 }
 
 .matcherSection {
-  padding-bottom: clamp(5rem, 9vw, 8rem);
+  padding-bottom: clamp(3rem, 6vw, 5rem);
 }

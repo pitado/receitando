@@ -1,27 +1,27 @@
 :root {
-  --color-background: #f8f5ef;
-  --color-background-translucent: #f8f5eff0;
-  --color-surface: #f0e9df;
-  --color-surface-secondary: #e7d8ca;
-  --color-card: #fffdf8;
+  --color-background: #f6f1e8;
+  --color-background-translucent: #f6f1e8f2;
+  --color-surface: #eee6da;
+  --color-surface-secondary: #e5d7c7;
+  --color-card: #fffaf2;
   --color-text: #2b211a;
   --color-text-muted: #74685e;
   --color-primary: #c05a38;
   --color-primary-dark: #99442d;
   --color-action-hover: #813723;
   --color-accent: #dfaa58;
-  --color-border: #dfd5cb;
+  --color-border: #d9cec1;
   --color-on-primary: #fffaf4;
   --color-highlight: #edca86;
-  --color-sage: #6f8167;
-  --color-sage-soft: #e2e8dc;
+  --color-sage: #66785f;
+  --color-sage-soft: #e0e7da;
   --color-success-surface: #ebf0e5;
   --color-success-border: #b4c2a6;
   --color-success-text: #40503a;
   --color-error-surface: #f7e8df;
-  --color-focus: #6f8167;
-  --color-shadow: #2b211a10;
-  --color-shadow-strong: #2b211a18;
+  --color-focus: #66785f;
+  --color-shadow: #2b211a0b;
+  --color-shadow-strong: #2b211a14;
 
   --font-interface: var(--font-inter);
   --font-editorial: var(--font-fraunces);
@@ -40,25 +40,23 @@
   --space-11: 5rem;
   --space-12: 6rem;
 
-  --radius-button: 0.8rem;
-  --radius-card: 1.25rem;
+  --radius-button: 0.65rem;
+  --radius-card: 0.9rem;
   --radius-pill: 999px;
   --radius-round: 50%;
-  --page-gutter: clamp(1rem, 4vw, 2.25rem);
-  --container-width: 76rem;
+  --page-gutter: clamp(1rem, 3.2vw, 2rem);
+  --container-width: 70rem;
 
-  --shadow-button: 0 0.35rem 1.1rem var(--color-shadow);
-  --shadow-button-hover: 0 0.5rem 1.4rem var(--color-shadow-strong);
-  --shadow-card: 0 1rem 2.6rem var(--color-shadow);
-  --shadow-card-hover: 0 1.25rem 3rem var(--color-shadow-strong);
+  --shadow-button: 0 0.2rem 0.8rem var(--color-shadow);
+  --shadow-button-hover: 0 0.35rem 1rem var(--color-shadow-strong);
+  --shadow-card: 0 0.55rem 1.8rem var(--color-shadow);
+  --shadow-card-hover: 0 0.75rem 2.2rem var(--color-shadow-strong);
 
   --transition-fast: 150ms ease;
   --transition-base: 220ms ease;
 }
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 html {
   background: var(--color-background);
@@ -76,39 +74,12 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-body > div {
-  min-height: 100vh;
-}
-
-.app-shell {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-}
-
-main {
-  display: block;
-}
-
-button,
-input,
-textarea,
-select {
-  font: inherit;
-}
-
-button,
-a {
-  -webkit-tap-highlight-color: transparent;
-}
-
-a,
-button,
-input,
-textarea,
-select {
-  outline: none;
-}
+body > div { min-height: 100vh; }
+.app-shell { display: flex; flex-direction: column; min-height: 100vh; }
+main { display: block; }
+button, input, textarea, select { font: inherit; }
+button, a { -webkit-tap-highlight-color: transparent; }
+a, button, input, textarea, select { outline: none; }
 
 :focus-visible {
   outline: 0.18rem solid var(--color-focus);
@@ -129,15 +100,9 @@ select {
   transition: transform var(--transition-fast);
   z-index: 1000;
 }
+.skip-link:focus-visible { transform: translateY(0); }
 
-.skip-link:focus-visible {
-  transform: translateY(0);
-}
-
-::selection {
-  background: var(--color-highlight);
-  color: var(--color-text);
-}
+::selection { background: var(--color-highlight); color: var(--color-text); }
 
 .container {
   margin-inline: auto;
@@ -147,7 +112,7 @@ select {
 }
 
 .page-shell {
-  padding-block: clamp(3rem, 8vw, 6rem);
+  padding-block: clamp(2.2rem, 5.5vw, 4.25rem);
 }
 
 .sr-only {
@@ -163,14 +128,13 @@ select {
   width: 1px;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
+@media (max-width: 48rem) {
+  .page-shell { padding-block: 1.8rem 3rem; }
+}
 
-  *,
-  *::before,
-  *::after {
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
