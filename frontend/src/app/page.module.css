@@ -1,144 +1,112 @@
-.page {
-  background: var(--color-background);
-}
+.page { background: var(--color-background); }
 
 .editorialRibbon {
   background: var(--color-card);
   border-bottom: 1px solid var(--color-border);
   border-top: 1px solid var(--color-border);
-  padding-block: clamp(3.2rem, 7vw, 5.8rem);
+  padding-block: clamp(2.2rem, 4.5vw, 3.6rem);
 }
 
 .ribbonGrid {
   align-items: stretch;
   display: grid;
-  gap: 0.85rem;
+  gap: 0.65rem;
 }
 
 .kitchenNote {
-  border-radius: 1.4rem;
-  min-height: 15rem;
+  border-radius: var(--radius-card);
+  min-height: 12rem;
   overflow: hidden;
-  padding: clamp(1.45rem, 3vw, 2rem) clamp(4.3rem, 7vw, 6rem) clamp(1.45rem, 3vw, 2rem) clamp(1.45rem, 3vw, 2rem);
+  padding: clamp(1.2rem, 2.5vw, 1.65rem) clamp(3.8rem, 6vw, 5rem) clamp(1.2rem, 2.5vw, 1.65rem) clamp(1.2rem, 2.5vw, 1.65rem);
   position: relative;
-  transition: transform 260ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 260ms ease;
+  transition: border-color var(--transition-fast), filter var(--transition-fast);
 }
 
-.kitchenNote:hover {
-  box-shadow: 0 1.25rem 2.8rem color-mix(in srgb, var(--color-text) 8%, transparent);
-  transform: translateY(-4px);
-}
+.kitchenNote:hover { filter: saturate(1.04); }
 
 .kitchenNote strong {
   display: block;
   font-family: var(--font-editorial), Georgia, serif;
-  font-size: clamp(1.8rem, 3.4vw, 2.8rem);
+  font-size: clamp(1.6rem, 2.8vw, 2.25rem);
   font-weight: 590;
-  letter-spacing: -0.048em;
-  line-height: 0.96;
+  letter-spacing: -0.038em;
+  line-height: 1;
   max-width: 11rem;
 }
 
 .kitchenNote p {
-  font-size: 0.9rem;
-  line-height: 1.55;
-  margin: 0.85rem 0 0;
-  max-width: 17rem;
+  font-size: 0.86rem;
+  line-height: 1.5;
+  margin: 0.7rem 0 0;
+  max-width: 16rem;
 }
 
 .miniEyebrow,
 .communityEyebrow {
   display: block;
-  font-size: 0.66rem;
+  font-size: 0.64rem;
   font-weight: 800;
-  letter-spacing: 0.07em;
-  margin: 0 0 0.7rem;
+  letter-spacing: 0.06em;
+  margin: 0 0 0.6rem;
   text-transform: uppercase;
 }
 
-.noteWarm {
-  background: #c45c3b;
-  color: #fffaf4;
-}
-
+.noteWarm { background: #b95335; color: #fffaf4; }
 .noteWarm .miniEyebrow,
-.noteWarm p {
-  color: color-mix(in srgb, #fffaf4 82%, transparent);
-}
+.noteWarm p { color: color-mix(in srgb, #fffaf4 82%, transparent); }
 
 .noteLight {
-  background: #efe6dc;
+  background: #eee5da;
   border: 1px solid var(--color-border);
   color: var(--color-text);
 }
+.noteLight .miniEyebrow { color: var(--color-primary-dark); }
+.noteLight p { color: var(--color-text-muted); }
 
-.noteLight .miniEyebrow {
-  color: var(--color-primary-dark);
-}
-
-.noteLight p {
-  color: var(--color-text-muted);
-}
-
-.noteGreen {
-  background: #718368;
-  color: #f9f7f1;
-}
-
+.noteGreen { background: #687b61; color: #f9f7f1; }
 .noteGreen .miniEyebrow,
-.noteGreen p {
-  color: color-mix(in srgb, #f9f7f1 82%, transparent);
-}
+.noteGreen p { color: color-mix(in srgb, #f9f7f1 82%, transparent); }
 
 .tomatoArt,
 .eggArt,
 .leafArt {
-  bottom: 1.25rem;
+  bottom: 1rem;
   display: block;
-  height: 4rem;
+  height: 3.4rem;
   position: absolute;
-  right: 1.25rem;
-  width: 4rem;
+  right: 1rem;
+  width: 3.4rem;
 }
 
-.tomatoArt {
-  background: #e9bd73;
-  border-radius: 48% 52% 51% 49%;
-}
-
+.tomatoArt { background: #e9bd73; border-radius: 48% 52% 51% 49%; }
 .tomatoArt::before,
 .tomatoArt::after {
   background: #53694d;
   border-radius: 100% 0 100% 0;
   content: "";
-  height: 1.1rem;
-  left: 1.2rem;
+  height: 0.95rem;
+  left: 1rem;
   position: absolute;
-  top: -0.34rem;
+  top: -0.3rem;
   transform: rotate(38deg);
-  width: 0.52rem;
+  width: 0.46rem;
 }
-
-.tomatoArt::after {
-  left: 1.95rem;
-  transform: rotate(-25deg);
-}
+.tomatoArt::after { left: 1.65rem; transform: rotate(-25deg); }
 
 .eggArt {
-  background: #fffdf8;
+  background: var(--color-card);
   border: 1px solid color-mix(in srgb, var(--color-text) 8%, transparent);
   border-radius: 48% 52% 55% 45% / 58% 43% 57% 42%;
   transform: rotate(-8deg);
 }
-
 .eggArt i {
   background: var(--color-highlight);
   border-radius: 50%;
-  height: 1.5rem;
-  left: 1.2rem;
+  height: 1.25rem;
+  left: 1.05rem;
   position: absolute;
-  top: 1.15rem;
-  width: 1.5rem;
+  top: 1rem;
+  width: 1.25rem;
 }
 
 .leafArt {
@@ -146,121 +114,78 @@
   border-radius: 90% 10% 75% 25% / 75% 30% 70% 25%;
   transform: rotate(-35deg);
 }
-
 .leafArt::after {
   background: #718368;
   content: "";
   height: 1px;
-  left: 0.5rem;
+  left: 0.45rem;
   opacity: 0.78;
   position: absolute;
-  top: 1.9rem;
-  width: 2.8rem;
+  top: 1.65rem;
+  width: 2.4rem;
 }
 
 .communityCta {
   background: #263126;
   color: #f8f5ef;
-  padding-block: clamp(4.5rem, 9vw, 7rem);
+  padding-block: clamp(3.25rem, 6vw, 4.8rem);
 }
 
 .communityInner {
   align-items: end;
   display: flex;
   flex-wrap: wrap;
-  gap: clamp(2rem, 5vw, 4rem);
+  gap: clamp(1.5rem, 3.5vw, 3rem);
   justify-content: space-between;
 }
-
-.communityInner > div {
-  max-width: 50rem;
-}
-
-.communityEyebrow {
-  color: #f1d08c;
-}
+.communityInner > div { max-width: 44rem; }
+.communityEyebrow { color: #f1d08c; }
 
 .communityInner h2 {
   font-family: var(--font-editorial), Georgia, serif;
-  font-size: clamp(3rem, 7vw, 5.8rem);
+  font-size: clamp(2.5rem, 5.5vw, 4.6rem);
   font-weight: 560;
-  letter-spacing: -0.055em;
-  line-height: 0.9;
-  margin: 0 0 var(--space-5);
+  letter-spacing: -0.045em;
+  line-height: 0.94;
+  margin: 0 0 var(--space-4);
   max-width: 11ch;
 }
 
 .communityInner p:not(.communityEyebrow) {
-  color: color-mix(in srgb, #f8f5ef 72%, transparent);
-  font-size: clamp(1rem, 1.8vw, 1.15rem);
-  line-height: 1.65;
+  color: color-mix(in srgb, #f8f5ef 74%, transparent);
+  font-size: clamp(0.96rem, 1.6vw, 1.08rem);
+  line-height: 1.58;
   margin: 0;
-  max-width: 42rem;
+  max-width: 39rem;
 }
 
 .communityInner > a {
   align-items: center;
   background: #f8f5ef;
-  border-radius: 999px;
+  border-radius: 0.7rem;
   color: #263126;
   display: inline-flex;
   font-weight: 800;
-  gap: 0.75rem;
-  min-height: 3.25rem;
-  padding: 0.82rem 1.2rem;
+  gap: 0.65rem;
+  min-height: 3rem;
+  padding: 0.72rem 1rem;
   text-decoration: none;
-  transition: transform var(--transition-fast), background-color var(--transition-fast);
+  transition: background-color var(--transition-fast);
 }
-
-.communityInner > a:hover {
-  background: #f1d08c;
-  transform: translateY(-2px);
-}
+.communityInner > a:hover { background: #f1d08c; }
 
 @media (min-width: 48rem) {
-  .ribbonGrid {
-    grid-template-columns: 1.12fr 0.94fr 0.94fr;
-  }
-
-  .kitchenNote:nth-child(2) {
-    transform: translateY(1.4rem);
-  }
-
-  .kitchenNote:nth-child(2):hover {
-    transform: translateY(calc(1.4rem - 4px));
-  }
+  .ribbonGrid { grid-template-columns: 1.08fr 0.96fr 0.96fr; }
 }
 
 @media (max-width: 47.99rem) {
-  .editorialRibbon {
-    padding-block: 2.7rem;
-  }
-
-  .kitchenNote {
-    min-height: 12.5rem;
-  }
-
-  .communityInner {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .communityInner > a {
-    justify-content: center;
-    width: 100%;
-  }
+  .editorialRibbon { padding-block: 2rem; }
+  .kitchenNote { min-height: 10.5rem; }
+  .communityInner { align-items: flex-start; flex-direction: column; }
+  .communityInner > a { justify-content: center; width: 100%; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .kitchenNote,
-  .communityInner > a {
-    transition: none;
-  }
-
-  .kitchenNote:hover,
-  .kitchenNote:nth-child(2),
-  .kitchenNote:nth-child(2):hover,
-  .communityInner > a:hover {
-    transform: none;
-  }
+  .communityInner > a { transition: none; }
 }
