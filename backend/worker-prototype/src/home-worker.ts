@@ -10,6 +10,7 @@ type PopularRecipe = {
   servings: number;
   mealType: string;
   difficulty: string;
+  imageUrl: string | null;
   likes: number;
   favorites: number;
   comments: number;
@@ -38,6 +39,7 @@ async function loadPopular(env: Env): Promise<PopularRecipe[]> {
         r.servings,
         r.meal_type AS mealType,
         r.difficulty,
+        r.image_url AS imageUrl,
         COALESCE(v.likes, 0) AS likes,
         COALESCE(f.favorites, 0) AS favorites,
         COALESCE(c.comments, 0) AS comments
@@ -54,6 +56,7 @@ async function loadPopular(env: Env): Promise<PopularRecipe[]> {
         SELECT recipe_id, COUNT(*) AS comments
         FROM recipe_comments GROUP BY recipe_id
       ) c ON c.recipe_id = r.id
+      WHERE r.image_url IS NOT NULL AND trim(r.image_url) <> ''
       ORDER BY (COALESCE(v.likes, 0) * 3 + COALESCE(f.favorites, 0) * 2 + COALESCE(c.comments, 0)) DESC,
                r.updated_at DESC,
                r.title ASC
@@ -73,10 +76,12 @@ async function loadPopular(env: Env): Promise<PopularRecipe[]> {
         r.servings,
         r.meal_type AS mealType,
         r.difficulty,
+        r.image_url AS imageUrl,
         0 AS likes,
         0 AS favorites,
         0 AS comments
       FROM recipes r
+      WHERE r.image_url IS NOT NULL AND trim(r.image_url) <> ''
       ORDER BY r.updated_at DESC, r.title ASC
       LIMIT 4
     `).all<PopularRecipe>();
