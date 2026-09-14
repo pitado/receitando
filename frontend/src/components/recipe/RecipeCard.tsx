@@ -1,8 +1,9 @@
 import Image from "next/image";
-import Link from "next/link";
+import type { CSSProperties } from "react";
 
 import { CompatibilityBadge } from "@/components/recipe/CompatibilityBadge";
 import { FavoriteButton } from "@/components/recipe/FavoriteButton";
+import { RecipeTransitionLink } from "@/components/recipe/RecipeTransitionLink";
 import { formatPrepTime } from "@/lib/format";
 import type { MatchIngredient, RecipeDifficulty, RecipeMatchStatus } from "@/types/recipe";
 
@@ -34,11 +35,7 @@ const statusLabels: Record<RecipeMatchStatus, string> = {
   EXPLORE: "Para explorar",
 };
 
-const difficultyLabels: Record<RecipeDifficulty, string> = {
-  FACIL: "Fácil",
-  MEDIA: "Média",
-  DIFICIL: "Difícil",
-};
+const difficultyLabels: Record<RecipeDifficulty, string> = { FACIL: "Fácil", MEDIA: "Média", DIFICIL: "Difícil" };
 
 function buildMissingMessage(compatibility: number | undefined, missingIngredients: MatchIngredient[] | undefined): string | null {
   if (compatibility === undefined) return null;
@@ -47,60 +44,27 @@ function buildMissingMessage(compatibility: number | undefined, missingIngredien
   return `${label}: ${missingIngredients.map((item) => item.name).join(", ")}`;
 }
 
-export function RecipeCard({
-  compatibility,
-  description,
-  difficulty,
-  externalSource,
-  imageUrl,
-  initialFavorite = false,
-  mealType,
-  missingIngredients,
-  onFavoriteChange,
-  prepMinutes,
-  recipeId,
-  servings,
-  slug,
-  sourceName,
-  status,
-  title,
-}: RecipeCardProps) {
+export function RecipeCard({ compatibility, description, difficulty, externalSource, imageUrl, initialFavorite = false, mealType, missingIngredients, onFavoriteChange, prepMinutes, recipeId, servings, slug, sourceName, status, title }: RecipeCardProps) {
   const missingMessage = buildMissingMessage(compatibility, missingIngredients);
   const hasPrepTime = typeof prepMinutes === "number" && prepMinutes > 0;
   const hasServings = typeof servings === "number" && servings > 0;
   const recipeHref = `/receitas/${slug}`;
+  const transitionStyle = imageUrl ? ({ viewTransitionName: `recipe-image-${recipeId}` } as CSSProperties) : undefined;
 
   return (
     <article className={styles.card}>
-      <Link aria-label={`Abrir receita ${title}`} className={styles.cardOverlay} href={recipeHref} />
+      <RecipeTransitionLink href={recipeHref} title={title} />
 
-      <div className={styles.visual}>
-        {imageUrl ? (
-          <Image
-            alt={`Foto de ${title}`}
-            className={styles.recipeImage}
-            fill
-            sizes="(min-width: 1088px) 33vw, (min-width: 672px) 50vw, 100vw"
-            src={imageUrl}
-          />
-        ) : (
-          <div aria-hidden="true" className={styles.imageFallback}>
-            <span>Receitando</span>
-          </div>
-        )}
+      <div className={styles.visual} style={transitionStyle}>
+        {imageUrl ? <Image alt={`Foto de ${title}`} className={styles.recipeImage} fill sizes="(min-width: 1088px) 33vw, (min-width: 672px) 50vw, 100vw" src={imageUrl} /> : <div aria-hidden="true" className={styles.imageFallback}><span>Receitando</span></div>}
         <div aria-hidden="true" className={styles.imageShade} />
         <span className={styles.category}>{mealType || "Receita"}</span>
         {status ? <span className={styles.status}>{statusLabels[status]}</span> : null}
       </div>
 
       <div className={styles.body}>
-        <div className={styles.heading}>
-          <h3 className={styles.title}>{title}</h3>
-          {compatibility !== undefined ? <CompatibilityBadge value={compatibility} /> : null}
-        </div>
-
+        <div className={styles.heading}><h3 className={styles.title}>{title}</h3>{compatibility !== undefined ? <CompatibilityBadge value={compatibility} /> : null}</div>
         <p className={styles.description}>{description}</p>
-
         {hasPrepTime || hasServings || (difficulty && !externalSource) || (externalSource && sourceName) ? (
           <div className={styles.details}>
             {hasPrepTime ? <span className={styles.detail}>◷ {formatPrepTime(prepMinutes)}</span> : null}
@@ -109,21 +73,10 @@ export function RecipeCard({
             {externalSource && sourceName ? <span className={styles.detail}>Fonte: {sourceName}</span> : null}
           </div>
         ) : null}
-
         {missingMessage ? <p className={styles.matchMessage}>{missingMessage}</p> : null}
-
         <div className={styles.actions}>
           <span className={styles.cardLink}>Ver receita <span aria-hidden="true">→</span></span>
-          <div className={styles.favoriteAction}>
-            <FavoriteButton
-              initialFavorite={initialFavorite}
-              key={`${recipeId}-${initialFavorite ? "saved" : "unsaved"}`}
-              label={false}
-              onChange={onFavoriteChange}
-              recipeId={recipeId}
-              syncFavorite={false}
-            />
-          </div>
+          <div className={styles.favoriteAction}><FavoriteButton initialFavorite={initialFavorite} key={`${recipeId}-${initialFavorite ? "saved" : "unsaved"}`} label={false} onChange={onFavoriteChange} recipeId={recipeId} syncFavorite={false} /></div>
         </div>
       </div>
     </article>
