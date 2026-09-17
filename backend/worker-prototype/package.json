@@ -16,9 +16,9 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "@cloudflare/workers-types": "5.20260823.1",
+    "@cloudflare/workers-types": "5.20260914.1",
     "typescript": "5.9.3",
-    "wrangler": "4.125.0"
+    "wrangler": "4.131.2"
   },
   "engines": {
     "node": ">=20.9.0 <25"
