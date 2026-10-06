@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Fraunces, Inter } from "next/font/google";
+import { Bowlby_One, Fraunces, Inter, Onest } from "next/font/google";
 import Script from "next/script";
 import type { ReactNode } from "react";
 
@@ -11,6 +11,8 @@ import "./globals.css";
 
 const inter = Inter({ display: "swap", subsets: ["latin"], variable: "--font-inter" });
 const fraunces = Fraunces({ display: "swap", subsets: ["latin"], variable: "--font-fraunces" });
+const bowlby = Bowlby_One({ display: "swap", subsets: ["latin"], variable: "--font-home-title" });
+const onest = Onest({ display: "swap", subsets: ["latin"], variable: "--font-home-copy" });
 
 export const metadata: Metadata = {
   title: { default: "Receitando", template: "%s | Receitando" },
@@ -21,7 +23,7 @@ interface RootLayoutProps { children: ReactNode; }
 
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
-    <html className={`${inter.variable} ${fraunces.variable}`} lang="pt-BR">
+    <html className={[inter.variable, fraunces.variable, bowlby.variable, onest.variable].join(" ")} lang="pt-BR">
       <body>
         <a className="skip-link" href="#conteudo-principal">Pular para o conteúdo principal</a>
         <div className="app-shell"><Header /><main id="conteudo-principal" tabIndex={-1}>{children}</main><Footer /></div>
