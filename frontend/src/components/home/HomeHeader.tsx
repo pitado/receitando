@@ -38,17 +38,18 @@ function highlightTitle(title: string, query: string) {
   return title;
 }
 
-function SearchRecipe({ recipe, query, onNavigate }: {
+function SearchRecipe({ recipe, query, onNavigate, tabIndex }: {
   recipe: RecipeCatalogItem | HomePopularRecipe;
   query: string;
   onNavigate: () => void;
+  tabIndex: number;
 }) {
   return (
     <Link
       className={styles.searchResult}
       href={"/receitas/" + recipe.slug}
       onClick={onNavigate}
-      tabIndex={0}
+      tabIndex={tabIndex}
     >
       <span className={styles.searchResultName}>{highlightTitle(recipe.title, query)}</span>
       <span className={styles.searchResultMeta}>{recipe.mealType || "Receita"}, {recipe.prepMinutes} min</span>
@@ -235,13 +236,13 @@ export function HomeHeader() {
 
               {!loading && !hasQuery ? (
                 <div className={styles.resultList}>
-                  {suggestions.map((recipe) => <SearchRecipe key={recipe.id} onNavigate={closeSearch} query="" recipe={recipe} />)}
+                  {suggestions.map((recipe) => <SearchRecipe key={recipe.id} onNavigate={closeSearch} query="" recipe={recipe} tabIndex={open ? 0 : -1} />)}
                 </div>
               ) : null}
 
               {!loading && hasQuery && results.length > 0 ? (
                 <div className={styles.resultList}>
-                  {results.map((recipe) => <SearchRecipe key={recipe.id} onNavigate={closeSearch} query={query} recipe={recipe} />)}
+                  {results.map((recipe) => <SearchRecipe key={recipe.id} onNavigate={closeSearch} query={query} recipe={recipe} tabIndex={open ? 0 : -1} />)}
                 </div>
               ) : null}
 
