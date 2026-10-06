@@ -2,215 +2,233 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
 
 import { FoodAvatar } from "@/components/profile/FoodAvatar";
-import { hasAuthSessionHint } from "@/services/auth-storage";
-import { getCurrentUser, type AuthUser } from "@/services/auth.service";
-import { getHomeFeed, type HomeFeed } from "@/services/home.service";
-import { getPantry } from "@/services/pantry.service";
-import { matchRecipesFromPantry } from "@/services/recipes.service";
+import { FavoriteButton } from "@/components/recipe/FavoriteButton";
+import type { AuthUser } from "@/services/auth.service";
+import type { HomeFeed, HomePopularRecipe } from "@/services/home.service";
 import type { MatchRecipeResult } from "@/types/recipe";
 
 import styles from "./HomeLiveSections.module.css";
 
-function firstName(name: string) {
-  return name.trim().split(/\s+/)[0] || "cozinheiro";
-}
+type HomeLiveSectionsProps = {
+  feed: HomeFeed | null;
+  ingredients: string[];
+  matches: MatchRecipeResult[];
+  pantryCount: number;
+  user: AuthUser | null;
+  onAddIngredient: (ingredient: string) => void;
+};
 
 function formatDate(value: string) {
   return new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short" }).format(new Date(value));
 }
 
-function RecipeSkeleton() {
+function statusLabel(recipe: MatchRecipeResult) {
+  if (recipe.status === "READY") return "Pronta pra fazer";
+  if (recipe.missingIngredients.length === 1) return "Falta 1";
+  if (recipe.missingIngredients.length > 1) return "Faltam " + recipe.missingIngredients.length;
+  return "Explore";
+}
+
+function statusClass(recipe: MatchRecipeResult) {
+  if (recipe.status === "READY") return styles.ready;
+  if (recipe.missingIngredients.length === 1) return styles.missingOne;
+  return styles.missingMany;
+}
+
+function RecipeThumbnail({
+  title,
+  imageUrl,
+}: {
+  title: string;
+  imageUrl: string | null;
+}) {
+  if (imageUrl) {
+    return (
+      <Image
+        alt={"Foto de " + title}
+        fill
+        sizes="96px"
+        src={imageUrl}
+      />
+    );
+  }
+
+  return <span className={styles.thumbnailFallback}>{title.slice(0, 1).toLocaleUpperCase("pt-BR")}</span>;
+}
+
+function MatchRow({
+  recipe,
+  onAddIngredient,
+}: {
+  recipe: MatchRecipeResult;
+  onAddIngredient: (ingredient: string) => void;
+}) {
   return (
-    <div aria-hidden="true" className={styles.recipeSkeletonGrid}>
-      {[0, 1, 2].map((item) => (
-        <div className={styles.recipeSkeleton} key={item}>
-          <span className={styles.skeletonImage} />
-          <span className={styles.skeletonLineWide} />
-          <span className={styles.skeletonLine} />
-          <span className={styles.skeletonLineShort} />
-        </div>
-      ))}
+    <div className={styles.recipeRow}>
+      <Link className={styles.thumbnail} href={"/receitas/" + recipe.slug}>
+        <RecipeThumbnail imageUrl={recipe.imageUrl} title={recipe.title} />
+      </Link>
+
+      <div className={styles.recipeInfo}>
+        <Link className={styles.recipeTitle} href={"/receitas/" + recipe.slug}>
+          {recipe.title}
+        </Link>
+        <span className={styles.recipeMeta}>{recipe.mealType || "Receita"}, {recipe.prepMinutes} min</span>
+      </div>
+
+      <div className={styles.ingredients}>
+        {recipe.foundIngredients.slice(0, 4).map((ingredient) => (
+          <span className={styles.havePill} key={ingredient.id}>{ingredient.name}</span>
+        ))}
+        {recipe.missingIngredients.slice(0, 3).map((ingredient) => (
+          <button className={styles.missingPill} key={ingredient.id} onClick={() => onAddIngredient(ingredient.name)} type="button">
+            + {ingredient.name}
+          </button>
+        ))}
+      </div>
+
+      <span className={[styles.status, statusClass(recipe)].join(" ")}>{statusLabel(recipe)}</span>
+
+      <span className={styles.favoriteButton}>
+        <FavoriteButton label={false} recipeId={recipe.id} />
+      </span>
     </div>
   );
 }
 
-function CommentSkeleton() {
+function PopularRow({ recipe }: { recipe: HomePopularRecipe }) {
   return (
-    <div aria-hidden="true" className={styles.commentSkeletonGrid}>
-      {[0, 1, 2].map((item) => (
-        <div className={styles.commentSkeleton} key={item}>
-          <span className={styles.skeletonAvatar} />
-          <span className={styles.skeletonLineWide} />
-          <span className={styles.skeletonLine} />
-        </div>
-      ))}
+    <div className={styles.recipeRow}>
+      <Link className={styles.thumbnail} href={"/receitas/" + recipe.slug}>
+        <RecipeThumbnail imageUrl={recipe.imageUrl} title={recipe.title} />
+      </Link>
+
+      <div className={styles.recipeInfo}>
+        <Link className={styles.recipeTitle} href={"/receitas/" + recipe.slug}>{recipe.title}</Link>
+        <span className={styles.recipeMeta}>{recipe.mealType || "Receita"}, {recipe.prepMinutes} min</span>
+      </div>
+
+      <div className={styles.ingredients}>
+        <span className={styles.havePill}>comece com sua bancada</span>
+      </div>
+
+      <span className={styles.status}>{recipe.likes} gostaram</span>
+
+      <span className={styles.favoriteButton}>
+        <FavoriteButton label={false} recipeId={recipe.id} />
+      </span>
     </div>
   );
 }
 
-export function HomeLiveSections() {
-  const [feed, setFeed] = useState<HomeFeed | null>(null);
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [pantryCount, setPantryCount] = useState(0);
-  const [matches, setMatches] = useState<MatchRecipeResult[]>([]);
-  const [loaded, setLoaded] = useState(false);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function load() {
-      const feedResult = await Promise.allSettled([getHomeFeed()]);
-      if (!cancelled && feedResult[0].status === "fulfilled") setFeed(feedResult[0].value);
-
-      if (hasAuthSessionHint()) {
-        const accountResult = await Promise.allSettled([getCurrentUser(), getPantry(), matchRecipesFromPantry()]);
-        if (!cancelled) {
-          if (accountResult[0].status === "fulfilled") setUser(accountResult[0].value);
-          if (accountResult[1].status === "fulfilled") setPantryCount(accountResult[1].value.length);
-          if (accountResult[2].status === "fulfilled") setMatches(accountResult[2].value);
-        }
-      }
-
-      if (!cancelled) setLoaded(true);
-    }
-
-    void load();
-    return () => { cancelled = true; };
-  }, []);
-
-  const ready = matches.filter((recipe) => recipe.status === "READY").slice(0, 3);
-  const almost = matches.filter((recipe) => recipe.status === "ALMOST_READY").slice(0, 3);
-  const suggestions = ready.length > 0 ? ready : almost;
-  const visibleRecipes = (suggestions.length > 0 ? suggestions : feed?.popular ?? []).slice(0, 3);
-  const recentComments = feed?.recentComments ?? [];
+export function HomeLiveSections({
+  feed,
+  ingredients,
+  matches,
+  pantryCount,
+  user,
+  onAddIngredient,
+}: HomeLiveSectionsProps) {
+  const visibleMatches = matches.slice(0, 6);
+  const recentComments = feed?.recentComments.slice(0, 3) ?? [];
+  const recipeCount = feed?.totals.recipes ?? 0;
 
   return (
     <>
-      {user ? (
-        <section className={`${styles.personalSection} ${styles.vegetableSection} ${styles.withBeet}`}>
-          <div className={`container ${styles.personalCard}`}>
-            <div>
-              <h2>Boa, {firstName(user.name)}. Sua despensa já está trabalhando.</h2>
-              <p>
-                Você tem <strong>{pantryCount}</strong> {pantryCount === 1 ? "ingrediente" : "ingredientes"} guardados
-                {ready.length > 0 ? <> e <strong>{ready.length}</strong> {ready.length === 1 ? "receita pronta" : "receitas prontas"} para preparar.</> : "."}
-              </p>
-            </div>
-            <Link href="/combinar" className={styles.textLink}>Ver minhas combinações →</Link>
-          </div>
-        </section>
-      ) : null}
-
-      <section className={`${styles.section} ${styles.vegetableSection} ${styles.withBroccoli}`}>
-        <div className="container">
-          <div className={styles.sectionHeader}>
-            <div>
-              <h2>{user ? (ready.length > 0 ? "Dá para fazer agora" : "Falta pouca coisa") : "Receitas para abrir o apetite"}</h2>
-            </div>
-            <Link href="/receitas" className={styles.textLink}>Ver todas →</Link>
+      <section className={styles.combinationsSection} id="combinacoes">
+        <div className="home-container">
+          <div className={styles.sectionHeading}>
+            <h2>Do que já dá pra fazer ao que falta pouco</h2>
+            <p>A lista se reorganiza conforme sua bancada muda. Toque num ingrediente que falta para adicioná-lo.</p>
           </div>
 
-          {visibleRecipes.length > 0 ? (
-            <div className={styles.recipeGrid}>
-              {visibleRecipes.map((recipe) => (
-                <Link className={styles.recipeCard} href={`/receitas/${recipe.slug}`} key={recipe.id}>
-                  <div className={styles.recipeVisual}>
-                    {recipe.imageUrl ? (
-                      <Image alt={`Foto de ${recipe.title}`} fill sizes="(min-width: 768px) 33vw, 100vw" src={recipe.imageUrl} />
-                    ) : (
-                      <span aria-hidden="true" className={styles.recipeFallback}>Receitando</span>
-                    )}
-                    <span className={styles.recipeMeta}>
-                      {"compatibility" in recipe ? `${recipe.compatibility}% compatível` : recipe.mealType || "Receita da casa"}
-                    </span>
-                  </div>
-                  <div className={styles.recipeBody}>
-                    <h3>{recipe.title}</h3>
-                    <p>{recipe.description}</p>
-                    <div className={styles.recipeFooter}>
-                      <span>{recipe.prepMinutes > 0 ? `${recipe.prepMinutes} min` : "sem tempo informado"}</span>
-                      {"likes" in recipe ? <span>{recipe.likes} gostaram</span> : null}
-                      <strong>Ver receita →</strong>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          ) : !loaded ? (
-            <RecipeSkeleton />
-          ) : (
-            <div className={styles.recipeEmpty}>
-              <strong>Nenhuma receita disponível agora.</strong>
-              <p>Explore o catálogo para ver todas as receitas.</p>
-            </div>
-          )}
+          <div className={styles.recipeList}>
+            {visibleMatches.length > 0
+              ? visibleMatches.map((recipe) => (
+                  <MatchRow key={recipe.id} onAddIngredient={onAddIngredient} recipe={recipe} />
+                ))
+              : feed?.popular.slice(0, 6).map((recipe) => <PopularRow key={recipe.id} recipe={recipe} />)}
+          </div>
+
+          <Link className={styles.outlineButton} href="/receitas">
+            Ver as {recipeCount} receitas
+          </Link>
         </div>
       </section>
 
-      {feed ? (
-        <section className={`${styles.statsSection} ${styles.vegetableSection} ${styles.withTomatoes}`}>
-          <div className={`container ${styles.statsGrid}`}>
-            <div className={styles.statLead}>
-              <h2>Ideias que crescem quando todo mundo cozinha junto.</h2>
-            </div>
-            <div className={styles.stat}><strong>{feed.totals.recipes}</strong><span>receitas publicadas</span></div>
-            <div className={styles.stat}><strong>{feed.totals.likes}</strong><span>avaliações positivas</span></div>
-            <div className={styles.stat}><strong>{feed.totals.comments}</strong><span>comentários publicados</span></div>
+      <section className={styles.stepsSection}>
+        <div className="home-container">
+          <div className={styles.stepGrid}>
+            <article>
+              <strong>01</strong>
+              <h3>Conte o que tem.</h3>
+              <p>Digite ou escolha. Três ingredientes já bastam para começar.</p>
+            </article>
+            <article>
+              <strong>02</strong>
+              <h3>Compare as opções.</h3>
+              <p>O Receitando mostra o que já combina e o que ainda está faltando.</p>
+            </article>
+            <article>
+              <strong>03</strong>
+              <h3>Escolha e cozinhe.</h3>
+              <p>Menos lista de compras, mais ideia para aproveitar o que já mora na sua cozinha.</p>
+            </article>
           </div>
-        </section>
-      ) : null}
+        </div>
+      </section>
 
-      <section className={`${styles.section} ${styles.vegetableSection} ${styles.withCarrots}`}>
-        <div className="container">
-          <div className={styles.sectionHeader}>
-            <div>
-              <h2>O que estão falando por aqui.</h2>
-            </div>
-            <Link href="/receitas" className={styles.textLink}>Ver comentários →</Link>
+      <section className={styles.communitySection}>
+        <div className="home-container">
+          <div className={styles.communityHeading}>
+            <h2>Quem fez, conta</h2>
+            <Link className={styles.outlineButtonSmall} href="/receitas">Ver comentários</Link>
           </div>
 
           {recentComments.length > 0 ? (
             <div className={styles.commentGrid}>
-              {recentComments.slice(0, 3).map((comment) => (
-                <Link href={`/receitas/${comment.recipeSlug}`} className={styles.commentCard} key={comment.id}>
-                  <div className={styles.authorRow}>
-                    <FoodAvatar avatarKey={comment.avatarKey} className={styles.avatar} label={`Avatar de ${comment.authorName}`} />
-                    <div>
-                      <strong>{comment.authorName}</strong>
-                      <span>{comment.authorHandle ? `@${comment.authorHandle}` : "membro do Receitando"} · {formatDate(comment.createdAt)}</span>
-                    </div>
-                  </div>
+              {recentComments.map((comment) => (
+                <Link className={styles.comment} href={"/receitas/" + comment.recipeSlug} key={comment.id}>
                   <blockquote>“{comment.body}”</blockquote>
-                  <small>em {comment.recipeTitle} →</small>
+                  <div className={styles.commentByline}>
+                    <FoodAvatar
+                      avatarKey={comment.avatarKey}
+                      className={styles.avatar}
+                      label={"Avatar de " + comment.authorName}
+                    />
+                    <span><strong>{comment.authorName}</strong> em {comment.recipeTitle}</span>
+                    <small>{formatDate(comment.createdAt)}</small>
+                  </div>
                 </Link>
               ))}
             </div>
-          ) : !loaded ? (
-            <CommentSkeleton />
           ) : (
-            <div className={styles.commentEmpty}>
-              <div>
-                <strong>Ainda não há comentários.</strong>
-                <p>Abra uma receita e deixe um comentário.</p>
-              </div>
-              <Link href="/receitas" className={styles.textLink}>Escolher uma receita →</Link>
-            </div>
+            <p className={styles.emptyComments}>Abra uma receita e deixe um comentário para aparecer aqui.</p>
           )}
         </div>
       </section>
 
-      <section className={`${styles.manifesto} ${styles.vegetableSection} ${styles.withLettuce}`}>
-        <div className={`container ${styles.manifestoInner}`}>
-          <h2>Antes de pensar no que comprar, olha o que já mora na sua cozinha.</h2>
-          <p>O Receitando junta despensa, receitas e experiências da comunidade para transformar ingredientes esquecidos em possibilidades reais.</p>
-          <Link href="#ingredientes" className={styles.textLink}>Ver o que dá para fazer</Link>
+      <section className={styles.submitSection}>
+        <div className="home-container">
+          <div className={styles.submitCard}>
+            <div>
+              <h2>Tem uma receita que sempre dá certo na sua casa?</h2>
+              <p>Mande pra gente. Depois de uma revisão, ela entra no catálogo e recebe comentários e avaliações da comunidade.</p>
+            </div>
+            <Link className={styles.yellowButton} href="/enviar-receita">Enviar minha receita</Link>
+          </div>
+
+          {user ? (
+            <p className={styles.pantryNote}>
+              Sua despensa tem {pantryCount} {pantryCount === 1 ? "ingrediente" : "ingredientes"} e está sendo usada nesta bancada.
+            </p>
+          ) : null}
+
+          {ingredients.length === 0 ? null : null}
         </div>
       </section>
-
-      {!loaded ? <span className={styles.srOnly}>Carregando conteúdo.</span> : null}
     </>
   );
 }
