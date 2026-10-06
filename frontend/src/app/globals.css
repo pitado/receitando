@@ -141,3 +141,17 @@ a, button, input, textarea, select { outline: none; }
     transition-duration: 0.01ms !important;
   }
 }
+
+
+.home-container {
+  margin-inline: auto;
+  max-width: 1200px;
+  padding-inline: 28px;
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  .home-container {
+    padding-inline: 20px;
+  }
+}
