@@ -74,7 +74,10 @@ export function HomeHeader() {
 
     getHomeFeed()
       .then((feed) => {
-        if (!cancelled) setSuggestions(feed.popular.slice(0, 4));
+        if (!cancelled) {
+          setSuggestions(feed.popular.slice(0, 4));
+          setRecipeCount(feed.totals.recipes);
+        }
       })
       .catch(() => undefined);
 
