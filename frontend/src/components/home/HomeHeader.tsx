@@ -114,12 +114,7 @@ export function HomeHeader() {
 
   useEffect(() => {
     const normalizedQuery = normalize(query);
-    if (!normalizedQuery) {
-      setResults([]);
-      setResultCount(0);
-      setLoading(false);
-      return;
-    }
+    if (!normalizedQuery) return;
 
     const controller = new AbortController();
     const timeout = window.setTimeout(async () => {
