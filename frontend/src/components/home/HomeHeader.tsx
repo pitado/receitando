@@ -186,7 +186,8 @@ export function HomeHeader() {
           </Link>
 
           <Link className={styles.submitButton} href="/enviar-receita">
-            Enviar<span className={styles.submitSuffix}> receita</span>
+            <span className={styles.submitDesktop}>Enviar receita</span>
+            <span className={styles.submitMobile}>Enviar</span>
           </Link>
         </div>
 
