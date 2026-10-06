@@ -124,7 +124,6 @@ function PopularRow({ recipe }: { recipe: HomePopularRecipe }) {
 
 export function HomeLiveSections({
   feed,
-  ingredients,
   matches,
   pantryCount,
   user,
