@@ -36,30 +36,30 @@ function buildMask(bites: Bite[], width: number, height: number) {
 
     let cx = bite.x;
     let cy = bite.y;
-    let start = 15;
-    let end = 165;
+    let startAngle = 15;
+    let endAngle = 165;
 
     if (bite.side === "bottom") {
       cy = height + radius * 0.25;
-      start = 195;
-      end = 345;
+      startAngle = 195;
+      endAngle = 345;
     } else if (bite.side === "left") {
       cx = -radius * 0.25;
-      start = -75;
-      end = 75;
+      startAngle = -75;
+      endAngle = 75;
     } else if (bite.side === "right") {
       cx = width + radius * 0.25;
-      start = 105;
-      end = 255;
+      startAngle = 105;
+      endAngle = 255;
     } else {
       cy = -radius * 0.25;
     }
 
     const teeth = Array.from({ length: 6 }, (_, index) => {
-      const angle = (start + ((end - start) * index) / 5) * Math.PI / 180;
+      const angle = (startAngle + ((endAngle - startAngle) * index) / 5) * Math.PI / 180;
       return {
-        cx: cx + Math.cos(angle) * radius * 0.9,
-        cy: cy + Math.sin(angle) * radius * 0.9,
+        cx: cx + Math.cos(angle) * radius * 0.88,
+        cy: cy + Math.sin(angle) * radius * 0.88,
         r: radius * 0.22,
       };
     });
@@ -70,7 +70,11 @@ function buildMask(bites: Bite[], width: number, height: number) {
     ];
   }).join("");
 
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none"><rect width="100%" height="100%" fill="white"/><g fill="black" fill-opacity="0">${holes}</g></svg>`;
+  const svg =
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">` +
+    `<defs><mask id="m"><rect width="100%" height="100%" fill="white"/><g fill="black">${holes}</g></mask></defs>` +
+    `<rect width="100%" height="100%" fill="white" mask="url(#m)"/></svg>`;
+
   return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
 }
 
