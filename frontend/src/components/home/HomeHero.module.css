@@ -1,24 +1,22 @@
 .hero {
-  --folha: #1e4a2e;
-  --gema: #ffc531;
-  --papel: #faf8f3;
-  --tinta: #1a1712;
-  --tomate: #d6452b;
-  --cinza: #625c52;
-  --linha: #e6e1d6;
-  background: var(--folha);
-  color: var(--papel);
-  padding: 56px 0 64px;
+  background: var(--home-cafe);
+  color: var(--home-papel);
+  min-height: calc(100svh - var(--home-topo));
+  min-height: calc(100vh - var(--home-topo));
+  display: flex;
+  align-items: center;
+  padding: 40px 0 56px;
 }
 
 .heroInner {
   max-width: 1200px;
+  width: 100%;
 }
 
 .hero h1 {
-  color: var(--papel);
+  color: var(--home-papel);
   font-family: var(--font-home-title), Impact, sans-serif;
-  font-size: clamp(34px, 5.4vw, 76px);
+  font-size: clamp(34px, 5.4vw, 78px);
   font-weight: 400;
   letter-spacing: -0.01em;
   line-height: 1.1;
@@ -29,8 +27,8 @@
 
 .hero h1::selection,
 .hero h1 mark::selection {
-  background: var(--gema);
-  color: var(--tinta);
+  background: var(--home-gema);
+  color: var(--home-tinta);
 }
 
 .haveChip,
@@ -50,9 +48,9 @@
 }
 
 .haveChip {
-  background: var(--gema);
+  background: var(--home-gema);
   border-radius: 0.2em;
-  color: var(--tinta);
+  color: var(--home-tinta);
   gap: 0.12em;
   padding-left: 0.24em;
 }
@@ -66,32 +64,33 @@
 
 .missingChip {
   background: transparent;
-  border: 0.05em dashed rgba(250, 248, 243, 0.7);
+  border: 0.05em dashed color-mix(in srgb, var(--home-papel) 70%, transparent);
   border-radius: 0.2em;
-  color: var(--papel);
+  color: var(--home-papel);
   gap: 0.08em;
 }
 
 .missingChip:hover {
   border-style: solid;
-  color: var(--gema);
+  background: color-mix(in srgb, var(--home-papel) 8%, transparent);
+  color: var(--home-gema);
 }
 
 .missingCount {
-  color: var(--gema);
+  color: var(--home-mel);
   font-family: var(--font-home-title), Impact, sans-serif;
   font-weight: 400;
 }
 
 .recipeName {
-  color: var(--gema);
+  color: var(--home-mel);
   display: inline;
   position: relative;
 }
 
 .recipeName::after {
   animation: recipe-name-in 450ms ease both;
-  background: var(--gema);
+  background: var(--home-mel);
   bottom: -0.08em;
   content: "";
   height: 0.05em;
@@ -112,36 +111,36 @@
 
 .addForm {
   align-items: center;
-  background: var(--papel);
+  background: var(--home-papel);
   border-radius: 999px;
   display: flex;
   max-width: 440px;
-  padding: 6px;
+  padding: 6px 6px 6px 22px;
   width: 100%;
 }
 
 .addForm input {
   background: transparent;
   border: 0;
-  color: var(--tinta);
+  color: var(--home-tinta);
   flex: 1;
   font: 400 17px/1.3 var(--font-home-copy), system-ui, sans-serif;
   min-width: 0;
   outline: none;
-  padding: 10px 14px 10px 16px;
+  padding: 8px 0;
 }
 
-.addForm input::placeholder { color: var(--cinza); }
+.addForm input::placeholder { color: var(--home-cinza); }
 
 .addForm button {
-  background: var(--tinta);
+  background: var(--home-tinta);
   border: 0;
   border-radius: 999px;
-  color: var(--papel);
+  color: var(--home-papel);
   cursor: pointer;
   font: 700 16px/1 var(--font-home-copy), system-ui, sans-serif;
   min-height: 46px;
-  padding: 12px 22px;
+  padding: 12px 18px;
   white-space: nowrap;
 }
 
@@ -149,33 +148,34 @@
   align-items: center;
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px;
 }
 
 .quickButton {
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid color-mix(in srgb, var(--home-papel) 30%, transparent);
   border-radius: 999px;
-  color: var(--papel);
+  color: var(--home-papel);
   cursor: pointer;
   font: 400 15px/1 var(--font-home-copy), system-ui, sans-serif;
-  min-height: 42px;
-  padding: 10px 15px;
+  padding: 7px 14px;
 }
 
 .quickButton:hover:not(:disabled) {
-  border-color: var(--gema);
-  color: var(--gema);
+  border-color: var(--home-gema);
+  color: var(--home-gema);
 }
 
 .quickButton:disabled {
+  border-color: color-mix(in srgb, var(--home-papel) 30%, transparent);
+  color: inherit;
   cursor: default;
   opacity: 0.3;
 }
 
 .summary {
   align-items: center;
-  color: rgba(250, 248, 243, 0.86);
+  color: color-mix(in srgb, var(--home-papel) 92%, transparent);
   display: flex;
   flex-wrap: wrap;
   font: 400 17px/1.55 var(--font-home-copy), system-ui, sans-serif;
@@ -185,15 +185,15 @@
 }
 
 .summary a {
-  color: var(--papel);
+  color: var(--home-papel);
   font-weight: 700;
   margin-left: 18px;
-  text-underline-offset: 4px;
-  text-decoration-color: var(--gema);
+  text-decoration-color: var(--home-gema);
   text-decoration-thickness: 3px;
+  text-underline-offset: 4px;
 }
 
-.summary a:hover { color: var(--gema); }
+.summary a:hover { color: var(--home-gema); }
 
 @keyframes recipe-name-in {
   from { opacity: 0; transform: translateY(0.25em); }
@@ -201,13 +201,36 @@
 }
 
 @media (max-width: 640px) {
-  .hero { padding: 40px 0 48px; }
-  .hero h1 { font-size: clamp(34px, 9.3vw, 52px); min-height: 4.1em; }
-  .controls { align-items: stretch; flex-direction: column; margin-top: 32px; }
-  .addForm { max-width: none; }
-  .quickList { gap: 8px; }
-  .summary { font-size: 15px; }
-  .summary a { margin-left: 0; margin-top: 8px; width: 100%; }
+  .hero {
+    min-height: calc(100svh - 76px);
+    min-height: calc(100vh - 76px);
+    padding: 40px 0 48px;
+  }
+
+  .hero h1 {
+    font-size: clamp(34px, 9.3vw, 52px);
+    min-height: 4.1em;
+  }
+
+  .controls {
+    align-items: stretch;
+    flex-direction: column;
+    margin-top: 32px;
+  }
+
+  .addForm {
+    max-width: none;
+  }
+
+  .summary {
+    font-size: 15px;
+  }
+
+  .summary a {
+    margin-left: 0;
+    margin-top: 8px;
+    width: 100%;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
