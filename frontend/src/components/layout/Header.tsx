@@ -1,8 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+
+import { HomeHeader } from "@/components/home/HomeHeader";
 
 import { AuthControls } from "./AuthControls";
 import { GlobalHeaderSearch } from "./GlobalHeaderSearch";
@@ -10,8 +11,7 @@ import { HeaderNav, MobileBottomNav } from "./HeaderNav";
 import { HeaderPantryStatus } from "./HeaderPantryStatus";
 import styles from "./Header.module.css";
 
-export function Header() {
-  const pathname = usePathname();
+function LegacyHeader() {
   const [hiddenOnMobile, setHiddenOnMobile] = useState(false);
   const lastScrollY = useRef(0);
 
@@ -52,20 +52,19 @@ export function Header() {
     <>
       <header className={`${styles.header} ${hiddenOnMobile ? styles.headerHidden : ""}`}>
         <div className={`container ${styles.inner}`}>
-          <Link aria-label="Receitando — início" className={styles.brand} href="/">
+          <a aria-label="Receitando — início" className={styles.brand} href="/">
             <span className={styles.brandWord}>Receitando</span>
-            {pathname === "/" ? <span className={styles.brandTag}>cozinha possível</span> : null}
-          </Link>
+          </a>
 
           <HeaderNav />
           <GlobalHeaderSearch />
 
           <div className={styles.headerActions}>
             <HeaderPantryStatus />
-            <Link className={styles.submitRecipe} href="/enviar-receita">
+            <a className={styles.submitRecipe} href="/enviar-receita">
               <span aria-hidden="true">+</span>
               <span className={styles.submitRecipeLabel}>Enviar receita</span>
-            </Link>
+            </a>
             <AuthControls />
           </div>
         </div>
@@ -75,4 +74,14 @@ export function Header() {
       <div aria-hidden="true" className={styles.mobileNavSpacer} />
     </>
   );
+}
+
+export function Header() {
+  const pathname = usePathname();
+
+  if (pathname === "/") {
+    return <HomeHeader />;
+  }
+
+  return <LegacyHeader />;
 }
