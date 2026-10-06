@@ -1,22 +1,29 @@
-.wrapper { display: grid; width: fit-content; }
-.centered { justify-items: center; margin-inline: auto; }
+.wrapper {
+  display: grid;
+  width: fit-content;
+}
+
+.centered {
+  justify-items: center;
+  margin-inline: auto;
+}
 
 .wordmark {
-  --bite-background: var(--folha, #1e4a2e);
+  --bite-background: var(--home-cafe);
   background: transparent;
   border: 0;
-  color: var(--papel, #faf8f3);
+  color: var(--home-papel);
   cursor: pointer;
   display: inline-block;
   font-family: var(--font-home-title), Impact, sans-serif;
-  font-size: 34px;
+  font-size: 48px;
   font-weight: 400;
   letter-spacing: -0.01em;
   line-height: 1;
   margin: 0;
-  min-height: 54px;
+  min-height: 64px;
   overflow: visible;
-  padding: 10px 4px;
+  padding: 12px 6px;
   position: relative;
   touch-action: manipulation;
   width: fit-content;
@@ -24,7 +31,12 @@
 
 .wordmark:active { transform: scale(0.97); }
 .wordmark { -webkit-mask-composite: source-in; mask-composite: intersect; }
-.wordmark:focus-visible { border-radius: 8px; outline: 3px solid var(--gema, #ffc531); outline-offset: 3px; }
+.wordmark:focus-visible {
+  border-radius: 8px;
+  outline: 3px solid var(--home-gema);
+  outline-offset: 3px;
+}
+
 .word { display: block; position: relative; white-space: nowrap; }
 .bites { inset: 0; overflow: visible; pointer-events: none; position: absolute; }
 
@@ -58,6 +70,7 @@
   position: absolute;
   width: 28%;
 }
+
 .tooth-1 { left: 0; top: 26%; }
 .tooth-2 { left: 15%; top: 6%; }
 .tooth-3 { left: 36%; top: 0; }
@@ -70,9 +83,10 @@
 .bite-bottom { transform: translate(-50%, -50%) rotate(180deg); }
 
 .crumbLayer { inset: 0; pointer-events: none; position: absolute; }
+
 .crumb {
   animation: crumb-fall 900ms ease-out var(--crumb-delay) both;
-  background: var(--papel, #faf8f3);
+  background: var(--home-papel);
   height: 4px;
   left: var(--crumb-x);
   position: absolute;
@@ -87,11 +101,17 @@
 }
 
 @media (max-width: 640px) {
-  .compact .wordmark { font-size: 23px; min-height: 43px; }
+  .compact .wordmark {
+    font-size: 25px;
+    min-height: 43px;
+    padding: 9px 5px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .crumb, .wordmark { animation: none; transition: none; }
+  .crumb,
+  .wordmark { animation: none; transition: none; }
+
   .crumbLayer { display: none; }
   .wordmark:active { transform: none; }
 }
