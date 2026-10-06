@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
@@ -52,19 +53,19 @@ function LegacyHeader() {
     <>
       <header className={`${styles.header} ${hiddenOnMobile ? styles.headerHidden : ""}`}>
         <div className={`container ${styles.inner}`}>
-          <a aria-label="Receitando — início" className={styles.brand} href="/">
+          <Link aria-label="Receitando — início" className={styles.brand} href="/">
             <span className={styles.brandWord}>Receitando</span>
-          </a>
+          </Link>
 
           <HeaderNav />
           <GlobalHeaderSearch />
 
           <div className={styles.headerActions}>
             <HeaderPantryStatus />
-            <a className={styles.submitRecipe} href="/enviar-receita">
+            <Link className={styles.submitRecipe} href="/enviar-receita">
               <span aria-hidden="true">+</span>
               <span className={styles.submitRecipeLabel}>Enviar receita</span>
-            </a>
+            </Link>
             <AuthControls />
           </div>
         </div>
