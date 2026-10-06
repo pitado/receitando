@@ -11,7 +11,6 @@ const QUICK_INGREDIENTS = ["arroz", "tomate", "ovo", "frango", "batata", "cenour
 
 type HomeHeroProps = {
   ingredients: string[];
-  loadingMatches: boolean;
   matches: MatchRecipeResult[];
   onAddIngredient: (ingredient: string) => void;
   onRemoveIngredient: (ingredient: string) => void;
@@ -19,12 +18,6 @@ type HomeHeroProps = {
 
 function normalize(value: string) {
   return value.trim().toLocaleLowerCase("pt-BR");
-}
-
-function listWithAnd(items: string[]) {
-  if (items.length <= 1) return items.join("");
-  if (items.length === 2) return items[0] + " e " + items[1];
-  return items.slice(0, -1).join(", ") + " e " + items[items.length - 1];
 }
 
 function isSameIngredient(a: string, b: string) {
@@ -215,9 +208,11 @@ export function HomeHero({
             <span>Comece digitando ou escolha um ingrediente acima.</span>
           ) : (
             <>
-              {readyCount > 0 ? <span>{readyCount} {readyCount === 1 ? "pronta" : "prontas"} pra fazer, </span> : null}
-              <span>{oneAwayCount} {oneAwayCount === 1 ? "a um ingrediente de distância" : "a um ingrediente de distância"}</span>
-              <span>, {usableCount} usando o que você tem.</span>
+              {readyCount > 0 ? <span>{readyCount} {readyCount === 1 ? "pronta" : "prontas"} pra fazer</span> : null}
+              {readyCount > 0 && oneAwayCount > 0 ? <span>, </span> : null}
+              {oneAwayCount > 0 ? <span>{oneAwayCount} a um ingrediente de distância</span> : null}
+              {(readyCount > 0 || oneAwayCount > 0) ? <span>, </span> : null}
+              <span>{usableCount} {usableCount === 1 ? "usando o que você tem" : "usando o que você tem"}</span>
               <a href="#combinacoes">Ver combinações</a>
             </>
           )}
