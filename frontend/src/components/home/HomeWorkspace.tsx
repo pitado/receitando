@@ -41,7 +41,6 @@ export function HomeWorkspace() {
   const [feed, setFeed] = useState<HomeFeed | null>(null);
   const [user, setUser] = useState<AuthUser | null>(null);
   const [pantryCount, setPantryCount] = useState(0);
-  const [loadingMatches, setLoadingMatches] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -71,6 +70,7 @@ export function HomeWorkspace() {
         setUser(null);
         setPantryCount(0);
         setIngredients(DEFAULT_INGREDIENTS);
+        setMatches([]);
         return;
       }
       void loadHome();
@@ -87,21 +87,21 @@ export function HomeWorkspace() {
   useEffect(() => {
     const selected = uniqueIngredients(ingredients);
     if (selected.length === 0) {
-      setMatches([]);
-      setLoadingMatches(false);
-      return;
+      const resetTimeout = window.setTimeout(() => {
+        setMatches([]);
+      }, 0);
+
+      return () => window.clearTimeout(resetTimeout);
     }
 
     const controller = new AbortController();
     const timeout = window.setTimeout(async () => {
-      setLoadingMatches(true);
       try {
         const result = await matchRecipes(selected, controller.signal);
         if (!controller.signal.aborted) setMatches(sortMatches(result));
       } catch {
         if (!controller.signal.aborted) setMatches([]);
       } finally {
-        if (!controller.signal.aborted) setLoadingMatches(false);
       }
     }, 180);
 
@@ -124,8 +124,6 @@ export function HomeWorkspace() {
   return (
     <>
       <HomeHero
-        ingredients={ingredients}
-        loadingMatches={loadingMatches}
         matches={matches}
         onAddIngredient={addIngredient}
         onRemoveIngredient={removeIngredient}
