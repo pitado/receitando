@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { CSSProperties, KeyboardEvent, MouseEvent } from "react";
+import type { KeyboardEvent, MouseEvent } from "react";
 
 import styles from "./BiteWordmark.module.css";
 
@@ -191,18 +191,27 @@ export function BiteWordmark({ centered = false, compact = false }: BiteWordmark
     }
   }
 
-  const maskImage = wordRef.current
-    ? buildMask(bites, wordRef.current.offsetWidth, wordRef.current.offsetHeight)
-    : "none";
+  useEffect(() => {
+    const word = wordRef.current;
+    if (!word) return;
 
-  const wordStyle = {
-    WebkitMaskImage: maskImage,
-    maskImage,
-    WebkitMaskRepeat: "no-repeat",
-    maskRepeat: "no-repeat",
-    WebkitMaskSize: "100% 100%",
-    maskSize: "100% 100%",
-  } as CSSProperties;
+    const applyMask = () => {
+      const mask = buildMask(bites, word.offsetWidth, word.offsetHeight);
+      word.style.setProperty("-webkit-mask-image", mask);
+      word.style.setProperty("mask-image", mask);
+      word.style.setProperty("-webkit-mask-repeat", "no-repeat");
+      word.style.setProperty("mask-repeat", "no-repeat");
+      word.style.setProperty("-webkit-mask-size", "100% 100%");
+      word.style.setProperty("mask-size", "100% 100%");
+    };
+
+    applyMask();
+
+    const observer = new ResizeObserver(applyMask);
+    observer.observe(word);
+
+    return () => observer.disconnect();
+  }, [bites]);
 
   return (
     <div className={[styles.wrapper, centered ? styles.centered : "", compact ? styles.compact : ""].join(" ")}>
@@ -213,7 +222,7 @@ export function BiteWordmark({ centered = false, compact = false }: BiteWordmark
         onClick={handleBite}
         type="button"
       >
-        <span className={styles.word} ref={wordRef} style={wordStyle}>receitando</span>
+        <span className={styles.word} ref={wordRef}>receitando</span>
       </button>
     </div>
   );
