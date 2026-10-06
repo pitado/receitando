@@ -1,5 +1,6 @@
 .wrapper {
   display: grid;
+  position: relative;
   width: fit-content;
 }
 
