@@ -11,7 +11,7 @@ import "./globals.css";
 
 const inter = Inter({ display: "swap", subsets: ["latin"], variable: "--font-inter" });
 const fraunces = Fraunces({ display: "swap", subsets: ["latin"], variable: "--font-fraunces" });
-const bowlby = Bowlby_One({ display: "swap", subsets: ["latin"], variable: "--font-home-title" });
+const bowlby = Bowlby_One({ display: "swap", subsets: ["latin"], variable: "--font-home-title", weight: "400" });
 const onest = Onest({ display: "swap", subsets: ["latin"], variable: "--font-home-copy" });
 
 export const metadata: Metadata = {
