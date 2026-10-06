@@ -70,7 +70,7 @@ function buildMask(bites: Bite[], width: number, height: number) {
     ];
   }).join("");
 
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none"><rect width="100%" height="100%" fill="white"/><g fill="black">${holes}</g></svg>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none"><rect width="100%" height="100%" fill="white"/><g fill="black" fill-opacity="0">${holes}</g></svg>`;
   return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
 }
 
@@ -194,6 +194,10 @@ export function BiteWordmark({ centered = false, compact = false }: BiteWordmark
   const wordStyle = {
     WebkitMaskImage: maskImage,
     maskImage,
+    WebkitMaskRepeat: "no-repeat",
+    maskRepeat: "no-repeat",
+    WebkitMaskSize: "100% 100%",
+    maskSize: "100% 100%",
   } as CSSProperties;
 
   return (
