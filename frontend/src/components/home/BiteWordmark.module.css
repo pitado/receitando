@@ -23,6 +23,7 @@
 }
 
 .wordmark:active { transform: scale(0.97); }
+.wordmark { -webkit-mask-composite: source-in; mask-composite: intersect; }
 .wordmark:focus-visible { border-radius: 8px; outline: 3px solid var(--gema, #ffc531); outline-offset: 3px; }
 .word { display: block; position: relative; white-space: nowrap; }
 .bites { inset: 0; overflow: visible; pointer-events: none; position: absolute; }
@@ -32,8 +33,8 @@
   border-radius: 50%;
   height: calc(var(--bite-r) * 1.5);
   left: var(--bite-x);
-  mask-image: radial-gradient(circle calc(var(--bite-r) * 0.92) at 50% 50%, transparent 0 96%, #000 98%);
-  -webkit-mask-image: radial-gradient(circle calc(var(--bite-r) * 0.92) at 50% 50%, transparent 0 96%, #000 98%);
+  mask-image: radial-gradient(circle calc(var(--bite-r) * 0.92) at 50% 50%, #000 0 92%, transparent 96%);
+  -webkit-mask-image: radial-gradient(circle calc(var(--bite-r) * 0.92) at 50% 50%, #000 0 92%, transparent 96%);
   position: absolute;
   top: var(--bite-y);
   transform: translate(-50%, -50%);
