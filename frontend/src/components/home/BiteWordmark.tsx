@@ -95,17 +95,19 @@ export function BiteWordmark({ centered = false, compact = false }: BiteWordmark
             ? "top"
             : "bottom";
 
+    const radius = rect.height * (0.38 + Math.random() * 0.08);
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const bite: Bite = {
       id: ++idRef.current,
-      x: localX,
-      y: localY,
+      x: side === "left" ? -radius * 0.25 : side === "right" ? rect.width + radius * 0.25 : localX,
+      y: side === "top" ? -radius * 0.25 : side === "bottom" ? rect.height + radius * 0.25 : localY,
       side,
-      radius: rect.height * (0.38 + Math.random() * 0.08),
-      progress: 0,
+      radius,
+      progress: reducedMotion ? 1 : 0,
     };
 
     setBites((current) => [...current, bite].slice(-MAX_BITES));
-    window.requestAnimationFrame(() => animateBite(bite.id));
+    if (!reducedMotion) window.requestAnimationFrame(() => animateBite(bite.id));
     scheduleRecompose(Math.min(MAX_BITES, bites.length + 1));
   }
 
@@ -128,8 +130,8 @@ export function BiteWordmark({ centered = false, compact = false }: BiteWordmark
         <span aria-hidden="true" className={styles.bites}>
           {bites.map((bite) => {
             const r = bite.radius * bite.progress;
-            const x = bite.side === "left" ? -r * 0.25 : bite.side === "right" ? 100 : bite.x;
-            const y = bite.side === "top" ? -r * 0.25 : bite.side === "bottom" ? 100 : bite.y;
+            const x = bite.x;
+            const y = bite.y;
 
             return (
               <span
