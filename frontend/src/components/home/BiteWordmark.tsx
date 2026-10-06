@@ -118,12 +118,6 @@ export function BiteWordmark({ centered = false, compact = false }: BiteWordmark
         className={styles.wordmark}
         data-testid="bite-wordmark"
         onClick={handleBite}
-        onKeyDown={(event) => {
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
-            handleBite(event);
-          }
-        }}
         type="button"
       >
         <span className={styles.word}>receitando</span>
