@@ -124,13 +124,13 @@ export function HomeWorkspace() {
   return (
     <>
       <HomeHero
+        ingredients={ingredients}
         matches={matches}
         onAddIngredient={addIngredient}
         onRemoveIngredient={removeIngredient}
       />
       <HomeLiveSections
         feed={feed}
-        ingredients={ingredients}
         matches={matches}
         pantryCount={pantryCount}
         user={user}
