@@ -85,6 +85,8 @@
   white-space: nowrap;
 }
 
+.submitMobile { display: none; }
+
 .header :where(a, button, input):focus-visible {
   outline: 3px solid var(--home-gema);
   outline-offset: 3px;
@@ -279,7 +281,8 @@
   .topInner { padding-inline: 20px; }
   .topBar, .topInner { height: var(--home-topo); }
   .submitButton { min-height: 46px; padding: 10px 14px; }
-  .submitSuffix { display: none; }
+  .submitDesktop { display: none; }
+  .submitMobile { display: inline; }
   .panel { top: var(--home-topo); padding-bottom: 32px; }
   .searchBar { left: 20px; right: 20px; top: -65px; }
   .panelGrid { padding-inline: 20px; padding-top: 34px; }
