@@ -20,6 +20,23 @@
   --color-success-text: #40503a;
   --color-error-surface: #f7e8df;
   --color-focus: #66785f;
+
+  /* Home rebrand — visual do mockup, sem alterar a mecânica do produto */
+  --home-cafe: #95462a;
+  --home-cafe-esc: #4e2416;
+  --home-barro: #6e3b24;
+  --home-canela: #c2703d;
+  --home-gema: #e9c9a0;
+  --home-mel: #f4c77b;
+  --home-papel: #f6e9d7;
+  --home-creme: #eed8bc;
+  --home-tinta: #2e1a10;
+  --home-tomate: #b23a1f;
+  --home-oliva: #5f6b2a;
+  --home-cinza: #7a5a44;
+  --home-linha: #e2c8a8;
+  --home-hover: #efdcc3;
+  --home-topo: 96px;
   --color-shadow: #2b211a0b;
   --color-shadow-strong: #2b211a14;
 
