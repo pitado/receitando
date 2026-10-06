@@ -92,5 +92,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   .crumb, .wordmark { animation: none; transition: none; }
+  .crumbLayer { display: none; }
   .wordmark:active { transform: none; }
 }
