@@ -13,7 +13,6 @@ import styles from "./HomeLiveSections.module.css";
 
 type HomeLiveSectionsProps = {
   feed: HomeFeed | null;
-  ingredients: string[];
   matches: MatchRecipeResult[];
   pantryCount: number;
   user: AuthUser | null;
@@ -226,7 +225,6 @@ export function HomeLiveSections({
             </p>
           ) : null}
 
-          {ingredients.length === 0 ? null : null}
         </div>
       </section>
     </>
