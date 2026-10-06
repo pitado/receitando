@@ -66,6 +66,7 @@ export function HomeHeader() {
   const [results, setResults] = useState<RecipeCatalogItem[]>([]);
   const [resultCount, setResultCount] = useState(0);
   const [suggestions, setSuggestions] = useState<HomePopularRecipe[]>([]);
+  const [recipeCount, setRecipeCount] = useState(0);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -222,7 +223,7 @@ export function HomeHeader() {
                 <Link href="/combinar" onClick={closeSearch} tabIndex={open ? 0 : -1}><strong>Combinar</strong><span>o que dá pra fazer agora</span></Link>
                 <Link href="/despensa" onClick={closeSearch} tabIndex={open ? 0 : -1}><strong>Despensa</strong><span>o que você tem em casa</span></Link>
                 <Link href="/favoritos" onClick={closeSearch} tabIndex={open ? 0 : -1}><strong>Favoritos</strong><span>seu caderno de receitas</span></Link>
-                <Link href="/receitas" onClick={closeSearch} tabIndex={open ? 0 : -1}><strong>Receitas</strong><span>catálogo com o que já existe</span></Link>
+                <Link href="/receitas" onClick={closeSearch} tabIndex={open ? 0 : -1}><strong>Receitas</strong><span>catálogo com {recipeCount} pratos</span></Link>
               </nav>
             </section>
 
