@@ -1,277 +1,95 @@
-.wrapper {
-  display: grid;
-  gap: 0.7rem;
-  width: 100%;
-}
-
-.centered {
-  justify-items: center;
-  text-align: center;
-}
+.wrapper { display: grid; width: fit-content; }
+.centered { justify-items: center; margin-inline: auto; }
 
 .wordmark {
-  --bite-background: #f8f5ef;
+  --bite-background: var(--folha, #1e4a2e);
   background: transparent;
   border: 0;
-  color: #2b211a;
+  color: var(--papel, #faf8f3);
   cursor: pointer;
   display: inline-block;
-  font-family: var(--font-editorial), Georgia, serif;
-  font-size: clamp(3.8rem, 9.8vw, 8rem);
-  font-weight: 590;
-  letter-spacing: -0.075em;
-  line-height: 0.82;
+  font-family: var(--font-home-title), Impact, sans-serif;
+  font-size: 34px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 1;
   margin: 0;
+  min-height: 54px;
   overflow: visible;
-  padding: 0.1em 0.14em 0.2em;
+  padding: 10px 4px;
   position: relative;
   touch-action: manipulation;
   width: fit-content;
 }
 
-.wordmark::after {
-  background: var(--color-primary);
-  border-radius: 999px;
-  bottom: 0.018em;
-  content: "";
-  height: 0.052em;
-  left: 50%;
-  max-width: 10rem;
-  position: absolute;
-  transform: translateX(-50%);
-  transition: width 320ms cubic-bezier(0.16, 1, 0.3, 1);
-  width: 20%;
-}
-
-.wordmark:hover::after,
-.wordmark:focus-visible::after {
-  width: 27%;
-}
-
-.wordmark:active {
-  transform: scale(0.992);
-}
-
-.wordmark:focus-visible {
-  border-radius: 0.08em;
-  outline: 0.03em solid var(--color-sage);
-  outline-offset: 0.08em;
-}
-
-.word {
-  display: block;
-  position: relative;
-  white-space: nowrap;
-}
-
-.bites {
-  inset: 0;
-  overflow: visible;
-  pointer-events: none;
-  position: absolute;
-}
+.wordmark:active { transform: scale(0.97); }
+.wordmark:focus-visible { border-radius: 8px; outline: 3px solid var(--gema, #ffc531); outline-offset: 3px; }
+.word { display: block; position: relative; white-space: nowrap; }
+.bites { inset: 0; overflow: visible; pointer-events: none; position: absolute; }
 
 .bite {
-  --crumb-direction: -1;
-  animation: bite-in 330ms cubic-bezier(0.16, 1, 0.3, 1) both;
-  height: calc(var(--bite-size) * 1.02);
-  position: absolute;
-  transform: translateX(-50%) rotate(var(--bite-rotation));
-  transform-origin: center;
-  width: calc(var(--bite-size) * 1.65);
-}
-
-.biteTop {
-  top: calc(var(--bite-size) * -0.43);
-}
-
-.biteBottom {
-  --crumb-direction: 1;
-  bottom: calc(var(--bite-size) * -0.34);
-}
-
-.core,
-.tooth {
   background: var(--bite-background);
+  border-radius: 50%;
+  height: calc(var(--bite-r) * 1.5);
+  left: var(--bite-x);
+  mask-image: radial-gradient(circle calc(var(--bite-r) * 0.92) at 50% 50%, transparent 0 96%, #000 98%);
+  -webkit-mask-image: radial-gradient(circle calc(var(--bite-r) * 0.92) at 50% 50%, transparent 0 96%, #000 98%);
   position: absolute;
+  top: var(--bite-y);
+  transform: translate(-50%, -50%);
+  width: calc(var(--bite-r) * 1.5);
 }
 
 .core {
-  border-radius: 44% 56% 51% 49% / 58% 43% 57% 42%;
-  height: calc(var(--bite-size) * 0.8);
-  left: 19%;
-  top: 17%;
-  transform: rotate(-7deg);
-  width: 62%;
-}
-
-.biteBottom .core {
-  top: auto;
-  bottom: 13%;
-  transform: rotate(7deg);
+  background: var(--bite-background);
+  border-radius: 50%;
+  height: 100%;
+  left: 0;
+  position: absolute;
+  top: 0;
+  width: 100%;
 }
 
 .tooth {
-  border-radius: 48% 52% 47% 53% / 55% 46% 54% 45%;
-  height: calc(var(--bite-size) * 0.58);
-  width: calc(var(--bite-size) * 0.52);
-}
-
-.biteTop .tooth {
-  top: calc(var(--bite-size) * 0.42);
-}
-
-.biteBottom .tooth {
-  bottom: calc(var(--bite-size) * 0.4);
-}
-
-.toothOne {
-  left: 2%;
-  transform: rotate(-16deg) scale(0.82);
-}
-
-.toothTwo {
-  left: 25%;
-  transform: translateY(8%) rotate(8deg) scale(1.02);
-}
-
-.toothThree {
-  left: 49%;
-  transform: translateY(-4%) rotate(-6deg) scale(0.94);
-}
-
-.toothFour {
-  right: 1%;
-  transform: translateY(9%) rotate(14deg) scale(0.78);
-}
-
-.crumb {
-  animation: crumb-pop 720ms cubic-bezier(0.16, 1, 0.3, 1) both;
-  background: color-mix(in srgb, var(--color-primary-dark) 72%, var(--color-text));
-  border-radius: 52% 42% 58% 48%;
-  height: 0.22rem;
-  position: absolute;
-  right: -0.12rem;
-  top: 50%;
-  width: 0.22rem;
-}
-
-.crumbOne {
-  animation-delay: 20ms;
-}
-
-.crumbTwo {
-  animation-delay: 65ms;
-  height: 0.16rem;
-  right: -0.46rem;
-  top: 29%;
-  width: 0.3rem;
-}
-
-.crumbThree {
-  animation-delay: 100ms;
-  height: 0.13rem;
-  right: 0.1rem;
-  top: 74%;
-  width: 0.13rem;
-}
-
-.crumbFour {
-  animation-delay: 135ms;
-  background: var(--color-sage);
-  height: 0.12rem;
-  right: -0.72rem;
-  top: 60%;
-  width: 0.2rem;
-}
-
-.crumbFive {
-  animation-delay: 165ms;
-  height: 0.1rem;
-  right: -0.26rem;
-  top: 12%;
-  width: 0.1rem;
-}
-
-.hint {
-  align-items: center;
-  color: var(--color-text-muted);
-  display: inline-flex;
-  font-size: clamp(0.72rem, 1vw, 0.82rem);
-  font-weight: 680;
-  gap: 0.5rem;
-  letter-spacing: 0.012em;
-  margin: 0;
-  width: fit-content;
-}
-
-.centered .hint {
-  justify-content: center;
-}
-
-.hint span {
-  align-items: center;
-  background: var(--color-sage-soft);
-  border: 1px solid color-mix(in srgb, var(--color-sage) 24%, transparent);
+  background: var(--bite-background);
   border-radius: 50%;
-  color: var(--color-sage);
-  display: inline-flex;
-  height: 1.65rem;
-  justify-content: center;
-  width: 1.65rem;
+  height: 28%;
+  position: absolute;
+  width: 28%;
+}
+.tooth-1 { left: 0; top: 26%; }
+.tooth-2 { left: 15%; top: 6%; }
+.tooth-3 { left: 36%; top: 0; }
+.tooth-4 { left: 57%; top: 6%; }
+.tooth-5 { left: 75%; top: 24%; }
+.tooth-6 { left: 84%; top: 46%; }
+
+.bite-left { transform: translate(-50%, -50%) rotate(-90deg); }
+.bite-right { transform: translate(-50%, -50%) rotate(90deg); }
+.bite-bottom { transform: translate(-50%, -50%) rotate(180deg); }
+
+.crumbLayer { inset: 0; pointer-events: none; position: absolute; }
+.crumb {
+  animation: crumb-fall 900ms ease-out var(--crumb-delay) both;
+  background: var(--papel, #faf8f3);
+  height: 4px;
+  left: var(--crumb-x);
+  position: absolute;
+  top: var(--crumb-y);
+  width: 4px;
 }
 
-@keyframes bite-in {
-  from {
-    opacity: 0;
-    transform: translateX(-50%) rotate(var(--bite-rotation)) scale(0.55);
-  }
-  65% {
-    opacity: 1;
-    transform: translateX(-50%) rotate(var(--bite-rotation)) scale(1.08);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(-50%) rotate(var(--bite-rotation)) scale(1);
-  }
+@keyframes crumb-fall {
+  0% { opacity: 0; transform: translate3d(0, 0, 0) rotate(0deg); }
+  20% { opacity: 1; }
+  100% { opacity: 0; transform: translate3d(8px, 14px, 0) rotate(85deg); }
 }
 
-@keyframes crumb-pop {
-  0% {
-    opacity: 0;
-    translate: 0 0;
-    rotate: 0deg;
-    scale: 0.2;
-  }
-  30% {
-    opacity: 0.95;
-  }
-  100% {
-    opacity: 0;
-    translate: 1rem calc(var(--crumb-direction) * 0.9rem);
-    rotate: 110deg;
-    scale: 1.1;
-  }
-}
-
-@media (max-width: 47.99rem) {
-  .wordmark {
-    font-size: clamp(3rem, 17vw, 5.6rem);
-  }
-
-  .hint {
-    font-size: 0.7rem;
-  }
+@media (max-width: 640px) {
+  .compact .wordmark { font-size: 23px; min-height: 43px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .bite,
-  .crumb {
-    animation: none;
-  }
-
-  .wordmark,
-  .wordmark::after {
-    transition: none;
-  }
+  .crumb, .wordmark { animation: none; transition: none; }
+  .wordmark:active { transform: none; }
 }
