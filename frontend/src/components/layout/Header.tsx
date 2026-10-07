@@ -80,7 +80,7 @@ function LegacyHeader() {
 export function Header() {
   const pathname = usePathname();
 
-  if (pathname === "/" || pathname === "/cadastro") {
+  if (pathname === "/" || pathname === "/cadastro" || pathname === "/recuperar-senha") {
     return <HomeHeader />;
   }
 
