@@ -1,41 +1,45 @@
 .chip {
   align-items: center;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-pill);
-  color: var(--color-text);
+  background: var(--combine-sand, #e8c597);
+  border-radius: 999px;
+  color: var(--combine-ink, #2b1a12);
   display: inline-flex;
-  font-size: 0.94rem;
-  font-weight: 700;
-  gap: var(--space-2);
-  min-height: 2.45rem;
-  padding: 0.35rem 0.38rem 0.35rem 0.85rem;
+  font-size: 15px;
+  font-weight: 600;
+  gap: 6px;
+  min-height: 34px;
+  padding: 6px 8px 6px 14px;
 }
 
 .remove {
   align-items: center;
   appearance: none;
-  background: var(--color-card);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-round);
-  color: var(--color-text-muted);
+  background: rgba(43, 26, 18, 0.1);
+  border: 0;
+  border-radius: 50%;
+  color: var(--combine-ink, #2b1a12);
   cursor: pointer;
   display: inline-flex;
-  font-size: 1.15rem;
-  height: 1.75rem;
+  font-size: 14px;
+  height: 22px;
   justify-content: center;
   line-height: 1;
   padding: 0;
-  transition: background-color var(--transition-fast), color var(--transition-fast);
-  width: 1.75rem;
+  transition: background-color 150ms ease, color 150ms ease, opacity 150ms ease;
+  width: 22px;
 }
 
 .remove:hover:not(:disabled) {
-  background: var(--color-primary-dark);
-  color: var(--color-on-primary);
+  background: var(--combine-terra, #96462b);
+  color: var(--combine-cream, #f5e7d7);
+}
+
+.remove:focus-visible {
+  outline: 3px solid var(--combine-gold, #edc070);
+  outline-offset: 2px;
 }
 
 .remove:disabled {
-  cursor: not-allowed;
-  opacity: 0.55;
+  cursor: wait;
+  opacity: 0.45;
 }

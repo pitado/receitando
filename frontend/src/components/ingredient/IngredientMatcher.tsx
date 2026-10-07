@@ -5,11 +5,7 @@ import { useRef, useState } from "react";
 
 import { IngredientChip } from "@/components/ingredient/IngredientChip";
 import { IngredientInput } from "@/components/ingredient/IngredientInput";
-import { RecipeCard } from "@/components/recipe/RecipeCard";
-import { Button } from "@/components/ui/Button";
-import { EmptyState } from "@/components/ui/EmptyState";
-import { ErrorState } from "@/components/ui/ErrorState";
-import { LoadingState } from "@/components/ui/LoadingState";
+import { MatchResultRow } from "@/components/ingredient/MatchResultRow";
 import { normalizeIngredientName } from "@/lib/normalize-ingredient";
 import { ApiError } from "@/services/api-client";
 import { hasAuthSessionHint } from "@/services/auth-storage";
@@ -88,6 +84,13 @@ function rankPantryMatches(matches: MatchRecipeResult[], pantry: PantryItem[]): 
   });
 }
 
+function joinIngredientNames(names: string[]): string {
+  if (names.length === 0) return "seus ingredientes";
+  if (names.length === 1) return names[0];
+  if (names.length === 2) return `${names[0]} e ${names[1]}`;
+  return `${names.slice(0, -1).join(", ")} e ${names[names.length - 1]}`;
+}
+
 export function IngredientMatcher({
   initialIngredients = [],
   previewLimit,
@@ -98,6 +101,9 @@ export function IngredientMatcher({
   const [resultMode, setResultMode] = useState<ResultMode>(null);
   const [status, setStatus] = useState<MatcherStatus>("idle");
   const [requestError, setRequestError] = useState("");
+  const [pantryItems, setPantryItems] = useState<PantryItem[]>([]);
+  const [pantryAuthError, setPantryAuthError] = useState(false);
+  const [authenticated] = useState(() => hasAuthSessionHint());
   const activeRequest = useRef<AbortController | null>(null);
 
   function resetResults() {
@@ -107,6 +113,8 @@ export function IngredientMatcher({
     setResultMode(null);
     setRequestError("");
     setStatus("idle");
+    setPantryItems([]);
+    setPantryAuthError(false);
   }
 
   function addIngredient(rawValue: string): boolean {
@@ -149,6 +157,8 @@ export function IngredientMatcher({
     activeRequest.current = controller;
     setFieldError(null);
     setRequestError("");
+    setPantryAuthError(false);
+    setPantryItems([]);
     setStatus("loading");
 
     try {
@@ -174,6 +184,7 @@ export function IngredientMatcher({
   async function findRecipesFromPantry() {
     if (!hasAuthSessionHint()) {
       setRequestError("Entre na sua conta para combinar receitas com a despensa e considerar as validades.");
+      setPantryAuthError(true);
       setStatus("error");
       return;
     }
@@ -183,6 +194,7 @@ export function IngredientMatcher({
     activeRequest.current = controller;
     setFieldError(null);
     setRequestError("");
+    setPantryAuthError(false);
     setStatus("loading");
 
     try {
@@ -193,6 +205,7 @@ export function IngredientMatcher({
 
       if (activeRequest.current !== controller) return;
 
+      setPantryItems(pantry);
       setResults(rankPantryMatches(matches, pantry));
       setResultMode("pantry");
       setStatus("success");
@@ -213,9 +226,45 @@ export function IngredientMatcher({
   const hasMoreResults = Boolean(previewLimit && results.length > previewLimit);
   const combineHref = `/combinar?ingredientes=${encodeURIComponent(ingredients.join(","))}`;
 
+  const summaryIngredients =
+    resultMode === "pantry"
+      ? "o que está na sua despensa"
+      : (() => {
+          const visibleIngredients = ingredients.slice(0, 3);
+          const base = joinIngredientNames(visibleIngredients);
+          const extraCount = Math.max(0, ingredients.length - visibleIngredients.length);
+          return extraCount > 0 ? `${base} e mais ${extraCount}` : base;
+        })();
+
+  const readyCount = results.filter((recipe) => recipe.compatibility === 100).length;
+  const firstResult = results[0];
+  const nearestMissingCount = firstResult?.missingIngredients.length ?? 0;
+
+  const expiryByIngredient = new Map(
+    pantryItems.map((item) => [item.ingredientId, daysUntil(item.expiresAt)]),
+  );
+
+  function urgentIngredientNames(recipe: MatchRecipeResult): string[] {
+    if (resultMode !== "pantry") return [];
+
+    return recipe.foundIngredients
+      .filter(
+        (ingredient) =>
+          urgencyWeight(expiryByIngredient.get(ingredient.id) ?? null) >= 3,
+      )
+      .map((ingredient) => ingredient.name);
+  }
+
   return (
     <div className={styles.matcher}>
-      <div className={styles.panel}>
+      <aside className={styles.panel} aria-labelledby="bench-title">
+        <div className={styles.panelHeading}>
+          <h2 id="bench-title">Sua bancada</h2>
+          <span>
+            {ingredients.length} {ingredients.length === 1 ? "item" : "itens"}
+          </span>
+        </div>
+
         <IngredientInput
           disabled={isLoading}
           error={fieldError}
@@ -247,11 +296,6 @@ export function IngredientMatcher({
         </div>
 
         <div className={styles.listBlock}>
-          <div className={styles.listHeading}>
-            <span>Seus ingredientes</span>
-            <span>{ingredients.length} adicionados</span>
-          </div>
-
           {ingredients.length > 0 ? (
             <div aria-label="Ingredientes adicionados" className={styles.chips}>
               {ingredients.map((ingredient) => (
@@ -270,105 +314,179 @@ export function IngredientMatcher({
           )}
         </div>
 
-        <Button
+        <button
+          className={styles.findButton}
           disabled={isLoading}
-          fullWidth
-          onClick={findRecipes}
+          onClick={() => void findRecipes()}
           type="button"
         >
           {isLoading ? "Comparando ingredientes…" : "Encontrar receitas"}
-        </Button>
+        </button>
+
+        <div className={styles.divider}>
+          <span>ou</span>
+        </div>
 
         <button
-          className={styles.pantryButton}
+          className={`${styles.pantryButton} ${authenticated ? "" : styles.pantryButtonLocked}`}
           disabled={isLoading}
           onClick={() => void findRecipesFromPantry()}
           type="button"
         >
-          <strong>Usar minha despensa</strong>
-          <span>Leva a validade em conta para desempatar receitas próximas.</span>
+          <span className={styles.pantryIcon} aria-hidden="true">
+            {authenticated ? (
+              <svg viewBox="0 0 24 24">
+                <rect height="18" rx="2" width="12" x="6" y="3" />
+                <path d="M6 11h12M9 7h1M9 15h1" />
+              </svg>
+            ) : (
+              <svg viewBox="0 0 24 24">
+                <rect height="10" rx="2" width="14" x="5" y="11" />
+                <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+              </svg>
+            )}
+          </span>
+          <span>
+            <strong>Usar minha despensa</strong>
+            <small>
+              {authenticated
+                ? "Combina com os itens que você guardou e prioriza o que vence antes."
+                : "Entre na sua conta para combinar com o que você guardou e considerar as validades."}
+            </small>
+          </span>
         </button>
-      </div>
+      </aside>
 
-      <div aria-live="polite" aria-busy={isLoading} className={styles.results}>
+      <section
+        aria-busy={isLoading}
+        aria-live="polite"
+        className={styles.results}
+      >
         {status === "idle" ? (
-          <div className={styles.idle}>
-            <div>
-              <strong>As melhores combinações aparecem aqui</strong>
+          <div className={styles.stateCard}>
+            <span className={styles.stateBubble} aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M8 3h8M9 3v4l-5 8.5A3.7 3.7 0 0 0 7.2 21h9.6a3.7 3.7 0 0 0 3.2-5.5L15 7V3" />
+                <path d="M7 14h10" />
+              </svg>
+            </span>
+            <h3>As melhores combinações aparecem aqui</h3>
+            <p>
+              A compatibilidade considera os ingredientes obrigatórios. Com a despensa, o que vence antes também ganha prioridade.
+            </p>
+          </div>
+        ) : null}
+
+        {status === "loading" ? (
+          <div className={styles.stateCard} role="status">
+            <span className={styles.spinner} aria-hidden="true" />
+            <h3>Comparando sua lista</h3>
+            <p>Comparando sua lista com as receitas…</p>
+          </div>
+        ) : null}
+
+        {status === "error" && pantryAuthError ? (
+          <div className={`${styles.stateCard} ${styles.solidState}`}>
+            <span className={`${styles.stateBubble} ${styles.darkBubble}`} aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <rect height="10" rx="2" width="14" x="5" y="11" />
+                <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+              </svg>
+            </span>
+            <h3>Essa despensa é só sua</h3>
+            <p>{requestError}</p>
+            <div className={styles.authActions}>
+              <Link className={styles.darkLinkButton} href="/entrar?next=/combinar">
+                Entrar na minha conta
+              </Link>
               <p>
-                A compatibilidade considera os ingredientes obrigatórios. Com a despensa, o que vence antes também ganha prioridade.
+                Ainda não tem conta? <Link href="/cadastro">Criar conta</Link>
               </p>
             </div>
           </div>
         ) : null}
 
-        {status === "loading" ? (
-          <LoadingState label="Comparando sua lista com as receitas…" />
-        ) : null}
-
-        {status === "error" ? (
-          <ErrorState message={requestError} onRetry={resultMode === "pantry" ? findRecipesFromPantry : findRecipes} />
+        {status === "error" && !pantryAuthError ? (
+          <div className={`${styles.stateCard} ${styles.solidState}`}>
+            <span className={styles.stateBubble} aria-hidden="true">!</span>
+            <h3>Algo saiu do ponto</h3>
+            <p>{requestError}</p>
+            <button
+              className={styles.retryButton}
+              onClick={() =>
+                void (resultMode === "pantry"
+                  ? findRecipesFromPantry()
+                  : findRecipes())
+              }
+              type="button"
+            >
+              Tentar de novo
+            </button>
+          </div>
         ) : null}
 
         {status === "success" && results.length === 0 ? (
-          <EmptyState
-            description={resultMode === "pantry"
-              ? "Sua despensa ainda não encontrou uma combinação. Adicione mais ingredientes ou revise o que está cadastrado."
-              : "Tente adicionar outros itens da sua cozinha para encontrarmos uma combinação."}
-            icon="?"
-            title="Nenhuma receita encontrada"
-          />
+          <div className={styles.stateCard}>
+            <span className={styles.stateBubble} aria-hidden="true">?</span>
+            <h3>Nenhuma receita encontrada</h3>
+            <p>
+              {resultMode === "pantry"
+                ? "Sua despensa ainda não encontrou uma combinação. Adicione mais ingredientes ou revise o que está cadastrado."
+                : "Tente adicionar outros itens da sua cozinha para encontrarmos uma combinação."}
+            </p>
+          </div>
         ) : null}
 
         {status === "success" && results.length > 0 ? (
           <section aria-labelledby="match-results-title" className={styles.resultSection}>
-            <div className={styles.resultHeading}>
-              <div>
-                <p className={styles.resultEyebrow}>Resultado da comparação</p>
-                <h2 id="match-results-title">
-                  {results.length} {results.length === 1 ? "receita" : "receitas"}
-                </h2>
-              </div>
-              <p>
-                {resultMode === "pantry"
-                  ? "Compatibilidade primeiro; em resultados próximos, priorizamos alimentos perto do vencimento."
-                  : hasMoreResults
-                    ? `Mostrando as ${visibleResults.length} melhores por aqui.`
-                    : "Da maior compatibilidade para a menor."}
-              </p>
-            </div>
-            <div className={styles.grid}>
+            <p className={styles.resultEyebrow}>
+              {results.length} {results.length === 1 ? "receita" : "receitas"}
+              {resultMode === "pantry" ? " · usando sua despensa" : ""}
+            </p>
+
+            <h2 className={styles.resultTitle} id="match-results-title">
+              {readyCount > 0 ? (
+                <>
+                  Com {summaryIngredients}, dá pra fazer{" "}
+                  <span>{readyCount}</span>{" "}
+                  {readyCount === 1 ? "receita" : "receitas"} agora.
+                </>
+              ) : (
+                <>
+                  Com {summaryIngredients}, você está a{" "}
+                  <span>{nearestMissingCount}</span>{" "}
+                  {nearestMissingCount === 1 ? "ingrediente" : "ingredientes"} de{" "}
+                  {firstResult.title.toLocaleLowerCase("pt-BR")}.
+                </>
+              )}
+            </h2>
+
+            <p className={styles.resultSub}>
+              {resultMode === "pantry"
+                ? "Compatibilidade primeiro; em resultados próximos, priorizamos alimentos perto do vencimento."
+                : hasMoreResults
+                  ? `Mostrando as ${visibleResults.length} melhores por aqui.`
+                  : "Da maior compatibilidade para a menor."}
+            </p>
+
+            <div className={styles.resultList}>
               {visibleResults.map((recipe) => (
-                <RecipeCard
-                  compatibility={recipe.compatibility}
-                  description={
-                    recipe.description ??
-                    "Uma possibilidade gostosa para aproveitar sua cozinha."
-                  }
-                  difficulty={recipe.difficulty}
-                  imageUrl={recipe.imageUrl}
+                <MatchResultRow
                   key={recipe.id}
-                  mealType={recipe.mealType}
-                  missingIngredients={recipe.missingIngredients}
-                  prepMinutes={recipe.prepMinutes}
-                  recipeId={recipe.id}
-                  servings={recipe.servings}
-                  slug={recipe.slug}
-                  status={recipe.status}
-                  title={recipe.title}
+                  recipe={recipe}
+                  urgentIngredientNames={urgentIngredientNames(recipe)}
                 />
               ))}
             </div>
 
             {hasMoreResults && resultMode === "manual" ? (
               <Link className={styles.seeAll} href={combineHref}>
-                Ver todas as combinações
-                <span aria-hidden="true">→</span>
+                Ver todas as combinações <span aria-hidden="true">→</span>
               </Link>
             ) : null}
           </section>
         ) : null}
-      </div>
+      </section>
     </div>
   );
 }
