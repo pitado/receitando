@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 
 import { RecipesCatalog } from "@/components/recipe/RecipesCatalog";
-import { SectionTitle } from "@/components/ui/SectionTitle";
 import { ApiError } from "@/services/api-client";
 import { listRecipes } from "@/services/recipes.service";
-import type { RecipeCatalogResponse, RecipeCatalogSort, RecipeDifficulty } from "@/types/recipe";
-
-import styles from "./page.module.css";
+import type {
+  RecipeCatalogResponse,
+  RecipeCatalogSort,
+  RecipeDifficulty,
+} from "@/types/recipe";
 
 export const dynamic = "force-dynamic";
 
@@ -34,7 +35,13 @@ function difficultyFrom(value: string): RecipeDifficulty | undefined {
 }
 
 function sortFrom(value: string, hasQuery: boolean): RecipeCatalogSort {
-  const allowed: RecipeCatalogSort[] = ["relevance", "recent", "popular", "quick", "title"];
+  const allowed: RecipeCatalogSort[] = [
+    "relevance",
+    "recent",
+    "popular",
+    "quick",
+    "title",
+  ];
   if (allowed.includes(value as RecipeCatalogSort)) {
     if (value === "relevance" && !hasQuery) return "recent";
     return value as RecipeCatalogSort;
@@ -54,10 +61,17 @@ function getCatalogError(error: unknown): string {
   return "Não foi possível carregar o catálogo agora. Tente novamente.";
 }
 
-function emptyCatalog(filters: RecipeCatalogResponse["filters"]): RecipeCatalogResponse {
+function emptyCatalog(
+  filters: RecipeCatalogResponse["filters"],
+): RecipeCatalogResponse {
   return {
     items: [],
-    pagination: { total: 0, limit: INITIAL_RECIPE_LIMIT, offset: 0, hasMore: false },
+    pagination: {
+      total: 0,
+      limit: INITIAL_RECIPE_LIMIT,
+      offset: 0,
+      hasMore: false,
+    },
     filters,
   };
 }
@@ -81,6 +95,7 @@ export default async function RecipesPage({ searchParams }: RecipesPageProps) {
   };
 
   let catalog = emptyCatalog(initialFilters);
+  let catalogTotal = 0;
   let errorMessage = "";
 
   try {
@@ -93,21 +108,32 @@ export default async function RecipesPage({ searchParams }: RecipesPageProps) {
       maxPrepMinutes,
       sort,
     });
+    catalogTotal = catalog.pagination.total;
+
+    const hasInitialFilters = Boolean(
+      query || source || mealType || difficulty || maxPrepMinutes,
+    );
+
+    if (hasInitialFilters) {
+      try {
+        const allRecipes = await listRecipes({
+          limit: 1,
+          sort: "recent",
+        });
+        catalogTotal = allRecipes.pagination.total;
+      } catch {
+        // O catálogo filtrado continua funcional mesmo se o total global não carregar.
+      }
+    }
   } catch (error: unknown) {
     errorMessage = getCatalogError(error);
   }
 
   return (
-    <div className={`container page-shell ${styles.page}`}>
-      <SectionTitle
-        as="h1"
-        description="Busque pelo prato, filtre pelo tempo ou dificuldade e encontre uma receita que caiba no seu dia."
-        eyebrow="Catálogo"
-      >
-        O que vai para a mesa hoje?
-      </SectionTitle>
-
-      <RecipesCatalog initialCatalog={catalog} initialError={errorMessage} />
-    </div>
+    <RecipesCatalog
+      catalogTotal={catalogTotal}
+      initialCatalog={catalog}
+      initialError={errorMessage}
+    />
   );
 }
