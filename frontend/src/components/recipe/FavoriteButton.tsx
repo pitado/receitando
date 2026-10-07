@@ -9,14 +9,16 @@ import { AUTH_CHANGED_EVENT, hasAuthSessionHint } from "@/services/auth-storage"
 import styles from "./FavoriteButton.module.css";
 
 interface FavoriteButtonProps {
+  ariaLabel?: string;
   initialFavorite?: boolean;
   label?: boolean;
   onChange?: (favorite: boolean) => void;
+  onSettled?: (favorite: boolean, success: boolean) => void;
   recipeId: string;
   syncFavorite?: boolean;
 }
 
-export function FavoriteButton({ initialFavorite = false, label = true, onChange, recipeId, syncFavorite = true }: FavoriteButtonProps) {
+export function FavoriteButton({ ariaLabel, initialFavorite = false, label = true, onChange, onSettled, recipeId, syncFavorite = true }: FavoriteButtonProps) {
   const router = useRouter();
   const requestInFlight = useRef(false);
   const [authenticated, setAuthenticated] = useState(() => hasAuthSessionHint());
@@ -55,10 +57,12 @@ export function FavoriteButton({ initialFavorite = false, label = true, onChange
     try {
       if (next) await addFavorite(recipeId);
       else await removeFavorite(recipeId);
+      onSettled?.(next, true);
     } catch {
       setFavorite(previous);
       onChange?.(previous);
       setFeedback("Não foi possível atualizar os favoritos.");
+      onSettled?.(next, false);
     } finally {
       requestInFlight.current = false;
       setSaving(false);
@@ -69,7 +73,7 @@ export function FavoriteButton({ initialFavorite = false, label = true, onChange
     <span className={styles.wrapper}>
       <button
         aria-busy={saving}
-        aria-label={favorite ? "Remover dos favoritos" : "Adicionar aos favoritos"}
+        aria-label={ariaLabel ?? (favorite ? "Remover dos favoritos" : "Adicionar aos favoritos")}
         aria-pressed={favorite}
         className={`${styles.button} ${favorite ? styles.active : ""}`}
         onClick={() => void toggleFavorite()}

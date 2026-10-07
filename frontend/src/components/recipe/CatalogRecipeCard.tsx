@@ -12,9 +12,11 @@ import styles from "./CatalogRecipeCard.module.css";
 
 type CatalogRecipeCardProps = {
   authenticated: boolean;
+  favoriteAriaLabel?: string;
   initialFavorite: boolean;
   match?: MatchRecipeResult;
   onFavoriteChange: (favorite: boolean) => void;
+  onFavoriteSettled?: (favorite: boolean, success: boolean) => void;
   recipe: RecipeCatalogItem;
 };
 
@@ -43,9 +45,11 @@ function mealIcon(mealType: string) {
 
 export function CatalogRecipeCard({
   authenticated,
+  favoriteAriaLabel,
   initialFavorite,
   match,
   onFavoriteChange,
+  onFavoriteSettled,
   recipe,
 }: CatalogRecipeCardProps) {
   const [imageFailed, setImageFailed] = useState(false);
@@ -90,9 +94,11 @@ export function CatalogRecipeCard({
 
         <div className={styles.favoriteAction}>
           <FavoriteButton
+            ariaLabel={favoriteAriaLabel}
             initialFavorite={initialFavorite}
             label={false}
             onChange={onFavoriteChange}
+            onSettled={onFavoriteSettled}
             recipeId={recipe.id}
             syncFavorite={false}
           />
