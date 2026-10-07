@@ -26,9 +26,10 @@ export default async function CombinePage({ searchParams }: CombinePageProps) {
   return (
     <div className={styles.page}>
       <section className={styles.hero}>
-        <div className={`container ${styles.heroContainer}`}>
-          <p className={styles.eyebrow}>Combinações da sua cozinha</p>
-          <h1>O que dá para fazer?</h1>
+        <div className={styles.container}>
+          <h1>
+            O que dá pra <span>fazer?</span>
+          </h1>
           <p className={styles.description}>
             Conte o que tem em casa e descubra as receitas que mais combinam com a sua cozinha agora.
           </p>
@@ -41,11 +42,11 @@ export default async function CombinePage({ searchParams }: CombinePageProps) {
         </div>
       </section>
 
-      <section className={styles.matcherSection}>
-        <div className={`container ${styles.matcherContainer}`}>
+      <main className={styles.matcherSection}>
+        <div className={styles.container}>
           <IngredientMatcher initialIngredients={initialIngredients} />
         </div>
-      </section>
+      </main>
     </div>
   );
 }
