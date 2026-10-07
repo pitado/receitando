@@ -180,12 +180,7 @@ export function PantryClient() {
   useEffect(() => {
     if (!authenticated || loading) return;
 
-    if (items.length === 0) {
-      setMatches([]);
-      setMatchStatus("idle");
-      setMatchError("");
-      return;
-    }
+    if (items.length === 0) return;
 
     const controller = new AbortController();
     const timeout = window.setTimeout(async () => {
@@ -445,7 +440,13 @@ export function PantryClient() {
     setError(null);
 
     try {
-      setItems(await removePantryItem(item.id));
+      const nextItems = await removePantryItem(item.id);
+      setItems(nextItems);
+      if (nextItems.length === 0) {
+        setMatches([]);
+        setMatchStatus("idle");
+        setMatchError("");
+      }
       if (editingId === item.id) cancelEditing();
       showUndo(item);
     } catch (cause: unknown) {
@@ -871,7 +872,7 @@ export function PantryClient() {
                 </p>
               ) : null}
 
-              {matches.map((recipe) => {
+              {items.length > 0 ? matches.map((recipe) => {
                 const missing = recipe.missingIngredients;
                 const ready = missing.length === 0;
                 const missingText = ready
@@ -896,7 +897,7 @@ export function PantryClient() {
                     </span>
                   </article>
                 );
-              })}
+              }) : null}
             </div>
 
             <Link className={styles.combineButton} href="/combinar">
