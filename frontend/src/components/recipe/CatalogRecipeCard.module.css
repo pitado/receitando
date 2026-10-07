@@ -1,0 +1,224 @@
+.card {
+  background: var(--catalog-card, #fbf2e8);
+  border: 1px solid var(--catalog-border, #e3cbb0);
+  border-radius: 24px;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  overflow: hidden;
+  position: relative;
+  transition: transform 150ms ease, box-shadow 150ms ease;
+}
+
+.card:hover {
+  box-shadow: 0 14px 30px rgba(43, 26, 18, 0.09);
+  transform: translateY(-3px);
+}
+
+.visual {
+  aspect-ratio: 4 / 3;
+  background: var(--catalog-brown, #6b3a25);
+  overflow: hidden;
+  position: relative;
+}
+
+.image {
+  object-fit: cover;
+}
+
+.fallback {
+  align-items: center;
+  background:
+    radial-gradient(circle at 80% 18%, rgba(237, 192, 112, 0.2), transparent 32%),
+    var(--catalog-brown, #6b3a25);
+  color: var(--catalog-sand, #e8c597);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  position: absolute;
+}
+
+.fallback span {
+  font-size: 58px;
+  filter: saturate(0.75);
+}
+
+.favoriteAction {
+  position: absolute;
+  right: 14px;
+  top: 14px;
+  z-index: 4;
+}
+
+.favoriteAction > span > button {
+  background: var(--catalog-card, #fbf2e8);
+  border: 0;
+  border-radius: 50%;
+  color: var(--catalog-terra, #96462b);
+  font-size: 20px;
+  height: 40px;
+  min-height: 40px;
+  min-width: 40px;
+  padding: 0;
+  width: 40px;
+}
+
+.favoriteAction > span > button[aria-pressed="true"] {
+  background: var(--catalog-terra, #96462b);
+  color: var(--catalog-cream, #f5e7d7);
+}
+
+.favoriteAction > span > button:hover {
+  border: 0;
+  transform: none;
+}
+
+.mealBadge,
+.compatibilityBadge {
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.2;
+  position: absolute;
+  z-index: 3;
+}
+
+.mealBadge {
+  background: var(--catalog-card, #fbf2e8);
+  bottom: 14px;
+  color: var(--catalog-ink, #2b1a12);
+  left: 14px;
+  padding: 5px 12px;
+}
+
+.compatibilityBadge {
+  background: var(--catalog-card, #fbf2e8);
+  color: var(--catalog-terra, #96462b);
+  left: 14px;
+  padding: 6px 12px;
+  top: 14px;
+}
+
+.readyBadge {
+  background: var(--catalog-gold, #edc070);
+  color: var(--catalog-ink, #2b1a12);
+}
+
+.body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding: 20px 22px 22px;
+}
+
+.source {
+  color: var(--catalog-muted, #7a5a47);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.body h3 {
+  color: var(--catalog-ink, #2b1a12);
+  font-family: var(--font-home-title), Impact, sans-serif;
+  font-size: 24px;
+  font-weight: 400;
+  line-height: 1.1;
+  margin: 6px 0 0;
+}
+
+.meta {
+  color: var(--catalog-muted, #7a5a47);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 14px;
+  gap: 12px 16px;
+  margin-top: 12px;
+}
+
+.meta span {
+  align-items: center;
+  display: inline-flex;
+  gap: 6px;
+}
+
+.meta svg {
+  fill: none;
+  height: 17px;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+  width: 17px;
+}
+
+.description {
+  color: var(--catalog-muted, #7a5a47);
+  display: -webkit-box;
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 13px 0 0;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.compatibilityBar {
+  background: #eadbc8;
+  border-radius: 999px;
+  height: 6px;
+  margin-top: 16px;
+  overflow: hidden;
+}
+
+.compatibilityBar span {
+  background: var(--catalog-terra, #96462b);
+  border-radius: inherit;
+  display: block;
+  height: 100%;
+}
+
+.compatibilityBarReady span {
+  background: var(--catalog-gold, #edc070);
+}
+
+.footer {
+  align-items: center;
+  border-top: 1px solid var(--catalog-border, #e3cbb0);
+  display: flex;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 18px;
+  position: relative;
+  z-index: 3;
+}
+
+.footer a {
+  color: var(--catalog-terra, #96462b);
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+}
+
+.footer span {
+  color: var(--catalog-terra, #96462b);
+}
+
+.footer a:focus-visible {
+  outline: 3px solid var(--catalog-gold, #edc070);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    transition: none;
+  }
+
+  .card:hover {
+    transform: none;
+  }
+}
