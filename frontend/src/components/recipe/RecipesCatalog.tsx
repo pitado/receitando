@@ -138,13 +138,18 @@ export function RecipesCatalog({
   }, []);
 
   useEffect(() => {
+    let initialPantryTimer: number | null = null;
+
     if (authenticated) {
       listFavorites()
         .then((favorites) =>
           setFavoriteIds(new Set(favorites.map((recipe) => recipe.id))),
         )
         .catch(() => undefined);
-      void refreshPantryPersonalization();
+
+      initialPantryTimer = window.setTimeout(() => {
+        void refreshPantryPersonalization();
+      }, 0);
     }
 
     function handleAuthChange() {
@@ -169,7 +174,10 @@ export function RecipesCatalog({
     }
 
     window.addEventListener(AUTH_CHANGED_EVENT, handleAuthChange);
-    return () => window.removeEventListener(AUTH_CHANGED_EVENT, handleAuthChange);
+    return () => {
+      if (initialPantryTimer !== null) window.clearTimeout(initialPantryTimer);
+      window.removeEventListener(AUTH_CHANGED_EVENT, handleAuthChange);
+    };
   }, [authenticated, refreshPantryPersonalization]);
 
   useEffect(() => {
