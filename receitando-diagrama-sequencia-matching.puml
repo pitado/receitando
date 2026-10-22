@@ -1,0 +1,31 @@
+@startuml
+title Receitando - Matching (diagrama UML de sequência)
+autonumber
+actor "Usuário" as User
+participant "Frontend /combinar" as Front
+participant "API catalog64-worker" as API
+participant "lib/recipe-utils" as Utils
+database "Cloudflare D1" as DB
+User -> Front: Informa ingredientes ou seleciona despensa
+alt Ingredientes informados
+  Front -> API: POST /api/recipes/match {ingredients: [...]}
+else Despensa autenticada
+  Front -> API: GET /api/recipes/match/pantry (cookie HttpOnly)
+  API -> DB: SELECT pantry_items WHERE user_id = ?
+  DB --> API: ingredient_id[]
+end
+API -> Utils: Normalizar texto e forma canônica
+Utils -> DB: Consultar ingredients e ingredient_aliases
+DB --> Utils: ingredient_id[] por correspondência exata
+Utils --> API: IDs canônicos
+API -> DB: Buscar receitas candidatas e recipe_ingredients
+DB --> API: Receitas + relações de ingredientes
+API -> API: Excluir opcionais e is_staple do denominador
+note right of API
+compatibilidade =
+obrigatórios não básicos encontrados /
+total de obrigatórios não básicos * 100
+end note
+API --> Front: MatchRecipeResult[] ordenado
+Front --> User: Compatibilidade, encontrados e faltantes
+@enduml

@@ -1,0 +1,197 @@
+// Receitando - DER físico Cloudflare D1/SQLite.
+// Gerado a partir da estrutura das migrations do repositório.
+// FTS5 recipe_search é tabela virtual, não entidade relacional.
+
+Table users {
+  id text [pk]
+  name text [not null]
+  email text [not null, unique]
+  password_hash text [not null]
+  role text [not null]
+  created_at text [not null]
+  updated_at text [not null]
+  handle text
+  avatar_key text [not null]
+}
+
+Table sessions {
+  id text [pk]
+  user_id text [not null]
+  token_hash text [not null, unique]
+  expires_at text [not null]
+  created_at text [not null]
+  last_seen_at text [not null]
+}
+
+Table ingredients {
+  id text [pk]
+  name text [not null]
+  normalized_name text [not null, unique]
+  category text [not null]
+  created_at text [not null]
+  updated_at text [not null]
+  is_staple integer [not null]
+}
+
+Table recipes {
+  id text [pk]
+  title text [not null]
+  slug text [not null, unique]
+  description text [not null]
+  instructions text [not null]
+  prep_minutes integer [not null]
+  servings integer [not null]
+  created_at text [not null]
+  updated_at text [not null]
+  meal_type text [not null]
+  difficulty text [not null]
+  source_type text [not null]
+  source_name text [not null]
+  image_url text
+  external_source text
+  external_id text
+  external_category text
+  external_subcategory text
+  source_url text
+  source_author text
+  source_license text
+  source_license_url text
+  source_language text
+  imported_at text
+  image_source text
+  image_author text
+  image_page_url text
+  image_license text
+  image_license_url text
+  image_alt text
+}
+
+Table recipe_ingredients {
+  id text [pk]
+  recipe_id text [not null]
+  ingredient_id text [not null]
+  quantity real
+  unit text
+  optional integer [not null]
+  raw_text text
+  indexes {
+    (recipe_id, ingredient_id) [unique]
+  }
+}
+
+Table pantry_items {
+  id text [pk]
+  user_id text [not null]
+  ingredient_id text [not null]
+  quantity real
+  unit text
+  expires_at text
+  created_at text [not null]
+  updated_at text [not null]
+  indexes {
+    (user_id, ingredient_id) [unique]
+  }
+}
+
+Table favorites {
+  user_id text [not null]
+  recipe_id text [not null]
+  created_at text [not null]
+  indexes {
+    (user_id, recipe_id) [pk]
+  }
+}
+
+Table ingredient_aliases {
+  id text [pk]
+  ingredient_id text [not null]
+  alias text [not null]
+  normalized_alias text [not null, unique]
+  created_at text [not null]
+}
+
+Table recipe_tags {
+  recipe_id text [not null]
+  tag text [not null]
+  indexes {
+    (recipe_id, tag) [pk]
+  }
+}
+
+Table password_reset_codes {
+  id text [pk]
+  user_id text [not null]
+  code_hash text [not null]
+  reset_token_hash text
+  attempts integer [not null]
+  expires_at text [not null]
+  verified_at text
+  used_at text
+  created_at text [not null]
+}
+
+Table recipe_votes {
+  user_id text [not null]
+  recipe_id text [not null]
+  vote text [not null]
+  created_at text [not null]
+  updated_at text [not null]
+  indexes {
+    (user_id, recipe_id) [pk]
+  }
+}
+
+Table recipe_comments {
+  id text [pk]
+  recipe_id text [not null]
+  user_id text [not null]
+  body text [not null]
+  created_at text [not null]
+  updated_at text [not null]
+}
+
+Table recipe_submissions {
+  id text [pk]
+  user_id text
+  author_name text [not null]
+  author_email text
+  title text [not null]
+  description text [not null]
+  ingredients text [not null]
+  instructions text [not null]
+  prep_minutes integer
+  servings integer
+  meal_type text
+  difficulty text [not null]
+  image_url text
+  status text [not null]
+  created_at text [not null]
+  updated_at text [not null]
+  reviewed_by text
+  reviewed_at text
+  published_recipe_id text
+  rejection_reason text
+}
+
+Table auth_rate_limit_events {
+  id text [pk]
+  action text [not null]
+  key_hash text [not null]
+  created_at text [not null]
+}
+
+Ref: users.id < sessions.user_id
+Ref: recipes.id < recipe_ingredients.recipe_id
+Ref: ingredients.id < recipe_ingredients.ingredient_id
+Ref: users.id < pantry_items.user_id
+Ref: ingredients.id < pantry_items.ingredient_id
+Ref: users.id < favorites.user_id
+Ref: recipes.id < favorites.recipe_id
+Ref: ingredients.id < ingredient_aliases.ingredient_id
+Ref: recipes.id < recipe_tags.recipe_id
+Ref: users.id < password_reset_codes.user_id
+Ref: users.id < recipe_votes.user_id
+Ref: recipes.id < recipe_votes.recipe_id
+Ref: users.id < recipe_comments.user_id
+Ref: recipes.id < recipe_comments.recipe_id
+Ref: users.id < recipe_submissions.user_id

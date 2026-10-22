@@ -1,0 +1,43 @@
+@startuml
+title Receitando - Envio e moderação (diagrama UML de sequência)
+autonumber
+actor "Usuário" as User
+actor "Administrador" as Admin
+participant "Frontend" as Front
+participant "API recipe-submission-worker" as API
+database "Cloudflare D1" as DB
+collections "Cloudflare R2" as R2
+group Envio
+User -> Front: Preenche receita e foto
+Front -> API: POST /api/recipe-submissions
+API -> API: Validar foto JPG/PNG/WebP (até 12MB)
+API -> R2: PUT submissions/AAAA/MM/id.ext
+R2 --> API: Objeto criado
+API -> DB: INSERT recipe_submissions status=PENDING
+alt Falha no D1
+DB --> API: Erro
+API -> R2: DELETE objeto recém-criado
+API --> Front: Erro
+else Sucesso
+DB --> API: ID
+API --> Front: Submissão PENDING
+Front --> User: Envio aguardando moderação
+end
+end
+group Moderação
+Admin -> Front: Abre /admin/receitas
+Front -> API: GET /api/admin/recipe-submissions
+API -> DB: Validar users.role = ADMIN e listar submissões
+DB --> API: Submissões pendentes
+API --> Front: Lista
+Admin -> Front: Aprovar / rejeitar
+Front -> API: PATCH /api/admin/recipe-submissions/:id
+alt Aprovar
+API -> DB: INSERT recipes source_type=USER
+API -> DB: UPDATE recipe_submissions status=APPROVED
+else Rejeitar
+API -> DB: UPDATE recipe_submissions status=REJECTED, rejection_reason
+end
+API --> Front: Status atualizado
+end
+@enduml
