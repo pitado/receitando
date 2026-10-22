@@ -15,6 +15,20 @@ A evolução atual do projeto vai além de um buscador de receitas: a despensa p
 > Funcionalidades implementadas: [`docs/funcionalidades.md`](docs/funcionalidades.md)  
 > Índice da documentação: [`docs/README.md`](docs/README.md)
 
+## Diagramas — visualização no GitHub
+
+O GitHub não abre arquivos `.drawio` como desenho (mostra XML). **Para ver o diagrama visualmente, clique em “Ver prévia”**. As prévias são diagramas Mermaid renderizados pelo próprio GitHub, enquanto as versões `.drawio` continuam editáveis.
+
+| Diagrama | Prévia visual | Editar no diagrams.net |
+| --- | --- | --- |
+| DER do banco de dados | [👁 Ver prévia no GitHub](docs/diagramas/der.md) | [✏️ Arquivo editável](./receitando-der.drawio) |
+| Sequência UML — busca por ingredientes | [👁 Ver prévia no GitHub](docs/diagramas/sequencia-matching.md) | [✏️ Arquivo editável](./receitando-diagrama-sequencia-matching.drawio) |
+| Sequência UML — envio e moderação | [👁 Ver prévia no GitHub](docs/diagramas/sequencia-envio-moderacao.md) | [✏️ Arquivo editável](./receitando-diagrama-sequencia-envio-moderacao.drawio) |
+| Componentes da arquitetura | [👁 Ver prévia no GitHub](docs/diagramas/componentes.md) | [✏️ Arquivo editável](./receitando-diagrama-componentes.drawio) |
+| Contratos TypeScript do frontend | [👁 Ver prévia no GitHub](docs/diagramas/contratos-frontend.md) | [✏️ Arquivo editável](./receitando-contratos-dados-frontend.drawio) |
+
+[**Ver documentação dos diagramas e formatos adicionais**](DIAGRAMAS-EDITAVEIS.md)
+
 ## Acesso
 
 - **Site:** https://receitando.miguelpita.com.br
