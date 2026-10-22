@@ -33,6 +33,6 @@ sequenceDiagram
     F-->>U: Exibe compatibilidade e ingredientes faltantes
 ```
 
-**Para editar as caixas e conexões:** [abrir o arquivo-fonte `.drawio`](../../receitando-diagrama-sequencia-matching.drawio). O GitHub exibe o XML quando você abre um `.drawio` diretamente; por isso esta página fornece a visualização sem precisar instalar ou baixar nada.
+**Para editar as caixas e conexões:** [abrir o arquivo-fonte `.drawio`](../../Diagrama-de-Sequencia.drawio). O GitHub exibe o XML quando você abre um `.drawio` diretamente; por isso esta página fornece a visualização sem precisar instalar ou baixar nada.
 
 [Voltar ao índice dos diagramas](../../DIAGRAMAS-EDITAVEIS.md)

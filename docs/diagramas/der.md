@@ -172,6 +172,6 @@ erDiagram
     }
 ```
 
-**Para editar as caixas e conexões:** [abrir o arquivo-fonte `.drawio`](../../receitando-der.drawio). O GitHub exibe o XML quando você abre um `.drawio` diretamente; por isso esta página fornece a visualização sem precisar instalar ou baixar nada.
+**Para editar as caixas e conexões:** [abrir o arquivo-fonte `.drawio`](../../DER.drawio). O GitHub exibe o XML quando você abre um `.drawio` diretamente; por isso esta página fornece a visualização sem precisar instalar ou baixar nada.
 
 [Voltar ao índice dos diagramas](../../DIAGRAMAS-EDITAVEIS.md)

@@ -1,5 +1,14 @@
 # Receitando
 
+## 📐 DER e Diagrama de Sequência — acesso rápido
+
+Os **dois diagramas principais estão na raiz do repositório**, com nomes simples. Para visualizar diretamente no GitHub, clique em **Ver prévia**; para abrir e editar, use o arquivo **.drawio** no [diagrams.net](https://app.diagrams.net/).
+
+| Diagrama | 👁️ Visualizar no GitHub | ✏️ Arquivo editável na raiz |
+| --- | --- | --- |
+| **DER — Diagrama Entidade-Relacionamento** (estrutura SQL do D1) | **[Ver prévia do DER](docs/diagramas/der.md)** | [DER.drawio](DER.drawio) |
+| **Diagrama de Sequência UML** (busca de receitas por ingredientes) | **[Ver prévia da sequência](docs/diagramas/sequencia-matching.md)** | [Diagrama-de-Sequencia.drawio](Diagrama-de-Sequencia.drawio) |
+
 [![Frontend CI](https://github.com/pitado/receitando/actions/workflows/ci.yml/badge.svg)](https://github.com/pitado/receitando/actions/workflows/ci.yml)
 [![API Worker CI](https://github.com/pitado/receitando/actions/workflows/api-worker-ci.yml/badge.svg)](https://github.com/pitado/receitando/actions/workflows/api-worker-ci.yml)
 [![License: GNU AGPLv3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
@@ -21,8 +30,8 @@ O GitHub não abre arquivos `.drawio` como desenho (mostra XML). **Para ver o di
 
 | Diagrama | Prévia visual | Editar no diagrams.net |
 | --- | --- | --- |
-| DER do banco de dados | [👁 Ver prévia no GitHub](docs/diagramas/der.md) | [✏️ Arquivo editável](./receitando-der.drawio) |
-| Sequência UML — busca por ingredientes | [👁 Ver prévia no GitHub](docs/diagramas/sequencia-matching.md) | [✏️ Arquivo editável](./receitando-diagrama-sequencia-matching.drawio) |
+| DER do banco de dados | [👁 Ver prévia no GitHub](docs/diagramas/der.md) | [✏️ Arquivo editável](./DER.drawio) |
+| Sequência UML — busca por ingredientes | [👁 Ver prévia no GitHub](docs/diagramas/sequencia-matching.md) | [✏️ Arquivo editável](./Diagrama-de-Sequencia.drawio) |
 | Sequência UML — envio e moderação | [👁 Ver prévia no GitHub](docs/diagramas/sequencia-envio-moderacao.md) | [✏️ Arquivo editável](./receitando-diagrama-sequencia-envio-moderacao.drawio) |
 | Componentes da arquitetura | [👁 Ver prévia no GitHub](docs/diagramas/componentes.md) | [✏️ Arquivo editável](./receitando-diagrama-componentes.drawio) |
 | Contratos TypeScript do frontend | [👁 Ver prévia no GitHub](docs/diagramas/contratos-frontend.md) | [✏️ Arquivo editável](./receitando-contratos-dados-frontend.drawio) |

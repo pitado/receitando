@@ -4,8 +4,8 @@ Diagramas na raiz do repositório. **Não são PNGs**: arquivos `.drawio` permit
 
 | Conteúdo | Diagrama para editar | Código-fonte complementar |
 | --- | --- | --- |
-| DER físico (banco D1) | [receitando-der.drawio](receitando-der.drawio) | [receitando-der.dbml](receitando-der.dbml) |
-| UML sequência - matching | [receitando-diagrama-sequencia-matching.drawio](receitando-diagrama-sequencia-matching.drawio) | [receitando-diagrama-sequencia-matching.puml](receitando-diagrama-sequencia-matching.puml) |
+| DER físico (banco D1) | [DER.drawio](DER.drawio) | [receitando-der.dbml](receitando-der.dbml) |
+| UML sequência - matching | [Diagrama-de-Sequencia.drawio](Diagrama-de-Sequencia.drawio) | [receitando-diagrama-sequencia-matching.puml](receitando-diagrama-sequencia-matching.puml) |
 | UML sequência - envio/moderação | [receitando-diagrama-sequencia-envio-moderacao.drawio](receitando-diagrama-sequencia-envio-moderacao.drawio) | [receitando-diagrama-sequencia-envio-moderacao.puml](receitando-diagrama-sequencia-envio-moderacao.puml) |
 | Componentes da arquitetura | [receitando-diagrama-componentes.drawio](receitando-diagrama-componentes.drawio) | — |
 | Contratos TypeScript do frontend | [receitando-contratos-dados-frontend.drawio](receitando-contratos-dados-frontend.drawio) | — |
@@ -19,8 +19,8 @@ Diagramas na raiz do repositório. **Não são PNGs**: arquivos `.drawio` permit
 
 O GitHub mostra XML ao abrir `.drawio` diretamente. **Estas páginas renderizam os diagramas como gráficos Mermaid**, sem baixar arquivos:
 
-- [Ver prévia: DER do banco de dados](docs/diagramas/der.md) — [editar](./receitando-der.drawio)
-- [Ver prévia: Sequência UML — busca por ingredientes](docs/diagramas/sequencia-matching.md) — [editar](./receitando-diagrama-sequencia-matching.drawio)
+- [Ver prévia: DER do banco de dados](docs/diagramas/der.md) — [editar](./DER.drawio)
+- [Ver prévia: Sequência UML — busca por ingredientes](docs/diagramas/sequencia-matching.md) — [editar](./Diagrama-de-Sequencia.drawio)
 - [Ver prévia: Sequência UML — envio e moderação](docs/diagramas/sequencia-envio-moderacao.md) — [editar](./receitando-diagrama-sequencia-envio-moderacao.drawio)
 - [Ver prévia: Componentes da arquitetura](docs/diagramas/componentes.md) — [editar](./receitando-diagrama-componentes.drawio)
 - [Ver prévia: Contratos TypeScript do frontend](docs/diagramas/contratos-frontend.md) — [editar](./receitando-contratos-dados-frontend.drawio)
