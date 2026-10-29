@@ -5,9 +5,11 @@ import { Rate } from 'k6/metrics';
 const errors = new Rate('application_errors');
 const base = (__ENV.BASE_URL || 'http://localhost:8787').replace(/\/$/, '');
 const mode = __ENV.MODE || 'smoke';
-const stages = mode === 'load'
-  ? [{ duration: '30s', target: 5 }, { duration: '1m', target: 20 }, { duration: '30s', target: 0 }]
-  : [{ duration: '10s', target: 2 }, { duration: '20s', target: 2 }, { duration: '10s', target: 0 }];
+const stages = mode === 'stress'
+  ? [{ duration: '20s', target: 20 }, { duration: '40s', target: 50 }, { duration: '20s', target: 0 }]
+  : mode === 'load'
+    ? [{ duration: '30s', target: 5 }, { duration: '1m', target: 20 }, { duration: '30s', target: 0 }]
+    : [{ duration: '10s', target: 2 }, { duration: '20s', target: 2 }, { duration: '10s', target: 0 }];
 
 export const options = {
   stages,
