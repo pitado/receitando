@@ -26,5 +26,20 @@ export default function () {
     'JSON response': (r) => (r.headers['Content-Type'] || '').includes('application/json'),
   });
   errors.add(!ok);
+  if (__ENV.DETAILED_LOGS === '1') {
+    console.log(JSON.stringify({
+      timestamp: new Date().toISOString(),
+      vu: __VU,
+      iteration: __ITER,
+      method: 'GET',
+      endpoint: path,
+      status: response.status,
+      duration_ms: response.timings.duration,
+      waiting_ms: response.timings.waiting,
+      received_bytes: response.body ? response.body.length : 0,
+      ok,
+      error: response.error || null,
+    }));
+  }
   sleep(1);
 }
