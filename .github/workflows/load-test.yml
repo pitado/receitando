@@ -11,6 +11,7 @@ on:
         options:
           - smoke
           - load
+          - stress
 
 permissions:
   contents: read
@@ -57,7 +58,14 @@ jobs:
           set +e
           timeout --signal=TERM --kill-after=15s 180s k6 run -e BASE_URL=http://127.0.0.1:8787 -e MODE=${{ inputs.scenario }} -e DETAILED_LOGS=1 --summary-export=results/load/summary.json --out json=results/load/metrics.json tests/load/receitando-read.js > results/load/requests.log 2>&1
           code=$?
-          tail -n 150 results/load/requests.log
+          echo "Resultado do k6 (últimas 80 linhas):"
+          tail -n 80 results/load/requests.log
+          echo "### Teste k6 — ${{ inputs.scenario }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Status do processo: $code" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Arquivos completos: artifact k6-results-${{ inputs.scenario }}" >> "$GITHUB_STEP_SUMMARY"
+          if [ -f results/load/summary.json ]; then
+            node -e 'const s=require("./results/load/summary.json"); const m=s.metrics||{}; for(const [k,label] of [["http_reqs","Requisições"],["http_req_failed","Falhas"],["http_req_duration","Latência"]]){const v=m[k]?.values||{}; console.log("- "+label+": "+JSON.stringify(v));}' >> "$GITHUB_STEP_SUMMARY"
+          fi
           exit "$code"
       - name: Salvar log da API
         if: always()
