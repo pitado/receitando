@@ -1,0 +1,73 @@
+name: Teste de Escalabilidade (k6)
+
+on:
+  workflow_dispatch:
+    inputs:
+      scenario:
+        description: Cenário de teste
+        required: true
+        default: smoke
+        type: choice
+        options:
+          - smoke
+          - load
+
+permissions:
+  contents: read
+
+jobs:
+  load-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: backend/worker-prototype/package-lock.json
+      - name: Instalar dependências e preparar banco isolado
+        working-directory: backend/worker-prototype
+        run: |
+          npm ci
+          npm run migrate:local
+      - name: Iniciar API local
+        working-directory: backend/worker-prototype
+        run: |
+          nohup npm run dev -- --ip 127.0.0.1 --port 8787 > /tmp/receitando-api.log 2>&1 &
+          for i in $(seq 1 45); do
+            if curl -fsS http://127.0.0.1:8787/api/health > /dev/null; then exit 0; fi
+            sleep 2
+          done
+          cat /tmp/receitando-api.log
+          exit 1
+      - name: Instalar k6
+        run: |
+          sudo gpg -k
+          sudo apt-get update
+          sudo apt-get install -y gnupg ca-certificates
+          curl -fsSL https://dl.k6.io/key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/k6-archive-keyring.gpg
+          echo 'deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main' | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install -y k6
+      - name: Executar teste com logs
+        run: |
+          mkdir -p results/load
+          set +e
+          k6 run -e BASE_URL=http://127.0.0.1:8787 -e MODE=${{ inputs.scenario }} -e DETAILED_LOGS=1 --summary-export=results/load/summary.json --out json=results/load/metrics.json tests/load/receitando-read.js > results/load/requests.log 2>&1
+          code=$?
+          cat results/load/requests.log
+          exit "$code"
+      - name: Salvar log da API
+        if: always()
+        run: |
+          mkdir -p results/load
+          cp /tmp/receitando-api.log results/load/api.log || true
+      - name: Publicar resultados
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: k6-results-${{ inputs.scenario }}
+          path: results/load/
+          if-no-files-found: warn
+          retention-days: 14
