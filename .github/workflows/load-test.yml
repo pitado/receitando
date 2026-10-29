@@ -18,7 +18,7 @@ permissions:
 jobs:
   load-test:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -51,12 +51,13 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y k6
       - name: Executar teste com logs
+        timeout-minutes: 4
         run: |
           mkdir -p results/load
           set +e
-          k6 run -e BASE_URL=http://127.0.0.1:8787 -e MODE=${{ inputs.scenario }} -e DETAILED_LOGS=1 --summary-export=results/load/summary.json --out json=results/load/metrics.json tests/load/receitando-read.js > results/load/requests.log 2>&1
+          timeout --signal=TERM --kill-after=15s 180s k6 run -e BASE_URL=http://127.0.0.1:8787 -e MODE=${{ inputs.scenario }} -e DETAILED_LOGS=1 --summary-export=results/load/summary.json --out json=results/load/metrics.json tests/load/receitando-read.js > results/load/requests.log 2>&1
           code=$?
-          cat results/load/requests.log
+          tail -n 150 results/load/requests.log
           exit "$code"
       - name: Salvar log da API
         if: always()
