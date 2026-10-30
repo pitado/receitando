@@ -10,6 +10,7 @@ on:
         type: choice
         options:
           - smoke
+          - mixed
           - load
           - stress
           - professor
@@ -66,6 +67,8 @@ jobs:
           if [ '${{ inputs.scenario }}' = professor ]; then
             echo 'Iniciando meta: 1.000.000 escritas + 2.000.000 leituras em D1 local.'
             timeout --signal=TERM --kill-after=15s 2220s k6 run -e BASE_URL=http://127.0.0.1:8787 --summary-export=results/load/summary.json tests/load/receitando-professor.js > results/load/requests.log 2>&1
+          elif [ '${{ inputs.scenario }}' = mixed ]; then
+            timeout --signal=TERM --kill-after=15s 180s k6 run -e BASE_URL=http://127.0.0.1:8787 --summary-export=results/load/summary.json tests/load/receitando-mixed.js > results/load/requests.log 2>&1
           else
             timeout --signal=TERM --kill-after=15s 180s k6 run -e BASE_URL=http://127.0.0.1:8787 -e MODE=${{ inputs.scenario }} -e DETAILED_LOGS=1 --summary-export=results/load/summary.json --out json=results/load/metrics.json tests/load/receitando-read.js > results/load/requests.log 2>&1
           fi
