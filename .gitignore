@@ -49,3 +49,6 @@ Desktop.ini
 # Certificados e chaves locais
 *.pem
 *.key
+
+# Relatórios locais de testes de carga
+results/load/
