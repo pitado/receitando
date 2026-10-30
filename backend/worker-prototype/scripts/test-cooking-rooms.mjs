@@ -9,7 +9,7 @@ import { setTimeout as delay } from 'node:timers/promises';
 const base = 'http://127.0.0.1:8792';
 const origin = 'http://localhost:3000';
 const state = await mkdtemp(join(tmpdir(), 'receitando-ws-'));
-const processWorker = spawn(process.execPath, ['node_modules/wrangler/bin/wrangler.js', 'dev', '--local', '--ip', '127.0.0.1', '--port', '8792', '--inspector-port', '8793', '--persist-to', state, '--log-level', 'warn'], {
+const processWorker = spawn(process.execPath, ['node_modules/wrangler/bin/wrangler.js', 'dev', '--local', '--ip', '127.0.0.1', '--port', '8792', '--inspector-port', '8793', '--persist-to', state, '--var', 'DATABASE_ENGINE:d1', '--log-level', 'warn'], {
   // Wrangler needs a local Hyperdrive URL once the binding exists, even though
   // these WebSocket tests deliberately use local D1 and never access Postgres.
   env: {
