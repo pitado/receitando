@@ -12,6 +12,7 @@ on:
           - smoke
           - load
           - stress
+          - professor
 
 permissions:
   contents: read
@@ -19,7 +20,7 @@ permissions:
 jobs:
   load-test:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 43
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -32,6 +33,7 @@ jobs:
         run: |
           npm ci
           npm run migrate:local
+          npx wrangler d1 execute receitando --local --command 'CREATE TABLE IF NOT EXISTS load_benchmark (id TEXT PRIMARY KEY)'
       - name: Iniciar API local
         working-directory: backend/worker-prototype
         run: |
@@ -52,11 +54,16 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y k6
       - name: Executar teste com logs
-        timeout-minutes: 4
+        timeout-minutes: 39
         run: |
           mkdir -p results/load
           set +e
-          timeout --signal=TERM --kill-after=15s 180s k6 run -e BASE_URL=http://127.0.0.1:8787 -e MODE=${{ inputs.scenario }} -e DETAILED_LOGS=1 --summary-export=results/load/summary.json --out json=results/load/metrics.json tests/load/receitando-read.js > results/load/requests.log 2>&1
+          if [ '${{ inputs.scenario }}' = professor ]; then
+            echo 'Iniciando meta: 1.000.000 escritas + 2.000.000 leituras em D1 local.'
+            timeout --signal=TERM --kill-after=15s 2220s k6 run -e BASE_URL=http://127.0.0.1:8787 --summary-export=results/load/summary.json tests/load/receitando-professor.js > results/load/requests.log 2>&1
+          else
+            timeout --signal=TERM --kill-after=15s 180s k6 run -e BASE_URL=http://127.0.0.1:8787 -e MODE=${{ inputs.scenario }} -e DETAILED_LOGS=1 --summary-export=results/load/summary.json --out json=results/load/metrics.json tests/load/receitando-read.js > results/load/requests.log 2>&1
+          fi
           code=$?
           echo "Resultado do k6 (últimas 80 linhas):"
           tail -n 80 results/load/requests.log
