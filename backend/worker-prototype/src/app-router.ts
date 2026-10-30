@@ -108,10 +108,9 @@ export default {
     }
 
     if (path === "/api/internal/load-benchmark") {
-      const host = new URL(request.url).hostname;
-      if (host !== "127.0.0.1" && host !== "localhost") {
-        return new Response("Not found", { status: 404 });
-      }
+      // Ativado explicitamente somente no ambiente de teste; nunca exposto em produção.
+      const benchmarkEnabled = (env as Env & { BENCHMARK_ENABLED?: string }).BENCHMARK_ENABLED === "true";
+      if (!benchmarkEnabled) return new Response("Not found", { status: 404 });
       try {
         if (request.method === "POST") {
           const id = crypto.randomUUID();
