@@ -1,37 +1,37 @@
-# Migração segura do Receitando para PostgreSQL + Hyperdrive
+# Receitando — PostgreSQL + Hyperdrive em produção
 
-**Estado:** código de migração em preparação na branch de homologação. **Produção permanece em Cloudflare D1** até finalizar conexão Neon, cópia, auditoria e testes remotos.
+## Escopo autorizado (30/10/2026)
 
-## Importante: dados reais
+A migração inicial não transfere **contas, sessões, receitas nem seus relacionamentos** do D1. Usuários existentes deverão se registrar novamente. O catálogo de receitas começará vazio e novas receitas serão criadas no Neon.
 
-Em 30/10/2026, a produção já tinha usuários, sessões, receitas, despensa e envios de receita. Não apagar o D1. O catálogo, autenticação e histórico têm de ser preservados. Os arquivos de imagem ficam no Cloudflare R2, que não precisa ser migrado.
+A migração de ingredientes também não é necessária. Durante a preparação do corte houve uma cópia parcial de **920 ingredientes** para a nova base Neon; estes registros não correspondem ao catálogo de receitas. Eles devem ser tratados em uma operação de limpeza autorizada separadamente caso a intenção seja iniciar também o dicionário de ingredientes completamente vazio. A cópia foi feita apenas para Neon, sem exclusão do D1.
 
-## Procedimento de ativação
+## Plataforma
 
-1. Provisione um PostgreSQL (preferencialmente Neon) e guarde a `DATABASE_URL` em segredo. O Hyperdrive **não cria** o banco: ele conecta um banco PostgreSQL existente ao Worker.
-2. Registre backup e bookmark do D1. Bloqueie gravações enquanto importar; confirme que não há escritores concorrentes.
-3. Execute o importador em máquina confiável, com `DATABASE_URL`, `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `D1_DATABASE_ID` e `CONFIRM_D1_FREEZE=yes`: `npm run migrate:postgres`. Não registre credenciais nem dados pessoais em logs.
-4. Confirme contagem e conteúdo de cada tabela e a integridade referencial. O script verifica contagens, mas é necessária auditoria semântica adicional.
-5. Crie Hyperdrive com cache desativado para consultas de sessão/usuário. Via Wrangler: `npx wrangler hyperdrive create receitando-postgres --connection-string="$DATABASE_URL" --caching-disabled`.
-6. Adicione ao `wrangler.jsonc` o binding real `"hyperdrive":[{"binding":"HYPERDRIVE","id":"ID_GERADO"}]` e configure `DATABASE_ENGINE=postgres` **somente no ambiente de homologação**. O D1 fica disponível para retorno.
-7. Execute os testes em PostgreSQL, especialmente login, sessão, catálogo/FTS, CRUD de despensa, favoritos, interação social, moderação, recuperação de senha, rotas de imagens e WebSocket.
-8. Faça cutover em manutenção controlada apenas quando todas as verificações estiverem aprovadas, com rollback pronto para o D1.
+- PostgreSQL: Neon projeto `Receitando`, banco `receitando`, branch `production`, São Paulo, versão 17.
+- Hyperdrive: `receitando-postgres-neon` com ID `f3d216f3a0cc4c81990b03bdca9b87ea`, cache SQL desativado.
+- API: Cloudflare Worker `round-mouse-8bbd` com `DATABASE_ENGINE=postgres`.
+- D1: binding mantido como opção de rollback, sem importação de dados.
+- R2: `receitando-recipe-images` mantido para imagens.
+- Durable Objects: `CookingRoom` mantido para o cozinhar junto.
 
-## Arquitetura
+## Validações já concluídas
 
-- Frontend Next.js + React sem mudança.
-- Worker: `DATABASE_ENGINE=d1` preserva implementação existente; `postgres` usa driver `pg` e `env.HYPERDRIVE.connectionString`, com uma conexão por requisição e pooling no Hyperdrive.
-- PostgreSQL: esquema gerado com base no DDL existente; FTS5 substituído por `to_tsvector('portuguese')` com índice GIN; códigos SQL D1 são compatibilizados temporariamente pelo adaptador.
-- R2: continua armazenamento de imagens.
-- Durable Objects: continuam com estado isolado de cada sala; não são migrados para PostgreSQL.
+1. Consulta `SELECT 1` através de um Worker isolado e do Hyperdrive chegou ao Neon: PostgreSQL 17.11, banco `receitando`, 15 tabelas.
+2. Esquema no Neon: 15 tabelas e índices, busca full-text com `to_tsvector`.
+3. GitHub Actions: testes de autenticação, catálogo, despensa, favoritos e WebSocket passaram com PostgreSQL de integração.
+4. O script `npm run migrate:postgres` foi desativado intencionalmente para evitar importações antigas.
 
-## Verificações executáveis
+## Publicação e validação
 
-No backend, `npm run typecheck`, `npm test`, `npm run test:postgres`, `npm run dry-run`, `npm run test:ws`. Os testes unitários de tradução de SQL não substituem testes reais com um PostgreSQL provisionado. **Não publicar a versão com PostgreSQL na produção apenas porque a compilação passou.**
+O `wrangler.jsonc` contém o binding D1 para rollback e o binding Hyperdrive para PostgreSQL. Antes de finalizar a troca, confirmar:
 
-## Limitações conhecidas
+- `/api/health` devolve 200.
+- Endpoints de receitas, home e ingredientes respondem sem erros com os novos dados.
+- Cadastro e login com conta nova funcionam após o cutover.
+- Cookies, CORS, R2 e WebSocket continuam operacionais.
+- Logs da Cloudflare sem erros de `pg` / SQL.
 
-- O D1 usa SQLite com semânticas próprias; PostgreSQL exige testar explicitamente busca textual, classificação, valores de data, coerção de tipos, conflitos e batch transacional.
-- Migração feita com usuários ativos e novas escritas pode deixar tabelas inconsistentes. Por isso o importador exige confirmação explícita de congelamento.
-- O cache Hyperdrive deve estar desativado inicialmente, inclusive para consultas de sessão, e otimizações de cache devem ser auditadas antes de liberar.
-- O script copia registros das tabelas da aplicação, mas não substitui um backup do D1 nem garante, por si só, equivalência completa dos dados.
+Rollback: definir `DATABASE_ENGINE=d1` e redeployar o Worker anterior caso necessário; não apagar D1 nem dados no Neon. A conta e as receitas novas no Neon não aparecerão durante rollback, pois os bancos são separados.
+
+**Não excluir a base D1 antiga.**
