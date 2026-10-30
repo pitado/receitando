@@ -17,8 +17,8 @@ flowchart TB
     API --> DB[("Cloudflare D1")]
     API --> R2[("Cloudflare R2 — imagens")]
     API --> EMAIL["Resend — e-mail"]
-    F -->|"WebSocket via API"| ROOM["Durable Object — sala compartilhada"]
-    API --> ROOM
+    F -->|"Upgrade WebSocket"| API
+    API -->|"encaminha para a sala"| ROOM["Durable Object — sala compartilhada"]
     API -. "Processos futuros" .-> QUEUE["Cloudflare Queues"]
 ```
 
