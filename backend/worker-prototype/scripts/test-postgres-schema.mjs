@@ -53,12 +53,12 @@ try {
   }
 
   // Route-level smoke with the REAL API stack and a fake D1 binding backed by PostgreSQL.
-  const api = (await import("../.test-dist/session-cookie-worker.js")).default;
+  const api = (await import("../.test-dist/app-router.js")).default;
   const env = { db, FRONTEND_URL: "https://receitando.example.test" };
-  async function invoke(endpoint, method = "GET", body = undefined, cookie = "") {
+  async function invoke(endpoint, method = "GET", body = undefined, sessionToken = "") {
     const headers = { Origin: "https://receitando.example.test" };
     if (body !== undefined) headers["Content-Type"] = "application/json";
-    if (cookie) headers.Cookie = cookie;
+    if (sessionToken) headers.Authorization = "Bearer " + sessionToken;
     return api.fetch(new Request("https://api.receitando.example.test" + endpoint, {
       method,
       headers,
@@ -70,25 +70,25 @@ try {
   const credentials = { email: "regression-test@local.invalid", password: "uma-senha-longa-para-testes-2026" };
   const signup = await invoke("/api/auth/register", "POST", { name: "Teste Banco", ...credentials, remember: true });
   if (signup.status !== 201) throw new Error("Registration failed using PostgreSQL: " + signup.status + " " + await signup.text());
-  const rawCookie = signup.headers.get("set-cookie");
-  if (!rawCookie) throw new Error("Registration did not return HttpOnly session cookie");
-  const cookie = rawCookie.split(";")[0];
-  const profile = await invoke("/api/auth/me", "GET", undefined, cookie);
+  const signupPayload = await signup.json();
+  const sessionToken = signupPayload.token;
+  if (!sessionToken) throw new Error("Registration did not issue a database-backed session");
+  const profile = await invoke("/api/auth/me", "GET", undefined, sessionToken);
   if (profile.status !== 200) throw new Error("Session validation failed using PostgreSQL: " + profile.status);
   const login = await invoke("/api/auth/login", "POST", credentials);
   if (login.status !== 200) throw new Error("Login failed using PostgreSQL: " + login.status + " " + await login.text());
-  const addPantry = await invoke("/api/pantry", "POST", { ingredientId: ingredient, quantity: 2, unit: "un" }, cookie);
+  const addPantry = await invoke("/api/pantry", "POST", { ingredientId: ingredient, quantity: 2, unit: "un" }, sessionToken);
   if (addPantry.status !== 200) throw new Error("Pantry write failed using PostgreSQL: " + addPantry.status + " " + await addPantry.text());
-  const listPantry = await invoke("/api/pantry", "GET", undefined, cookie);
+  const listPantry = await invoke("/api/pantry", "GET", undefined, sessionToken);
   const pantry = await listPantry.json();
   if (listPantry.status !== 200 || !Array.isArray(pantry) || pantry.length !== 1) throw new Error("Pantry read failed using PostgreSQL");
-  const fav = await invoke("/api/favorites", "POST", { recipeId: recipe }, cookie);
+  const fav = await invoke("/api/favorites", "POST", { recipeId: recipe }, sessionToken);
   if (fav.status !== 200) throw new Error("Favorites write failed using PostgreSQL: " + fav.status + " " + await fav.text());
   const catalog = await invoke("/api/v2/recipes?q=banana");
   if (catalog.status !== 200) throw new Error("Catalog + search failed using PostgreSQL: " + catalog.status + " " + await catalog.text());
   const parsedCatalog = await catalog.json();
   if (!parsedCatalog.items?.some(item => item.id === recipe)) throw new Error("Catalog returned no seeded recipe via Postgres FTS");
-  console.log("PostgreSQL real API routes passed: health, register, cookie auth, login, pantry, favorites and catalog FTS.");
+  console.log("PostgreSQL real API routes passed: health, register, bearer auth, login, pantry, favorites and catalog FTS.");
   console.log("PostgreSQL: schema, real FTS, indexed lookup, parameter binding, conflict and transactional rollback passed.");
 } finally {
   await client.end();
