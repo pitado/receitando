@@ -56,3 +56,50 @@ jobs:
       - name: Test real WebSocket rooms locally
         run: npm run test:ws
       - run: npm run dry-run
+
+  # PR-only check. Uses an isolated, short-lived Worker rather than production routes.
+  verify-neon-through-hyperdrive:
+    if: github.event_name == 'pull_request' && github.head_ref == 'feat/postgres-hyperdrive-safe-migration'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend/worker-prototype
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      WRANGLER_SEND_METRICS: "false"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/worker-prototype/package-lock.json
+      - run: npm ci
+      - name: Deploy isolated Worker (no production routes)
+        id: deploy
+        run: npx wrangler deploy --config wrangler.hyperdrive-smoke.jsonc
+      - name: Real SQL SELECT through Cloudflare Hyperdrive to Neon
+        run: |
+          node --input-type=module <<'NODE'
+          const url = 'https://receitando-hyperdrive-smoke.miguellpitaa.workers.dev/verify';
+          let lastError = 'no_response';
+          for (let attempt = 1; attempt <= 15; attempt++) {
+            try {
+              const response = await fetch(url, { signal: AbortSignal.timeout(15000) });
+              const data = await response.json();
+              if (response.ok && data.success && data.transport === 'cloudflare-worker-hyperdrive' && data.database_name === 'receitando' && data.app_tables === 15) {
+                console.log(JSON.stringify({ verified: true, ...data }));
+                process.exit(0);
+              }
+              lastError = 'HTTP ' + response.status + ': ' + JSON.stringify(data);
+            } catch (error) {
+              lastError = error instanceof Error ? error.message : 'request_failed';
+            }
+            await new Promise(resolve => setTimeout(resolve, 2000));
+          }
+          throw new Error('Hyperdrive SELECT not verified: ' + lastError);
+          NODE
+      - name: Delete isolated verification Worker
+        if: always() && steps.deploy.outcome == 'success'
+        run: printf 'y\\n' | npx wrangler delete --config wrangler.hyperdrive-smoke.jsonc --name receitando-hyperdrive-smoke
