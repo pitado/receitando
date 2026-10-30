@@ -1,0 +1,15 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "receitando-hyperdrive-smoke",
+  "main": "src/hyperdrive-smoke-worker.ts",
+  "compatibility_date": "2026-10-30",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "preview_urls": false,
+  "hyperdrive": [
+    {
+      "binding": "HYPERDRIVE",
+      "id": "f3d216f3a0cc4c81990b03bdca9b87ea"
+    }
+  ]
+}
