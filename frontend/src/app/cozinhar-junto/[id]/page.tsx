@@ -48,6 +48,7 @@ export default function CookingRoomPage() {
   const [shareError, setShareError] = useState(false);
   const [shareUrl, setShareUrl] = useState("");
   const [timerSeconds, setTimerSeconds] = useState(0);
+  const [timerFinished, setTimerFinished] = useState(false);
   const [timerEnd, setTimerEnd] = useState<number | null>(null);
   const connection = useRef<CookingRoomConnection | null>(null);
 
@@ -83,7 +84,10 @@ export default function CookingRoomPage() {
     const update = () => {
       const seconds = Math.max(0, Math.ceil((timerEnd - Date.now()) / 1000));
       setTimerSeconds(seconds);
-      if (seconds === 0) setTimerEnd(null);
+      if (seconds === 0) {
+        setTimerEnd(null);
+        setTimerFinished(true);
+      }
     };
     update();
     const interval = window.setInterval(update, 250);
@@ -109,6 +113,7 @@ export default function CookingRoomPage() {
   }
 
   function startTimer(seconds: number) {
+    setTimerFinished(false);
     setTimerSeconds(seconds);
     setTimerEnd(timerDeadline(seconds));
   }
@@ -118,6 +123,7 @@ export default function CookingRoomPage() {
   }
 
   function resetTimer() {
+    setTimerFinished(false);
     setTimerEnd(null);
     setTimerSeconds(0);
   }
@@ -169,7 +175,7 @@ export default function CookingRoomPage() {
           <div className={styles.presence}>
             <div className={styles.avatars} aria-hidden="true">
               <span className={styles.avatarA}>✳</span>
-              <span className={styles.avatarB}>✦</span>
+              {room && room.onlineCount > 1 ? <span className={styles.avatarB}>✦</span> : null}
               {room && room.onlineCount > 2 ? <span className={styles.avatarExtra}>+{room.onlineCount - 2}</span> : null}
             </div>
             <p className={styles.presenceLabel}>
@@ -188,7 +194,7 @@ export default function CookingRoomPage() {
           <div>
             <p className={styles.sectionEyebrow}>CONVITE DA COZINHA</p>
             <h2 id="invite-title">Traga mais alguém para a receita</h2>
-            <p>Quem abrir este link participa da mesma sala e pode marcar etapas com você.</p>
+            <p>Quem abrir este link participa da mesma sala e pode marcar etapas com você. O convite dura até 24 horas.</p>
           </div>
           <div className={styles.inviteField}>
             <label htmlFor="invite-url">Link do convite</label>
@@ -286,7 +292,7 @@ export default function CookingRoomPage() {
                   {timerSeconds > 0 ? <button type="button" onClick={timerRunning ? pauseTimer : () => setTimerEnd(timerDeadline(timerSeconds))}>{timerRunning ? "Pausar" : "Continuar"}</button> : null}
                   <button type="button" onClick={resetTimer} disabled={timerSeconds === 0}>Zerar</button>
                 </div>
-                {timerSeconds === 0 && !timerRunning ? <span className={styles.timerNote} aria-live="polite">Escolha um tempo para começar.</span> : null}
+                {timerFinished ? <span className={styles.timerNote} role="status">Tempo encerrado! Você pode continuar o preparo.</span> : timerSeconds === 0 && !timerRunning ? <span className={styles.timerNote}>Escolha um tempo para começar.</span> : null}
               </section>
 
               <section className={styles.toolCard} aria-labelledby="ingredients-title">
