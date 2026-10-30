@@ -21,8 +21,8 @@ try {
   const ingredient = "fixture-ingredient";
   await db.prepare("INSERT INTO users (id, name, email, password_hash) VALUES (?, ?, ?, ?)").bind(user, "Teste", "fixture@local.invalid", "test").run();
   await db.prepare("INSERT INTO ingredients (id, name, normalized_name, category) VALUES (?, ?, ?, ?)").bind(ingredient, "Banana", "banana", "frutas").run();
-  await db.prepare("INSERT INTO recipes (id, title, slug, description, instructions, prep_minutes, servings) VALUES (?, ?, ?, ?, ?, ?, ?)")
-    .bind(recipe, "Bolo de banana", "bolo-banana-test", "Receita teste com banana madura", "Misture e asse", 35, 4).run();
+  await db.prepare("INSERT INTO recipes (id, title, slug, description, instructions, prep_minutes, servings, source_type, image_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")
+    .bind(recipe, "Bolo de banana", "bolo-banana-test", "Receita teste com banana madura", "Misture e asse", 35, 4, "USER", "https://example.invalid/bolo-banana.jpg").run();
 
   const search = await db.prepare("SELECT r.id FROM recipe_search JOIN recipes r ON recipe_search.recipe_id = r.id WHERE recipe_search MATCH ? ORDER BY bm25(recipe_search), r.title")
     .bind('"banana"*').all();
@@ -51,6 +51,44 @@ try {
   if (!/^\d{4}-\d{2}-\d{2}T/.test(dateRow?.created_at ?? "")) {
     throw new Error("Timestamp default lost ISO format compatibility");
   }
+
+  // Route-level smoke with the REAL API stack and a fake D1 binding backed by PostgreSQL.
+  const api = (await import("../.test-dist/session-cookie-worker.js")).default;
+  const env = { db, FRONTEND_URL: "https://receitando.example.test" };
+  async function invoke(endpoint, method = "GET", body = undefined, cookie = "") {
+    const headers = { Origin: "https://receitando.example.test" };
+    if (body !== undefined) headers["Content-Type"] = "application/json";
+    if (cookie) headers.Cookie = cookie;
+    return api.fetch(new Request("https://api.receitando.example.test" + endpoint, {
+      method,
+      headers,
+      body: body === undefined ? undefined : JSON.stringify(body),
+    }), env);
+  }
+  const health = await invoke("/api/health");
+  if (health.status !== 200) throw new Error("Real API health route failed with PostgreSQL gateway");
+  const credentials = { email: "regression-test@local.invalid", password: "uma-senha-longa-para-testes-2026" };
+  const signup = await invoke("/api/auth/register", "POST", { name: "Teste Banco", ...credentials, remember: true });
+  if (signup.status !== 201) throw new Error("Registration failed using PostgreSQL: " + signup.status + " " + await signup.text());
+  const rawCookie = signup.headers.get("set-cookie");
+  if (!rawCookie) throw new Error("Registration did not return HttpOnly session cookie");
+  const cookie = rawCookie.split(";")[0];
+  const profile = await invoke("/api/auth/me", "GET", undefined, cookie);
+  if (profile.status !== 200) throw new Error("Session validation failed using PostgreSQL: " + profile.status);
+  const login = await invoke("/api/auth/login", "POST", credentials);
+  if (login.status !== 200) throw new Error("Login failed using PostgreSQL: " + login.status + " " + await login.text());
+  const addPantry = await invoke("/api/pantry", "POST", { ingredientId: ingredient, quantity: 2, unit: "un" }, cookie);
+  if (addPantry.status !== 200) throw new Error("Pantry write failed using PostgreSQL: " + addPantry.status + " " + await addPantry.text());
+  const listPantry = await invoke("/api/pantry", "GET", undefined, cookie);
+  const pantry = await listPantry.json();
+  if (listPantry.status !== 200 || !Array.isArray(pantry) || pantry.length !== 1) throw new Error("Pantry read failed using PostgreSQL");
+  const fav = await invoke("/api/favorites", "POST", { recipeId: recipe }, cookie);
+  if (fav.status !== 200) throw new Error("Favorites write failed using PostgreSQL: " + fav.status + " " + await fav.text());
+  const catalog = await invoke("/api/v2/recipes?q=banana");
+  if (catalog.status !== 200) throw new Error("Catalog + search failed using PostgreSQL: " + catalog.status + " " + await catalog.text());
+  const parsedCatalog = await catalog.json();
+  if (!parsedCatalog.items?.some(item => item.id === recipe)) throw new Error("Catalog returned no seeded recipe via Postgres FTS");
+  console.log("PostgreSQL real API routes passed: health, register, cookie auth, login, pantry, favorites and catalog FTS.");
   console.log("PostgreSQL: schema, real FTS, indexed lookup, parameter binding, conflict and transactional rollback passed.");
 } finally {
   await client.end();
