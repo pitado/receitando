@@ -52,7 +52,7 @@ jobs:
         run: |
           node --input-type=module <<'NODE'
           const base='https://api.receitando.miguelpita.com.br';
-          const routes=['/api/health','/api/v2/recipes','/api/recipes','/api/home-feed','/api/ingredients'];
+          const routes=['/api/health','/api/v2/recipes','/api/recipes','/api/home-feed','/api/ingredients','/api/recipe-references'];
           for (const route of routes) {
             let ok=false,lastStatus=0;
             for (let attempt=1; attempt<=10; attempt++) {
@@ -60,7 +60,13 @@ jobs:
                 const r=await fetch(base+route, {signal:AbortSignal.timeout(12000)});
                 lastStatus=r.status;
                 const json=await r.json().catch(()=>null);
-                if(r.status===200 && json!==null && (!Array.isArray(json)||route==='/api/ingredients')){ok=true;break;}
+                const validShape =
+                  route === '/api/recipes' || route === '/api/ingredients'
+                    ? Array.isArray(json)
+                    : route === '/api/recipe-references'
+                      ? Array.isArray(json?.items) && json.items.length > 0
+                      : json !== null && typeof json === 'object' && !Array.isArray(json);
+                if(r.status===200 && validShape){ok=true;break;}
               }catch(e){lastStatus=-1;}
               await new Promise(resolve=>setTimeout(resolve,2500));
             }
