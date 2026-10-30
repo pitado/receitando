@@ -1,0 +1,152 @@
+[
+  {
+    "id": "tg-bolo-cenoura",
+    "title": "Bolo de cenoura",
+    "category": "sobremesa",
+    "source": "TudoGostoso",
+    "url": "https://www.tudogostoso.com.br/receita/13402-bolo-de-cenoura.html",
+    "author": "Denise",
+    "rights": "link_only",
+    "termsUrl": "https://www.tudogostoso.com.br/termos-de-uso"
+  },
+  {
+    "id": "tg-brigadeiro",
+    "title": "Brigadeiro",
+    "category": "sobremesa",
+    "source": "TudoGostoso",
+    "url": "https://www.tudogostoso.com.br/receita/121597-brigadeiro.html",
+    "author": "TudoGostoso",
+    "rights": "link_only",
+    "termsUrl": "https://www.tudogostoso.com.br/termos-de-uso"
+  },
+  {
+    "id": "tg-pao-queijo",
+    "title": "Pão de queijo",
+    "category": "lanche",
+    "source": "TudoGostoso",
+    "url": "https://www.tudogostoso.com.br/receita/2341-pao-de-queijo.html",
+    "author": "TudoGostoso",
+    "rights": "link_only",
+    "termsUrl": "https://www.tudogostoso.com.br/termos-de-uso"
+  },
+  {
+    "id": "tg-panqueca-simples",
+    "title": "Panqueca simples",
+    "category": "almoço",
+    "source": "TudoGostoso",
+    "url": "https://www.tudogostoso.com.br/receita/103126-panqueca-simples.html",
+    "author": "Bruna Lourenço",
+    "rights": "link_only",
+    "termsUrl": "https://www.tudogostoso.com.br/termos-de-uso"
+  },
+  {
+    "id": "tg-lasanha",
+    "title": "Lasanha",
+    "category": "jantar",
+    "source": "TudoGostoso",
+    "url": "https://www.tudogostoso.com.br/receita/29036-lasanha.html",
+    "author": "Lucia Dantas",
+    "rights": "link_only",
+    "termsUrl": "https://www.tudogostoso.com.br/termos-de-uso"
+  },
+  {
+    "id": "tg-fricasse-frango",
+    "title": "Fricassê de frango",
+    "category": "almoço",
+    "source": "TudoGostoso",
+    "url": "https://www.tudogostoso.com.br/receita/52231-fricasse-de-frango.html",
+    "author": "Fernanda M.",
+    "rights": "link_only",
+    "termsUrl": "https://www.tudogostoso.com.br/termos-de-uso"
+  },
+  {
+    "id": "re-strogonoff-simples",
+    "title": "Strogonoff de frango simples",
+    "category": "almoço",
+    "source": "Receiteria",
+    "url": "https://www.receiteria.com.br/receita/strogonoff-de-frango-simples/",
+    "author": null,
+    "rights": "link_only",
+    "termsUrl": "https://www.receiteria.com.br/termos-de-uso/"
+  },
+  {
+    "id": "re-torta-liquidificador",
+    "title": "Torta de liquidificador",
+    "category": "lanche",
+    "source": "Receiteria",
+    "url": "https://www.receiteria.com.br/receita/torta-de-liquidificador/",
+    "author": null,
+    "rights": "link_only",
+    "termsUrl": "https://www.receiteria.com.br/termos-de-uso/"
+  },
+  {
+    "id": "re-arroz-doce-tradicional",
+    "title": "Arroz-doce tradicional",
+    "category": "sobremesa",
+    "source": "Receiteria",
+    "url": "https://www.receiteria.com.br/receita/arroz-doce-tradicional/",
+    "author": null,
+    "rights": "link_only",
+    "termsUrl": "https://www.receiteria.com.br/termos-de-uso/"
+  },
+  {
+    "id": "re-strogonoff-frango",
+    "title": "Strogonoff de frango",
+    "category": "jantar",
+    "source": "Receiteria",
+    "url": "https://www.receiteria.com.br/receita/strogonoff-de-frango/",
+    "author": null,
+    "rights": "link_only",
+    "termsUrl": "https://www.receiteria.com.br/termos-de-uso/"
+  },
+  {
+    "id": "pa-arroz-branco",
+    "title": "Arroz branco soltinho",
+    "category": "almoço",
+    "source": "Panelinha",
+    "url": "https://panelinha.com.br/receita/arroz-branco-soltinho",
+    "author": "Panelinha",
+    "rights": "link_only",
+    "termsUrl": "https://panelinha.com.br/termos-de-uso"
+  },
+  {
+    "id": "pa-macarrao-limao",
+    "title": "Macarrão ao limão",
+    "category": "jantar",
+    "source": "Panelinha",
+    "url": "https://panelinha.com.br/receita/macarrao-com-limao",
+    "author": "Panelinha",
+    "rights": "link_only",
+    "termsUrl": "https://panelinha.com.br/termos-de-uso"
+  },
+  {
+    "id": "pa-macarrao-parmesao",
+    "title": "Macarrão com manteiga, limão e parmesão",
+    "category": "jantar",
+    "source": "Panelinha",
+    "url": "https://panelinha.com.br/receita/macarrao-manteiga-limao-parmesao",
+    "author": "Panelinha",
+    "rights": "link_only",
+    "termsUrl": "https://panelinha.com.br/termos-de-uso"
+  },
+  {
+    "id": "pa-bolinho-macarrao",
+    "title": "Bolinho de macarrão",
+    "category": "lanche",
+    "source": "Panelinha",
+    "url": "https://panelinha.com.br/receita/bolinho-de-macarrao",
+    "author": "Panelinha",
+    "rights": "link_only",
+    "termsUrl": "https://panelinha.com.br/termos-de-uso"
+  },
+  {
+    "id": "pa-macarrao-legumes",
+    "title": "Macarrão com legumes assados",
+    "category": "almoço",
+    "source": "Panelinha",
+    "url": "https://panelinha.com.br/receita/macarrao-com-legumes-assados",
+    "author": "Panelinha",
+    "rights": "link_only",
+    "termsUrl": "https://panelinha.com.br/termos-de-uso"
+  }
+]

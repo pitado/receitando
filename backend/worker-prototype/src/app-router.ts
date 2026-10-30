@@ -1,4 +1,5 @@
 import authRateLimitWorker from "./auth-rate-limit-worker";
+import externalReferencesWorker from "./external-references-worker";
 import catalogWorker from "./catalog64-worker";
 import catalogV2Worker from "./catalog-v2-worker";
 import homeWorker from "./home-worker";
@@ -157,6 +158,10 @@ export default {
 
     if (path === "/api/home-feed") {
       return homeWorker.fetch(request, env);
+    }
+
+    if (path === "/api/recipe-references") {
+      return externalReferencesWorker.fetch(request, env);
     }
 
     if (path === "/api/v2/recipes") {

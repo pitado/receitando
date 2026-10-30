@@ -893,3 +893,6 @@
     animation: none;
   }
 }
+
+.externalIdeasLink { display:inline-block; margin-top:20px; color:#ffe0b1; font-size:14px; font-weight:750; text-decoration:underline; text-underline-offset:5px; }
+.externalIdeasLink:hover {color:white;}

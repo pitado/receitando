@@ -1,0 +1,26 @@
+.page { background:#96462b; min-height:100vh; color:#fbf2e8; font-family:var(--font-home-copy),system-ui,sans-serif; }
+.container { max-width:1180px; margin:0 auto; padding:48px 28px 90px; }
+.back { color:#f4dbc4; display:inline-block; font-weight:700; text-decoration:underline; text-underline-offset:5px; margin-bottom:45px; }
+.hero { max-width:890px; margin-bottom:46px; }
+.eyebrow { font-size:13px; letter-spacing:.16em; text-transform:uppercase; color:#edc070; font-weight:800; }
+.hero h1 { font-family:var(--font-home-title),Impact,sans-serif; font-weight:400; font-size:clamp(45px,7vw,88px); line-height:1.03; margin:20px 0; letter-spacing:-.015em; }
+.hero h1 em { color:#edc070; font-style:normal; }
+.hero p { max-width:680px; font-size:18px; line-height:1.65; }
+.hero .legal { font-size:14px; color:#f4d7c1; }
+.grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:22px; }
+.card { background:#fbf2e8; border-radius:24px; padding:24px; color:#2b1a12; display:flex; flex-direction:column; box-shadow:0 8px 0 rgba(56,39,31,.12); }
+.cardTop { display:flex; justify-content:space-between; gap:12px; align-items:center; }
+.category { text-transform:capitalize; background:#f3dcc4; color:#754229; border-radius:40px; padding:6px 12px; font-size:12px; font-weight:700; }
+.source { font-size:12px; color:#714a37; font-weight:800; }
+.illustration { margin:24px 0 16px; height:76px; display:grid; place-items:center; background:#f5e7d7; color:#96462b; border-radius:16px; font-size:42px; }
+.card h2 { font-family:var(--font-home-title),Impact,sans-serif; font-weight:400; font-size:25px; line-height:1.2; margin:0 0 9px; }
+.credit { color:#674a39; font-size:13px; margin:0 0 13px; }
+.legalShort { margin:0 0 24px; font-size:13px; color:#826453; }
+.open { display:block; margin-top:auto; background:#96462b; border-radius:999px; text-align:center; color:white; padding:14px 18px; font-weight:750; text-decoration:none; }
+.open:hover { background:#71351f; }
+.open:focus-visible,.back:focus-visible,.footer a:focus-visible { outline:3px solid #edc070; outline-offset:3px; }
+.status { border:1px solid #e8c597; padding:20px; border-radius:16px; margin:24px 0; }
+.footer { font-size:14px; line-height:1.6; margin-top:35px; color:#f4d7c1; }
+.footer a { color:#ffdc9d; text-decoration:underline; }
+@media (max-width:960px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}} 
+@media (max-width:640px){.container{padding:30px 18px 64px}.grid{grid-template-columns:1fr}.card{padding:20px}.hero p{font-size:16px}}
