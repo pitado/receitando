@@ -1,6 +1,14 @@
 # Fase 4 — Teste inicial de carga (k6)
 
-Este cenário é **somente leitura**, para não modificar dados reais, gerar contas ou enviar e-mails. O modo padrão é um smoke test curto; o modo load aumenta gradualmente até 20 usuários virtuais. Não equivale a comprovar 1 milhão de escritas e 2 milhões de leituras.
+O arquivo `receitando-read.js` é **somente leitura**, para não modificar dados reais, gerar contas ou enviar e-mails. O modo padrão é um smoke test curto; o modo load aumenta gradualmente até 20 usuários virtuais. Não equivale a comprovar 1 milhão de escritas e 2 milhões de leituras.
+
+## Cenário acadêmico de escrita e leitura (D1 local)
+
+O arquivo `receitando-professor.js` define **1.000.000 de POSTs** (cada um insere um UUID na tabela `load_benchmark`) e **2.000.000 de GETs** (cada um executa `SELECT COUNT(*)`). São operações simultâneas no D1 local do runner do GitHub, e não um teste de produção. A execução tem prazo máximo e pode terminar antes da meta, com falha por timeout ou erro de banco. A contagem real de operações bem-sucedidas deve ser conferida em `summary.json`, pelas métricas `successful_writes` e `successful_reads` e pelo código de saída. **A meta é configurada, não garantida.**
+
+Na aba Actions, escolha o workflow **Teste de Escalabilidade (k6)**, branch `main`, cenário `professor`. O teste usa até 80 VUs de escrita e 160 de leitura, por até 35 minutos. Não executar contra produção.
+
+**Limitações:** consultas `COUNT(*)` e inserções sintéticas não representam todas as consultas e transações de negócio; uma única máquina executa gerador de carga e API local; métricas não comprovam capacidade de produção nem alta disponibilidade. As operações devem ser interpretadas conforme a janela temporal exigida no enunciado.
 
 ## Execução local
 
@@ -42,4 +50,4 @@ Arquivos gerados:
 
 A execução registra cada requisição de teste no console somente com `DETAILED_LOGS=1`. Não registra o corpo da resposta nem dados de autenticação. O volume de logs pode ser alto; usar em execução controlada. O resumo não é uma trilha de auditoria de todas as operações internas do backend. Para isso, é necessário instrumentar a API e a infraestrutura separadamente.
 
-Os arquivos são criados apenas quando o comando é executado. Não existem resultados de carga medidos ainda.
+Os arquivos são criados quando o comando é executado. Os resultados efetivos devem ser obtidos no artifact da execução correspondente; não presumir aprovação por configuração.
