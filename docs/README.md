@@ -2,13 +2,22 @@
 
 Esta pasta reúne a documentação oficial do projeto, separando escopo acadêmico, estado funcional, arquitetura, contratos e operação.
 
-## Índice
+## Arquitetura e apresentação
+
+Estes são os documentos principais para entender e apresentar a estrutura do Receitando:
 
 | Documento | Conteúdo |
 | --- | --- |
-| [`system-design-fase4.md`](system-design-fase4.md) | entrega Fase 4: arquitetura, escalabilidade, integrações propostas e limites | 
-| [`defesa-fase4.md`](defesa-fase4.md) | roteiro de apresentação e perguntas da defesa | 
-| [`../tests/load/README.md`](../tests/load/README.md) | execução e interpretação dos testes k6 em banco isolado | 
+| [System Design](system-design.md) | Arquitetura, decisões de infraestrutura, escalabilidade e integrações |
+| [Diagrama de componentes](diagramas/componentes.md) | Organização visual do frontend, API, banco e WebSocket |
+| [WebSocket — Receitando Juntos](websocket-receitando-juntos.md) | Rotas, mensagens e funcionamento das salas compartilhadas |
+| [Defesa da arquitetura](defesa-arquitetura.md) | Roteiro de apresentação e justificativas técnicas |
+| [Testes de carga](../tests/load/README.md) | Cenários, resultados e limitações dos testes com k6 |
+
+## Outros documentos
+
+| Documento | Conteúdo |
+| --- | --- |
 | [`escopo.md`](escopo.md) | problema, objetivo, público-alvo, requisitos, entregas e critérios de conclusão |
 | [`glossario.md`](glossario.md) | termos de negócio, produto, requisitos, arquitetura, banco, segurança e catálogo externo |
 | [`funcionalidades.md`](funcionalidades.md) | funcionalidades efetivamente implementadas |
@@ -38,6 +47,8 @@ Arquivos de governança/histórico na raiz:
 ## Ordem recomendada
 
 ### Avaliação acadêmica
+
+Para apresentar a arquitetura, comece por [System Design](system-design.md), [diagrama de componentes](diagramas/componentes.md), [WebSocket](websocket-receitando-juntos.md) e [defesa da arquitetura](defesa-arquitetura.md). Os materiais abaixo complementam a documentação geral do projeto.
 
 1. [`escopo.md`](escopo.md)
 2. [`../receitando-requisitos.md`](../receitando-requisitos.md)
