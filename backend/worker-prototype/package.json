@@ -2,7 +2,7 @@
   "name": "receitando-backend-worker-prototype",
   "version": "0.1.0",
   "private": true,
-  "description": "API do Receitando em Cloudflare Workers + D1",
+  "description": "API do Receitando em Cloudflare Workers, D1/PostgreSQL + Hyperdrive",
   "scripts": {
     "cf-typegen": "wrangler types worker-configuration.d.ts --include-runtime false",
     "typecheck": "tsc --noEmit",
@@ -13,13 +13,18 @@
     "migrate:local": "wrangler d1 migrations apply receitando --local",
     "migrate:remote": "wrangler d1 migrations apply receitando --remote",
     "deploy": "wrangler deploy",
-    "test:ws": "node scripts/test-cooking-rooms.mjs"
+    "test:ws": "node scripts/test-cooking-rooms.mjs",
+    "migrate:postgres": "node scripts/migrate-d1-to-postgres.mjs",
+    "test:postgres": "node --experimental-strip-types --test tests/postgres-adapter.test.ts"
   },
-  "dependencies": {},
+  "dependencies": {
+    "pg": "^8.16.3"
+  },
   "devDependencies": {
     "@cloudflare/workers-types": "5.20260823.1",
     "typescript": "5.9.3",
-    "wrangler": "4.125.0"
+    "wrangler": "4.125.0",
+    "@types/pg": "^8.15.5"
   },
   "engines": {
     "node": ">=20.9.0 <25"
