@@ -45,8 +45,7 @@ jobs:
         run: npm run test:ws
       - name: Validate Worker build
         run: npm run dry-run
-      - name: Apply D1 migrations
-        run: npm run migrate:remote
+      # D1 migrations are intentionally skipped: the original D1 database is a rollback snapshot.
       - name: Deploy Worker
         run: npm run deploy
       # Catalog image mirroring belongs to the dedicated import-wikibooks workflow.
