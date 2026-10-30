@@ -381,6 +381,8 @@ export function RecipesCatalog({
             </p>
           </div>
 
+          <Link href="/inspiracoes" className={styles.externalIdeasLink}>Descubra inspirações em sites brasileiros ↗</Link>
+
           <div className={styles.search}>
             <svg aria-hidden="true" className={styles.searchIcon} viewBox="0 0 24 24">
               <circle cx="11" cy="11" r="7" />

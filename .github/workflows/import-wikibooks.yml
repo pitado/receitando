@@ -1,52 +1,20 @@
-name: Importar receitas do Wikilivros
-
+name: Referências brasileiras de receitas (somente links)
 on:
   workflow_dispatch:
     inputs:
-      category:
-        description: Escopo de receitas do Wikilivros
+      apply:
+        description: "Importar metadados e links no PostgreSQL? (requer NEON_IMPORT_URL no Secrets)"
         required: true
-        default: Todas as categorias
-        type: choice
-        options:
-          - Todas as categorias
-          - Salgados, Lanches e Sanduíches
-          - Doces
-          - Entradas
-          - Massas
-          - Quitandas
-          - Sobremesas
-      limit:
-        description: Meta de receitas com imagem livre
-        required: true
-        default: "100"
-        type: choice
-        options:
-          - "25"
-          - "50"
-          - "100"
-          - "250"
-          - "500"
-          - "all"
-
+        default: false
+        type: boolean
 permissions:
   contents: read
-
-concurrency:
-  group: wikibooks-import
-  cancel-in-progress: false
-
 jobs:
-  import:
-    name: descobrir importar e canonicalizar receitas
+  verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 180
     defaults:
       run:
         working-directory: backend/worker-prototype
-    env:
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -55,19 +23,11 @@ jobs:
           cache: npm
           cache-dependency-path: backend/worker-prototype/package-lock.json
       - run: npm ci
-      - name: Validar scripts de catálogo
-        run: |
-          node --check scripts/import-wikibooks-v2.mjs
-          node --check scripts/canonicalize-ingredients.mjs
-          node --check scripts/mirror-wikibooks-images-to-r2.mjs
-      - name: Aplicar migrations
-        run: npm run migrate:remote
-      - name: Importar receitas com imagens livres
-        run: node scripts/import-wikibooks-v2.mjs --category "$CATEGORY" --limit "$LIMIT"
+      - run: node --test tests/external-references.test.cjs
+      - run: node scripts/import-external-references.mjs
+      - name: Importar apenas links autorizados (sem scraping)
+        if: ${{ inputs.apply == true }}
         env:
-          CATEGORY: ${{ inputs.category }}
-          LIMIT: ${{ inputs.limit }}
-      - name: Canonicalizar ingredientes importados
-        run: node scripts/canonicalize-ingredients.mjs
-      - name: Copiar imagens importadas para o R2
-        run: node scripts/mirror-wikibooks-images-to-r2.mjs
+          POSTGRES_IMPORT_URL: ${{ secrets.NEON_IMPORT_URL }}
+          ALLOW_EXTERNAL_REFERENCES_WRITE: "true"
+        run: node scripts/import-external-references.mjs --apply
