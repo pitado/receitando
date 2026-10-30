@@ -110,7 +110,16 @@ export class CookingRoom extends DurableObject<Env> {
     }
   }
 
-  webSocketClose(ws: WebSocket): void { this.presence(ws); }
+  webSocketClose(ws: WebSocket, code: number, reason: string): void {
+    // Complete the close handshake on runtimes requiring an explicit reply.
+    // On newer Cloudflare compatibility dates, calling close() is still safe.
+    try {
+      ws.close(code, reason);
+    } catch (error) {
+      console.warn("cooking_room_close_reply_failed", { code, error: String(error) });
+    }
+    this.presence(ws);
+  }
   webSocketError(ws: WebSocket): void {
     ws.close(1011, "Conexão interrompida");
     this.presence(ws);
