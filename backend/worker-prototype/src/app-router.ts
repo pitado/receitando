@@ -116,11 +116,27 @@ export default {
       if (!benchmarkEnabled) return new Response("Not found", { status: 404 });
       try {
         if (request.method === "POST") {
-          const id = crypto.randomUUID();
-          await env.db.prepare("INSERT INTO load_benchmark (id) VALUES (?)").bind(id).run();
-          return Response.json({ ok: true }, { status: 201 });
+          const requestedId = request.headers.get("X-Benchmark-Id");
+          if (requestedId && !/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(requestedId)) {
+            return Response.json({ ok: false, message: "Invalid benchmark id" }, { status: 400 });
+          }
+          // Chave opcional definida pelo k6: tentativas repetidas da mesma operação não duplicam escritas.
+          const id = requestedId || crypto.randomUUID();
+          await env.db.prepare("INSERT OR IGNORE INTO load_benchmark (id) VALUES (?)").bind(id).run();
+          return Response.json({ ok: true, id }, { status: 201 });
         }
         if (request.method === "GET") {
+          const requestedId = new URL(request.url).searchParams.get("id");
+          if (requestedId !== null) {
+            if (!/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(requestedId)) {
+              return Response.json({ ok: false, message: "Invalid benchmark id" }, { status: 400 });
+            }
+            // SELECT indexado: ler 2 milhões de vezes COUNT(*) seria uma carga artificial e crescente.
+            const row = await env.db.prepare("SELECT id FROM load_benchmark WHERE id = ? LIMIT 1")
+              .bind(requestedId).first<{ id: string }>();
+            return Response.json({ ok: true, found: row?.id === requestedId });
+          }
+          // Somente validação inicial e final; não é usada nas 2 milhões de leituras.
           const row = await env.db.prepare("SELECT COUNT(*) AS total FROM load_benchmark").first<{ total: number }>();
           return Response.json({ ok: true, total: row?.total ?? 0 });
         }
