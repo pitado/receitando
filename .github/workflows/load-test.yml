@@ -37,7 +37,7 @@ jobs:
       - name: Iniciar API local
         working-directory: backend/worker-prototype
         run: |
-          nohup npm run dev -- --ip 127.0.0.1 --port 8787 > /tmp/receitando-api.log 2>&1 &
+          nohup npm run dev -- --ip 127.0.0.1 --port 8787 --var BENCHMARK_ENABLED:true > /tmp/receitando-api.log 2>&1 &
           for i in $(seq 1 45); do
             if curl -fsS http://127.0.0.1:8787/api/health > /dev/null; then exit 0; fi
             sleep 2
