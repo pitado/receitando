@@ -14,6 +14,9 @@ export function convertSql(sql: string, values: Params): { text: string; values:
   let query = sql
     .replace(/\bINSERT\s+OR\s+IGNORE\s+INTO\b/gi, "INSERT INTO")
     .replace(/\bCOLLATE\s+NOCASE\b/gi, 'COLLATE "default"')
+    // PostgreSQL folds unquoted camelCase aliases to lowercase; SQLite preserves them.
+    .replace(/\bAS\s+([A-Za-z_][A-Za-z0-9_]*)\b/gi, (match, alias: string) =>
+      /[A-Z]/.test(alias) ? 'AS "' + alias + '"' : match)
     .replace(/\brecipe_search\s+MATCH\s+\?/gi, "recipe_search.search_vector @@ to_tsquery('portuguese', ?)")
     .replace(/\bbm25\s*\(\s*recipe_search\s*\)/gi, "(-EXTRACT(EPOCH FROM r.updated_at::timestamptz))");
 
