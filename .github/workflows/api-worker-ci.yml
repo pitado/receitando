@@ -21,6 +21,20 @@ permissions:
 jobs:
   validate-api-worker:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: receitando_ci
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: receitando_ci_only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d receitando_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     defaults:
       run:
         working-directory: backend/worker-prototype
@@ -34,6 +48,11 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm test
+      - run: npm run test:postgres
+      - name: Exercise real PostgreSQL compatibility and schema in CI
+        env:
+          POSTGRES_TEST_URL: postgres://postgres:receitando_ci_only@127.0.0.1:5432/receitando_ci
+        run: npm run test:postgres:integration
       - name: Test real WebSocket rooms locally
         run: npm run test:ws
       - run: npm run dry-run

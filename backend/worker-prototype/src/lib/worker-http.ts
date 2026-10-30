@@ -2,6 +2,8 @@ import { sha256 } from "./security";
 
 export interface Env {
   db: D1Database;
+  DATABASE_ENGINE?: "d1" | "postgres";
+  HYPERDRIVE?: Hyperdrive;
   COOKING_ROOMS?: DurableObjectNamespace;
   FRONTEND_URL: string;
   RESEND_API_KEY?: string;

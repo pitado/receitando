@@ -15,6 +15,7 @@
   ],
   "vars": {
     // Produção, endereço workers.dev e desenvolvimento local autorizados pelo CORS da API.
+    "DATABASE_ENGINE": "postgres",
     "FRONTEND_URL": "https://receitando.miguelpita.com.br,https://www.receitando.miguelpita.com.br,https://receitando.miguellpitaa.workers.dev,http://localhost:3000",
     "EMAIL_FROM": "Receitando <noreply@mail.miguelpita.com.br>"
   },
@@ -24,6 +25,13 @@
       "database_name": "receitando",
       "database_id": "af1f7dbc-50a3-497c-9188-2f57467ae49b",
       "migrations_dir": "migrations"
+    }
+  ],
+  // Produção usa Neon via Hyperdrive; D1 permanece conectado para rollback.
+  "hyperdrive": [
+    {
+      "binding": "HYPERDRIVE",
+      "id": "f3d216f3a0cc4c81990b03bdca9b87ea"
     }
   ],
   "r2_buckets": [
