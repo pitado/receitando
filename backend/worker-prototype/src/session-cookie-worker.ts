@@ -132,6 +132,7 @@ export default {
 
     const authenticatedRequest = requestWithCookieAuthorization(request, cookieToken);
     const response = await appRouter.fetch(authenticatedRequest, env);
+    if (response.status === 101) return response;
 
     if (isSessionCreation) {
       return attachSessionCookie(request, env, response, remember);
@@ -144,3 +145,5 @@ export default {
     return withCredentialCors(request, env, response);
   },
 };
+
+export { CookingRoom } from "./cooking-room";
