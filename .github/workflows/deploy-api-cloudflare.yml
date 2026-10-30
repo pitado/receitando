@@ -32,7 +32,7 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: backend/worker-prototype/package-lock.json
-      - run: npm ci
+      - run: npm install --no-audit --no-fund
       - name: R2 bucket note
         shell: bash
         run: |
@@ -40,6 +40,7 @@ jobs:
           echo "The deploy token does not need R2 bucket list/create permissions."
       - run: npm run typecheck
       - run: npm test
+      - run: npm run test:postgres
       - name: Test real WebSocket rooms locally
         run: npm run test:ws
       - name: Validate Worker build
