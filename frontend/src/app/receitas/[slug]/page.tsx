@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { CSSProperties } from "react";
 
+import { CookTogetherButton } from "@/components/recipe/CookTogetherButton";
 import { FavoriteButton } from "@/components/recipe/FavoriteButton";
 import { RecipeActions } from "@/components/recipe/RecipeActions";
 import { RecipeAdapter } from "@/components/recipe/RecipeAdapter";
@@ -48,6 +49,7 @@ export default async function RecipeDetailPage({ params }: RecipeDetailPageProps
           <div className={styles.titleRow}><h1>{recipe.title}</h1><FavoriteButton recipeId={recipe.id} /></div>
           <p className={styles.description}>{recipe.description}</p>
           <RecipeActions steps={instructionSteps} title={recipe.title} />
+          <CookTogetherButton slug={recipe.slug} title={recipe.title} steps={instructionSteps} />
           <dl className={styles.facts}>
             {recipe.prepMinutes > 0 ? <div><dt>Preparo</dt><dd>{formatPrepTime(recipe.prepMinutes)}</dd></div> : null}
             {recipe.servings > 0 ? <div><dt>Rendimento</dt><dd>{recipe.servings} {recipe.servings === 1 ? "porção" : "porções"}</dd></div> : null}

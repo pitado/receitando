@@ -6,7 +6,6 @@ Esta pasta reúne a documentação oficial do projeto, separando escopo acadêmi
 
 | Documento | Conteúdo |
 | --- | --- |
-| [`receitando-juntos.md`](receitando-juntos.md) | proposta de cozinha colaborativa com WebSocket e Durable Objects | 
 | [`system-design-fase4.md`](system-design-fase4.md) | entrega Fase 4: arquitetura, escalabilidade, integrações propostas e limites | 
 | [`defesa-fase4.md`](defesa-fase4.md) | roteiro de apresentação e perguntas da defesa | 
 | [`../tests/load/README.md`](../tests/load/README.md) | execução e interpretação dos testes k6 em banco isolado | 
