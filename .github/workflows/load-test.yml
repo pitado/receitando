@@ -44,6 +44,11 @@ jobs:
           done
           cat /tmp/receitando-api.log
           exit 1
+      - name: Validar rotas antes do k6
+        run: |
+          set -e
+          curl --fail-with-body -sS -X POST http://127.0.0.1:8787/api/internal/load-benchmark
+          curl --fail-with-body -sS http://127.0.0.1:8787/api/internal/load-benchmark
       - name: Instalar k6
         run: |
           sudo gpg -k
