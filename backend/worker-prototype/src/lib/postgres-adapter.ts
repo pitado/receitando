@@ -76,7 +76,7 @@ class PgStatement {
   }
 }
 
-class PgCompatDatabase {
+export class PgCompatDatabase {
   constructor(private readonly client: Client) {}
   prepare(sql: string) { return new PgStatement(this.client, sql); }
   async batch(statements: PgStatement[]) {
