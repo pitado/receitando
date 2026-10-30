@@ -13,7 +13,7 @@ Arquitetura de backend REST sem estado de processo, frontend web e acesso móvel
 - **[ATUAL]** Persistência em Cloudflare D1 (SQLite), imagens em Cloudflare R2, e-mail transacional via Resend.
 - **[ATUAL]** Sessões persistidas e transportadas por cookie HttpOnly/Secure/SameSite; a instância Worker não mantém sessão em memória entre chamadas. Controles de Origin e rate limiting complementam segurança.
 - **[ATUAL]** GitHub Actions para CI/CD.
-- **[NÃO IMPLEMENTADO]** Cobrança, WebSocket em tempo real, fila de eventos dedicada e teste validado de 3 milhões de operações.
+- **[EM VALIDAÇÃO]** Receitando Juntos possui implementação inicial de WebSocket/Durable Objects no repositório, mas ainda exige testes de integração, implantação e demonstração entre dispositivos. **[NÃO IMPLEMENTADO]** Cobrança e fila de eventos dedicada. **[A VALIDAR]** Resultado final do cenário de 3 milhões de operações.
 
 ```mermaid
 flowchart TB
@@ -49,7 +49,7 @@ Linhas contínuas: arquitetura existente. Linhas pontilhadas: propostas.
 
 ## 4. Estratégia de testes
 
-**[ATUAL — PREPARADO, NÃO EXECUTADO/VALIDADO]** `tests/load/receitando-read.js` testa endpoints públicos GET com k6; `.github/workflows/load-test.yml` inicializa uma API e D1 locais em runner GitHub e exporta logs/métricas.
+**[ATUAL — EXECUTADO]** `tests/load/receitando-read.js` testa endpoints públicos GET com k6; a execução inicial de leitura concluiu com 1.060 requisições e zero falhas no ambiente local (não equivale a capacidade de produção). **[A VALIDAR]** `tests/load/receitando-professor.js` configura 1 milhão de escritas sintéticas e 2 milhões de leituras em D1 local; o resultado depende da conclusão e análise da execução do GitHub Actions.
 
 **[A VALIDAR]** Confirmar que o workflow sobe corretamente, endpoints respondem 200, taxa de falhas inferior a 1% e p95 inferior a 1 s (metas iniciais, ajustáveis). Um runner GitHub não representa a capacidade real da Cloudflare.
 
@@ -57,7 +57,7 @@ Linhas contínuas: arquitetura existente. Linhas pontilhadas: propostas.
 
 ## 5. Integração de pagamento — desenho proposto
 
-**Caso de uso [PROPOSTO]:** Receitando Premium. Provedor brasileiro possível: Mercado Pago. Não há integração ativa nem cobrança implementada.
+**Caso de uso acadêmico [HIPOTÉTICO]:** Receitando Premium, apenas para exemplificar integração com API de pagamento se exigida pelo professor. O modelo de produto planejado é gratuito com monetização por anúncios; publicidade não é uma API de pagamento. Não há checkout nem cobrança implementados.
 
 ```mermaid
 sequenceDiagram
@@ -81,28 +81,31 @@ sequenceDiagram
 
 Segurança: não armazenar dados de cartão; guardar credenciais em secrets; autenticar checkout; verificar assinatura/autenticidade do webhook segundo o provedor; conferir status, valor, moeda e pedido; idempotência contra notificações duplicadas; nunca liberar benefício somente pelo retorno visual do navegador. Falhas temporárias exigem retry e reconciliação.
 
-## 6. WebSocket — desenho proposto
+## 6. WebSocket — Receitando Juntos
 
-**Caso de uso [PROPOSTO]:** notificação ao autor quando sua receita for aprovada na moderação. O frontend PWA abre conexão `wss://` autenticada; Cloudflare Durable Object mantém conexões e usa hibernação quando possível.
+**[EM VALIDAÇÃO]** A proposta é permitir que pessoas cozinhem a mesma receita em uma sala compartilhada, sincronizando etapas de preparo sem recarregar a página. Uma implementação inicial já foi incorporada ao repositório, mas ainda requer testes e validação de deploy.
 
 ```mermaid
 sequenceDiagram
-    participant ADM as Administrador
+    participant A as Pessoa A
     participant API as API Worker
-    participant DB as D1
-    participant Q as Queue
-    participant WS as Durable Object WebSocket
-    participant USER as Navegador/PWA
-    USER->>WS: Conecta WSS com autenticação
-    ADM->>API: Aprova receita
-    API->>DB: Persiste moderação
-    API->>Q: Publica evento com ID único
-    Q->>WS: Entrega evento (pode repetir)
-    WS-->>USER: recipe.approved + eventId
-    USER->>API: GET /api/notifications para reconciliar
+    participant DO as Durable Object da sala
+    participant B as Pessoa B
+    A->>API: POST /api/v2/cooking-rooms
+    API->>DO: Cria sala e estado inicial
+    API-->>A: ID e link de convite
+    A->>DO: Conecta WebSocket
+    B->>DO: Entra pelo link (WebSocket)
+    DO-->>B: Estado atual das etapas
+    A->>DO: step:set (etapa concluída)
+    DO->>DO: Valida e persiste estado
+    DO-->>A: room:state atualizado
+    DO-->>B: room:state atualizado
 ```
 
-Controles: autenticação na conexão, autorização por usuário, limite de conexões, reconexão com backoff, deduplicação por `eventId`, persistência do evento importante e fallback por consulta HTTP. Filas podem entregar mensagens mais de uma vez; o consumidor deve ser idempotente.
+**Por que WebSocket?** Atualização bidirecional de baixa latência. **Por que Durable Objects?** Coordenação do estado por sala, evitando depender de memória de instâncias REST distintas. Controles necessários: validação de mensagens, convite aleatório, limite de participantes, prevenção de abuso, reconexão e expiração de salas.
+
+**Evidência de código:** [PR #168](https://github.com/pitado/receitando/pull/168). **Limitação:** implementação incorporada não equivale a recurso validado em produção.
 
 ## 7. Defesa técnica: decisões e trade-offs
 
