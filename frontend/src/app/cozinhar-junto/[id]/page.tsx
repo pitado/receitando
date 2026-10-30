@@ -20,6 +20,10 @@ function suggestedSeconds(instruction: string): number | null {
   return seconds >= 15 && seconds <= 10800 ? seconds : null;
 }
 
+function timerDeadline(seconds: number): number {
+  return Date.now() + seconds * 1000;
+}
+
 function displayClock(seconds: number): string {
   const minutes = Math.floor(seconds / 60);
   const rest = seconds % 60;
@@ -86,11 +90,6 @@ export default function CookingRoomPage() {
     return () => window.clearInterval(interval);
   }, [timerEnd]);
 
-  useEffect(() => {
-    // The invitation is also displayed as selectable text when Clipboard API is blocked.
-    setShareUrl(window.location.href);
-  }, [id]);
-
   const steps = room?.steps ?? [];
   const currentIndex = Math.min(selectedIndex, Math.max(steps.length - 1, 0));
   const currentStep = steps[currentIndex] ?? "";
@@ -111,7 +110,7 @@ export default function CookingRoomPage() {
 
   function startTimer(seconds: number) {
     setTimerSeconds(seconds);
-    setTimerEnd(Date.now() + seconds * 1000);
+    setTimerEnd(timerDeadline(seconds));
   }
 
   function pauseTimer() {
@@ -125,6 +124,7 @@ export default function CookingRoomPage() {
 
   async function copyInvite() {
     setShareOpen(true);
+    setShareUrl(window.location.href);
     setCopied(false);
     setShareError(false);
     try {
@@ -283,7 +283,7 @@ export default function CookingRoomPage() {
                   {[1, 5, 10, 15].map((minutes) => <button type="button" key={minutes} onClick={() => startTimer(minutes * 60)}>{minutes} min</button>)}
                 </div>
                 <div className={styles.timerActions}>
-                  {timerSeconds > 0 ? <button type="button" onClick={timerRunning ? pauseTimer : () => setTimerEnd(Date.now() + timerSeconds * 1000)}>{timerRunning ? "Pausar" : "Continuar"}</button> : null}
+                  {timerSeconds > 0 ? <button type="button" onClick={timerRunning ? pauseTimer : () => setTimerEnd(timerDeadline(timerSeconds))}>{timerRunning ? "Pausar" : "Continuar"}</button> : null}
                   <button type="button" onClick={resetTimer} disabled={timerSeconds === 0}>Zerar</button>
                 </div>
                 {timerSeconds === 0 && !timerRunning ? <span className={styles.timerNote} aria-live="polite">Escolha um tempo para começar.</span> : null}
