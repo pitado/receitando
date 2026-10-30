@@ -1,54 +1,124 @@
-type Room = { recipeSlug: string; title: string; steps: string[]; completed: boolean[]; version: number; createdAt: number };
-type Client = { name: string };
-export class CookingRoom {
-  private sockets = new Map<WebSocket, Client>();
-  constructor(private state: DurableObjectState) {}
-  private async room(): Promise<Room | undefined> { return this.state.storage.get<Room>("room"); }
-  private broadcast(payload: unknown) {
+import { DurableObject } from "cloudflare:workers";
+import type { Env } from "./lib/worker-http";
+
+type Room = {
+  recipeSlug: string;
+  title: string;
+  steps: string[];
+  completed: boolean[];
+  version: number;
+  createdAt: number;
+};
+const ROOM_TTL = 24 * 60 * 60 * 1000;
+const MAX_CLIENTS = 12;
+
+export class CookingRoom extends DurableObject<Env> {
+  constructor(ctx: DurableObjectState, env: Env) {
+    super(ctx, env);
+    // Application heartbeat without waking an idle Durable Object.
+    ctx.setWebSocketAutoResponse(new WebSocketRequestResponsePair('{"type":"ping"}', '{"type":"pong"}'));
+  }
+
+  private clients(exclude?: WebSocket) {
+    return this.ctx.getWebSockets().filter(ws => ws !== exclude && ws.readyState === WebSocket.OPEN);
+  }
+
+  private broadcast(payload: unknown, exclude?: WebSocket) {
     const message = JSON.stringify(payload);
-    for (const socket of this.sockets.keys()) {
-      try { socket.send(message); } catch { this.sockets.delete(socket); }
+    for (const ws of this.clients(exclude)) {
+      try { ws.send(message); }
+      catch { ws.close(1011, "Falha ao enviar atualização"); }
     }
   }
+
+  private presence(exclude?: WebSocket) {
+    const onlineCount = this.clients(exclude).length;
+    this.broadcast({ type: "presence:update", onlineCount }, exclude);
+  }
+
+  private expired(room: Room) { return Date.now() >= room.createdAt + ROOM_TTL; }
+
   async fetch(request: Request): Promise<Response> {
     const url = new URL(request.url);
     if (request.method === "POST" && url.pathname === "/init") {
-      if (await this.room()) return Response.json({ error: "Sala já existe" }, { status: 409 });
-      const data = await request.json() as Partial<Room>;
-      if (!data.recipeSlug || !data.title || !Array.isArray(data.steps) || !data.steps.length || data.steps.length > 100 ||
-          data.steps.some(s => typeof s !== "string" || s.length > 2000)) return Response.json({ error: "Receita inválida" }, { status: 400 });
-      const room: Room = { recipeSlug: data.recipeSlug, title: data.title.slice(0, 160), steps: data.steps, completed: data.steps.map(() => false), version: 0, createdAt: Date.now() };
-      await this.state.storage.put("room", room);
-      return Response.json({ ok: true }, { status: 201 });
+      const data = await request.json() as Partial<Room> | null;
+      if (!data || typeof data.recipeSlug !== "string" || !/^[a-z0-9-]{1,120}$/.test(data.recipeSlug) ||
+          typeof data.title !== "string" || !data.title.trim() || data.title.length > 160 ||
+          !Array.isArray(data.steps) || !data.steps.length || data.steps.length > 100 ||
+          data.steps.some(s => typeof s !== "string" || !s.trim() || s.length > 2000)) {
+        return Response.json({ message: "Receita inválida" }, { status: 400 });
+      }
+      const room: Room = {
+        recipeSlug: data.recipeSlug, title: data.title.trim(), steps: data.steps,
+        completed: data.steps.map(() => false), version: 0, createdAt: Date.now(),
+      };
+      const created = await this.ctx.storage.transaction(async txn => {
+        if (await txn.get("room")) return false;
+        await txn.put("room", room);
+        await txn.setAlarm(room.createdAt + ROOM_TTL);
+        return true;
+      });
+      return Response.json({ ok: created }, { status: created ? 201 : 409 });
     }
-    const room = await this.room();
-    if (!room || Date.now() - room.createdAt > 24 * 60 * 60 * 1000) return Response.json({ error: "Sala não encontrada ou expirada" }, { status: 404 });
-    if (request.method === "GET" && url.pathname === "/state") return Response.json({ ...room, onlineCount: this.sockets.size });
-    if (request.method !== "GET" || url.pathname !== "/ws" || request.headers.get("Upgrade")?.toLowerCase() !== "websocket") return new Response("Not found", { status: 404 });
-    if (this.sockets.size >= 12) return new Response("Sala cheia", { status: 429 });
+
+    const room = await this.ctx.storage.get<Room>("room");
+    if (!room || this.expired(room)) {
+      return Response.json({ message: "Sala não encontrada ou expirada. Crie uma nova sala pela receita." }, { status: 404 });
+    }
+    if (request.method === "GET" && url.pathname === "/state") {
+      return Response.json({ ...room, onlineCount: this.clients().length }, { headers: { "Cache-Control": "no-store" } });
+    }
+    if (request.method !== "GET" || url.pathname !== "/ws") return new Response("Not found", { status: 404 });
+    if (request.headers.get("Upgrade")?.toLowerCase() !== "websocket") {
+      return Response.json({ message: "Conexão WebSocket necessária" }, { status: 426 });
+    }
+    if (this.clients().length >= MAX_CLIENTS) return Response.json({ message: "Sala cheia" }, { status: 429 });
+
     const pair = new WebSocketPair();
-    const client = pair[0], server = pair[1];
-    server.accept();
-    const name = (url.searchParams.get("name") || "Convidado").slice(0, 30);
-    this.sockets.set(server, { name });
-    server.send(JSON.stringify({ type: "room:state", ...room, onlineCount: this.sockets.size }));
-    this.broadcast({ type: "presence:update", onlineCount: this.sockets.size });
-    server.addEventListener("message", async event => {
-      try {
-        if (typeof event.data !== "string" || event.data.length > 1024) return;
-        const message = JSON.parse(event.data) as { type?: string; stepIndex?: number; completed?: boolean };
-        if (message.type !== "step:set" || !Number.isInteger(message.stepIndex) || typeof message.completed !== "boolean") return;
-        const latest = await this.room();
-        if (!latest || message.stepIndex! < 0 || message.stepIndex! >= latest.steps.length) return;
-        latest.completed[message.stepIndex!] = message.completed;
-        latest.version++;
-        await this.state.storage.put("room", latest);
-        this.broadcast({ type: "room:state", ...latest, onlineCount: this.sockets.size });
-      } catch { /* Ignorar mensagens malformadas */ }
-    });
-    const leave = () => { this.sockets.delete(server); this.broadcast({ type: "presence:update", onlineCount: this.sockets.size }); };
-    server.addEventListener("close", leave);
-    server.addEventListener("error", leave);
-    return new Response(null, { status: 101, webSocket: client });
+    this.ctx.acceptWebSocket(pair[1]);
+    pair[1].send(JSON.stringify({ type: "room:state", ...room, onlineCount: this.clients().length }));
+    this.presence();
+    return new Response(null, { status: 101, webSocket: pair[0] });
+  }
+
+  async webSocketMessage(ws: WebSocket, raw: string | ArrayBuffer): Promise<void> {
+    if (typeof raw !== "string" || raw.length > 1024) return;
+    let message: { type?: string; stepIndex?: number; completed?: boolean } | null;
+    try { message = JSON.parse(raw); } catch { return; }
+    if (!message || message.type !== "step:set" || !Number.isInteger(message.stepIndex) || typeof message.completed !== "boolean") return;
+    const index = message.stepIndex!;
+    const completed = message.completed;
+    try {
+      // Atomic read-modify-write: simultaneous participants must not lose updates.
+      const result = await this.ctx.storage.transaction(async txn => {
+        const room = await txn.get<Room>("room");
+        if (!room || this.expired(room)) return { expired: true } as const;
+        if (index < 0 || index >= room.steps.length) return null;
+        if (room.completed[index] !== completed) {
+          room.completed[index] = completed;
+          room.version++;
+          await txn.put("room", room);
+        }
+        return { room };
+      });
+      if (!result) return;
+      if ("expired" in result) { ws.close(1008, "Sala expirada"); return; }
+      this.broadcast({ type: "room:state", ...result.room, onlineCount: this.clients().length });
+    } catch (error) {
+      console.error("cooking_room_update_failed", { error: String(error) });
+      ws.close(1011, "Não foi possível salvar a etapa");
+    }
+  }
+
+  webSocketClose(ws: WebSocket): void { this.presence(ws); }
+  webSocketError(ws: WebSocket): void {
+    ws.close(1011, "Conexão interrompida");
+    this.presence(ws);
+  }
+  async alarm(): Promise<void> {
+    const room = await this.ctx.storage.get<Room>("room");
+    if (room && this.expired(room)) {
+      for (const ws of this.clients()) ws.close(1008, "Sala expirada");
+    }
   }
 }

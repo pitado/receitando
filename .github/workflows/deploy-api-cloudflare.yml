@@ -40,11 +40,12 @@ jobs:
           echo "The deploy token does not need R2 bucket list/create permissions."
       - run: npm run typecheck
       - run: npm test
+      - name: Test real WebSocket rooms locally
+        run: npm run test:ws
       - name: Validate Worker build
         run: npm run dry-run
       - name: Apply D1 migrations
         run: npm run migrate:remote
       - name: Deploy Worker
         run: npm run deploy
-      - name: Mirror Wikibooks catalog images to R2
-        run: node scripts/mirror-wikibooks-images-to-r2.mjs
+      # Catalog image mirroring belongs to the dedicated import-wikibooks workflow.

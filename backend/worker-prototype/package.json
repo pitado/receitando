@@ -12,7 +12,8 @@
     "dry-run": "wrangler deploy --dry-run",
     "migrate:local": "wrangler d1 migrations apply receitando --local",
     "migrate:remote": "wrangler d1 migrations apply receitando --remote",
-    "deploy": "wrangler deploy"
+    "deploy": "wrangler deploy",
+    "test:ws": "node scripts/test-cooking-rooms.mjs"
   },
   "dependencies": {},
   "devDependencies": {

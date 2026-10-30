@@ -16,7 +16,7 @@ const securityHeaders = [
       "font-src 'self' data:",
       "style-src 'self' 'unsafe-inline'",
       "script-src 'self' 'unsafe-inline'",
-      "connect-src 'self' https://api.receitando.miguelpita.com.br http://localhost:8787",
+      "connect-src 'self' https://api.receitando.miguelpita.com.br wss://api.receitando.miguelpita.com.br http://localhost:8787 ws://localhost:8787",
       "object-src 'none'",
     ].join("; "),
   },

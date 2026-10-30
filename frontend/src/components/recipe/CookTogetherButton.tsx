@@ -1,8 +1,10 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { apiRequest } from "@/services/api-client";
 
 export function CookTogetherButton({ slug, title, steps }: { slug: string; title: string; steps: string[] }) {
+  const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   async function create() {
@@ -11,7 +13,7 @@ export function CookTogetherButton({ slug, title, steps }: { slug: string; title
       const room = await apiRequest<{ id: string }>("/api/v2/cooking-rooms", {
         method: "POST", body: JSON.stringify({ recipeSlug: slug, title, steps })
       });
-      window.location.assign("/cozinhar-junto/" + room.id);
+      router.push("/cozinhar-junto/" + encodeURIComponent(room.id));
     } catch { setError("Não foi possível criar a sala. Tente novamente."); setBusy(false); }
   }
   if (!steps.length) return null;

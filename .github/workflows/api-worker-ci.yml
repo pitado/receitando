@@ -34,4 +34,6 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm test
+      - name: Test real WebSocket rooms locally
+        run: npm run test:ws
       - run: npm run dry-run

@@ -85,15 +85,15 @@ export default {
       let data: { recipeSlug?: string; title?: string; steps?: string[] };
       try { data = await request.json(); } catch { return Response.json({ message: "Dados inválidos" }, { status: 400 }); }
       if (!data || typeof data.recipeSlug !== "string" || !/^[a-z0-9-]{1,120}$/.test(data.recipeSlug) ||
-          typeof data.title !== "string" || data.title.length > 160 || !Array.isArray(data.steps) ||
-          data.steps.length < 1 || data.steps.length > 100 || data.steps.some(s => typeof s !== "string" || s.length > 2000)) {
+          typeof data.title !== "string" || !data.title.trim() || data.title.length > 160 || !Array.isArray(data.steps) ||
+          data.steps.length < 1 || data.steps.length > 100 || data.steps.some(s => typeof s !== "string" || !s.trim() || s.length > 2000)) {
         return Response.json({ message: "Receita inválida" }, { status: 400 });
       }
       const id = crypto.randomUUID();
       const stub = env.COOKING_ROOMS.get(env.COOKING_ROOMS.idFromName(id));
       const result = await stub.fetch(new Request("https://room/init", { method: "POST", body: JSON.stringify(data) }));
       if (!result.ok) return Response.json({ message: "Não foi possível criar a sala" }, { status: 500 });
-      return Response.json({ id }, { status: 201 });
+      return Response.json({ id }, { status: 201, headers: { "Cache-Control": "no-store" } });
     }
     const roomMatch = /^\/api\/v2\/cooking-rooms\/([a-f0-9-]{36})(?:\/(ws))?$/.exec(path);
     if (roomMatch && request.method === "GET") {
@@ -101,6 +101,9 @@ export default {
       const origin = request.headers.get("Origin");
       const { allowedOrigins } = await import("./lib/worker-http");
       if (origin && !allowedOrigins(env).includes(origin)) return new Response("Forbidden", { status: 403 });
+      if (roomMatch[2] && request.headers.get("Upgrade")?.toLowerCase() !== "websocket") {
+        return Response.json({ message: "Conexão WebSocket necessária" }, { status: 426 });
+      }
       const stub = env.COOKING_ROOMS.get(env.COOKING_ROOMS.idFromName(roomMatch[1]));
       const target = new URL(request.url);
       target.pathname = roomMatch[2] ? "/ws" : "/state";
