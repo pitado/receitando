@@ -53,7 +53,8 @@ try {
   }
 
   // Route-level smoke with the REAL API stack and a fake D1 binding backed by PostgreSQL.
-  const api = (await import("../.test-dist/app-router.js")).default;
+  const importedRouter = await import("../.test-dist/app-router.js");
+  const api = importedRouter.default?.default ?? importedRouter.default;
   const env = { db, FRONTEND_URL: "https://receitando.example.test" };
   async function invoke(endpoint, method = "GET", body = undefined, sessionToken = "") {
     const headers = { Origin: "https://receitando.example.test" };
