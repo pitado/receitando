@@ -32,7 +32,7 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: backend/worker-prototype/package-lock.json
-      - run: npm install --no-audit --no-fund
+      - run: npm ci
       - name: R2 bucket note
         shell: bash
         run: |
