@@ -12,7 +12,7 @@
 | 3:30–5:00 | Escalabilidade | Meta de 1 milhão de escritas e 2 milhões de leituras; definir período, calcular taxa/s, prever picos, cache, índices, filas e gargalos |
 | 5:00–6:15 | Evidência de testes | Mostrar GitHub Actions/k6 e métricas reais: operações bem-sucedidas, falhas, duração, throughput e p95; distinguir local de produção |
 | 6:15–7:30 | WebSocket — Receitando Juntos | Criar sala, compartilhar link, sincronizar etapas de preparo, reconectar; Durable Objects por sala |
-| 7:30–8:15 | Integração externa e monetização | Produto gratuito com publicidade planejada; esclarecer que AdSense não é API de pagamento. Se o enunciado exigir pagamento, mostrar desenho hipotético separado |
+| 7:30–8:15 | Integração externa e monetização | Produto gratuito com monetização planejada via Google AdSense; justificar por que não haverá API de pagamentos no aplicativo |
 | 8:15–10:00 | Trade-offs e conclusão | Custos, segurança, observabilidade, consistência, próximos passos e limites do que foi comprovado |
 
 ## 2. Texto-base para apresentação
@@ -27,7 +27,7 @@
 
 **WebSocket:** “Propomos o Receitando Juntos: duas pessoas entram na mesma sala por um link e acompanham o preparo sincronizado. O WebSocket transmite alterações de etapas instantaneamente; um Durable Object coordena o estado da sala. A integração foi iniciada em código, mas só deve ser apresentada como funcional após testes e implantação validados.”
 
-**Monetização:** “O Receitando foi pensado como produto gratuito, com possibilidade de monetização por publicidade. Isso não exige checkout para o usuário. Entretanto, se a atividade pedir especificamente uma API de pagamento, o desenho dessa integração permanece um requisito acadêmico distinto.”
+**Monetização:** “O Receitando será gratuito para quem usa. Nossa estratégia de monetização é a exibição de anúncios por meio do Google AdSense, ainda planejada. Como não vamos vender produtos, assinaturas ou recursos pagos dentro do aplicativo, não haverá checkout nem integração com API de pagamentos. Essa é uma decisão de negócio e arquitetura, não uma funcionalidade esquecida.”
 
 **Conclusão:** “A arquitetura existente atende às funcionalidades atuais. A fase apresenta uma estratégia de evolução baseada em evidências, com limites explícitos: uma configuração de teste não é resultado comprovado, e a escala de um ambiente local não equivale à escala de produção.”
 
@@ -49,7 +49,7 @@
 
 **WebSocket já está pronto?** Existe uma implementação inicial em desenvolvimento, mas a demonstração real depende de validação de CI, testes entre dispositivos e implantação. Se não estiver validado, apresentar como protótipo/proposta.
 
-**E a API de pagamento?** A estratégia do produto não prevê cobrar assinaturas dos usuários. Publicidade e processamento de pagamentos são integrações diferentes. Se o professor exigir apenas mapeamento, podemos apresentar um fluxo hipotético de checkout e webhook, explicitamente não implementado.
+**Por que não haverá API de pagamento?** Porque o Receitando será gratuito e a monetização planejada ocorrerá por anúncios do Google AdSense. Os usuários não comprarão assinaturas, produtos ou funcionalidades dentro do aplicativo; por isso não precisamos de checkout, processamento de cartões nem webhooks de cobrança. Google AdSense é uma plataforma de publicidade, não uma API de pagamentos. Se a avaliação exigir obrigatoriamente um desenho de pagamentos, é necessário confirmar com o professor se essa justificativa atende ao critério.
 
 **Quais riscos existem?** Escritas concorrentes no D1, custos de infraestrutura, reconexão de sockets, abuso na criação de salas, falhas externas e inconsistência de estado. A defesa deve mostrar como medir e mitigar cada risco.
 
@@ -70,7 +70,8 @@
 - [x] Proposta WebSocket Receitando Juntos definida e desenvolvimento iniciado.
 - [ ] Registrar resultado final verificado do teste acadêmico (quantidade, falhas, tempo, p95).
 - [ ] Validar integração WebSocket com testes reais, caso seja demonstrada funcionando.
-- [ ] Confirmar se o enunciado exige somente mapeamento ou implementação da API de pagamento.
+- [x] Registrar decisão de negócio: sem cobrança no aplicativo; monetização planejada via Google AdSense.
+- [ ] Confirmar com o professor se a justificativa de ausência de API de pagamentos atende ao enunciado.
 - [ ] Preparar slides e ensaiar a apresentação com tempo cronometrado.
 
 **Regra de defesa:** não afirmar que o sistema atingiu 3 milhões de operações ou que o WebSocket está funcional em produção sem evidência verificável.
