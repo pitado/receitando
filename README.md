@@ -1,5 +1,14 @@
 # Receitando
 
+## Entrega acadêmica — Fase 4 (System Design e escalabilidade)
+
+- **[System Design completo, arquitetura atual/proposta e integrações](docs/system-design-fase4.md)**
+- **[Roteiro de apresentação e defesa técnica](docs/defesa-fase4.md)**
+- **[Testes k6: leitura, estresse e meta de 1 milhão de escritas + 2 milhões de leituras](tests/load/README.md)**
+- **[Executar testes pelo GitHub Actions](https://github.com/pitado/receitando/actions/workflows/load-test.yml)**
+
+> Os cenários de benchmark usam D1 local isolado. Uma execução configurada para 3 milhões de operações não comprova que a meta foi atingida: os resultados precisam ser verificados nos artefatos do Actions. Pagamentos e WebSocket estão documentados como arquitetura proposta, não como integrações implementadas.
+
 ## 📐 DER e Diagrama de Sequência — acesso rápido
 
 Os **dois diagramas principais estão na raiz do repositório**, com nomes simples. Para visualizar diretamente no GitHub, clique em **Ver prévia**; para abrir e editar, use o arquivo **.drawio** no [diagrams.net](https://app.diagrams.net/).
