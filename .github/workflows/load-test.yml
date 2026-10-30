@@ -13,6 +13,7 @@ on:
           - mixed
           - load
           - stress
+          - professor-check
           - professor
 
 permissions:
@@ -21,7 +22,7 @@ permissions:
 jobs:
   load-test:
     runs-on: ubuntu-latest
-    timeout-minutes: 43
+    timeout-minutes: 155
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -45,11 +46,21 @@ jobs:
           done
           cat /tmp/receitando-api.log
           exit 1
-      - name: Validar rotas antes do k6
+      - name: Validar INSERT, SELECT por índice e contagem D1
         run: |
-          set -e
-          curl --fail-with-body -sS -X POST http://127.0.0.1:8787/api/internal/load-benchmark
-          curl --fail-with-body -sS http://127.0.0.1:8787/api/internal/load-benchmark
+          set -euo pipefail
+          base=http://127.0.0.1:8787/api/internal/load-benchmark
+          created=$(curl --fail-with-body --silent --show-error -X POST "$base")
+          seed=$(echo "$created" | jq -r '.id // empty')
+          [[ "$seed" =~ ^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$ ]]
+          read_json=$(curl --fail-with-body --silent --show-error "$base?id=$seed")
+          test "$(echo "$read_json" | jq -r '.found')" = true
+          count_json=$(curl --fail-with-body --silent --show-error "$base")
+          baseline=$(echo "$count_json" | jq -r '.total')
+          [[ "$baseline" =~ ^[0-9]+$ ]]
+          echo "BENCHMARK_SEED_ID=$seed" >> "$GITHUB_ENV"
+          echo "BENCHMARK_BASELINE=$baseline" >> "$GITHUB_ENV"
+          echo "Smoke aprovado: insert 201; SELECT indexado encontrou registro; baseline=$baseline"
       - name: Instalar k6
         run: |
           sudo gpg -k
@@ -60,13 +71,26 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y k6
       - name: Executar teste com logs
-        timeout-minutes: 39
+        timeout-minutes: 145
         run: |
           mkdir -p results/load
           set +e
-          if [ '${{ inputs.scenario }}' = professor ]; then
-            echo 'Iniciando meta: 1.000.000 escritas + 2.000.000 leituras em D1 local.'
-            timeout --signal=TERM --kill-after=15s 2220s k6 run -e BASE_URL=http://127.0.0.1:8787 --summary-export=results/load/summary.json tests/load/receitando-professor.js > results/load/requests.log 2>&1
+          if [ '${{ inputs.scenario }}' = professor ] || [ '${{ inputs.scenario }}' = professor-check ]; then
+            if [ '${{ inputs.scenario }}' = professor ]; then
+              TARGET_WRITES=1000000
+              TARGET_READS=2000000
+            else
+              TARGET_WRITES=1000
+              TARGET_READS=2000
+            fi
+            echo "Iniciando ${{ inputs.scenario }}: $TARGET_WRITES escritas + $TARGET_READS leituras em D1 LOCAL (sem tocar no banco de produção)."
+            timeout --signal=TERM --kill-after=15s 8400s k6 run \
+              -e BASE_URL=http://127.0.0.1:8787 \
+              -e BENCHMARK_SEED_ID="$BENCHMARK_SEED_ID" \
+              -e TARGET_WRITES="$TARGET_WRITES" \
+              -e TARGET_READS="$TARGET_READS" \
+              --summary-export=results/load/summary.json \
+              tests/load/receitando-professor.js > results/load/requests.log 2>&1
           elif [ '${{ inputs.scenario }}' = mixed ]; then
             timeout --signal=TERM --kill-after=15s 180s k6 run -e BASE_URL=http://127.0.0.1:8787 --summary-export=results/load/summary.json tests/load/receitando-mixed.js > results/load/requests.log 2>&1
           else
@@ -80,6 +104,16 @@ jobs:
           echo "- Arquivos completos: artifact k6-results-${{ inputs.scenario }}" >> "$GITHUB_STEP_SUMMARY"
           if [ -f results/load/summary.json ]; then
             node -e 'const s=require("./results/load/summary.json"); const m=s.metrics||{}; for(const [k,label] of [["http_reqs","Requisições"],["http_req_failed","Falhas"],["http_req_duration","Latência"]]){const v=m[k]?.values||{}; console.log("- "+label+": "+JSON.stringify(v));}' >> "$GITHUB_STEP_SUMMARY"
+          fi
+          if [ '${{ inputs.scenario }}' = professor ] || [ '${{ inputs.scenario }}' = professor-check ]; then
+            BASE_URL=http://127.0.0.1:8787 \
+              TARGET_WRITES="$TARGET_WRITES" \
+              TARGET_READS="$TARGET_READS" \
+              K6_EXIT_CODE="$code" \
+              SCENARIO='${{ inputs.scenario }}' \
+              node tests/load/verify-professor.mjs
+            verify_code=$?
+            if [ "$verify_code" -ne 0 ]; then code="$verify_code"; fi
           fi
           exit "$code"
       - name: Salvar log da API
