@@ -41,6 +41,18 @@ async function open(path) {
   } };
 }
 function set(client, stepIndex, completed) { client.ws.send(JSON.stringify({ type: 'step:set', stepIndex, completed })); }
+function expectCleanClose(ws, label) {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(label + ': WebSocket did not complete close handshake in 5000ms; readyState=' + ws.readyState)), 5000);
+    ws.addEventListener('close', event => {
+      clearTimeout(timer);
+      if (event.code !== 1000 || event.wasClean !== true) {
+        reject(new Error(label + ': expected clean close 1000, got code=' + event.code + ' wasClean=' + event.wasClean));
+      } else resolve();
+    }, { once: true });
+  });
+}
+
 const stateEvent = version => m => m.type === 'room:state' && m.version === version;
 try {
   let ready = false;
@@ -79,8 +91,10 @@ try {
   a.ws.send('null'); a.ws.send('invalid'); set(a, -1, false);
   assert.equal((await (await http(path)).json()).version, 4);
   log('concurrent_updates_idempotency_invalid_messages', { passed: true });
-  b.ws.close();
-  await a.wait(m => m.type === 'presence:update' && m.onlineCount === 1);
+  const bClosed = expectCleanClose(b.ws, 'B');
+  b.ws.close(1000, 'teste automatizado');
+  await Promise.all([a.wait(m => m.type === 'presence:update' && m.onlineCount === 1), bClosed]);
+  log('clean_close_B', { passed: true, code: 1000 });
   set(a, 0, false); await a.wait(stateEvent(5));
   const rejoined = await open(path);
   const restored = await rejoined.wait(stateEvent(5));
@@ -89,8 +103,13 @@ try {
   log('disconnect_reconnect_latest_state', { passed: true });
   rejoined.ws.send('{"type":"ping"}'); await rejoined.wait(m => m.type === 'pong');
   log('heartbeat', { passed: true });
-  rejoined.ws.close(); await a.wait(m => m.type === 'presence:update' && m.onlineCount === 1);
-  a.ws.close();
+  const rejoinedClosed = expectCleanClose(rejoined.ws, 'B reconnected');
+  rejoined.ws.close(1000, 'teste automatizado');
+  await Promise.all([a.wait(m => m.type === 'presence:update' && m.onlineCount === 1), rejoinedClosed]);
+  const aClosed = expectCleanClose(a.ws, 'A');
+  a.ws.close(1000, 'teste automatizado');
+  await aClosed;
+  log('clean_close_all_clients', { passed: true, code: 1000 });
   for (let n = 0; n < 50; n++) {
     if ((await (await http(path)).json()).onlineCount === 0) break;
     await delay(20);
