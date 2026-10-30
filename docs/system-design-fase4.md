@@ -4,7 +4,7 @@
 
 ## 1. Objetivo e requisitos
 
-Arquitetura de backend REST sem estado de processo, frontend web e acesso móvel, capacidade-alvo de **1 milhão de escritas e 2 milhões de leituras**, integração com pagamento e comunicação em tempo real via WebSocket. O enunciado não informa o período dessas operações; portanto, não se pode garantir capacidade sem definir a janela.
+Arquitetura de backend REST sem estado de processo, frontend web e acesso móvel, capacidade-alvo de **1 milhão de escritas e 2 milhões de leituras**, decisão sobre integração de pagamentos e comunicação em tempo real via WebSocket. O enunciado não informa o período dessas operações; portanto, não se pode garantir capacidade sem definir a janela.
 
 ## 2. Arquitetura atual
 
@@ -25,7 +25,7 @@ flowchart TB
     API -. evolução .-> Q[Cloudflare Queues]
     Q -. eventos .-> DO[Durable Object WebSocket]
     DO -. notificações .-> U
-    API -. checkout e webhook .-> PAY[Provedor de pagamento]
+    FE -. publicidade planejada .-> ADS[Google AdSense]
 ```
 
 Linhas contínuas: arquitetura existente. Linhas pontilhadas: propostas.
@@ -55,31 +55,13 @@ Linhas contínuas: arquitetura existente. Linhas pontilhadas: propostas.
 
 **[PROPOSTO]** Criar ambiente staging com D1 separado e dados sintéticos. Executar cenários de leitura e escrita na proporção 2:1, ramp-up, pico, endurance e recuperação; exportar JSON e logs, informar duração, VUs, RPS, p95/p99, falhas, custos e limitações. Não executar carga destrutiva em produção.
 
-## 5. Integração de pagamento — desenho proposto
+## 5. Monetização e justificativa para não utilizar API de pagamentos
 
-**Caso de uso acadêmico [HIPOTÉTICO]:** Receitando Premium, apenas para exemplificar integração com API de pagamento se exigida pelo professor. O modelo de produto planejado é gratuito com monetização por anúncios; publicidade não é uma API de pagamento. Não há checkout nem cobrança implementados.
+**[DECISÃO DO PROJETO]** O Receitando será gratuito para os usuários. A monetização planejada será realizada por meio de anúncios com **Google AdSense**; essa integração publicitária ainda não deve ser apresentada como ativa sem validação.
 
-```mermaid
-sequenceDiagram
-    participant U as Usuário
-    participant F as Frontend
-    participant A as API Worker
-    participant P as Provedor de pagamento
-    participant D as D1
-    U->>F: Seleciona Premium
-    F->>A: POST /api/billing/checkout (sessão)
-    A->>D: Cria pedido pendente com ID único
-    A->>P: Cria checkout com chave idempotente
-    P-->>A: URL/identificador de checkout
-    A-->>F: Checkout
-    F-->>U: Redireciona ao provedor
-    P->>A: POST /api/billing/webhook
-    A->>P: Confirma evento/status pela API segura
-    A->>D: Atualiza pedido e benefício em transação idempotente
-    A-->>P: HTTP 2xx
-```
+Não serão oferecidos checkout, assinaturas Premium, produtos digitais pagos ou cobrança dentro do aplicativo. Portanto, **não há necessidade funcional de integrar um provedor de pagamentos** ou implementar rotas de cobrança, cartões e webhooks financeiros.
 
-Segurança: não armazenar dados de cartão; guardar credenciais em secrets; autenticar checkout; verificar assinatura/autenticidade do webhook segundo o provedor; conferir status, valor, moeda e pedido; idempotência contra notificações duplicadas; nunca liberar benefício somente pelo retorno visual do navegador. Falhas temporárias exigem retry e reconciliação.
+**Distinção importante:** Google AdSense é uma plataforma de publicidade, **não** uma API de processamento de pagamentos para usuários do Receitando. Esta seção registra uma decisão arquitetural fundamentada no modelo de negócios, não uma integração de pagamento implementada. Caso a rubrica acadêmica exija obrigatoriamente um desenho de API de pagamento, a equipe deve confirmar com o professor se essa justificativa atende ao critério.
 
 ## 6. WebSocket — Receitando Juntos
 
@@ -123,4 +105,4 @@ sequenceDiagram
 - Teste k6: [receitando-read.js](../tests/load/receitando-read.js).
 - Execução e logs: [README do teste](../tests/load/README.md).
 
-**Checklist de apresentação:** explicar arquitetura atual, exibir diagramas, mostrar cálculos e gargalos, demonstrar resultados reais do k6, defender pagamento e WebSocket como desenhos propostos, explicar trade-offs e próximos passos.
+**Checklist de apresentação:** explicar arquitetura atual, exibir diagramas, mostrar cálculos e gargalos, demonstrar resultados reais do k6, justificar ausência de API de pagamento pelo modelo gratuito e apresentar o WebSocket como evolução em validação, explicar trade-offs e próximos passos.
