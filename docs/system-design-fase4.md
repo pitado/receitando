@@ -51,7 +51,11 @@ Linhas contínuas: arquitetura existente. Linhas pontilhadas: propostas.
 
 **[ATUAL — EXECUTADO]** `tests/load/receitando-read.js` testa endpoints públicos GET com k6; a execução inicial de leitura concluiu com 1.060 requisições e zero falhas no ambiente local (não equivale a capacidade de produção). **[A VALIDAR]** `tests/load/receitando-professor.js` configura 1 milhão de escritas sintéticas e 2 milhões de leituras em D1 local; o resultado depende da conclusão e análise da execução do GitHub Actions.
 
-**[A VALIDAR]** Confirmar que o workflow sobe corretamente, endpoints respondem 200, taxa de falhas inferior a 1% e p95 inferior a 1 s (metas iniciais, ajustáveis). Um runner GitHub não representa a capacidade real da Cloudflare.
+**[ATUAL — EVIDÊNCIA EM 30/10/2026]** O cenário progressivo `mixed` foi aprovado no [GitHub Actions — execução 40988074830](https://github.com/pitado/receitando/actions/runs/40988074830/job/123843668166). Execução local via `wrangler dev` + D1 local durante **90 s**, com rampa até **10 VUs**. O teste realizou **774 INSERTs bem-sucedidos**, **1.548 SELECTs bem-sucedidos**, total de **2.322 operações HTTP**, exatamente **1 escrita : 2 leituras**, com **0% de erros HTTP**, **2.322/2.322 checks aprovados**, **p95 de 8,62 ms**, máximo de 363,87 ms e média de **25,77 operações/s** ao longo da rampa. O smoke test de escrita e leitura antes do k6 também respondeu `201` e `200`.
+
+**[INTERPRETAÇÃO]** Essa evidência confirma operações concorrentes de leitura e escrita e as metas de erro/latência **nessa carga e nesse ambiente**. A média observada de 25,77 operações/s, medida durante o ramp-up/ramp-down, **não comprova** a média-alvo de 34,72 operações/s para 3 milhões por 24h; tampouco demonstra capacidade em produção. O teste usa tabela sintética `load_benchmark` e SELECT `COUNT(*)`, não representa integralmente o tráfego real do sistema. Prosseguir com patamares sustentados maiores, monitorar p95/p99, falhas e D1, e validar em staging isolado antes de qualquer alegação de escala em produção.
+
+**[A VALIDAR]** Para próximas execuções, exigir erros inferiores a 1% e p95 inferior a 1 s (metas iniciais). Um runner GitHub não representa a capacidade real da Cloudflare.
 
 **[PROPOSTO]** Criar ambiente staging com D1 separado e dados sintéticos. Executar cenários de leitura e escrita na proporção 2:1, ramp-up, pico, endurance e recuperação; exportar JSON e logs, informar duração, VUs, RPS, p95/p99, falhas, custos e limitações. Não executar carga destrutiva em produção.
 
