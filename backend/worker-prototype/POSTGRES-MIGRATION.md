@@ -1,37 +1,35 @@
-# Receitando — PostgreSQL + Hyperdrive em produção
+# Receitando — produção no Neon PostgreSQL + Cloudflare Hyperdrive
 
-## Escopo autorizado (30/10/2026)
+## Estado confirmado (30/10/2026)
 
-A migração inicial não transfere **contas, sessões, receitas nem seus relacionamentos** do D1. Usuários existentes deverão se registrar novamente. O catálogo de receitas começará vazio e novas receitas serão criadas no Neon.
+A API `round-mouse-8bbd` foi publicada com `DATABASE_ENGINE=postgres`, e o binding `HYPERDRIVE` foi validado. O antigo banco D1 de produção `receitando` (`af1f7dbc-50a3-497c-9188-2f57467ae49b`) foi **excluído da Cloudflare a pedido do proprietário**, após confirmar que nenhum Worker ativo tinha vínculo com ele. A exclusão retornou HTTP 200 e o banco deixou de aparecer na listagem.
 
-A migração de ingredientes também não é necessária. Durante a preparação do corte houve uma cópia parcial de **920 ingredientes** para a nova base Neon; estes registros não correspondem ao catálogo de receitas. Eles devem ser tratados em uma operação de limpeza autorizada separadamente caso a intenção seja iniciar também o dicionário de ingredientes completamente vazio. A cópia foi feita apenas para Neon, sem exclusão do D1.
+O banco separado `receitando-benchmark-isolado` não foi excluído.
+
+## Escopo da nova base
+
+- **Não importados:** contas, sessões, receitas, imagens associadas, favoritos e outros dados relacionados às receitas antigas. Usuários antigos precisam se cadastrar novamente.
+- **Catálogo de receitas:** inicia vazio, aguardando receitas novas. A API foi testada com lista vazia.
+- **Ingredientes:** a importação foi dispensada, mas uma cópia parcial de **920 ingredientes** foi realizada durante a preparação e continua no Neon. A API de ingredientes lista os que aparecem em receitas cadastradas; nenhum catálogo antigo foi migrado. Qualquer limpeza dos 920 ingredientes remanescentes deve ser uma operação separada e explicitamente autorizada.
+- **Não migrar por engano:** o comando `npm run migrate:postgres` está deliberadamente desabilitado.
 
 ## Plataforma
 
-- PostgreSQL: Neon projeto `Receitando`, banco `receitando`, branch `production`, São Paulo, versão 17.
-- Hyperdrive: `receitando-postgres-neon` com ID `f3d216f3a0cc4c81990b03bdca9b87ea`, cache SQL desativado.
-- API: Cloudflare Worker `round-mouse-8bbd` com `DATABASE_ENGINE=postgres`.
-- D1: binding mantido como opção de rollback, sem importação de dados.
-- R2: `receitando-recipe-images` mantido para imagens.
-- Durable Objects: `CookingRoom` mantido para o cozinhar junto.
+- Neon: projeto `Receitando`, PostgreSQL 17.11, banco `receitando`, branch `production`, São Paulo.
+- Cloudflare Hyperdrive: `receitando-postgres-neon` ID `f3d216f3a0cc4c81990b03bdca9b87ea`, cache SQL desativado.
+- Worker `round-mouse-8bbd`: usa exclusivamente o binding Hyperdrive para dados relacionais.
+- Cloudflare R2: `receitando-recipe-images` permanece para imagens.
+- Durable Objects: `CookingRoom` permanece para cozinhar junto.
 
-## Validações já concluídas
+## Verificações
 
-1. Consulta `SELECT 1` através de um Worker isolado e do Hyperdrive chegou ao Neon: PostgreSQL 17.11, banco `receitando`, 15 tabelas.
-2. Esquema no Neon: 15 tabelas e índices, busca full-text com `to_tsvector`.
-3. GitHub Actions: testes de autenticação, catálogo, despensa, favoritos e WebSocket passaram com PostgreSQL de integração.
-4. O script `npm run migrate:postgres` foi desativado intencionalmente para evitar importações antigas.
+1. Worker isolado executou uma consulta real `SELECT 1` através de Hyperdrive: banco `receitando`, 15 tabelas, PostgreSQL 17.11.
+2. Integração PostgreSQL e testes do Worker com cadastro/login, sessões, receitas, favoritos, despensa e WebSocket passaram no GitHub Actions.
+3. Produção respondeu HTTP 200 nas rotas `/api/health`, `/api/v2/recipes`, `/api/recipes`, `/api/home-feed` e `/api/ingredients` após a correção de ordenação da rota de ingredientes.
+4. O binding D1 foi removido do Worker e a exclusão do banco foi confirmada posteriormente.
 
-## Publicação e validação
+## Recuperação
 
-O `wrangler.jsonc` contém o binding D1 para rollback e o binding Hyperdrive para PostgreSQL. Antes de finalizar a troca, confirmar:
+**Não existe mais rollback direto via `DATABASE_ENGINE=d1`**, pois o D1 antigo foi excluído. Para recuperar registros legados seria necessário investigar mecanismos de recuperação da Cloudflare; não há garantia de disponibilidade. Os dados novos no Neon devem ter proteção independente por backups e recursos de recuperação do Neon.
 
-- `/api/health` devolve 200.
-- Endpoints de receitas, home e ingredientes respondem sem erros com os novos dados.
-- Cadastro e login com conta nova funcionam após o cutover.
-- Cookies, CORS, R2 e WebSocket continuam operacionais.
-- Logs da Cloudflare sem erros de `pg` / SQL.
-
-Rollback: definir `DATABASE_ENGINE=d1` e redeployar o Worker anterior caso necessário; não apagar D1 nem dados no Neon. A conta e as receitas novas no Neon não aparecerão durante rollback, pois os bancos são separados.
-
-**Não excluir a base D1 antiga.**
+A nova API segue com `DATABASE_ENGINE=postgres`; R2 e Durable Objects não foram apagados.

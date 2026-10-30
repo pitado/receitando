@@ -1,7 +1,7 @@
 import { Client, types } from "pg";
 import type { Env } from "./worker-http";
 
-// D1 remains the active production source until the PostgreSQL cutover is validated.
+// Production uses PostgreSQL through Hyperdrive. D1 compatibility remains for tests only.
 types.setTypeParser(20, (value: string) => {
   const parsed = Number(value);
   return Number.isSafeInteger(parsed) ? parsed : value;
