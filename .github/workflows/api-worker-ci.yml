@@ -56,3 +56,27 @@ jobs:
       - name: Test real WebSocket rooms locally
         run: npm run test:ws
       - run: npm run dry-run
+
+  # Verifica a API atual usando Neon antes de remover o banco D1 legado.
+  probe-production-api:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Probe production PostgreSQL-backed endpoints
+        run: |
+          node --input-type=module <<'NODE'
+          const base = 'https://api.receitando.miguelpita.com.br';
+          const routes = ['/api/health', '/api/v2/recipes', '/api/recipes', '/api/home-feed'];
+          for (const route of routes) {
+            let response;
+            for (let attempt=0; attempt<3; attempt++) {
+              try {response=await fetch(base+route, {signal:AbortSignal.timeout(18000)});break;}
+              catch (e) {if (attempt===2) throw new Error('Could not reach '+route+': '+e.message);await new Promise(r=>setTimeout(r,1500));}
+            }
+            const body=await response.text();
+            const json=(()=>{try{return JSON.parse(body)}catch{return null}})();
+            console.log(JSON.stringify({route,status:response.status,json:!!json}));
+            if(response.status!==200||!json)throw new Error('Production API endpoint unhealthy: '+route+', status='+response.status);
+            if(route==='/api/health'&&json.status!=='ok')throw new Error('Unexpected health response');
+          }
+          NODE

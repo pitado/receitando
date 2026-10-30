@@ -19,14 +19,6 @@
     "FRONTEND_URL": "https://receitando.miguelpita.com.br,https://www.receitando.miguelpita.com.br,https://receitando.miguellpitaa.workers.dev,http://localhost:3000",
     "EMAIL_FROM": "Receitando <noreply@mail.miguelpita.com.br>"
   },
-  "d1_databases": [
-    {
-      "binding": "db",
-      "database_name": "receitando",
-      "database_id": "af1f7dbc-50a3-497c-9188-2f57467ae49b",
-      "migrations_dir": "migrations"
-    }
-  ],
   // Produção usa Neon via Hyperdrive; D1 permanece conectado para rollback.
   "hyperdrive": [
     {

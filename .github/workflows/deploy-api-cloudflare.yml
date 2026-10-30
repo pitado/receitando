@@ -48,4 +48,24 @@ jobs:
       # D1 migrations are intentionally skipped: the original D1 database is a rollback snapshot.
       - name: Deploy Worker
         run: npm run deploy
+      - name: Smoke-test live Neon API after deployment
+        run: |
+          node --input-type=module <<'NODE'
+          const base='https://api.receitando.miguelpita.com.br';
+          const routes=['/api/health','/api/v2/recipes','/api/recipes','/api/home-feed','/api/ingredients'];
+          for (const route of routes) {
+            let ok=false,lastStatus=0;
+            for (let attempt=1; attempt<=10; attempt++) {
+              try {
+                const r=await fetch(base+route, {signal:AbortSignal.timeout(12000)});
+                lastStatus=r.status;
+                const json=await r.json().catch(()=>null);
+                if(r.status===200 && json!==null && (!Array.isArray(json)||route==='/api/ingredients')){ok=true;break;}
+              }catch(e){lastStatus=-1;}
+              await new Promise(resolve=>setTimeout(resolve,2500));
+            }
+            console.log(JSON.stringify({route,passed:ok,status:lastStatus}));
+            if(!ok)throw new Error('Production API failed health check at '+route);
+          }
+          NODE
       # Catalog image mirroring belongs to the dedicated import-wikibooks workflow.
