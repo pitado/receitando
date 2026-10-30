@@ -6,6 +6,9 @@ Esta pasta reúne a documentação oficial do projeto, separando escopo acadêmi
 
 | Documento | Conteúdo |
 | --- | --- |
+| [`system-design-fase4.md`](system-design-fase4.md) | entrega Fase 4: arquitetura, escalabilidade, integrações propostas e limites | 
+| [`defesa-fase4.md`](defesa-fase4.md) | roteiro de apresentação e perguntas da defesa | 
+| [`../tests/load/README.md`](../tests/load/README.md) | execução e interpretação dos testes k6 em banco isolado | 
 | [`escopo.md`](escopo.md) | problema, objetivo, público-alvo, requisitos, entregas e critérios de conclusão |
 | [`glossario.md`](glossario.md) | termos de negócio, produto, requisitos, arquitetura, banco, segurança e catálogo externo |
 | [`funcionalidades.md`](funcionalidades.md) | funcionalidades efetivamente implementadas |
