@@ -77,6 +77,28 @@ export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const path = normalizedPath(request);
 
+    if (path === "/api/internal/load-benchmark") {
+      const host = new URL(request.url).hostname;
+      if (host !== "127.0.0.1" && host !== "localhost") {
+        return new Response("Not found", { status: 404 });
+      }
+      try {
+        if (request.method === "POST") {
+          const id = crypto.randomUUID();
+          await env.db.prepare("INSERT INTO load_benchmark (id) VALUES (?)").bind(id).run();
+          return Response.json({ ok: true }, { status: 201 });
+        }
+        if (request.method === "GET") {
+          const row = await env.db.prepare("SELECT COUNT(*) AS total FROM load_benchmark").first<{ total: number }>();
+          return Response.json({ ok: true, total: row?.total ?? 0 });
+        }
+        return new Response("Method not allowed", { status: 405 });
+      } catch (error) {
+        console.error("Local benchmark error", error);
+        return Response.json({ ok: false }, { status: 500 });
+      }
+    }
+
     if (request.method === "OPTIONS") {
       return indexWorker.fetch(request, env);
     }
