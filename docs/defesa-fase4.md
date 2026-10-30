@@ -1,41 +1,76 @@
-# Roteiro de defesa — Fase 4 Receitando
+# Defesa técnica — Fase 4 | Receitando
 
-## Apresentação (8–10 minutos)
+**Objetivo:** demonstrar e defender a arquitetura do Receitando, o planejamento de escalabilidade e o mapeamento das integrações. **Não confundir proposta, implementação e teste validado.**
 
-| Tempo | Slide | Conteúdo |
-|---|---|---|
-| 0:00–1:00 | Problema e requisitos | Receitas, matching, experiência móvel, REST stateless, metas de carga e integrações |
-| 1:00–2:30 | Arquitetura real | Next.js PWA em Worker, API Worker, D1, R2, Resend; fronteiras e responsabilidades |
-| 2:30–4:00 | Decisões | REST, Workers, banco relacional, persistência de sessão, segurança e limites |
-| 4:00–5:30 | Escalabilidade | 1M writes/2M reads por janela; gargalos, cache público, filas, índices, réplicas de leitura |
-| 5:30–6:30 | Testes e evidências | k6, logs, métricas p95, taxa de falha; apresentar somente medições realmente obtidas |
-| 6:30–7:30 | Pagamento proposto | Checkout, webhook verificado, idempotência, secrets, sem armazenar cartão |
-| 7:30–8:30 | WebSocket proposto | Notificação de aprovação, Durable Objects, reconexão, eventos persistentes |
-| 8:30–10:00 | Trade-offs e conclusão | Riscos de escrita D1, custo, observabilidade, limites da prova |
+## 1. Roteiro para apresentação (8–10 minutos)
 
-## Perguntas prováveis
+| Tempo | Tema | O que demonstrar e defender |
+| --- | --- | --- |
+| 0:00–1:00 | Problema e solução | Desperdício e dificuldade de escolher receitas; busca por ingredientes, despensa e catálogo |
+| 1:00–2:30 | Arquitetura atual | Next.js/React/TypeScript, frontend PWA responsivo, API REST Cloudflare Workers, D1, R2 e Resend |
+| 2:30–3:30 | Decisões técnicas | REST sem estado em memória, sessões persistidas, HTTPS, separação de camadas e limites de D1 |
+| 3:30–5:00 | Escalabilidade | Meta de 1 milhão de escritas e 2 milhões de leituras; definir período, calcular taxa/s, prever picos, cache, índices, filas e gargalos |
+| 5:00–6:15 | Evidência de testes | Mostrar GitHub Actions/k6 e métricas reais: operações bem-sucedidas, falhas, duração, throughput e p95; distinguir local de produção |
+| 6:15–7:30 | WebSocket — Receitando Juntos | Criar sala, compartilhar link, sincronizar etapas de preparo, reconectar; Durable Objects por sala |
+| 7:30–8:15 | Integração externa e monetização | Produto gratuito com publicidade planejada; esclarecer que AdSense não é API de pagamento. Se o enunciado exigir pagamento, mostrar desenho hipotético separado |
+| 8:15–10:00 | Trade-offs e conclusão | Custos, segurança, observabilidade, consistência, próximos passos e limites do que foi comprovado |
 
-**O backend é stateless mesmo com login?** Sim no sentido de não depender de memória de uma instância: a sessão é persistida e validada por requisição. Isso não significa ausência de estado de negócio.
+## 2. Texto-base para apresentação
 
-**O D1 aguenta 1 milhão de escritas?** Ainda não foi comprovado. A meta depende do intervalo, concorrência, tipo de transação e limites do primário. Read replication não resolve escrita.
+**Abertura:** “O Receitando ajuda a decidir o que cozinhar com os ingredientes disponíveis, reduzindo desperdício e simplificando o planejamento. O foco desta fase é demonstrar como a arquitetura atual funciona e como ela pode evoluir para suportar escala e comunicação em tempo real.”
 
-**Por que não colocar tudo em WebSocket?** REST é adequado para CRUD e contratos cacheáveis; WebSocket só para notificações de baixa latência.
+**Arquitetura:** “O frontend utiliza Next.js e React, acessível no computador e no celular como aplicação web responsiva/PWA. A API REST roda em Cloudflare Workers, com dados no D1 e imagens no R2. A lógica de negócio não depende de manter uma sessão na memória de uma instância do Worker; as sessões são persistidas e verificadas por requisição.”
 
-**Como garantir que um pagamento não seja confirmado duas vezes?** ID de pedido e evento, atualização idempotente e confirmação server-to-server do provedor.
+**Escalabilidade:** “A meta acadêmica é um milhão de escritas e dois milhões de leituras. Sem especificar em quanto tempo, não há taxa mínima de operações por segundo definida. Se a janela for de 24 horas, a média exigida é de 11,57 escritas/s e 23,15 leituras/s. Se for de uma hora, sobe para 277,78 e 555,56 operações/s. Também precisamos considerar picos e o limite de escrita do D1.”
 
-**O aplicativo é mobile?** É uma interface responsiva/PWA no navegador móvel, não aplicativo nativo.
+**Teste:** “Automatizamos cenários k6 no GitHub Actions. O cenário acadêmico configura um milhão de inserções sintéticas e dois milhões de consultas no D1 local. Somente o resultado final do job determina quantas operações foram concluídas; isso não demonstra, por si só, capacidade em produção.”
 
-**O teste k6 prova a capacidade em produção?** Não. O smoke test usa API local no runner do GitHub e é verificação inicial. Uma prova de capacidade exige staging representativo e teste de escrita/leitura com métricas.
+**WebSocket:** “Propomos o Receitando Juntos: duas pessoas entram na mesma sala por um link e acompanham o preparo sincronizado. O WebSocket transmite alterações de etapas instantaneamente; um Durable Object coordena o estado da sala. A integração foi iniciada em código, mas só deve ser apresentada como funcional após testes e implantação validados.”
 
-## Critérios para concluir
+**Monetização:** “O Receitando foi pensado como produto gratuito, com possibilidade de monetização por publicidade. Isso não exige checkout para o usuário. Entretanto, se a atividade pedir especificamente uma API de pagamento, o desenho dessa integração permanece um requisito acadêmico distinto.”
 
-- [x] Documento de arquitetura e proposta de evolução
-- [x] Diagramas Mermaid no documento de System Design
-- [x] Script de teste de leitura e exportação de logs
-- [ ] Execução bem-sucedida e evidências anexadas
-- [ ] Teste de escrita em staging com dados sintéticos
-- [ ] Validação de metas quantitativas no período definido
-- [ ] Slides finalizados
-- [ ] Pagamento e WebSocket implementados (somente se o professor exigir implementação, não apenas mapeamento)
+**Conclusão:** “A arquitetura existente atende às funcionalidades atuais. A fase apresenta uma estratégia de evolução baseada em evidências, com limites explícitos: uma configuração de teste não é resultado comprovado, e a escala de um ambiente local não equivale à escala de produção.”
 
-Documento principal: [system-design-fase4.md](system-design-fase4.md).
+## 3. Perguntas que o professor pode fazer
+
+**Por que a API é stateless se existe login?** Porque o Worker não depende de uma sessão guardada em sua memória. A sessão fica persistida e é consultada/validada por requisição. Os dados do negócio continuam tendo estado no banco.
+
+**Por que Cloudflare Workers?** Execução distribuída e integração com os serviços usados. É necessário considerar limites, custo e dependências; “serverless” não significa capacidade infinita.
+
+**Por que D1?** Banco relacional integrado à plataforma, adequado ao estágio do produto. O gargalo potencial é a concorrência de escritas. Réplicas de leitura não ampliam a capacidade de escrita do primário.
+
+**O que significa 1 milhão de escritas e 2 milhões de leituras?** É uma quantidade de operações. Precisamos da janela temporal e da carga real para transformá-la em uma meta verificável de throughput.
+
+**O teste do GitHub prova que a Cloudflare suporta isso?** Não. O teste usa um runner, API local e D1 local, com operações sintéticas. É uma evidência de comportamento do cenário, não uma certificação de produção.
+
+**Por que WebSocket e não só REST?** REST serve bem a consultas e operações pontuais. WebSocket permite enviar atualizações de etapas em tempo real, sem polling contínuo.
+
+**Por que Durable Objects?** Para concentrar a coordenação e o estado de cada sala em uma unidade consistente. Cada sala pode ser independente; ainda são necessários limites, reconexão, persistência e segurança.
+
+**WebSocket já está pronto?** Existe uma implementação inicial em desenvolvimento, mas a demonstração real depende de validação de CI, testes entre dispositivos e implantação. Se não estiver validado, apresentar como protótipo/proposta.
+
+**E a API de pagamento?** A estratégia do produto não prevê cobrar assinaturas dos usuários. Publicidade e processamento de pagamentos são integrações diferentes. Se o professor exigir apenas mapeamento, podemos apresentar um fluxo hipotético de checkout e webhook, explicitamente não implementado.
+
+**Quais riscos existem?** Escritas concorrentes no D1, custos de infraestrutura, reconexão de sockets, abuso na criação de salas, falhas externas e inconsistência de estado. A defesa deve mostrar como medir e mitigar cada risco.
+
+## 4. Evidências para abrir durante a apresentação
+
+- [System Design e diagramas](system-design-fase4.md)
+- [Arquitetura existente](architecture.md)
+- [Testes de carga e limitações](../tests/load/README.md)
+- [Workflow k6](../.github/workflows/load-test.yml)
+- [Execução acadêmica de 3 milhões de operações](https://github.com/pitado/receitando/actions/runs/40977433968)
+- [Receitando Juntos — implementação inicial (PR #168)](https://github.com/pitado/receitando/pull/168)
+
+## 5. Checklist antes da defesa
+
+- [x] Arquitetura atual e decisões técnicas documentadas.
+- [x] Diagrama de componentes e planejamento de escala documentados.
+- [x] Scripts e workflow k6 criados.
+- [x] Proposta WebSocket Receitando Juntos definida e desenvolvimento iniciado.
+- [ ] Registrar resultado final verificado do teste acadêmico (quantidade, falhas, tempo, p95).
+- [ ] Validar integração WebSocket com testes reais, caso seja demonstrada funcionando.
+- [ ] Confirmar se o enunciado exige somente mapeamento ou implementação da API de pagamento.
+- [ ] Preparar slides e ensaiar a apresentação com tempo cronometrado.
+
+**Regra de defesa:** não afirmar que o sistema atingiu 3 milhões de operações ou que o WebSocket está funcional em produção sem evidência verificável.
