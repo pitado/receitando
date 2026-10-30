@@ -1,53 +1,57 @@
-# Fase 4 — Teste inicial de carga (k6)
+# Receitando — testes k6 de leitura, escrita e escala
 
-O arquivo `receitando-read.js` é **somente leitura**, para não modificar dados reais, gerar contas ou enviar e-mails. O modo padrão é um smoke test curto; o modo load aumenta gradualmente até 20 usuários virtuais. Não equivale a comprovar 1 milhão de escritas e 2 milhões de leituras.
+## O que estamos medindo
 
-## Cenário acadêmico de escrita e leitura (D1 local)
+Este repositório contém testes de desempenho **sintéticos** da API do Receitando, com banco D1 emulado localmente pelo Wrangler em um runner temporário do GitHub Actions. O banco local é criado do zero a cada execução, não utiliza nem modifica as receitas/usuários do banco Cloudflare de produção.
 
-O arquivo `receitando-professor.js` define **1.000.000 de POSTs** (cada um insere um UUID na tabela `load_benchmark`) e **2.000.000 de GETs** (cada um executa `SELECT COUNT(*)`). São operações simultâneas no D1 local do runner do GitHub, e não um teste de produção. A execução tem prazo máximo e pode terminar antes da meta, com falha por timeout ou erro de banco. A contagem real de operações bem-sucedidas deve ser conferida em `summary.json`, pelas métricas `successful_writes` e `successful_reads` e pelo código de saída. **A meta é configurada, não garantida.**
+O requisito acadêmico é uma arquitetura que suporte **1 milhão de escritas para cada 2 milhões de leituras**. O enunciado não define se esse volume ocorre por hora, dia ou outro período. Um teste bem-sucedido valida **a carga e o ambiente testados**, não comprova automaticamente capacidade em produção na Cloudflare.
 
-Na aba Actions, escolha o workflow **Teste de Escalabilidade (k6)**, branch `main`, cenário `professor`. O teste usa até 80 VUs de escrita e 160 de leitura, por até 35 minutos. Não executar contra produção.
+| Cenário do GitHub Actions | Tipo | Objetivo |
+| --- | --- | --- |
+| `smoke` | GETs públicos + smoke individual de POST/GET | Verificar conectividade e funcionamento |
+| `mixed` | POST + GET no D1 local, rampa até 10 VUs | Testar concorrência leve na proporção 1:2 |
+| `load` / `stress` | GETs públicos | Medir rotas de leitura existentes |
+| `professor-check` | 1.000 escritas + 2.000 leituras indexadas | Verificar a metodologia e a geração do relatório completo |
+| **`professor`** | **1.000.000 escritas + 2.000.000 leituras indexadas** | Tentar a comprovação de 3 milhões de operações sintéticas |
 
-**Limitações:** consultas `COUNT(*)` e inserções sintéticas não representam todas as consultas e transações de negócio; uma única máquina executa gerador de carga e API local; métricas não comprovam capacidade de produção nem alta disponibilidade. As operações devem ser interpretadas conforme a janela temporal exigida no enunciado.
+## Como executar o teste completo
 
-## Execução local
+1. Abra [GitHub Actions — Teste de Escalabilidade](https://github.com/pitado/receitando/actions/workflows/load-test.yml).
+2. Clique em **Run workflow** e escolha a branch `main`.
+3. Recomenda-se executar primeiro `professor-check` para evitar desperdiçar recursos com falhas de configuração.
+4. Em seguida, selecione `professor` para a meta de 1 milhão de escritas e 2 milhões de leituras.
+5. Ao finalizar, baixe o artifact `k6-results-professor` na página da execução e examine `report.md`, `evidence.json`, `summary.json`, `requests.log` e `api.log`.
 
-1. Inicie a API em `backend/worker-prototype` com `npm ci && npm run migrate:local && npm run dev`.
-2. Instale k6 conforme a documentação oficial: https://grafana.com/docs/k6/latest/set-up/install-k6/
-3. Na raiz do repositório:
+**ATENÇÃO:** o cenário `professor` pode consumir bastante tempo de execução do GitHub Actions. Pode falhar por gargalo, limite de tempo, interrupções ou falta de recursos. O máximo configurado para as iterações é 135 minutos; o workflow permite tempo adicional para inicialização e coleta de evidências. O teste não faz requisições ao serviço publicado nem à conta remota de D1.
+
+## Como evitamos resultados enganosos
+
+- A etapa inicial faz um **POST** para inserir um registro e um **GET indexado** para confirmar que o registro pode ser recuperado; em seguida registra a contagem inicial.
+- Cada iteração de escrita usa um UUID determinístico exclusivo, enviado no cabeçalho `X-Benchmark-Id`. O backend usa `INSERT OR IGNORE`, tornando retentativas seguras contra duplicação da mesma escrita.
+- As leituras executam **SQL indexado** (`SELECT id FROM load_benchmark WHERE id = ? LIMIT 1`) e verificam `found: true` em resposta HTTP 200. Um único registro-semente já persistido é usado como chave de leitura. É uma carga sintética de leitura de chave existente, **não** reproduz o catálogo completo de receitas.
+- O k6 conta **somente operações lógicas bem-sucedidas** em `successful_writes` e `successful_reads` e registra taxa de erros HTTP, retentativas e latência p95.
+- Depois do k6, `tests/load/verify-professor.mjs` consulta a contagem final do D1. Só aprova quando existem **exatamente 1.000.000 novas linhas gravadas**, 1.000.000 respostas de escrita confirmadas, 2.000.000 respostas de leitura confirmadas, falhas HTTP inferiores a 1%, p95 abaixo de 1 segundo e saída normal do k6.
+- O relatório final é criado **inclusive em caso de reprovação** quando o verificador consegue executar; artefatos e logs são publicados com `if: always()`. Assim a execução fornece evidências verificáveis, sem afirmar sucesso por configuração.
+
+## Histórico confirmado
+
+- [Smoke aprovado, 30/10/2026](https://github.com/pitado/receitando/actions/runs/40987574136/job/123842067616): 65 requisições HTTP k6, sem falhas, p95 de 7,89 ms.
+- [Mixed aprovado, 30/10/2026](https://github.com/pitado/receitando/actions/runs/40988074830/job/123843668166): 774 escritas e 1.548 leituras, total 2.322, zero falhas HTTP, p95 de 8,62 ms, até 10 VUs, D1 local.
+- [Primeira tentativa de 3 milhões — não aprovada](https://github.com/pitado/receitando/actions/runs/40977433968): cerca de 2,5 milhões de tentativas, mas 100% falharam; não é prova de escala.
+
+**Importante:** o simples fato de o workflow ficar verde comprova apenas os critérios definidos no teste; sempre citar duração, ambiente, taxa, latência, contagem real e limitações.
+
+## Execução local de consultas públicas
+
+No diretório `backend/worker-prototype`, instale dependências e suba o servidor com `npm ci && npm run migrate:local && npm run dev`. Na raiz do repositório, com k6 instalado:
 
 ```bash
 k6 run tests/load/receitando-read.js
 k6 run -e MODE=load tests/load/receitando-read.js
 ```
 
-Opcionalmente, `-e BASE_URL=https://api.receitando.miguelpita.com.br` direciona à produção, mas **não execute carga em produção sem autorização, orçamento e janela controlada**.
+Para os cenários sintéticos de escrita é necessário configurar `BENCHMARK_ENABLED:true` apenas no Wrangler **local** e criar a tabela `load_benchmark`. O endpoint não deve ser habilitado em produção.
 
-## Medições
+## Limitações arquiteturais
 
-Registrar `http_reqs`, `http_req_duration` (p95), `http_req_failed`, `application_errors` e throughput observado. Metas iniciais ilustrativas: p95 inferior a 1 s e taxa de falha inferior a 1%; ajustar a partir de requisitos e linha de base.
-
-## Limitações e próxima etapa
-
-- Testa apenas GETs públicos; não mede escritas, WebSocket, pagamentos nem limites reais do D1 sob escrita.
-- Para validar a razão 1:2, construir um ambiente de staging isolado com dados sintéticos, endpoints de escrita controlados, limpeza e monitoramento.
-- Declarar janela de tempo: 1M escritas e 2M leituras por dia equivalem em média a 11,57 escritas/s e 23,15 leituras/s; por hora equivalem a 277,78 e 555,56 por segundo.
-- Nenhum resultado numérico de performance deve ser declarado sem execução e relatório.
-
-## Logs completos e relatório
-
-Crie uma pasta local para os resultados (ela não deve ser commitada):
-
-```bash
-mkdir -p results/load
-k6 run -e DETAILED_LOGS=1 --summary-export results/load/summary.json --out json=results/load/metrics.json tests/load/receitando-read.js > results/load/requests.log 2>&1
-```
-
-Arquivos gerados:
-- `requests.log`: log JSON por requisição, mensagens do k6 e resumo do terminal.
-- `metrics.json`: amostras de métricas emitidas pelo k6 em JSON Lines.
-- `summary.json`: métricas consolidadas do cenário.
-
-A execução registra cada requisição de teste no console somente com `DETAILED_LOGS=1`. Não registra o corpo da resposta nem dados de autenticação. O volume de logs pode ser alto; usar em execução controlada. O resumo não é uma trilha de auditoria de todas as operações internas do backend. Para isso, é necessário instrumentar a API e a infraestrutura separadamente.
-
-Os arquivos são criados quando o comando é executado. Os resultados efetivos devem ser obtidos no artifact da execução correspondente; não presumir aprovação por configuração.
+A D1 remota possui limites próprios de throughput, filas, linhas lidas/escritas e preço, diferentes do D1 local. A quantidade de operações HTTP não é necessariamente igual à quantidade de linhas D1 faturáveis. A defesa do professor deve explicar escalabilidade horizontal dos Workers, gargalo de escrita em banco único, cache para leituras públicas, índices e eventual particionamento. Para validar escala **na Cloudflare**, criar um Worker de staging independente com um D1 remoto exclusivo, avaliar o plano/limites e medir nesse ambiente, com controle de custo.
