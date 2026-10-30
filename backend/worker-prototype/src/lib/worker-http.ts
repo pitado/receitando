@@ -2,6 +2,7 @@ import { sha256 } from "./security";
 
 export interface Env {
   db: D1Database;
+  COOKING_ROOMS?: DurableObjectNamespace;
   FRONTEND_URL: string;
   RESEND_API_KEY?: string;
   EMAIL_FROM?: string;
