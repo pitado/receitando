@@ -118,20 +118,9 @@ export default {
         if (request.method === "POST") {
           const id = crypto.randomUUID();
           await env.db.prepare("INSERT INTO load_benchmark (id) VALUES (?)").bind(id).run();
-          // Retorna a chave gravada para verificar read-after-write por índice.
-          return Response.json({ ok: true, id }, { status: 201 });
+          return Response.json({ ok: true }, { status: 201 });
         }
         if (request.method === "GET") {
-          const lookupId = new URL(request.url).searchParams.get("id");
-          if (lookupId !== null) {
-            if (!/^[a-f0-9-]{36}$/.test(lookupId)) {
-              return Response.json({ ok: false, message: "Invalid benchmark id" }, { status: 400 });
-            }
-            const row = await env.db.prepare("SELECT id FROM load_benchmark WHERE id = ? LIMIT 1")
-              .bind(lookupId).first<{ id: string }>();
-            return Response.json({ ok: true, found: row?.id === lookupId });
-          }
-          // Mantém a contagem para conferir persistência ao fim da execução.
           const row = await env.db.prepare("SELECT COUNT(*) AS total FROM load_benchmark").first<{ total: number }>();
           return Response.json({ ok: true, total: row?.total ?? 0 });
         }
