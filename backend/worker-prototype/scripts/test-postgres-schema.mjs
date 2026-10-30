@@ -7,15 +7,14 @@ if (!process.env.POSTGRES_TEST_URL) {
   throw new Error("POSTGRES_TEST_URL is required; never run these fixture tests against production");
 }
 const { PgCompatDatabase } = await import("../.test-dist/lib/postgres-adapter.js");
+const databaseHost = new URL(process.env.POSTGRES_TEST_URL).hostname;
+if (!["localhost", "127.0.0.1", "::1"].includes(databaseHost)) throw new Error("Fixtures are allowed only against localhost test PostgreSQL");
 const client = new Client({ connectionString: process.env.POSTGRES_TEST_URL });
 await client.connect();
-let began = false;
 try {
   const schema = await readFile(new URL("../migrations/postgres/0001_baseline.sql", import.meta.url), "utf8");
   await client.query(schema);
   const db = new PgCompatDatabase(client);
-  await client.query("BEGIN");
-  began = true;
 
   const user = "fixture-user";
   const recipe = "fixture-recipe";
@@ -52,10 +51,7 @@ try {
   if (!/^\d{4}-\d{2}-\d{2}T/.test(dateRow?.created_at ?? "")) {
     throw new Error("Timestamp default lost ISO format compatibility");
   }
-  await client.query("ROLLBACK");
-  began = false;
   console.log("PostgreSQL: schema, real FTS, indexed lookup, parameter binding, conflict and transactional rollback passed.");
 } finally {
-  if (began) await client.query("ROLLBACK").catch(() => {});
   await client.end();
 }
