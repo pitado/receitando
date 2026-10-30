@@ -31,9 +31,10 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: backend/worker-prototype/package-lock.json
-      - run: npm ci
+      - run: npm install --no-audit --no-fund
       - run: npm run typecheck
       - run: npm test
+      - run: npm run test:postgres
       - name: Test real WebSocket rooms locally
         run: npm run test:ws
       - run: npm run dry-run
