@@ -26,6 +26,13 @@
       "migrations_dir": "migrations"
     }
   ],
+  // Preparado para homologação: D1 continua sendo a fonte padrão enquanto DATABASE_ENGINE não é postgres.
+  "hyperdrive": [
+    {
+      "binding": "HYPERDRIVE",
+      "id": "f3d216f3a0cc4c81990b03bdca9b87ea"
+    }
+  ],
   "r2_buckets": [
     {
       "binding": "RECIPE_IMAGES",
