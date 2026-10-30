@@ -30,6 +30,14 @@ flowchart TB
 
 Linhas contínuas: arquitetura existente. Linhas pontilhadas: propostas.
 
+### Verificação da infraestrutura Cloudflare (30/10/2026)
+
+**[VERIFICADO NA CONTA CLOUDFARE]** Foram encontrados dois Workers publicados: `receitando` (frontend, com binding de assets e URL da API) e `round-mouse-8bbd` (backend). No backend estão vinculados o D1 `receitando`, o R2 `receitando-recipe-images`, o namespace de Durable Object `CookingRoom` e o segredo da integração Resend. O D1 principal possui **22 tabelas**; há ainda um D1 separado chamado `receitando-benchmark-isolado` para experimentos sem modificar o banco principal. Logs de invocação estão habilitados; traces de execução não estão habilitados.
+
+**[NÃO CONFIGURADO]** A replicação de leitura do D1 principal está **desativada**, e a lista de Cloudflare Queues da conta está vazia. Cache de respostas públicas, filas e réplicas são **etapas de evolução**, não componentes atualmente comprovados. O vínculo com Durable Objects confirma configuração, **não** valida por si só a troca de mensagens WebSocket entre clientes.
+
+**[LIMITAÇÃO]** A existência de Workers e dos bindings na conta não constitui medição de throughput ou de tolerância a picos na Cloudflare. O benchmark k6 aprovado em 30/10 usa `wrangler dev` e **D1 local**.
+
 ## 3. Escalabilidade: premissas, matemática e gargalos
 
 | Janela para 1M writes + 2M reads | Escritas/s médias | Leituras/s médias | Total/s médio |
@@ -49,6 +57,8 @@ Linhas contínuas: arquitetura existente. Linhas pontilhadas: propostas.
 
 ## 4. Estratégia de testes
 
+**[RESULTADO HISTÓRICO NÃO APROVADO]** A [execução acadêmica inicial](https://github.com/pitado/receitando/actions/runs/40977433968) fez cerca de 2,5 milhões de requisições, porém **100% falharam**. Ela não é evidência de escalabilidade. Após a correção do endpoint de benchmark, os testes posteriores de smoke e mixed foram aprovados, conforme os resultados abaixo.
+
 **[ATUAL — EXECUTADO]** `tests/load/receitando-read.js` testa endpoints públicos GET com k6; a execução inicial de leitura concluiu com 1.060 requisições e zero falhas no ambiente local (não equivale a capacidade de produção). **[A VALIDAR]** `tests/load/receitando-professor.js` configura 1 milhão de escritas sintéticas e 2 milhões de leituras em D1 local; o resultado depende da conclusão e análise da execução do GitHub Actions.
 
 **[ATUAL — EVIDÊNCIA EM 30/10/2026]** O cenário progressivo `mixed` foi aprovado no [GitHub Actions — execução 40988074830](https://github.com/pitado/receitando/actions/runs/40988074830/job/123843668166). Execução local via `wrangler dev` + D1 local durante **90 s**, com rampa até **10 VUs**. O teste realizou **774 INSERTs bem-sucedidos**, **1.548 SELECTs bem-sucedidos**, total de **2.322 operações HTTP**, exatamente **1 escrita : 2 leituras**, com **0% de erros HTTP**, **2.322/2.322 checks aprovados**, **p95 de 8,62 ms**, máximo de 363,87 ms e média de **25,77 operações/s** ao longo da rampa. O smoke test de escrita e leitura antes do k6 também respondeu `201` e `200`.
@@ -66,6 +76,39 @@ Linhas contínuas: arquitetura existente. Linhas pontilhadas: propostas.
 Não serão oferecidos checkout, assinaturas Premium, produtos digitais pagos ou cobrança dentro do aplicativo. Portanto, **não há necessidade funcional de integrar um provedor de pagamentos** ou implementar rotas de cobrança, cartões e webhooks financeiros.
 
 **Distinção importante:** Google AdSense é uma plataforma de publicidade, **não** uma API de processamento de pagamentos para usuários do Receitando. Esta seção registra uma decisão arquitetural fundamentada no modelo de negócios, não uma integração de pagamento implementada. Caso a rubrica acadêmica exija obrigatoriamente um desenho de API de pagamento, a equipe deve confirmar com o professor se essa justificativa atende ao critério.
+
+
+### Mapeamento de API de pagamento — desenho condicional para a rubrica acadêmica
+
+**[PROPOSTO APENAS PARA FINS ARQUITETURAIS; NÃO IMPLEMENTADO]** Caso o modelo de negócio passe a oferecer um serviço pago, o Receitando poderia integrar um processador como **Mercado Pago ou Stripe** através de uma interface de provedor de pagamentos. Esta **não é uma decisão de lançar um plano Premium**: o produto continuará gratuito e financiado por anúncios. O mapeamento a seguir demonstra a integração exigida no enunciado, sem criar cobrança real:
+
+- **Frontend web/PWA:** solicita à API REST do Receitando a criação de uma intenção de pagamento de um produto hipotético. Nunca manipula credenciais secretas ou grava dados completos do cartão.
+- **Backend stateless (Workers):** autentica o usuário, valida valor e produto no servidor, cria um pedido `pending` em D1 e chama a API HTTPS do provedor com chave secreta. Envia uma **chave de idempotência** para evitar cobranças duplicadas em retentativas.
+- **Provedor externo:** retorna URL/token de checkout hospedado. Processamento dos dados de cartão fica no provedor.
+- **Webhook de pagamento:** provedor chama `POST /api/integrations/payments/webhook`. Worker confere assinatura/autenticidade, registra o ID único do evento para deduplicação, consulta o estado do pagamento junto ao provedor quando necessário e atualiza o pedido de forma idempotente.
+- **Consistência e falhas:** pedidos seguem estados `pending`, `paid`, `failed`, `refunded`; eventos fora de ordem não podem desfazer uma confirmação válida. Timeout, retries com backoff e reconciliação periódica mitigam perda de webhook. Segredos no ambiente, HTTPS, auditoria sem dados sensíveis e controle de autorização são obrigatórios.
+
+```mermaid
+sequenceDiagram
+    participant U as Usuário hipotético
+    participant FE as Frontend web/PWA
+    participant API as Worker REST
+    participant DB as D1
+    participant PG as Provedor de pagamento
+    U->>FE: Inicia checkout hipotético
+    FE->>API: POST /api/payments/checkout
+    API->>DB: Cria pedido pending
+    API->>PG: Cria preferência/sessão com idempotency key
+    PG-->>API: URL/token de checkout
+    API-->>FE: URL do checkout
+    U->>PG: Finaliza pagamento no provedor
+    PG->>API: POST /api/integrations/payments/webhook
+    API->>API: Valida assinatura e deduplica evento
+    API->>DB: Atualiza pedido para paid/failed
+    API-->>PG: HTTP 2xx após processamento seguro
+```
+
+**Critério de aceitação:** este diagrama cobre o **mapeamento** da API de pagamentos, conforme o slide, mas **não representa integração ativa, endpoint existente ou cobrança disponível**. AdSense continua sendo monetização por publicidade e não substitui uma API de checkout.
 
 ## 6. WebSocket — Receitando Juntos
 
@@ -109,4 +152,4 @@ sequenceDiagram
 - Teste k6: [receitando-read.js](../tests/load/receitando-read.js).
 - Execução e logs: [README do teste](../tests/load/README.md).
 
-**Checklist de apresentação:** explicar arquitetura atual, exibir diagramas, mostrar cálculos e gargalos, demonstrar resultados reais do k6, justificar ausência de API de pagamento pelo modelo gratuito e apresentar o WebSocket como evolução em validação, explicar trade-offs e próximos passos.
+**Checklist de apresentação:** explicar arquitetura atual e recursos confirmados na Cloudflare; exibir diagramas, cálculos e gargalos; mostrar resultados reais e limites dos testes k6; justificar a decisão pelo modelo gratuito **e** apresentar o mapeamento condicional de API de pagamentos; apresentar o WebSocket como implementação a validar funcionalmente entre clientes; explicar trade-offs e próximos passos.
