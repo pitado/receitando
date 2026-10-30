@@ -15,7 +15,8 @@
     "deploy": "wrangler deploy",
     "test:ws": "node scripts/test-cooking-rooms.mjs",
     "migrate:postgres": "node scripts/migrate-d1-to-postgres.mjs",
-    "test:postgres": "npm run test:compile && node --test tests/postgres-adapter.test.cjs"
+    "test:postgres": "npm run test:compile && node --test tests/postgres-adapter.test.cjs",
+    "test:postgres:integration": "npm run test:compile && node scripts/test-postgres-schema.mjs"
   },
   "dependencies": {
     "pg": "^8.16.3"
