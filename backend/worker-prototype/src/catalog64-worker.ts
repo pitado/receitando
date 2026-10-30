@@ -168,7 +168,7 @@ async function listCatalogIngredients(request: Request, env: Env): Promise<Respo
     JOIN recipe_ingredients ri ON ri.ingredient_id = i.id
     JOIN recipes r ON r.id = ri.recipe_id
     GROUP BY i.id, i.name, i.normalized_name, i.category, i.is_staple
-    ORDER BY usageCount DESC, i.name ASC
+    ORDER BY COUNT(DISTINCT ri.recipe_id) DESC, i.name ASC
     LIMIT 1200
   `).all<{
     id: string;
