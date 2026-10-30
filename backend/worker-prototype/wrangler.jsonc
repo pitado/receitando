@@ -32,6 +32,8 @@
       "bucket_name": "receitando-recipe-images"
     }
   ],
+  "durable_objects": { "bindings": [{ "name": "COOKING_ROOMS", "class_name": "CookingRoom" }] },
+  "migrations": [{ "tag": "cooking-room-v1", "new_sqlite_classes": ["CookingRoom"] }],
   "observability": {
     "enabled": true,
     "logs": {
