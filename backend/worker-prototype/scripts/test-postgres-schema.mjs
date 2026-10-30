@@ -89,7 +89,10 @@ try {
   if (catalog.status !== 200) throw new Error("Catalog + search failed using PostgreSQL: " + catalog.status + " " + await catalog.text());
   const parsedCatalog = await catalog.json();
   if (!parsedCatalog.items?.some(item => item.id === recipe)) throw new Error("Catalog returned no seeded recipe via Postgres FTS");
-  console.log("PostgreSQL real API routes passed: health, register, bearer auth, login, pantry, favorites and catalog FTS.");
+  const ingredientsResponse = await invoke("/api/ingredients");
+  const ingredientRows = await ingredientsResponse.json();
+  if (ingredientsResponse.status !== 200 || !Array.isArray(ingredientRows)) throw new Error("Ingredients route failed against PostgreSQL");
+  console.log("PostgreSQL real API routes passed: health, register, bearer auth, login, pantry, favorites, catalog FTS and ingredients.");
   console.log("PostgreSQL: schema, real FTS, indexed lookup, parameter binding, conflict and transactional rollback passed.");
 } finally {
   await client.end();
