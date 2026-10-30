@@ -20,3 +20,8 @@ test("SQLite INSERT OR IGNORE maps to ON CONFLICT DO NOTHING", () => {
 test("mismatched bind count fails safely", () => {
   assert.throws(() => convertSql("SELECT ? + ?", [1]), /SQL bind mismatch/);
 });
+
+test("preserves SQLite camelCase projection aliases in PostgreSQL rows", () => {
+  const result = convertSql("SELECT user_id AS userId, recipe_id AS recipeId, COUNT(*) AS total FROM favorites WHERE user_id = ?", ["u"]);
+  assert.equal(result.text, 'SELECT user_id AS "userId", recipe_id AS "recipeId", COUNT(*) AS total FROM favorites WHERE user_id = $1');
+});
