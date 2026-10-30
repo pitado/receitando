@@ -1,13 +1,19 @@
 # Receitando
 
-## Entrega acadêmica — Fase 4 (System Design e escalabilidade)
+## Documentação do projeto
 
-- **[System Design completo, arquitetura atual/proposta e integrações](docs/system-design-fase4.md)**
-- **[Roteiro de apresentação e defesa técnica](docs/defesa-fase4.md)**
-- **[Testes k6: leitura, estresse e meta de 1 milhão de escritas + 2 milhões de leituras](tests/load/README.md)**
-- **[Executar testes pelo GitHub Actions](https://github.com/pitado/receitando/actions/workflows/load-test.yml)**
+Para conhecer a arquitetura do Receitando, os principais documentos estão reunidos aqui:
 
-> Os cenários de benchmark usam D1 local isolado. Uma execução configurada para 3 milhões de operações não comprova que a meta foi atingida: os resultados precisam ser verificados nos artefatos do Actions. Pagamentos e WebSocket estão documentados como arquitetura proposta, não como integrações implementadas.
+| Documento | O que você encontra |
+| --- | --- |
+| **[System Design](docs/system-design.md)** | Estrutura da aplicação, infraestrutura, escalabilidade e integrações |
+| **[Diagrama de componentes](docs/diagramas/componentes.md)** | Visualização da comunicação entre frontend, API e serviços Cloudflare |
+| **[WebSocket — Receitando Juntos](docs/websocket-receitando-juntos.md)** | Criação de salas, troca de mensagens e sincronização das etapas |
+| **[Defesa da arquitetura](docs/defesa-arquitetura.md)** | Explicações das escolhas técnicas e roteiro para apresentação |
+
+Os [testes de carga](tests/load/README.md) e suas [execuções no GitHub Actions](https://github.com/pitado/receitando/actions/workflows/load-test.yml) também estão documentados. Já validamos leituras e escritas simultâneas no ambiente local; o resultado de um teste local não deve ser confundido com garantia de capacidade em produção.
+
+[Ver todos os documentos](docs/README.md)
 
 ## 📐 DER e Diagrama de Sequência — acesso rápido
 
@@ -462,6 +468,10 @@ Guia operacional: [`docs/deploy.md`](docs/deploy.md).
 
 ## Documentação
 
+- [`docs/system-design.md`](docs/system-design.md) — visão geral da arquitetura e plano de escalabilidade;
+- [`docs/diagramas/componentes.md`](docs/diagramas/componentes.md) — diagrama de componentes;
+- [`docs/websocket-receitando-juntos.md`](docs/websocket-receitando-juntos.md) — comunicação em tempo real;
+- [`docs/defesa-arquitetura.md`](docs/defesa-arquitetura.md) — roteiro para a apresentação;
 - [`docs/README.md`](docs/README.md) — índice;
 - [`docs/escopo.md`](docs/escopo.md) — escopo acadêmico;
 - [`docs/glossario.md`](docs/glossario.md) — termos do projeto;
