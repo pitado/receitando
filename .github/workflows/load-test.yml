@@ -1,6 +1,11 @@
 name: Teste de carga — API REST + PostgreSQL isolado (k6)
 
 on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/load-test.yml'
+      - 'tests/load/**'
   workflow_dispatch:
     inputs:
       scenario:
@@ -11,6 +16,7 @@ on:
         options:
           - smoke
           - professor-check
+          - capacity
           - professor
 
 permissions:
@@ -20,6 +26,8 @@ jobs:
   postgres-load:
     runs-on: ubuntu-latest
     timeout-minutes: 155
+    env:
+      TEST_SCENARIO: ${{ inputs.scenario || 'professor-check' }}
     services:
       postgres:
         image: postgres:17
@@ -32,7 +40,6 @@ jobs:
         options: >-
           --health-cmd "pg_isready -U postgres -d receitando_benchmark"
           --health-interval 10s --health-timeout 5s --health-retries 10
-    env:
       POSTGRES_TEST_URL: postgresql://postgres:postgres@127.0.0.1:5432/receitando_benchmark
       CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE: postgresql://postgres:postgres@127.0.0.1:5432/receitando_benchmark
     steps:
@@ -87,13 +94,14 @@ jobs:
         run: |
           set +e
           mkdir -p results/load
-          case "${{ inputs.scenario }}" in
+          case "$TEST_SCENARIO" in
             smoke) TARGET_WRITES=100; TARGET_READS=200 ;;
             professor-check) TARGET_WRITES=1000; TARGET_READS=2000 ;;
+            capacity) TARGET_WRITES=10000; TARGET_READS=20000 ;;
             professor) TARGET_WRITES=1000000; TARGET_READS=2000000 ;;
             *) echo 'Cenário inválido'; exit 1 ;;
           esac
-          echo "Cenário ${{ inputs.scenario }}: $TARGET_WRITES POST + $TARGET_READS GET via Worker + Hyperdrive local + Postgres isolado"
+          echo "Cenário $TEST_SCENARIO: $TARGET_WRITES POST + $TARGET_READS GET via Worker + Hyperdrive local + Postgres isolado"
           timeout --signal=TERM --kill-after=15s 8400s k6 run \
             -e BASE_URL=http://127.0.0.1:8787 \
             -e BENCHMARK_SEED_ID="$BENCHMARK_SEED_ID" \
@@ -105,7 +113,7 @@ jobs:
           tail -n 80 results/load/requests.log
           BASE_URL=http://127.0.0.1:8787 \
             TARGET_WRITES="$TARGET_WRITES" TARGET_READS="$TARGET_READS" \
-            K6_EXIT_CODE="$code" SCENARIO="${{ inputs.scenario }}" \
+            K6_EXIT_CODE="$code" SCENARIO="$TEST_SCENARIO" \
             node tests/load/verify-professor.mjs
           verify_code=$?
           test "$code" -eq 0 && test "$verify_code" -eq 0
@@ -118,7 +126,27 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: postgres-k6-${{ inputs.scenario }}
+          name: postgres-k6-${{ inputs.scenario || 'professor-check' }}
           path: results/load/
+          if-no-files-found: warn
+          retention-days: 14
+
+  production-read-probe:
+    name: Produção — leituras HTTP não destrutivas
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verificar endpoints públicos em produção sem escrita
+        run: node tests/load/probe-production-http.mjs
+      - name: Publicar resultado observado
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-http-read-probe
+          path: results/load/production-http-read-probe.json
           if-no-files-found: warn
           retention-days: 14
