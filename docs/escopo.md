@@ -206,7 +206,7 @@ A implementação atual utiliza:
 
 - **Next.js, React e TypeScript** no frontend;
 - **Cloudflare Workers** para frontend e API em produção;
-- **Cloudflare D1** para persistência;
+- **Neon PostgreSQL** para persistência;
 - **GitHub Actions** para integração, deploy e tarefas de importação;
 - **Resend** para envio de códigos de recuperação de senha;
 - APIs do **MediaWiki/Wikimedia** para obtenção de receitas e imagens livres.
