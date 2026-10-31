@@ -32,8 +32,8 @@ RecipeAdapter (frontend)
       v
 recipe-adaptation-worker
       |
-      +--> D1: receita + ingredientes
-      +--> D1: despensa do usuário (opcional)
+      +--> PostgreSQL: receita + ingredientes
+      +--> PostgreSQL: despensa do usuário (opcional)
       |
       +--> recipe-adaptation.ts
       |      + parser de quantidade
@@ -53,7 +53,7 @@ recipe-adaptation-worker
 Receita adaptada + explicações + diagnóstico da despensa
 ```
 
-O núcleo de domínio não depende do Cloudflare D1. Parser, escala, unidades e contexto podem ser testados sem banco, HTTP ou frontend.
+O núcleo de domínio não depende do Neon PostgreSQL. Parser, escala, unidades e contexto podem ser testados sem banco, HTTP ou frontend.
 
 ## API
 

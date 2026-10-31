@@ -17,7 +17,7 @@ Toda regra, limite e código de erro citado aqui foi verificado no código-fonte
 | **Serviço de e-mail (Resend)** | secundário | Entrega o código de recuperação de senha. |
 | **Wikilivros / Wikimedia Commons** | secundário | Fonte externa de receitas e imagens livres. |
 | **GitHub Actions** | secundário | Executa CI, deploys e a importação de catálogo. |
-| **Cloudflare D1** | secundário | Persistência relacional. |
+| **Neon PostgreSQL** | secundário | Persistência relacional. |
 | **Cloudflare R2** | secundário | Armazenamento das fotos de receitas enviadas (binding `RECIPE_IMAGES`). |
 
 Generalização: `Administrador` → `Usuário autenticado` → `Visitante`.
@@ -136,13 +136,13 @@ flowchart LR
 
 ### UC02 — Buscar receita por texto
 
-**Ator:** Visitante · **Pré:** índice FTS5 `recipe_search` populado
+**Ator:** Visitante · **Pré:** índice busca full-text PostgreSQL `recipe_search` populado
 
 **Fluxo principal**
 1. O usuário digita o termo no campo de busca do catálogo.
 2. O sistema requisita `GET /api/recipes?q={termo}`.
 3. A API normaliza o termo e extrai até 8 tokens alfanuméricos distintos.
-4. A API monta a consulta FTS5 como conjunção de prefixos (`"token"* AND "token"*`).
+4. A API monta a consulta busca full-text PostgreSQL como conjunção de prefixos (`"token"* AND "token"*`).
 5. A API consulta `recipe_search` e ordena por relevância com `bm25()`.
 6. A interface exibe os resultados.
 
@@ -588,7 +588,7 @@ flowchart LR
 
 ### UC21 — Importar catálogo de fonte aberta
 
-**Ator:** GitHub Actions (workflow `import-wikibooks.yml`) · **Atores secundários:** Wikilivros, Wikimedia Commons, D1, R2
+**Ator:** GitHub Actions (workflow `import-wikibooks.yml`) · **Atores secundários:** Wikilivros, Wikimedia Commons, PostgreSQL, R2
 
 **Fluxo principal**
 1. Consulta o Wikilivros em português e descobre páginas candidatas.
@@ -596,7 +596,7 @@ flowchart LR
 3. Procura imagem correspondente no Wikimedia Commons.
 4. Valida relevância e licença.
 5. Registra a procedência da receita e a atribuição da imagem.
-6. Grava as receitas em lotes no D1.
+6. Grava as receitas em lotes no PostgreSQL.
 7. Canonicaliza variações de ingredientes preservando aliases.
 8. Marca ingredientes básicos (`is_staple`) e otimiza o banco.
 9. Espelha as imagens para o R2.

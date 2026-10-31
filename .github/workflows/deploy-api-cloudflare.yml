@@ -45,7 +45,7 @@ jobs:
         run: npm run test:ws
       - name: Validate Worker build
         run: npm run dry-run
-      # D1 migrations are intentionally skipped: the original D1 database is a rollback snapshot.
+      # Migrações PostgreSQL não são aplicadas automaticamente no deploy.
       - name: Deploy Worker
         run: npm run deploy
       - name: Smoke-test live Neon API after deployment
@@ -74,4 +74,4 @@ jobs:
             if(!ok)throw new Error('Production API failed health check at '+route);
           }
           NODE
-      # Catalog image mirroring belongs to the dedicated import-wikibooks workflow.
+      # Importação de links editoriais pertence ao workflow de referências.

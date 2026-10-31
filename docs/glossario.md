@@ -11,7 +11,7 @@ Este glossário reúne os principais termos de **negócio, produto e tecnologia*
 | --- | --- |
 | **Alias de ingrediente** | Variação textual associada a um ingrediente canônico. Por exemplo, `cebolas` e `cebolas picadas` podem ser aliases de `cebola`. |
 | **Avaliação** | Interação do usuário com uma receita por meio de `LIKE` ou `DISLIKE`. |
-| **Busca textual** | Pesquisa de receitas pelo conteúdo textual, principalmente título e descrição. A implementação atual utiliza FTS5. |
+| **Busca textual** | Pesquisa de receitas pelo conteúdo textual, principalmente título e descrição. A implementação atual utiliza full-text PostgreSQL. |
 | **Canonicalização de ingredientes** | Processo que consolida diferentes formas de escrever um ingrediente em uma representação única e conservadora, sem unir itens que tenham significados culinários diferentes. |
 | **Catálogo de receitas** | Conjunto de receitas disponíveis para consulta no Receitando, incluindo informações como título, ingredientes, preparo, imagem e procedência. |
 | **Comentário** | Texto publicado por um usuário autenticado em uma receita para registrar uma opinião ou interação com a comunidade. |
@@ -48,7 +48,7 @@ Este glossário reúne os principais termos de **negócio, produto e tecnologia*
 | --- | --- |
 | **API (Application Programming Interface)** | Camada HTTP responsável por receber requisições do frontend, aplicar regras de negócio, acessar o banco de dados e devolver respostas estruturadas. |
 | **Backend** | Parte do sistema responsável por autenticação, regras de negócio, catálogo, matching, persistência e demais operações executadas no servidor. A API atual roda em Cloudflare Workers. |
-| **Cloudflare D1** | Banco de dados SQL baseado em SQLite utilizado como persistência de produção do Receitando. |
+| **Neon PostgreSQL** | Banco de dados SQL baseado em PostgreSQL utilizado como persistência de produção do Receitando. |
 | **Cloudflare Workers** | Plataforma serverless utilizada para executar tanto a API quanto o frontend publicado do Receitando. |
 | **CORS (Cross-Origin Resource Sharing)** | Política HTTP que controla quais origens podem realizar requisições à API. O projeto utiliza CORS com credenciais para a comunicação entre frontend e API. |
 | **Cookie `HttpOnly`** | Cookie que não pode ser lido diretamente pelo JavaScript do navegador. O Receitando o utiliza para transportar a sessão autenticada com maior proteção. |
@@ -61,7 +61,7 @@ Este glossário reúne os principais termos de **negócio, produto e tecnologia*
 | **Integração contínua (CI)** | Processo automatizado que executa verificações como lint, typecheck, testes e build para validar alterações no código. |
 | **Next.js** | Framework utilizado para estruturar o frontend do Receitando sobre React. |
 | **OpenNext** | Ferramenta utilizada para adaptar a aplicação Next.js ao ambiente de execução da Cloudflare. |
-| **Persistência** | Armazenamento de informações para que continuem disponíveis entre diferentes acessos e sessões, realizado principalmente por meio do Cloudflare D1. |
+| **Persistência** | Armazenamento de informações para que continuem disponíveis entre diferentes acessos e sessões, realizado principalmente por meio do Neon PostgreSQL. |
 | **React** | Biblioteca utilizada na construção da interface do frontend. |
 | **Roteamento** | Processo de direcionar uma requisição para o módulo responsável por tratá-la. Na API, `app-router.ts` centraliza esse direcionamento. |
 | **Serverless** | Modelo de execução em nuvem no qual a aplicação roda em serviços gerenciados sem que a equipe precise administrar servidores tradicionais. |
@@ -74,17 +74,17 @@ Este glossário reúne os principais termos de **negócio, produto e tecnologia*
 | --- | --- |
 | **Banco de dados** | Estrutura responsável por armazenar usuários, sessões, receitas, ingredientes, despensa, favoritos, comentários e demais informações persistentes. |
 | **Chave estrangeira (Foreign Key)** | Restrição que relaciona registros de tabelas diferentes e ajuda a manter a integridade dos dados. |
-| **D1 Migration** | Arquivo SQL versionado que altera de forma controlada a estrutura do banco Cloudflare D1. Migrations já aplicadas são tratadas como histórico imutável. |
-| **FTS5 (Full-Text Search 5)** | Mecanismo de busca textual do SQLite usado pelo Receitando para pesquisar títulos e descrições de receitas de forma mais eficiente. |
+| **PostgreSQL Migration** | Arquivo SQL versionado que altera de forma controlada a estrutura do banco Neon PostgreSQL. Migrations já aplicadas são tratadas como histórico imutável. |
+| **full-text PostgreSQL (Full-Text Search 5)** | Mecanismo de busca textual do PostgreSQL usado pelo Receitando para pesquisar títulos e descrições de receitas de forma mais eficiente. |
 | **Índice** | Estrutura criada no banco para acelerar determinados padrões de consulta. |
 | **`ingredient_id`** | Identificador do ingrediente canônico utilizado para relacionar aliases, despensa e ingredientes das receitas. |
 | **`is_staple`** | Flag que indica se um ingrediente é considerado básico e, portanto, não penaliza a compatibilidade atual. |
 | **`recipe_ingredients`** | Relação entre receitas e ingredientes, armazenando também quantidade, unidade, opcionalidade e texto original quando disponível. |
-| **`recipe_search`** | Tabela virtual FTS5 utilizada para indexar título e descrição das receitas. |
+| **`recipe_search`** | Tabela virtual full-text PostgreSQL utilizada para indexar título e descrição das receitas. |
 | **Slug** | Identificador textual amigável usado para representar uma receita em URLs ou referências legíveis. |
-| **SQL (Structured Query Language)** | Linguagem utilizada para definir estruturas e consultar ou alterar dados no Cloudflare D1. |
+| **SQL (Structured Query Language)** | Linguagem utilizada para definir estruturas e consultar ou alterar dados no Neon PostgreSQL. |
 | **Statement preparado** | Consulta SQL estruturada com valores enviados separadamente por parâmetros. A API utiliza statements preparados e `.bind()` para valores vindos das requisições. |
-| **Trigger** | Regra executada automaticamente pelo banco diante de alterações em tabelas. O projeto utiliza triggers para manter o índice FTS5 sincronizado com as receitas. |
+| **Trigger** | Regra executada automaticamente pelo banco diante de alterações em tabelas. O projeto utiliza triggers para manter o índice full-text PostgreSQL sincronizado com as receitas. |
 
 ## 5. Termos de autenticação e segurança
 
@@ -96,7 +96,7 @@ Este glossário reúne os principais termos de **negócio, produto e tecnologia*
 | **PBKDF2** | Algoritmo de derivação de chave utilizado pelo projeto, por meio da Web Crypto API, para derivar hashes de senha com salt. |
 | **Rate limiting** | Controle da quantidade de tentativas permitidas em um período para reduzir abuso em operações sensíveis, como login, cadastro e recuperação de senha. |
 | **Resend** | Serviço utilizado para enviar o código de recuperação de senha por e-mail. |
-| **Sessão** | Estado que mantém o usuário autenticado entre requisições. O navegador recebe um cookie de sessão e o D1 armazena apenas o hash do token correspondente. |
+| **Sessão** | Estado que mantém o usuário autenticado entre requisições. O navegador recebe um cookie de sessão e o PostgreSQL armazena apenas o hash do token correspondente. |
 | **SHA-256** | Função de hash utilizada no projeto para armazenar de forma derivada tokens de sessão e identificadores de alguns controles de segurança. |
 | **Token de sessão** | Valor aleatório usado para representar uma sessão autenticada. O valor bruto não é armazenado diretamente no banco. |
 | **XSS (Cross-Site Scripting)** | Classe de vulnerabilidade em que conteúdo malicioso pode ser executado no navegador. O importador converte o conteúdo externo aproveitado em texto e o frontend não renderiza HTML bruto das receitas. |

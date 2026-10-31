@@ -1,5 +1,8 @@
 # Receitando
 
+> **Arquitetura atual:** Next.js 16 + React 19 (Cloudflare Workers), API REST stateless em Cloudflare Worker, **Neon PostgreSQL 17 via Cloudflare Hyperdrive**, imagens no R2 e WebSocket em Durable Objects. [System Design — Fase 4](docs/system-design-fase4.md) · [Evidências PostgreSQL](tests/load/README.md). A defesa oral será apresentada em slides separados.
+
+
 ## Documentação do projeto
 
 Para conhecer a arquitetura do Receitando, os principais documentos estão reunidos aqui:
@@ -9,7 +12,7 @@ Para conhecer a arquitetura do Receitando, os principais documentos estão reuni
 | **[System Design](docs/system-design.md)** | Estrutura da aplicação, infraestrutura, escalabilidade e integrações |
 | **[Diagrama de componentes](docs/diagramas/componentes.md)** | Visualização da comunicação entre frontend, API e serviços Cloudflare |
 | **[WebSocket — Receitando Juntos](docs/websocket-receitando-juntos.md)** | Criação de salas, troca de mensagens e sincronização das etapas |
-| **[Defesa da arquitetura](docs/defesa-arquitetura.md)** | Explicações das escolhas técnicas e roteiro para apresentação |
+| **[Fase 4 — documento obrigatório](docs/system-design-fase4.md)** | Explicações das escolhas técnicas e roteiro para apresentação |
 
 Os [testes de carga](tests/load/README.md) e suas [execuções no GitHub Actions](https://github.com/pitado/receitando/actions/workflows/load-test.yml) também estão documentados. Já validamos leituras e escritas simultâneas no ambiente local; o resultado de um teste local não deve ser confundido com garantia de capacidade em produção.
 
@@ -21,7 +24,7 @@ Os **dois diagramas principais estão na raiz do repositório**, com nomes simpl
 
 | Diagrama | 👁️ Visualizar no GitHub | ✏️ Arquivo editável na raiz |
 | --- | --- | --- |
-| **DER — Diagrama Entidade-Relacionamento** (estrutura SQL do D1) | **[Ver prévia do DER](docs/diagramas/der.md)** | [DER.drawio](DER.drawio) |
+| **DER — Diagrama Entidade-Relacionamento** (PostgreSQL) | **[Ver prévia do DER](docs/diagramas/der.md)** | [DER.drawio](DER.drawio) |
 | **Diagrama de Sequência UML** (busca de receitas por ingredientes) | **[Ver prévia da sequência](docs/diagramas/sequencia-matching.md)** | [Diagrama-de-Sequencia.drawio](Diagrama-de-Sequencia.drawio) |
 
 [![Frontend CI](https://github.com/pitado/receitando/actions/workflows/ci.yml/badge.svg)](https://github.com/pitado/receitando/actions/workflows/ci.yml)
@@ -122,7 +125,7 @@ Quando não existe substituição considerada confiável para aquele contexto, o
 ### Receitas, busca e matching
 
 - catálogo navegável e detalhe completo;
-- busca textual indexada com SQLite FTS5;
+- busca textual indexada com busca full-text PostgreSQL;
 - catálogo v2 com busca, filtros, ordenação e paginação;
 - catálogo canônico de ingredientes e aliases;
 - normalização conservadora de variações de ingredientes;
@@ -211,7 +214,7 @@ OpenNext / Cloudflare Worker
    ▼
 API Cloudflare Worker
    │
-   ├── Cloudflare D1        dados relacionais
+   ├── Neon PostgreSQL        dados relacionais
    ├── Cloudflare R2        imagens enviadas pela comunidade
    └── Resend               e-mail de recuperação de senha
 ```
@@ -307,9 +310,9 @@ Compostos semanticamente diferentes permanecem separados: `óleo` não equivale 
 
 ## Banco de dados
 
-Produção utiliza **Cloudflare D1**. O schema inclui usuários, sessões, catálogo canônico de ingredientes, aliases, receitas, despensa, favoritos, recuperação de senha, comunidade, atribuição de conteúdo, rate limiting e busca FTS5.
+Produção utiliza **Neon PostgreSQL**. O schema inclui usuários, sessões, catálogo canônico de ingredientes, aliases, receitas, despensa, favoritos, recuperação de senha, comunidade, atribuição de conteúdo, rate limiting e busca full-text PostgreSQL.
 
-As imagens enviadas pela comunidade ficam no **Cloudflare R2**, no bucket ligado por `RECIPE_IMAGES`, e são servidas pela rota `/api/recipe-submission-images/:key`. O conteúdo binário da imagem não é armazenado no D1; o banco guarda a URL associada à submissão/receita.
+As imagens enviadas pela comunidade ficam no **Cloudflare R2**, no bucket ligado por `RECIPE_IMAGES`, e são servidas pela rota `/api/recipe-submission-images/:key`. O conteúdo binário da imagem não é armazenado no PostgreSQL; o banco guarda a URL associada à submissão/receita.
 
 A coluna `pantry_items.expires_at` já fazia parte do schema original e agora é usada pela interface de validade; portanto, essa evolução não exigiu uma migration nova.
 
@@ -330,7 +333,7 @@ receitando/
 ├── backend/
 │   ├── README.md
 │   └── worker-prototype/           API atual de produção
-│       ├── migrations/             migrations do D1
+│       ├── migrations/             migrations do PostgreSQL
 │       ├── scripts/                importação/canonicalização
 │       ├── src/                    Workers e bibliotecas
 │       └── tests/                  testes da API
@@ -352,9 +355,9 @@ A implementação antiga em NestJS + Prisma + PostgreSQL foi retirada da árvore
 
 **Frontend:** Next.js 16, React 19, TypeScript, App Router, OpenNext e Cloudflare Workers.
 
-**API:** Cloudflare Workers, TypeScript, Wrangler, Cloudflare D1, Cloudflare R2, Web Crypto API e Resend.
+**API:** Cloudflare Workers, TypeScript, Wrangler, Neon PostgreSQL, Cloudflare R2, Web Crypto API e Resend.
 
-**Infraestrutura:** GitHub Actions, Cloudflare Workers, Cloudflare D1, Cloudflare R2 e Dependabot.
+**Infraestrutura:** GitHub Actions, Cloudflare Workers, Neon PostgreSQL, Cloudflare R2 e Dependabot.
 
 ## Desenvolvimento local
 
@@ -382,7 +385,7 @@ NEXT_PUBLIC_API_URL=http://localhost:8787
 ```bash
 cd backend/worker-prototype
 npm ci
-npm run migrate:local
+migrações PostgreSQL conforme docs/deploy.md
 npm run dev
 ```
 
@@ -407,7 +410,7 @@ Secrets usados pelos workflows de deploy/importação:
 - `CLOUDFLARE_API_TOKEN`;
 - `CLOUDFLARE_ACCOUNT_ID`.
 
-O token de deploy deve ter as permissões de edição necessárias nos recursos usados pelo fluxo — Workers Scripts, D1 e R2. O bucket `receitando-recipe-images` é pré-criado, portanto o workflow não depende de permissão administrativa para listar ou criar buckets R2.
+O token de deploy deve ter as permissões de edição necessárias nos recursos usados pelo fluxo — Workers Scripts, PostgreSQL e R2. O bucket `receitando-recipe-images` é pré-criado, portanto o workflow não depende de permissão administrativa para listar ou criar buckets R2.
 
 ## Qualidade e testes
 
@@ -439,7 +442,7 @@ npx playwright install --with-deps chromium
 npm test
 ```
 
-A suíte combina testes unitários e testes de rota com D1 simulado. O repositório também possui E2E em navegador com Playwright.
+A suíte combina testes unitários e testes de rota com PostgreSQL simulado. O repositório também possui E2E em navegador com Playwright.
 
 ### Acessibilidade e SEO
 
@@ -471,14 +474,14 @@ Guia operacional: [`docs/deploy.md`](docs/deploy.md).
 - [`docs/system-design.md`](docs/system-design.md) — visão geral da arquitetura e plano de escalabilidade;
 - [`docs/diagramas/componentes.md`](docs/diagramas/componentes.md) — diagrama de componentes;
 - [`docs/websocket-receitando-juntos.md`](docs/websocket-receitando-juntos.md) — comunicação em tempo real;
-- [`docs/defesa-arquitetura.md`](docs/defesa-arquitetura.md) — roteiro para a apresentação;
+- [`docs/system-design-fase4.md`](docs/system-design-fase4.md) — roteiro para a apresentação;
 - [`docs/README.md`](docs/README.md) — índice;
 - [`docs/escopo.md`](docs/escopo.md) — escopo acadêmico;
 - [`docs/glossario.md`](docs/glossario.md) — termos do projeto;
 - [`docs/funcionalidades.md`](docs/funcionalidades.md) — estado implementado;
 - [`docs/architecture.md`](docs/architecture.md) — arquitetura;
 - [`docs/api.md`](docs/api.md) — contrato HTTP;
-- [`docs/database.md`](docs/database.md) — D1, índices e migrations;
+- [`docs/database.md`](docs/database.md) — PostgreSQL, índices e migrations;
 - [`docs/catalogo.md`](docs/catalogo.md) — receitas, imagens e licenças;
 - [`docs/motor-adaptacao.md`](docs/motor-adaptacao.md) — motor de adaptação e substituições;
 - [`docs/mobile-upload-login.md`](docs/mobile-upload-login.md) — upload de receitas e login em mobile;
@@ -498,4 +501,4 @@ O código original do Receitando é disponibilizado sob **GNU Affero General Pub
 
 ---
 
-Projeto acadêmico em evolução, com produção baseada em **Next.js + Cloudflare Workers + Cloudflare D1 + Cloudflare R2 + GitHub Actions**.
+Projeto acadêmico em evolução, com produção baseada em **Next.js + Cloudflare Workers + Neon PostgreSQL + Cloudflare R2 + GitHub Actions**.

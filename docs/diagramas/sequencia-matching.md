@@ -1,6 +1,6 @@
 # Sequência UML — busca por ingredientes
 
-Como os ingredientes digitados ou os itens da despensa chegam à API, são normalizados, consultados no D1 e usados para calcular a compatibilidade.
+Como os ingredientes digitados ou os itens da despensa chegam à API, são normalizados, consultados no PostgreSQL e usados para calcular a compatibilidade.
 
 **Prévia visual gerada pelo GitHub usando Mermaid:**
 
@@ -11,7 +11,7 @@ sequenceDiagram
     participant F as Frontend /combinar
     participant A as API catalog64-worker
     participant N as recipe-utils
-    participant D as Cloudflare D1
+    participant D as Neon PostgreSQL
 
     U->>F: Informa ingredientes ou usa a despensa
     alt Ingredientes digitados

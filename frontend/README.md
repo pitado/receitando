@@ -15,7 +15,7 @@ Aplicação web construída com **Next.js**, **React** e **TypeScript**, publica
 - estados de loading, erro, vazio e 404;
 - apresentação de procedência/licença das receitas e imagens.
 
-Toda persistência passa pela API; o frontend não acessa D1 diretamente.
+Toda persistência passa pela API; o frontend não acessa PostgreSQL diretamente.
 
 ## Estrutura
 
@@ -121,7 +121,7 @@ npx playwright install chromium
 npm test
 ```
 
-Durante os E2E, a API é interceptada em uma URL local dedicada. A suíte não usa contas reais, não envia e-mail e não escreve no D1 de produção.
+Durante os E2E, a API é interceptada em uma URL local dedicada. A suíte não usa contas reais, não envia e-mail e não escreve no PostgreSQL de produção.
 
 Em caso de falha, screenshots, vídeos e traces são preservados e enviados como artefatos no GitHub Actions.
 

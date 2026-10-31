@@ -22,7 +22,7 @@ try {
   const data = await response.json();
   if (!response.ok || data.ok !== true || !Number.isSafeInteger(data.total)) throw Error('Resposta final de contagem inválida.');
   countAfter = data.total;
-} catch (error) { problems.push(`Contagem final do D1 indisponível: ${error.message}`); }
+} catch (error) { problems.push(`Contagem final do PostgreSQL indisponível: ${error.message}`); }
 
 const metrics = summary?.metrics || {};
 const metric = (name, field) => metrics[name]?.values?.[field] ?? null;
@@ -37,7 +37,7 @@ const deltaWrites = countAfter === null || !Number.isSafeInteger(baseline) ? nul
 if (k6Exit !== 0) problems.push(`k6 terminou com código ${k6Exit}`);
 if (successfulWrites !== targetWrites) problems.push(`Escritas HTTP confirmadas: ${successfulWrites} / ${targetWrites}`);
 if (successfulReads !== targetReads) problems.push(`Leituras HTTP confirmadas: ${successfulReads} / ${targetReads}`);
-if (deltaWrites !== targetWrites) problems.push(`Diferença de linhas persistidas no D1: ${deltaWrites} / ${targetWrites}`);
+if (deltaWrites !== targetWrites) problems.push(`Diferença de linhas persistidas no PostgreSQL: ${deltaWrites} / ${targetWrites}`);
 if (failures === null || failures >= 0.01) problems.push(`Taxa de falhas HTTP: ${failures}`);
 if (p95 === null || p95 >= 1000) problems.push(`Latência p95: ${p95}`);
 
@@ -45,7 +45,7 @@ const approved = problems.length === 0;
 const evidence = {
   scenario: process.env.SCENARIO,
   status: approved ? 'APROVADO' : 'NÃO APROVADO',
-  environment: 'GitHub Actions Ubuntu + Wrangler dev + Cloudflare D1 local, banco isolado de produção',
+  environment: 'GitHub Actions Ubuntu + Wrangler dev + PostgreSQL isolado no runner, banco isolado de produção',
   run_url: runUrl,
   targets: { writes: targetWrites, reads: targetReads },
   actual: {
@@ -65,14 +65,14 @@ const report = [
   `- **Execução:** ${runUrl}`,
   `- **Escritas HTTP bem-sucedidas:** ${successfulWrites ?? 'indisponível'} / ${targetWrites}`,
   `- **Leituras SQL bem-sucedidas:** ${successfulReads ?? 'indisponível'} / ${targetReads}`,
-  `- **Linhas efetivamente persistidas (delta D1):** ${deltaWrites ?? 'indisponível'} / ${targetWrites}`,
+  `- **Linhas efetivamente persistidas (delta PostgreSQL):** ${deltaWrites ?? 'indisponível'} / ${targetWrites}`,
   `- **Taxa de erros HTTP:** ${failures === null ? 'indisponível' : (failures * 100).toFixed(4) + '%'}`,
   `- **Latência p95:** ${p95 ?? 'indisponível'} ms`,
   `- **Vazão média HTTP:** ${averageRps ?? 'indisponível'} req/s`,
   `- **Retentativas:** ${retries ?? 0}`,
   '',
   ...(problems.length ? ['## Motivos de não aprovação', ...problems.map(p => '- ' + p), ''] : []),
-  '> Limitação: o resultado mede a API emulada via Wrangler + D1 local no runner do GitHub, não a escalabilidade real da Cloudflare em produção.',
+  '> Limitação: o resultado mede a API emulada via Wrangler + PostgreSQL local no runner do GitHub, não a escalabilidade real da Cloudflare em produção.',
   '',
 ].join('\n');
 
