@@ -67,7 +67,7 @@ Recipe "1" *-- "0..*" RecipeIngredient
 RecipeIngredient --> Ingredient : ingredientId
 RecipeCatalogResponse "1" *-- "0..*" RecipeCatalogItem
 RecipeAdaptationResult "1" *-- "0..*" RecipeAdaptationIngredient
-note bottom
+note bottom of RecipeAdaptationResult
   Contratos extraídos de frontend/src/types/recipe.ts.
   Este diagrama representa tipos de interface, não tabelas PostgreSQL.
 end note
