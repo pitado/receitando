@@ -23,14 +23,14 @@ export const options = {
     writes: {
       executor: 'shared-iterations',
       exec: 'write',
-      vus: 24,
+      vus: Number(__ENV.WRITE_VUS || 4),
       iterations: targetWrites,
       maxDuration: '135m',
     },
     reads: {
       executor: 'shared-iterations',
       exec: 'read',
-      vus: 48,
+      vus: Number(__ENV.READ_VUS || 8),
       iterations: targetReads,
       maxDuration: '135m',
     },
