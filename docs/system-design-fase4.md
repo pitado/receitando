@@ -68,6 +68,20 @@ A média não descreve horário de pico; deve-se considerar, como hipótese de p
 
 Esses são **testes HTTP reais em produção**, mas **nenhum executou escritas SQL via API de produção**. As escritas HTTP são persistidas em Durable Objects. Os resultados não certificam os 34,72 ops/s médios durante 24h, nem os 3 milhões de HTTP requests do cenário acadêmico. A arquitetura pode ser dimensionada para o objetivo; a configuração atual ainda exige benchmark representativo e prolongado para afirmar que a meta foi atingida.
 
+### Teste HTTP de escrita e leitura no PostgreSQL pela Cloudflare — APROVADO
+
+**[Execução real no GitHub Actions (31/10/2026)](https://github.com/pitado/receitando/actions/runs/41232599160).** Um Worker remoto dedicado reutilizou o roteador REST e a integração `pg` do Receitando, conectado via Hyperdrive **exclusivo** ao Neon PostgreSQL de benchmark (branch isolada, sem acesso à base de usuários).
+
+- **POSTs HTTP que gravaram no PostgreSQL:** 1.000 de 1.000.
+- **GETs HTTP com SELECT no PostgreSQL:** 2.000 de 2.000.
+- **Linhas persistidas após o teste:** +1.000 confirmadas no banco.
+- **Falhas:** 0/3.000. **Latência p95:** 206,77 ms. **Vazão média:** 42,59 requisições por segundo, sendo 14,20 escritas/s e 28,39 leituras/s.
+- **Concorrência k6:** 6 VUs de escrita e 12 VUs de leitura. O Worker temporário foi excluído ao final.
+
+A vazão observada supera a **média calculada para 3 milhões de operações distribuídas em 24 horas** (34,72 ops/s); contudo, o cenário real executou **3.000 requisições**, e não 3 milhões, durante uma janela curta. Portanto, não comprova uma operação contínua de 24h ou de 3M HTTP requests e nem valida transações reais do produto na instância principal do Neon.
+
+[Detalhes, scripts e evidências](../tests/load/README.md).
+
 ## 5. Mapeamento de integração de pagamento — exigência do enunciado
 **Projeto gratuito:** não há checkout ou assinatura ativos. A monetização prevista por Google AdSense é publicidade, **não** API de cobrança. Para cumprir a exigência de *mapeamento*, projetamos uma integração **hipotética** com Mercado Pago ou Stripe, sem ativar pagamentos:
 
