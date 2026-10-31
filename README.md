@@ -38,21 +38,18 @@ flowchart LR
 
 O Worker HTTP não mantém sessões na memória; informações persistentes ficam no PostgreSQL. O **estado WebSocket** é coordenado separadamente por Durable Objects. Não existe app mobile nativo. A integração de pagamento é apenas um **mapeamento acadêmico**, não um recurso ativo do produto.
 
-## Documentação da Fase 4 — System Design
+## System Design — arquitetura visual
 
-O professor solicitou uma arquitetura que apresente estratégia para **1 milhão de escritas e 2 milhões de leituras**, REST stateless, frontend web/mobile e mapeamento de WebSocket e API de pagamentos. O foco é a **justificativa arquitetural**, com dimensionamento e tratamento de gargalos — não executar obrigatoriamente 3 milhões de chamadas HTTP.
+O [**System Design do Receitando**](docs/system-design-fase4.md) apresenta diagramas renderizados no GitHub para **contexto, infraestrutura, REST, DER, escalabilidade, WebSocket e pagamento hipotético**. A defesa técnica justifica a stack, os riscos e o dimensionamento do projeto.
 
-| Material | Prévia | Editar / fonte |
-| --- | --- | --- |
-| **Documento obrigatório de System Design** | [Fase 4 — System Design](docs/system-design-fase4.md) | [Código e infraestrutura](docs/architecture.md) |
-| **Diagrama de componentes real** | **[Ver desenho](Diagrama-de-Componentes.md)** | [UML de componentes (.puml)](receitando-diagrama-componentes.puml) |
-| **DER Neon PostgreSQL 17** | **[Ver desenho](DER.md)** | [DER UML (.puml)](DER.puml) · [DBML](receitando-der.dbml) |
-| **UML — Matching** | **[Ver desenho](Diagrama-de-Sequencia.md)** | [Sequência UML (.puml)](receitando-diagrama-sequencia-matching.puml) |
-| **UML — Envio e moderação** | **[Ver desenho](Diagrama-de-Moderacao.md)** | [Sequência UML (.puml)](receitando-diagrama-sequencia-envio-moderacao.puml) |
-| **WebSocket Receitando Juntos** | [Especificação](docs/receitando-juntos.md) | [Worker CookingRoom](backend/worker-prototype/src/cooking-room.ts) |
-| **Evidências de engenharia** | [Metodologia e resultados](tests/load/README.md) | [Workflow HTTP/Neon isolado](.github/workflows/neon-http-real.yml) |
-
-Os diagramas são **UML textual em PlantUML (`.puml`)**, versionáveis e editáveis como código, sem arquivos `.drawio` ou imagens estáticas. Os arquivos `DER.md` e `Diagrama-*.md`, na raiz do projeto, mostram os desenhos Mermaid diretamente no GitHub. [Índice de diagramas](DIAGRAMAS-EDITAVEIS.md).
+| Material | Visualização e fonte |
+| --- | --- |
+| **Documento obrigatório da Fase 4** | [System Design — diagramas e justificativas](docs/system-design-fase4.md) |
+| **Arquitetura de componentes** | [Ver desenho](Diagrama-de-Componentes.md) · [PlantUML editável](receitando-diagrama-componentes.puml) |
+| **DER PostgreSQL** | [Ver desenho](DER.md) · [PlantUML editável](DER.puml) |
+| **Sequências UML** | [Matching](Diagrama-de-Sequencia.md) · [Envio e moderação](Diagrama-de-Moderacao.md) |
+| **Colaboração WebSocket** | [Fluxo, implementação e testes](docs/receitando-juntos.md) |
+| **Evidências de desempenho** | [Metodologia e limites dos ensaios](tests/load/README.md) |
 
 ### Estratégia para suportar a volumetria
 

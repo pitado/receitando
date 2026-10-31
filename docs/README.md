@@ -11,14 +11,14 @@ Os arquivos `.puml` são fontes PlantUML e o GitHub os apresenta como texto. Par
 [Todos os diagramas e arquivos UML](../DIAGRAMAS-EDITAVEIS.md).
 
 ## Entrega acadêmica — Fase 4
-1. [**Documento obrigatório de System Design**](system-design-fase4.md) — definição de arquitetura, escalabilidade para 1 milhão de escritas e 2 milhões de leituras, limites e integração de pagamentos/WebSocket.
+1. [**Documento obrigatório de System Design (visual)**](system-design-fase4.md) — diagramas de contexto, containers, fluxos REST, ER, escalabilidade 1M/2M e integrações, com justificativas e limites.
 2. [Diagrama de componentes (prévia)](diagramas/componentes.md) · [fonte UML](../receitando-diagrama-componentes.puml) — visão da infraestrutura.
 3. [DER PostgreSQL (prévia)](diagramas/der.md) · [fonte UML](../DER.puml) — modelo de entidades e relações.
 4. [Banco e integridade](database.md) — schema real, índices e transações.
 5. [Evidências de teste PostgreSQL](../tests/load/README.md) — volume obtido e interpretação correta.
 6. [Receitando Juntos](receitando-juntos.md) — WebSocket, presença, versões e reconexão.
 
-**A defesa oral e as justificativas para apresentar ao professor serão preparadas em slides fora do GitHub.** O System Design técnico obrigatório permanece versionado no repositório.
+**O documento principal é a fonte técnica para a defesa pública.** Os diagramas exibem a arquitetura implementada e identificam propostas hipotéticas; material de apresentação, quando utilizado, é apenas apoio.
 
 **Diagramas de sequência editáveis:** [matching](../receitando-diagrama-sequencia-matching.puml) · [envio e moderação](../receitando-diagrama-sequencia-envio-moderacao.puml) · [índice de diagramas](../DIAGRAMAS-EDITAVEIS.md).
 
