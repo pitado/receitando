@@ -2,6 +2,14 @@
 
 A arquitetura de produção utiliza **Next.js/React em Cloudflare Workers**, **API REST stateless**, **Neon PostgreSQL 17 conectado via Cloudflare Hyperdrive**, **Cloudflare R2** para arquivos e **Durable Objects/WebSocket** para salas colaborativas.
 
+## Diagramas UML — clicar para visualizar
+
+Os arquivos `.puml` são fontes PlantUML e o GitHub os apresenta como texto. Para visualizar o **desenho**, use estas páginas renderizadas:
+
+**[DER PostgreSQL](../DER.md)** · **[Componentes](../Diagrama-de-Componentes.md)** · **[Matching](../Diagrama-de-Sequencia.md)** · **[Envio e moderação](../Diagrama-de-Moderacao.md)** · **[Classes do frontend](../Diagrama-de-Classes.md)**.
+
+[Todos os diagramas e arquivos UML](../DIAGRAMAS-EDITAVEIS.md).
+
 ## Entrega acadêmica — Fase 4
 1. [**Documento obrigatório de System Design**](system-design-fase4.md) — definição de arquitetura, escalabilidade para 1 milhão de escritas e 2 milhões de leituras, limites e integração de pagamentos/WebSocket.
 2. [Diagrama de componentes (prévia)](diagramas/componentes.md) · [fonte UML](../receitando-diagrama-componentes.puml) — visão da infraestrutura.

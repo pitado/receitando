@@ -8,6 +8,18 @@
 [![CI API](https://github.com/pitado/receitando/actions/workflows/api-worker-ci.yml/badge.svg)](https://github.com/pitado/receitando/actions/workflows/api-worker-ci.yml)
 [![Licença AGPL-3.0](https://img.shields.io/badge/licen%C3%A7a-AGPL--3.0-96462B)](LICENSE)
 
+## Diagramas UML — visualização imediata
+
+**Clique em “Ver desenho” para abrir o diagrama renderizado aqui no GitHub**. O link de PlantUML (`.puml`) abre somente o código-fonte, para edição.
+
+| Diagrama | Abrir visualização | Código UML editável |
+| --- | --- | --- |
+| **DER — PostgreSQL** | **[Ver desenho do DER](DER.md)** | [DER.puml](DER.puml) |
+| **Componentes do sistema** | **[Ver desenho da arquitetura](Diagrama-de-Componentes.md)** | [Componentes.puml](receitando-diagrama-componentes.puml) |
+| **Sequência — matching** | **[Ver desenho da sequência](Diagrama-de-Sequencia.md)** | [Matching.puml](receitando-diagrama-sequencia-matching.puml) |
+| **Sequência — moderação** | **[Ver desenho da moderação](Diagrama-de-Moderacao.md)** | [Moderação.puml](receitando-diagrama-sequencia-envio-moderacao.puml) |
+| **Classes do frontend** | **[Ver desenho de classes](Diagrama-de-Classes.md)** | [Classes.puml](receitando-contratos-dados-frontend.puml) |
+
 ## Arquitetura atual
 
 O frontend é uma aplicação **Next.js 16 / React 19 / TypeScript**, distribuída com Cloudflare Workers/OpenNext e adaptada a navegadores desktop e mobile (PWA). A **API REST stateless** roda em outro Cloudflare Worker. Os dados relacionais e sessões estão no **Neon PostgreSQL 17**, conectado por **Cloudflare Hyperdrive** e driver `pg`. Imagens ficam no **R2**. Salas de preparo compartilhado utilizam **WebSocket e Durable Objects**, com estado isolado por sala. O serviço **Resend** gerencia e-mails.
@@ -33,14 +45,14 @@ O professor solicitou uma arquitetura que apresente estratégia para **1 milhão
 | Material | Prévia | Editar / fonte |
 | --- | --- | --- |
 | **Documento obrigatório de System Design** | [Fase 4 — System Design](docs/system-design-fase4.md) | [Código e infraestrutura](docs/architecture.md) |
-| **Diagrama de componentes real** | [Visualizar no GitHub](docs/diagramas/componentes.md) | [UML de componentes (.puml)](receitando-diagrama-componentes.puml) |
-| **DER Neon PostgreSQL 17** | [Visualizar no GitHub](docs/diagramas/der.md) | [DER UML (.puml)](DER.puml) · [DBML](receitando-der.dbml) |
-| **UML — Matching** | [Visualizar no GitHub](docs/diagramas/sequencia-matching.md) | [Sequência UML (.puml)](receitando-diagrama-sequencia-matching.puml) |
-| **UML — Envio e moderação** | [Visualizar no GitHub](docs/diagramas/sequencia-envio-moderacao.md) | [Sequência UML (.puml)](receitando-diagrama-sequencia-envio-moderacao.puml) |
+| **Diagrama de componentes real** | **[Ver desenho](Diagrama-de-Componentes.md)** | [UML de componentes (.puml)](receitando-diagrama-componentes.puml) |
+| **DER Neon PostgreSQL 17** | **[Ver desenho](DER.md)** | [DER UML (.puml)](DER.puml) · [DBML](receitando-der.dbml) |
+| **UML — Matching** | **[Ver desenho](Diagrama-de-Sequencia.md)** | [Sequência UML (.puml)](receitando-diagrama-sequencia-matching.puml) |
+| **UML — Envio e moderação** | **[Ver desenho](Diagrama-de-Moderacao.md)** | [Sequência UML (.puml)](receitando-diagrama-sequencia-envio-moderacao.puml) |
 | **WebSocket Receitando Juntos** | [Especificação](docs/receitando-juntos.md) | [Worker CookingRoom](backend/worker-prototype/src/cooking-room.ts) |
 | **Evidências de engenharia** | [Metodologia e resultados](tests/load/README.md) | [Workflow HTTP/Neon isolado](.github/workflows/neon-http-real.yml) |
 
-Os diagramas são **UML textual em PlantUML (`.puml`)**, versionáveis e editáveis como código, sem arquivos `.drawio` ou imagens estáticas. As páginas `.md` possuem prévias Mermaid diretamente no GitHub. [Índice de diagramas](DIAGRAMAS-EDITAVEIS.md).
+Os diagramas são **UML textual em PlantUML (`.puml`)**, versionáveis e editáveis como código, sem arquivos `.drawio` ou imagens estáticas. Os arquivos `DER.md` e `Diagrama-*.md`, na raiz do projeto, mostram os desenhos Mermaid diretamente no GitHub. [Índice de diagramas](DIAGRAMAS-EDITAVEIS.md).
 
 ### Estratégia para suportar a volumetria
 
