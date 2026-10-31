@@ -1,7 +1,7 @@
 import { Client, types } from "pg";
 import type { Env } from "./worker-http";
 
-// Production uses PostgreSQL through Hyperdrive. D1 compatibility remains for tests only.
+// Backend PostgreSQL via Hyperdrive, com adaptação para consultas parametrizadas dos módulos existentes.
 types.setTypeParser(20, (value: string) => {
   const parsed = Number(value);
   return Number.isSafeInteger(parsed) ? parsed : value;
@@ -9,7 +9,7 @@ types.setTypeParser(20, (value: string) => {
 
 type Params = unknown[];
 
-/** Translate D1's positional parameters, conflict syntax and FTS5 to Postgres. */
+/** Normalize SQL positional parameters, conflict syntax and full-text predicates for PostgreSQL. */
 export function convertSql(sql: string, values: Params): { text: string; values: Params } {
   let query = sql
     .replace(/\bINSERT\s+OR\s+IGNORE\s+INTO\b/gi, "INSERT INTO")
@@ -102,7 +102,7 @@ export class PgCompatDatabase {
 
 /** One connection per HTTP request. Hyperdrive handles pooling to PostgreSQL. */
 export async function withSelectedDatabase<T>(env: Env, operation: (selectedEnv: Env) => Promise<T>): Promise<T> {
-  if (env.DATABASE_ENGINE !== "postgres") return operation(env);
+  // API always uses PostgreSQL; do not silently bypass the connection configuration.
   if (!env.HYPERDRIVE?.connectionString) {
     throw new Error("DATABASE_ENGINE=postgres requires a configured HYPERDRIVE binding");
   }

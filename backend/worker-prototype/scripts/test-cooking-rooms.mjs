@@ -5,16 +5,16 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 
-// Local workerd + real WebSocket transport. Never touches production/D1 users.
+// Local workerd + real WebSocket transport. Never touches production data.
 const base = 'http://127.0.0.1:8792';
 const origin = 'http://localhost:3000';
 const state = await mkdtemp(join(tmpdir(), 'receitando-ws-'));
-const processWorker = spawn(process.execPath, ['node_modules/wrangler/bin/wrangler.js', 'dev', '--local', '--ip', '127.0.0.1', '--port', '8792', '--inspector-port', '8793', '--persist-to', state, '--var', 'DATABASE_ENGINE:d1', '--log-level', 'warn'], {
-  // Wrangler needs a local Hyperdrive URL once the binding exists, even though
-  // these WebSocket tests deliberately use local D1 and never access Postgres.
+const processWorker = spawn(process.execPath, ['node_modules/wrangler/bin/wrangler.js', 'dev', '--local', '--ip', '127.0.0.1', '--port', '8792', '--inspector-port', '8793', '--persist-to', state, '--log-level', 'warn'], {
+  // The WebSocket routes and health check do not open a PostgreSQL connection.
+  // Wrangler still requires a syntactically valid local Hyperdrive DSN.
   env: {
     ...process.env,
-    DATABASE_ENGINE: 'd1',
+    DATABASE_ENGINE: 'postgres',
     CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE:
       process.env.CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE
       || 'postgres://local:local@127.0.0.1:5432/receitando_ws_test',
