@@ -1,0 +1,141 @@
+@startuml
+title Receitando - DER físico (Neon PostgreSQL 17)
+' Receitando - UML textual versionado; banco real: Neon PostgreSQL via Hyperdrive.
+skinparam backgroundColor #FBF2E8
+skinparam defaultFontName Arial
+skinparam ArrowColor #96462B
+skinparam Shadowing false
+
+hide circle
+skinparam linetype ortho
+skinparam entity {
+  BackgroundColor #FFFFFF
+  BorderColor #96462B
+}
+entity "users" as users {
+  * id : TEXT <<PK>>
+  --
+  name : TEXT
+  email : TEXT <<UNIQUE>>
+  password_hash : TEXT
+  role : TEXT
+  handle : TEXT
+}
+entity "sessions" as sessions {
+  * id : TEXT <<PK>>
+  --
+  user_id : TEXT <<FK>>
+  token_hash : TEXT <<UNIQUE>>
+  expires_at : TEXT
+}
+entity "password_reset_codes" as resets {
+  * id : TEXT <<PK>>
+  --
+  user_id : TEXT <<FK>>
+  code_hash : TEXT
+  expires_at : TEXT
+}
+entity "auth_rate_limit_events" as rate_limits {
+  * id : TEXT <<PK>>
+  --
+  action : TEXT
+  key_hash : TEXT
+  created_at : TEXT
+}
+entity "recipes" as recipes {
+  * id : TEXT <<PK>>
+  --
+  slug : TEXT <<UNIQUE>>
+  title : TEXT
+  description : TEXT
+  instructions : TEXT
+  source_type : TEXT
+  image_url : TEXT
+}
+entity "recipe_submissions" as submissions {
+  * id : TEXT <<PK>>
+  --
+  user_id : TEXT <<FK, NULL>>
+  title : TEXT
+  status : TEXT
+  reviewed_by : TEXT
+  published_recipe_id : TEXT
+}
+entity "recipe_tags" as tags {
+  * recipe_id : TEXT <<PK, FK>>
+  * tag : TEXT <<PK>>
+}
+entity "ingredients" as ingredients {
+  * id : TEXT <<PK>>
+  --
+  normalized_name : TEXT <<UNIQUE>>
+  name : TEXT
+  is_staple : INTEGER
+}
+entity "ingredient_aliases" as aliases {
+  * id : TEXT <<PK>>
+  --
+  ingredient_id : TEXT <<FK>>
+  normalized_alias : TEXT <<UNIQUE>>
+}
+entity "recipe_ingredients" as ri {
+  * id : TEXT <<PK>>
+  --
+  recipe_id : TEXT <<FK>>
+  ingredient_id : TEXT <<FK>>
+  quantity : DOUBLE PRECISION
+  unit : TEXT
+  optional : INTEGER
+}
+entity "pantry_items" as pantry {
+  * id : TEXT <<PK>>
+  --
+  user_id : TEXT <<FK>>
+  ingredient_id : TEXT <<FK>>
+  quantity : DOUBLE PRECISION
+  expires_at : TEXT
+}
+entity "favorites" as favorites {
+  * user_id : TEXT <<PK, FK>>
+  * recipe_id : TEXT <<PK, FK>>
+}
+entity "recipe_votes" as votes {
+  * user_id : TEXT <<PK, FK>>
+  * recipe_id : TEXT <<PK, FK>>
+  --
+  vote : TEXT
+}
+entity "recipe_comments" as comments {
+  * id : TEXT <<PK>>
+  --
+  user_id : TEXT <<FK>>
+  recipe_id : TEXT <<FK>>
+  body : TEXT
+}
+users ||--o{ sessions : user_id
+users ||--o{ resets : user_id
+users ||--o{ pantry : user_id
+users ||--o{ favorites : user_id
+users ||--o{ votes : user_id
+users ||--o{ comments : user_id
+users |o--o{ submissions : user_id
+recipes ||--o{ ri : recipe_id
+ingredients ||--o{ ri : ingredient_id
+ingredients ||--o{ aliases : ingredient_id
+ingredients ||--o{ pantry : ingredient_id
+recipes ||--o{ favorites : recipe_id
+recipes ||--o{ votes : recipe_id
+recipes ||--o{ comments : recipe_id
+recipes ||--o{ tags : recipe_id
+note bottom of recipes
+  recipe_search é VIEW PostgreSQL;
+  índice GIN full-text em recipes.
+  Consulte migrations/postgres/0001_baseline.sql
+  para campos e constraints completos.
+end note
+note bottom of rate_limits
+  Sem chave estrangeira.
+  load_benchmark é tabela de ensaio técnico,
+  não entidade do domínio.
+end note
+@enduml

@@ -1,0 +1,45 @@
+@startuml
+title Receitando - Componentes em produção
+' Receitando - UML textual versionado; banco real: Neon PostgreSQL via Hyperdrive.
+skinparam backgroundColor #FBF2E8
+skinparam defaultFontName Arial
+skinparam ArrowColor #96462B
+skinparam Shadowing false
+
+left to right direction
+skinparam componentStyle rectangle
+skinparam node {
+  BackgroundColor #FFFFFF
+  BorderColor #96462B
+}
+actor "Usuário\n(web ou mobile PWA)" as U
+node "Cloudflare Workers - Frontend" as CFront {
+  component "Next.js 16 / React 19\nOpenNext / TypeScript" as Front
+}
+node "Cloudflare Workers - API" as CApi {
+  component "API REST stateless\nsession-cookie-worker + app-router" as API
+}
+component "Cloudflare Hyperdrive\npool de conexões PostgreSQL" as HD
+database "Neon PostgreSQL 17\nusuários, sessões, receitas,\ndespensa e comunidade" as PG
+collections "Cloudflare R2\nimagens" as R2
+cloud "Resend\nmensagens transacionais" as EMAIL
+node "Cloudflare Durable Objects" as CDO {
+  component "CookingRoom\nestado por sala" as WS
+}
+U --> Front : HTTPS
+Front --> API : REST / JSON / cookie HttpOnly
+API --> HD : SQL parametrizado via pg
+HD --> PG : conexão PostgreSQL
+API --> R2 : imagens de receitas
+API --> EMAIL : e-mails
+U <--> WS : WSS (presença e etapas)
+API --> WS : criar / consultar sala
+note bottom of API
+  REST sem estado de sessão na memória da instância.
+  Estado persistente fica no PostgreSQL.
+end note
+note bottom of WS
+  WebSocket é stateful por sala,
+  isolado do fluxo REST.
+end note
+@enduml

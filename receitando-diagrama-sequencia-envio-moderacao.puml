@@ -1,39 +1,59 @@
 @startuml
-title Receitando — Submissão e moderação / Neon PostgreSQL + R2
+title Receitando - UML de sequência: envio e moderação
+' Receitando - UML textual versionado; banco real: Neon PostgreSQL via Hyperdrive.
+skinparam backgroundColor #FBF2E8
+skinparam defaultFontName Arial
+skinparam ArrowColor #96462B
+skinparam Shadowing false
+
 autonumber
 actor "Usuário" as U
 participant "Frontend" as F
-participant "API REST recipe-submission" as A
+participant "API recipe-submission-worker" as API
 collections "Cloudflare R2" as R2
 participant "Cloudflare Hyperdrive" as H
 database "Neon PostgreSQL 17" as PG
-actor "Administrador" as ADM
-U -> F : Envia receita e foto
-F -> A : POST /api/recipe-submissions
-A -> A : Valida dados e arquivo (até 12 MB)
-A -> R2 : PUT foto
-R2 --> A : Chave do objeto
-A -> H : INSERT recipe_submissions (PENDING)
-H -> PG : SQL parametrizado
-alt Falha na transação SQL
-  PG --> A : Erro
-  A -> R2 : DELETE foto recém-criada
-  A --> F : Erro controlado
-else Persistência confirmada
-  PG --> H : ID da submissão
-  H --> A : OK
-  A --> F : PENDING
+actor "Administrador" as ADMIN
+group Envio de receita
+  U -> F : Preenche receita e foto
+  F -> API : POST /api/recipe-submissions
+  API -> API : Validar campos e foto (até 12 MB)
+  API -> R2 : PUT imagem
+  R2 --> API : Chave do objeto
+  API -> H : INSERT recipe_submissions (PENDING)
+  H -> PG : SQL parametrizado
+  alt Falha na persistência
+    PG --> H : Erro
+    H --> API : Falha SQL
+    API -> R2 : DELETE objeto recém-criado
+    API --> F : Erro controlado
+  else Persistência confirmada
+    PG --> H : ID da submissão
+    H --> API : Sucesso
+    API --> F : PENDING
+    F --> U : Aguarda moderação
+  end
 end
-ADM -> F : Acessa /admin/receitas
-F -> A : GET /api/admin/recipe-submissions
-A -> H : Verificar users.role=ADMIN e listar
-H -> PG : SELECT
-PG --> A : Permissão + pendências
-ADM -> F : Aprovar / rejeitar
-F -> A : PATCH /api/admin/recipe-submissions/:id
-A -> H : Transação BEGIN / INSERT recipe / UPDATE submissão
-H -> PG : SQL transacional
-PG --> H : COMMIT
-H --> A : Revisão persistida
-A --> F : Resultado da moderação
+group Revisão administrativa
+  ADMIN -> F : Abre painel de moderação
+  F -> API : GET /api/admin/recipe-submissions
+  API -> H : Verificar users.role = ADMIN e listar
+  H -> PG : SELECT
+  PG --> H : Autorização e pendências
+  H --> API : Resultado
+  API --> F : Lista de submissões
+  ADMIN -> F : Aprovar ou rejeitar
+  F -> API : PATCH /api/admin/recipe-submissions/:id
+  API -> H : BEGIN / atualizações SQL
+  H -> PG : Transação PostgreSQL
+  alt Aprovar
+    PG -> PG : INSERT recipes (source_type=USER)
+    PG -> PG : UPDATE recipe_submissions APPROVED
+  else Rejeitar
+    PG -> PG : UPDATE recipe_submissions REJECTED
+  end
+  PG --> H : COMMIT
+  H --> API : Estado confirmado
+  API --> F : Resultado da moderação
+end
 @enduml

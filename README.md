@@ -33,14 +33,14 @@ O professor solicitou uma arquitetura que apresente estratégia para **1 milhão
 | Material | Prévia | Editar / fonte |
 | --- | --- | --- |
 | **Documento obrigatório de System Design** | [Fase 4 — System Design](docs/system-design-fase4.md) | [Código e infraestrutura](docs/architecture.md) |
-| **Diagrama de componentes real** | [Visualizar no GitHub](docs/diagramas/componentes.md) | [Componentes.drawio](receitando-diagrama-componentes.drawio) |
-| **DER Neon PostgreSQL 17** | [Visualizar no GitHub](docs/diagramas/der.md) | [DER.drawio](DER.drawio) · [DBML](receitando-der.dbml) |
-| **UML — Matching** | [Visualizar no GitHub](docs/diagramas/sequencia-matching.md) | [Sequência.drawio](Diagrama-de-Sequencia.drawio) · [PlantUML](receitando-diagrama-sequencia-matching.puml) |
-| **UML — Envio e moderação** | [Visualizar no GitHub](docs/diagramas/sequencia-envio-moderacao.md) | [Moderação.drawio](receitando-diagrama-sequencia-envio-moderacao.drawio) · [PlantUML](receitando-diagrama-sequencia-envio-moderacao.puml) |
+| **Diagrama de componentes real** | [Visualizar no GitHub](docs/diagramas/componentes.md) | [UML de componentes (.puml)](receitando-diagrama-componentes.puml) |
+| **DER Neon PostgreSQL 17** | [Visualizar no GitHub](docs/diagramas/der.md) | [DER UML (.puml)](DER.puml) · [DBML](receitando-der.dbml) |
+| **UML — Matching** | [Visualizar no GitHub](docs/diagramas/sequencia-matching.md) | [Sequência UML (.puml)](receitando-diagrama-sequencia-matching.puml) |
+| **UML — Envio e moderação** | [Visualizar no GitHub](docs/diagramas/sequencia-envio-moderacao.md) | [Sequência UML (.puml)](receitando-diagrama-sequencia-envio-moderacao.puml) |
 | **WebSocket Receitando Juntos** | [Especificação](docs/receitando-juntos.md) | [Worker CookingRoom](backend/worker-prototype/src/cooking-room.ts) |
 | **Evidências de engenharia** | [Metodologia e resultados](tests/load/README.md) | [Workflow HTTP/Neon isolado](.github/workflows/neon-http-real.yml) |
 
-Os diagramas `.drawio` são **editáveis no diagrams.net**, com componentes, relações, conectores e rótulos. As páginas `.md` apresentam prévias Mermaid no GitHub. Leia também o [índice de diagramas](DIAGRAMAS-EDITAVEIS.md).
+Os diagramas são **UML textual em PlantUML (`.puml`)**, versionáveis e editáveis como código, sem arquivos `.drawio` ou imagens estáticas. As páginas `.md` possuem prévias Mermaid diretamente no GitHub. [Índice de diagramas](DIAGRAMAS-EDITAVEIS.md).
 
 ### Estratégia para suportar a volumetria
 

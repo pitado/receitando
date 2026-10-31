@@ -70,6 +70,6 @@ classDiagram
     RecipeAdaptationResult "1" *-- "0..*" RecipeAdaptationIngredient : ingredients
 ```
 
-**Para editar as caixas e conexões:** [abrir o arquivo-fonte `.drawio`](../../receitando-contratos-dados-frontend.drawio). O GitHub exibe o XML quando você abre um `.drawio` diretamente; por isso esta página fornece a visualização sem precisar instalar ou baixar nada.
+**Fonte UML textual editável:** [receitando-contratos-dados-frontend.puml](../../receitando-contratos-dados-frontend.puml). Os tipos de código continuam em [recipe.ts](../../frontend/src/types/recipe.ts).
 
 [Voltar ao índice dos diagramas](../../DIAGRAMAS-EDITAVEIS.md)
