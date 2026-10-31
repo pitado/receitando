@@ -60,6 +60,14 @@ A média não descreve horário de pico; deve-se considerar, como hipótese de p
 
 **Plano de homologação HTTP:** usar k6 em Worker staging + Hyperdrive + Neon isolado, testar 1:2 operações na janela definida, ramp-up, patamar sustentado, pico e recuperação. Critérios iniciais: **erro inferior a 1% e p95 inferior a 1 s**; confirmar p99, vazão e persistência. Não afetar usuários reais.
 
+
+### Evidência complementar — chamadas HTTP reais em produção (31/10/2026)
+
+- **Cloudflare Worker + Durable Objects:** **1.000 POSTs (HTTP 201) + 2.000 GETs (HTTP 200)**, nenhuma falha, p95 POST **730,35 ms**, p95 GET **56,55 ms**, média **21,97 req/s**, [execução e artefatos](https://github.com/pitado/receitando/actions/runs/41231664394).
+- **Cloudflare Worker + Hyperdrive + Neon PostgreSQL (leitura de catálogo):** **2.000 GETs (HTTP 200)**, 12 requisições concorrentes no cliente de carga, nenhuma falha, p95 **515,85 ms**, média **26,19 req/s**, [execução e artefatos](https://github.com/pitado/receitando/actions/runs/41231920170).
+
+Esses são **testes HTTP reais em produção**, mas **nenhum executou escritas SQL via API de produção**. As escritas HTTP são persistidas em Durable Objects. Os resultados não certificam os 34,72 ops/s médios durante 24h, nem os 3 milhões de HTTP requests do cenário acadêmico. A arquitetura pode ser dimensionada para o objetivo; a configuração atual ainda exige benchmark representativo e prolongado para afirmar que a meta foi atingida.
+
 ## 5. Mapeamento de integração de pagamento — exigência do enunciado
 **Projeto gratuito:** não há checkout ou assinatura ativos. A monetização prevista por Google AdSense é publicidade, **não** API de cobrança. Para cumprir a exigência de *mapeamento*, projetamos uma integração **hipotética** com Mercado Pago ou Stripe, sem ativar pagamentos:
 
