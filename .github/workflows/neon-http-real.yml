@@ -55,7 +55,7 @@ jobs:
           created=$(curl --max-time 25 --fail-with-body -sS -X POST -H "X-Benchmark-Token: $BENCHMARK_TOKEN" "$base")
           echo "POST response: $created"
           seed=$(echo "$created" | jq -r '.id // empty')
-          [[ "$seed" =~ ^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$ ]]
+          [[ "$seed" =~ ^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$ ]]
           found=$(curl --max-time 25 --fail-with-body -sS -H "X-Benchmark-Token: $BENCHMARK_TOKEN" "$base?id=$seed" | jq -r '.found')
           echo "GET found=$found"
           test "$found" = true
