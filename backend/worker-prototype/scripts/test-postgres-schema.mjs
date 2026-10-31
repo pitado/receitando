@@ -1,4 +1,4 @@
-// Real PostgreSQL smoke: schema, CRUD, FTS and D1 compatibility gateway.
+// Real PostgreSQL smoke: schema, CRUD, FTS e adaptador PostgreSQL para consultas legadas.
 // CI supplies POSTGRES_TEST_URL pointing only to an isolated temporary PostgreSQL.
 import { readFile } from "node:fs/promises";
 import { Client } from "pg";
@@ -52,7 +52,7 @@ try {
     throw new Error("Timestamp default lost ISO format compatibility");
   }
 
-  // Route-level smoke with the REAL API stack and a fake D1 binding backed by PostgreSQL.
+  // Route-level smoke with the REAL API stack and a facade PostgreSQL usada pelos módulos existentes.
   const importedRouter = await import("../.test-dist/app-router.js");
   const api = importedRouter.default?.default ?? importedRouter.default;
   const env = { db, FRONTEND_URL: "https://receitando.example.test" };
