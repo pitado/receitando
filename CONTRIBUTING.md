@@ -20,7 +20,7 @@ O Receitando é um projeto acadêmico com aplicação publicada. Toda alteraçã
 | E-mails | Resend |
 | CI/CD | GitHub Actions |
 
-O schema de produção é definido por `backend/worker-prototype/migrations/postgres/`. Não existe configuração de D1 na API publicada. O adaptador `src/lib/postgres-adapter.ts` ainda traduz algumas consultas SQL dos módulos existentes para PostgreSQL; **não é um banco antigo em execução**.
+O schema de produção é definido por `backend/worker-prototype/migrations/postgres/`. O backend publicado usa PostgreSQL exclusivamente. O adaptador `src/lib/postgres-adapter.ts` ainda traduz algumas consultas SQL dos módulos existentes para PostgreSQL; **não é um banco antigo em execução**.
 
 ## Fluxo de trabalho
 

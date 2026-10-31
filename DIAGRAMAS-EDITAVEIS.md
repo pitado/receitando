@@ -12,7 +12,7 @@ Diagramas na raiz do repositório. **Não são PNGs**: arquivos `.drawio` permit
 
 **Abrir:** baixe um arquivo `.drawio`, acesse diagrams.net e escolha Arquivo > Abrir de > Dispositivo. Para editar por código, use o DBML no dbdiagram.io e os `.puml` no PlantUML/VS Code.
 
-**Origem e precisão:** o Receitando utiliza **Neon PostgreSQL (PostgreSQL)**, não MySQL. O DER reproduz o modelo SQL físico em apresentação EER. Ver [migrations PostgreSQL](backend/worker-prototype/migrations/postgres/) e [documentação do banco](docs/database.md). `recipe_search` é uma estrutura relacional auxiliar com índice de busca textual do PostgreSQL, não uma tabela virtual FTS5; `reviewed_by` e `published_recipe_id` são colunas sem FK declarada. Diagramas de sequência baseados em [architecture.md](docs/architecture.md) e nos módulos do backend.
+**Origem e precisão:** o Receitando utiliza **Neon PostgreSQL (PostgreSQL)**, não MySQL. O DER reproduz o modelo SQL físico em apresentação EER. Ver [migrations PostgreSQL](backend/worker-prototype/migrations/postgres/) e [documentação do banco](docs/database.md). `recipe_search` é uma **VIEW PostgreSQL** sobre a tabela `recipes`; a busca utiliza índice GIN em `recipes` (não é uma tabela materializada); `reviewed_by` e `published_recipe_id` são colunas sem FK declarada. Diagramas de sequência baseados em [architecture.md](docs/architecture.md) e nos módulos do backend.
 
 
 ## Prévia visual diretamente no GitHub

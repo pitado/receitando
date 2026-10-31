@@ -265,7 +265,7 @@ backend/worker-prototype/scripts/import-external-references.mjs
 .github/workflows/import-external-references.yml
 ```
 
-O workflow primeiro valida as referências; a escrita só ocorre mediante opção `apply` e secret de acesso ao PostgreSQL. Não existem na árvore atual scripts ativos de raspagem do Wikilivros, normalização em massa por D1 ou espelhamento automático de fotos desse acervo.
+O workflow primeiro valida as referências; a escrita só ocorre mediante opção `apply` e secret de acesso ao PostgreSQL. Não existem na árvore atual scripts ativos de raspagem do Wikilivros, normalização em massa por scripts desativados ou espelhamento automático de fotos desse acervo.
 
 ## 15. Tratamento de conteúdo externo
 
