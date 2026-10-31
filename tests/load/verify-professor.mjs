@@ -25,7 +25,10 @@ try {
 } catch (error) { problems.push(`Contagem final do PostgreSQL indisponível: ${error.message}`); }
 
 const metrics = summary?.metrics || {};
-const metric = (name, field) => metrics[name]?.values?.[field] ?? null;
+const metric = (name, field) => {
+  const item = metrics[name];
+  return item?.values?.[field] ?? item?.[field] ?? (field === 'rate' ? item?.value : null) ?? null;
+};
 const successfulWrites = metric('successful_writes', 'count');
 const successfulReads = metric('successful_reads', 'count');
 const failures = metric('http_req_failed', 'rate');
