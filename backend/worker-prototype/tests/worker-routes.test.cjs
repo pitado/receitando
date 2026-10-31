@@ -343,7 +343,7 @@ test("recuperação não enumera e-mail inexistente", async () => {
   assert.equal(typeof payload.resetId, "string");
 });
 
-test("home worker monta feed e totais com resultados do D1", async () => {
+test("home worker monta feed e totais com resultados do PostgreSQL", async () => {
   const popular = {
     id: "recipe-1",
     title: "Bolo",

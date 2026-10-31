@@ -58,7 +58,7 @@ function jpegFile() {
   });
 }
 
-test("salva foto da receita no R2 e registra a URL no D1", async () => {
+test("salva foto da receita no R2 e registra a URL no PostgreSQL", async () => {
   const db = createDb();
   const bucket = createBucket();
   const form = new FormData();

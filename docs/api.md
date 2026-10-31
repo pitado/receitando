@@ -190,9 +190,9 @@ Parâmetros:
 - `limit`: 1–60, padrão 36;
 - `offset`: paginação.
 
-Sem busca, `relevance` é normalizado para `recent`. Com `q`, a busca monta uma consulta full-text PostgreSQL com até oito tokens distintos e usa `bm25()` para relevância.
+Sem busca, `relevance` é normalizado para `recent`. Com `q`, a busca monta uma consulta full-text PostgreSQL com até oito tokens distintos e é traduzida para consulta indexada do PostgreSQL; a ordenação atual usa a data de atualização como critério, além do título.
 
-O catálogo público v2 inclui receitas do Wikilivros e receitas da comunidade já aprovadas (`source_type = 'USER'`). Seeds/demos ficam fora e os cards precisam possuir `image_url`.
+O catálogo público v2 inclui receitas de origem própria (`OWN`), conjunto aberto autorizado (`OPEN_DATASET`) e receitas aprovadas da comunidade (`USER`). A imagem é opcional; quando ausente, o frontend exibe seu fallback visual. Referências externas em links não são inseridas automaticamente como receitas completas.
 
 ### Catálogo legado
 

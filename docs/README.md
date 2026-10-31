@@ -4,13 +4,15 @@ A arquitetura de produção utiliza **Next.js/React em Cloudflare Workers**, **A
 
 ## Entrega acadêmica — Fase 4
 1. [**Documento obrigatório de System Design**](system-design-fase4.md) — definição de arquitetura, escalabilidade para 1 milhão de escritas e 2 milhões de leituras, limites e integração de pagamentos/WebSocket.
-2. [Diagrama de componentes](diagramas/componentes.md) — visão da infraestrutura.
-3. [DER PostgreSQL](diagramas/der.md) — modelo de entidades e relações.
+2. [Diagrama de componentes (prévia)](diagramas/componentes.md) · [arquivo editável](../receitando-diagrama-componentes.drawio) — visão da infraestrutura.
+3. [DER PostgreSQL (prévia)](diagramas/der.md) · [arquivo editável](../DER.drawio) — modelo de entidades e relações.
 4. [Banco e integridade](database.md) — schema real, índices e transações.
-5. [Evidência de teste SQL isolado](../tests/load/README.md) — volume obtido e interpretação correta.
+5. [Evidências de teste PostgreSQL](../tests/load/README.md) — volume obtido e interpretação correta.
 6. [Receitando Juntos](receitando-juntos.md) — WebSocket, presença, versões e reconexão.
 
 **A defesa oral e as justificativas para apresentar ao professor serão preparadas em slides fora do GitHub.** O System Design técnico obrigatório permanece versionado no repositório.
+
+**Diagramas de sequência editáveis:** [matching](../Diagrama-de-Sequencia.drawio) · [envio e moderação](../receitando-diagrama-sequencia-envio-moderacao.drawio) · [índice de diagramas](../DIAGRAMAS-EDITAVEIS.md).
 
 ## Engenharia e operação
 - [Arquitetura](architecture.md) · [API](api.md) · [Deploy](deploy.md) · [Testes](testes.md)

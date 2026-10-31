@@ -81,9 +81,7 @@ Uma regra de WAF/Rate Limiting na borda da Cloudflare pode complementar essa def
 
 ## Conteúdo externo e XSS
 
-O importador consome conteúdo do Wikilivros, mas o fluxo atual não entrega HTML bruto da fonte para a página de receita.
-
-O importador remove tags/markup aproveitável e persiste conteúdo culinário como texto. O frontend renderiza essas strings como texto React e não utiliza `dangerouslySetInnerHTML` para a receita.
+O importador operacional atual trabalha com **links e metadados de referências externas**, sem copiar o conteúdo integral das receitas ou imagens de terceiros. Receitas da comunidade são tratadas como texto e renderizadas pelo React, sem injeção direta de HTML externo.
 
 Se futuramente for necessário renderizar HTML rico vindo de fonte externa ou conteúdo criado por usuário, ele deverá passar por sanitização apropriada antes da renderização. HTML externo não deve ser introduzido diretamente em `dangerouslySetInnerHTML`.
 

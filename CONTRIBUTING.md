@@ -1,48 +1,48 @@
 # Contribuindo com o Receitando
 
-O Receitando é um projeto acadêmico, mas o repositório segue práticas de manutenção próximas às de um projeto de produção para manter código, documentação e infraestrutura coerentes.
+O Receitando é um projeto acadêmico com aplicação publicada. Toda alteração deve manter alinhados o código, os testes, a documentação técnica e o ambiente real.
 
-## Antes de começar
+## Comece por aqui
 
-Leia:
-
-1. [`README.md`](README.md)
-2. [`docs/escopo.md`](docs/escopo.md)
-3. [`docs/estrutura-repositorio.md`](docs/estrutura-repositorio.md)
-4. [`docs/architecture.md`](docs/architecture.md)
-5. [`docs/testes.md`](docs/testes.md)
-6. a documentação específica da área alterada.
+- [README](README.md) e [System Design (Fase 4)](docs/system-design-fase4.md).
+- [Arquitetura](docs/architecture.md), [modelo de dados](docs/database.md) e [contratos REST](docs/api.md).
+- [Testes](docs/testes.md), [deploy](docs/deploy.md), [licenças e origens](docs/catalogo.md).
 
 ## Arquitetura atual
 
-- frontend: `frontend/` — Next.js/React;
-- API: `backend/worker-prototype/` — Cloudflare Workers + D1;
-- E2E do frontend: `frontend/e2e/` — Playwright/Chromium;
-- catálogo: Wikilivros + Wikimedia Commons;
-- implementação anterior NestJS/Prisma/PostgreSQL: arquivada na branch `legacy/nest-prisma`, fora da árvore principal.
+| Componente | Tecnologia real |
+| --- | --- |
+| Frontend responsivo/PWA | `frontend/` — Next.js 16, React 19, TypeScript, Workers/OpenNext |
+| API REST stateless | `backend/worker-prototype/` — Cloudflare Workers e TypeScript |
+| Persistência | **Neon PostgreSQL 17**, via **Cloudflare Hyperdrive** e `pg` |
+| Fotos | Cloudflare R2 |
+| Cozinhar junto | Durable Objects + WebSocket |
+| E-mails | Resend |
+| CI/CD | GitHub Actions |
 
-Toda funcionalidade nova de backend deve ser implementada em `backend/worker-prototype/`.
+O schema de produção é definido por `backend/worker-prototype/migrations/postgres/`. O backend publicado usa PostgreSQL exclusivamente. O adaptador `src/lib/postgres-adapter.ts` ainda traduz algumas consultas SQL dos módulos existentes para PostgreSQL; **não é um banco antigo em execução**.
 
-## Fluxo
+## Fluxo de trabalho
 
-1. crie branch a partir de `main`;
-2. mantenha a mudança focada;
-3. atualize testes e documentação no mesmo PR quando o comportamento mudar;
-4. rode as validações locais;
-5. abra PR usando o template;
-6. aguarde CI verde antes do merge.
+1. Criar branch a partir de `main`.
+2. Fazer alterações pequenas, revisáveis, com testes para mudanças de comportamento.
+3. Atualizar documentação e migrações quando houver mudança de contrato/schema.
+4. Executar as validações locais e revisar os relatórios no GitHub Actions.
+5. Abrir pull request e integrar **somente depois** dos checks obrigatórios.
 
-Exemplos:
+### Backend
 
-```text
-feat/nome-da-funcionalidade
-fix/resumo-do-problema
-test/area-coberta
-docs/assunto
-chore/manutencao
+```bash
+cd backend/worker-prototype
+npm ci
+npm run typecheck
+npm test
+npm run test:postgres
+npm run test:ws
+npm run dry-run
 ```
 
-## Validação obrigatória
+A integração PostgreSQL usa **banco temporário isolado** (`POSTGRES_TEST_URL` apontando para localhost). O teste WebSocket também ocorre em ambiente local isolado. Não usar a branch Neon `production` em testes destrutivos ou cargas sintéticas.
 
 ### Frontend
 
@@ -55,123 +55,38 @@ npm run test:coverage
 npm run build
 ```
 
-### API
+Quando alterar autenticação, navegação ou jornadas principais, executar também os testes em `frontend/e2e/` usando mocks e Playwright.
 
-```bash
-cd backend/worker-prototype
-npm ci
-npm run typecheck
-npm test
-npm run dry-run
-```
+## Banco e consultas
 
-### E2E quando a jornada de usuário for afetada
+- Criar migration **PostgreSQL** numerada em `migrations/postgres/`; nunca editar uma migration já aplicada sem análise explícita.
+- Preferir consultas SQL PostgreSQL parametrizadas, índices adequados e transações para operações relacionadas.
+- Verificar consistência, integridade referencial e plano das consultas.
+- Considerar que a camada atual `postgres-adapter` preserva a interface usada pelos módulos: modificá-la requer testes de regressão.
+- Credenciais do Neon e do Hyperdrive ficam em secrets, nunca no Git. Aplicar migrações de produção de forma revisada, **não** implicitamente no deploy.
 
-```bash
-cd frontend
-npm ci
-cd e2e
-npm ci
-npx playwright install chromium
-npm test
-```
+## Catálogo e licenças
 
-Não faça merge com validação obrigatória falhando.
-
-## Testes
-
-### Frontend
-
-Mudanças em serviços, utilitários ou componentes com comportamento relevante devem atualizar/adicionar testes Vitest/Testing Library.
-
-Mudanças que atravessem páginas, autenticação, navegação ou vários componentes devem também avaliar um cenário em `frontend/e2e/`.
-
-A suíte Playwright deve ser determinística: ela usa mocks de API locais, não D1 de produção, contas reais ou envio real do Resend.
-
-### API
-
-Ao alterar:
-
-- normalização/canonicalização/matching → atualizar `recipe-utils` e teste de rota correspondente;
-- staples → testar que não reduzem a compatibilidade;
-- busca textual → testar o contrato FTS5 e evitar regressão para `%LIKE%`;
-- autenticação/criptografia → `security` + regressão de rota quando aplicável;
-- rate limiting → `auth-rate-limit` e entrypoint;
-- rota/persistência/autorização → teste de Worker com D1 simulado;
-- recuperação de senha → testar resposta genérica e limites sem enviar e-mail real;
-- catálogo/licença → testar procedência e atribuição.
-
-Rotas críticas e persistência **não devem depender apenas de testes de helpers**.
-
-## Banco de dados
-
-- nunca reescreva migration já aplicada;
-- mudanças de schema entram em migration nova;
-- migrations ficam em `backend/worker-prototype/migrations/`;
-- documente índices, FTS e migrations incomuns em `docs/database.md`;
-- preserve chaves estrangeiras e relações existentes;
-- valide localmente antes de aplicação remota.
-
-Valores de requisição devem chegar ao D1 por statements preparados com `.bind()`. SQL estrutural dinâmico só pode ser construído a partir de valores controlados internamente, como a quantidade de placeholders `?`.
-
-## Catálogo e ingredientes
-
-O fluxo operacional atual usa:
+As receitas de autoria própria são versionadas em migrações PostgreSQL. Referências de sites brasileiros são **metadados e URLs**, não cópias de textos/fotos protegidos. O procedimento operacional para links autorizados usa:
 
 ```text
-import-wikibooks-v2.mjs
-        ↓
-canonicalize-ingredients.mjs
+scripts/external-references-br.json
+     → scripts/import-external-references.mjs
+     → PostgreSQL isolado (validar) / destino autorizado (--apply)
 ```
 
-Ao alterar normalização:
+O workflow manual é `.github/workflows/import-external-references.yml`. Não fazer scraping nem importar obras de terceiros sem licença compatível. O campo de origem `wikibooks` pode existir em dados ou contratos históricos e **não autoriza novos espelhamentos sem licença**.
 
-- preserve `raw_text` da receita;
-- preserve aliases úteis;
-- não transforme equivalência semântica em simples substring;
-- adicione teste para evitar falsos positivos;
-- mantenha a política de `is_staple` documentada.
+Ao editar matching, preserve aliases, nomes originais, casos semânticos distintos e o tratamento de ingredientes `is_staple`.
 
-## Conteúdo externo e segurança
+## Segurança e privacidade
 
-O fluxo atual persiste conteúdo culinário como texto e não renderiza HTML bruto do Wikilivros.
+Nunca commitar senhas, tokens, registros de usuários, códigos de recuperação ou URLs privadas de conexão. Não usar `dangerouslySetInnerHTML` com conteúdo externo não sanitizado. Mudanças nas rotas de autenticação devem preservar respostas genéricas anti-enumeração e rate limiting. Seguir [SECURITY.md](SECURITY.md).
 
-Não introduza `dangerouslySetInnerHTML` para conteúdo externo sem uma etapa explícita e testada de sanitização.
+## Limpeza de código
 
-Nunca versione chaves, tokens, senhas, códigos de recuperação ou dados privados reais. Falhas de segurança devem seguir [`SECURITY.md`](SECURITY.md).
+Remover scripts, workflows e arquivos operacionais obsoletos somente depois de confirmar que **não são referenciados** pelo código ou CI. Manter histórico no Git. Não eliminar uma abstração em uso apenas por seu nome histórico.
 
-## Documentação
+## Licença
 
-- objetivo/requisito → `docs/escopo.md`;
-- comportamento → `docs/funcionalidades.md`;
-- arquitetura → `docs/architecture.md`;
-- rota/contrato → `docs/api.md`;
-- schema/migration/índice → `docs/database.md`;
-- catálogo/importação/licença → `docs/catalogo.md`;
-- testes → `docs/testes.md`;
-- CI/deploy → `docs/deploy.md`;
-- estrutura → `docs/estrutura-repositorio.md`.
-
-README e documentos específicos não devem contradizer o código.
-
-## Código substituído
-
-Quando uma implementação for substituída e o histórico já estiver preservado pelo Git:
-
-- remova código morto da árvore ativa;
-- remova scripts/workflows sem função operacional;
-- mantenha apenas o que é executado ou possui justificativa explícita.
-
-## Conteúdo e licenças
-
-O código original do projeto é disponibilizado sob **GNU Affero General Public License v3.0 (AGPL-3.0-only)**. Contribuições ao código devem ser compatíveis com essa licença.
-
-A licença do projeto não substitui as licenças próprias de receitas, imagens e outros conteúdos de terceiros.
-
-Não remova fonte, autoria, licença ou URL de atribuição de conteúdo importado.
-
-## Pull requests
-
-Todo PR deve explicar problema, solução, validação, testes, impacto em API/banco/deploy/documentação e eventuais riscos/passos adicionais.
-
-Prefira mudanças revisáveis e com CI verde.
+Código original: [AGPL-3.0](LICENSE). Textos, imagens e receitas de terceiros possuem licenças/autorias próprias, que devem ser respeitadas.

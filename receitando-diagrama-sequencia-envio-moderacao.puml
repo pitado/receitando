@@ -1,43 +1,39 @@
 @startuml
-title Receitando - Envio e moderação (diagrama UML de sequência)
+title Receitando — Submissão e moderação / Neon PostgreSQL + R2
 autonumber
-actor "Usuário" as User
-actor "Administrador" as Admin
-participant "Frontend" as Front
-participant "API recipe-submission-worker" as API
-database "Cloudflare D1" as DB
+actor "Usuário" as U
+participant "Frontend" as F
+participant "API REST recipe-submission" as A
 collections "Cloudflare R2" as R2
-group Envio
-User -> Front: Preenche receita e foto
-Front -> API: POST /api/recipe-submissions
-API -> API: Validar foto JPG/PNG/WebP (até 12MB)
-API -> R2: PUT submissions/AAAA/MM/id.ext
-R2 --> API: Objeto criado
-API -> DB: INSERT recipe_submissions status=PENDING
-alt Falha no D1
-DB --> API: Erro
-API -> R2: DELETE objeto recém-criado
-API --> Front: Erro
-else Sucesso
-DB --> API: ID
-API --> Front: Submissão PENDING
-Front --> User: Envio aguardando moderação
+participant "Cloudflare Hyperdrive" as H
+database "Neon PostgreSQL 17" as PG
+actor "Administrador" as ADM
+U -> F : Envia receita e foto
+F -> A : POST /api/recipe-submissions
+A -> A : Valida dados e arquivo (até 12 MB)
+A -> R2 : PUT foto
+R2 --> A : Chave do objeto
+A -> H : INSERT recipe_submissions (PENDING)
+H -> PG : SQL parametrizado
+alt Falha na transação SQL
+  PG --> A : Erro
+  A -> R2 : DELETE foto recém-criada
+  A --> F : Erro controlado
+else Persistência confirmada
+  PG --> H : ID da submissão
+  H --> A : OK
+  A --> F : PENDING
 end
-end
-group Moderação
-Admin -> Front: Abre /admin/receitas
-Front -> API: GET /api/admin/recipe-submissions
-API -> DB: Validar users.role = ADMIN e listar submissões
-DB --> API: Submissões pendentes
-API --> Front: Lista
-Admin -> Front: Aprovar / rejeitar
-Front -> API: PATCH /api/admin/recipe-submissions/:id
-alt Aprovar
-API -> DB: INSERT recipes source_type=USER
-API -> DB: UPDATE recipe_submissions status=APPROVED
-else Rejeitar
-API -> DB: UPDATE recipe_submissions status=REJECTED, rejection_reason
-end
-API --> Front: Status atualizado
-end
+ADM -> F : Acessa /admin/receitas
+F -> A : GET /api/admin/recipe-submissions
+A -> H : Verificar users.role=ADMIN e listar
+H -> PG : SELECT
+PG --> A : Permissão + pendências
+ADM -> F : Aprovar / rejeitar
+F -> A : PATCH /api/admin/recipe-submissions/:id
+A -> H : Transação BEGIN / INSERT recipe / UPDATE submissão
+H -> PG : SQL transacional
+PG --> H : COMMIT
+H --> A : Revisão persistida
+A --> F : Resultado da moderação
 @enduml

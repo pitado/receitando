@@ -8,13 +8,13 @@ O usuário pode navegar pelo catálogo e abrir detalhes de cada receita.
 
 Cada receita pode apresentar título, descrição, ingredientes/quantidades, modo de preparo, categoria, dificuldade, imagem, tags e informações de procedência/licença.
 
-A página `/receitas` usa o endpoint **`GET /api/v2/recipes`**, com paginação, filtros e ordenação. O catálogo público reúne o acervo validado do Wikilivros e receitas da comunidade que já foram aprovadas e publicadas.
+A página `/receitas` usa o endpoint **`GET /api/v2/recipes`**, com paginação, filtros e ordenação. O catálogo público inclui receitas autorais, registros com procedência válida e receitas da comunidade que já foram aprovadas e publicadas. Referências externas de terceiros são links e metadados, não cópias automáticas de obras protegidas.
 
 ## 2. Busca textual e filtros
 
 A listagem de receitas permite pesquisa textual por `q`.
 
-A API utiliza PostgreSQL **full-text PostgreSQL** sobre título e descrição, com busca por termos/prefixos e ordenação por relevância. A busca principal não depende de `LIKE '%termo%'` em toda a tabela de receitas.
+A API utiliza **busca textual indexada do PostgreSQL** sobre título e descrição, com busca por termos/prefixos e ordenação por relevância. A busca principal não depende de `LIKE '%termo%'` em toda a tabela de receitas.
 
 O catálogo v2 também permite filtrar por:
 
@@ -253,45 +253,31 @@ A tela `/combinar` explica a regra de compatibilidade e, no modo despensa, infor
 
 As telas de envio e moderação também possuem estados de envio, sucesso, erro, acesso negado e conteúdo vazio.
 
-## 14. Importação e canonicalização
+## 14. Catálogo, origem e ingredientes
 
-A operação de catálogo é separada da navegação do usuário.
+O catálogo utiliza receitas autorais e publicações da comunidade aprovadas, com origem e atribuição registradas no PostgreSQL. Os ingredientes canônicos e aliases são parte do schema e da lógica de matching.
 
-O fluxo atual:
-
-1. consulta o Wikilivros;
-2. descobre páginas candidatas;
-3. interpreta ingredientes/preparo como texto;
-4. procura imagem no Wikimedia Commons;
-5. valida relevância/licença;
-6. registra procedência;
-7. grava receitas em lotes;
-8. canonicaliza variações de ingredientes;
-9. preserva aliases;
-10. marca staples e otimiza o banco;
-11. espelha imagens operacionais para o R2.
-
-Scripts ativos:
+A importação **operacional atual** de referências externas é manual e trata somente de URLs/metadados de sites brasileiros, sem copiar texto ou fotos protegidos:
 
 ```text
-backend/worker-prototype/scripts/import-wikibooks-v2.mjs
-backend/worker-prototype/scripts/canonicalize-ingredients.mjs
-backend/worker-prototype/scripts/mirror-wikibooks-images-to-r2.mjs
+backend/worker-prototype/scripts/external-references-br.json
+backend/worker-prototype/scripts/import-external-references.mjs
+.github/workflows/import-external-references.yml
 ```
+
+O workflow primeiro valida as referências; a escrita só ocorre mediante opção `apply` e secret de acesso ao PostgreSQL. Não existem na árvore atual scripts ativos de raspagem do Wikilivros, normalização em massa por scripts desativados ou espelhamento automático de fotos desse acervo.
 
 ## 15. Tratamento de conteúdo externo
 
-O conteúdo culinário aproveitado do Wikilivros é convertido para texto pelo importador. A tela de receita renderiza strings React e não HTML bruto da fonte externa.
-
-Metadados da receita e da imagem são preservados separadamente para atribuição.
+A interface apresenta receitas e registros autorizados como conteúdo textual React, sem renderizar HTML bruto de terceiros. Links editoriais não são licenças para reproduzir fotografias ou textos integralmente.
 
 ## 16. API e persistência
 
 A API é organizada em autenticação/perfil, recuperação, catálogo v2, fontes, ingredientes, receitas/matching, adaptação, submissões/moderação, despensa, favoritos, votos, comentários e home.
 
-A produção usa Neon PostgreSQL para usuários, sessões, catálogo canônico, aliases, full-text PostgreSQL, despensa, favoritos, recuperação, comunidade, procedência, submissões/moderação e rate limiting.
+A produção usa Neon PostgreSQL para usuários, sessões, catálogo canônico, aliases, busca textual do PostgreSQL, despensa, favoritos, recuperação, comunidade, procedência, submissões/moderação e rate limiting.
 
-Cloudflare R2 armazena as imagens enviadas pela comunidade e imagens operacionais espelhadas do catálogo. As fotos de submissões são servidas pela API em `/api/recipe-submission-images/:key`.
+Cloudflare R2 armazena as imagens enviadas pela comunidade e imagens autorizadas do catálogo. As fotos de submissões são servidas pela API em `/api/recipe-submission-images/:key`.
 
 Detalhes:
 
@@ -303,7 +289,7 @@ Detalhes:
 
 O frontend possui testes com Vitest/Testing Library e fluxo E2E com Playwright.
 
-A API possui testes de regras puras e testes de rota com PostgreSQL simulado, incluindo canonicalização, staples, full-text PostgreSQL, autenticação, autorização, rate limiting, catálogo v2, matching, adaptação de receitas, recuperação, interação social e submissão/moderação de receitas.
+A API possui testes de regras puras e testes de rota com PostgreSQL simulado, incluindo canonicalização, staples, busca textual do PostgreSQL, autenticação, autorização, rate limiting, catálogo v2, matching, adaptação de receitas, recuperação, interação social e submissão/moderação de receitas.
 
 CI também executa lint/typecheck/build/dry-run conforme o componente.
 

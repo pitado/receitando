@@ -144,7 +144,7 @@ test("matching resolve variação canônica e não penaliza ingrediente básico"
   assert.ok(directLookup.args.includes("cebolas picadas"));
 });
 
-test("busca de receitas usa FTS5 em vez de LIKE com curinga inicial", async () => {
+test("busca de receitas usa consulta full-text indexada via adaptador PostgreSQL em vez de LIKE com curinga inicial", async () => {
   const db = createDb(async ({ op, sql }) => {
     if (op === "all" && sql.includes("FROM recipe_search")) return [];
     return undefined;

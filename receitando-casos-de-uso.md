@@ -15,7 +15,7 @@ Toda regra, limite e código de erro citado aqui foi verificado no código-fonte
 | **Usuário autenticado** | primário | Possui sessão válida em `sessions`. Herda o Visitante. |
 | **Administrador** | primário | Usuário com `users.role = 'ADMIN'`. Herda o Usuário autenticado. |
 | **Serviço de e-mail (Resend)** | secundário | Entrega o código de recuperação de senha. |
-| **Wikilivros / Wikimedia Commons** | secundário | Fonte externa de receitas e imagens livres. |
+| **Sites brasileiros de receitas** | secundário | Referências editoriais por URLs e metadados; sem copiar obras protegidas. |
 | **GitHub Actions** | secundário | Executa CI, deploys e a importação de catálogo. |
 | **Neon PostgreSQL** | secundário | Persistência relacional. |
 | **Cloudflare R2** | secundário | Armazenamento das fotos de receitas enviadas (binding `RECIPE_IMAGES`). |
@@ -32,7 +32,7 @@ flowchart LR
     U(("Usuário<br/>autenticado"))
     A(("Administrador"))
     R[["Resend"]]
-    W[["Wikilivros /<br/>Commons"]]
+    W[["Sites de receitas<br/>referenciados"]]
     G[["GitHub Actions"]]
 
     U -.->|herda| V
@@ -111,7 +111,7 @@ flowchart LR
 | UC18 | Enviar receita | Visitante/Usuário | opcional | `POST /api/recipe-submissions` |
 | UC19 | Moderar envios | Administrador | sim + ADMIN | `/api/admin/recipe-submissions` |
 | UC20 | Ver feed da home | Visitante | não | `GET /api/home-feed` · `/` |
-| UC21 | Importar catálogo | GitHub Actions | — | `scripts/` |
+| UC21 | Importar referências externas | GitHub Actions | — | `scripts/import-external-references.mjs` |
 
 ---
 
@@ -586,24 +586,21 @@ flowchart LR
 
 ---
 
-### UC21 — Importar catálogo de fonte aberta
+### UC21 — Registrar referências editoriais de receitas
 
-**Ator:** GitHub Actions (workflow `import-wikibooks.yml`) · **Atores secundários:** Wikilivros, Wikimedia Commons, PostgreSQL, R2
+**Ator:** GitHub Actions (workflow `import-external-references.yml`) · **Atores secundários:** sites brasileiros de receitas e PostgreSQL.
 
 **Fluxo principal**
-1. Consulta o Wikilivros em português e descobre páginas candidatas.
-2. Interpreta ingredientes e modo de preparo como texto.
-3. Procura imagem correspondente no Wikimedia Commons.
-4. Valida relevância e licença.
-5. Registra a procedência da receita e a atribuição da imagem.
-6. Grava as receitas em lotes no PostgreSQL.
-7. Canonicaliza variações de ingredientes preservando aliases.
-8. Marca ingredientes básicos (`is_staple`) e otimiza o banco.
-9. Espelha as imagens para o R2.
 
-**Scripts:** `import-wikibooks-v2.mjs`, `canonicalize-ingredients.mjs`, `mirror-wikibooks-images-to-r2.mjs`.
+1. O processo lê `scripts/external-references-br.json`, contendo metadados e URLs de páginas de origem.
+2. Valida os registros de referência e seus endereços, sem baixar/copy-paste do conteúdo culinário de terceiros.
+3. Sem a opção `apply`, executa somente a validação.
+4. Com acionamento manual explícito, secret de conexão e `apply`, registra URLs e atribuições permitidas no PostgreSQL.
+5. Links externos permanecem identificados como referências, **não são contabilizados como receitas completas do catálogo**.
 
-**Observação:** a execução é manual, disparada pelo workflow, e independente do deploy da aplicação.
+**Script ativo:** `backend/worker-prototype/scripts/import-external-references.mjs`.
+
+**Fora do fluxo:** os antigos scripts de extração de Wikilivros, canonicalização em massa e espelhamento de imagens foram removidos da árvore atual. Ingredientes de receitas próprias/comunidade seguem as rotas e migrations PostgreSQL atuais.
 
 ---
 
