@@ -19,7 +19,7 @@
     "FRONTEND_URL": "https://receitando.miguelpita.com.br,https://www.receitando.miguelpita.com.br,https://receitando.miguellpitaa.workers.dev,http://localhost:3000",
     "EMAIL_FROM": "Receitando <noreply@mail.miguelpita.com.br>"
   },
-  // Produção usa Neon via Hyperdrive; o banco D1 anterior foi excluído após a troca.
+  // Persistência de produção: Neon PostgreSQL via Cloudflare Hyperdrive.
   "hyperdrive": [
     {
       "binding": "HYPERDRIVE",

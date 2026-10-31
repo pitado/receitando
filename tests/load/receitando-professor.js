@@ -18,7 +18,7 @@ const retries = new Counter('benchmark_retries');
 let loggedErrors = 0;
 
 export const options = {
-  // Executor com contagem fixa. Rotas são acessadas via Worker e D1 local de teste.
+  // Executor com contagem fixa. Rotas são acessadas via Worker e PostgreSQL isolado para benchmark HTTP.
   scenarios: {
     writes: {
       executor: 'shared-iterations',
