@@ -1,6 +1,6 @@
-// Receitando - DER físico Cloudflare D1/SQLite.
+// Receitando — DER PostgreSQL (Neon), modelo relacional de produção.
 // Gerado a partir da estrutura das migrations do repositório.
-// FTS5 recipe_search é tabela virtual, não entidade relacional.
+// Pesquisa full-text de receitas utiliza índice PostgreSQL; consultar migrations/postgres/.
 
 Table users {
   id text [pk]
