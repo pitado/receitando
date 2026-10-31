@@ -13,7 +13,7 @@ INSERT INTO recipes (id,title,slug,description,instructions,prep_minutes,serving
 2. Bata ligeiramente os ovos com o sal, sem formar espuma em excesso.
 3. Aqueça a manteiga numa frigideira antiaderente e salteie o champignon por 2 minutos.
 4. Acrescente o tomate e despeje os ovos. Espalhe a salsinha por cima.
-5. Cozinhe em fogo baixo até firmar; dobre ao meio e sirva com os ovos completamente cozidos.',15,2,'Café da manhã','FACIL','OWN','Receitando','https://upload.wikimedia.org/wikipedia/commons/0/00/Omelete%2C_Omelette..jpg','Wikimedia Commons','Pandsu','https://commons.wikimedia.org/wiki/File:Omelete%2C_Omelette..jpg','CC BY-SA 4.0','https://creativecommons.org/licenses/by-sa/4.0/','Omelete de tomate, cogumelos e ervas'),
+5. Cozinhe em fogo baixo até firmar; dobre ao meio e sirva com os ovos completamente cozidos.',15,2,'Café da manhã','FACIL','OWN','Receitando','https://upload.wikimedia.org/wikipedia/commons/0/08/Omelete%2C_Omelette..jpg','Wikimedia Commons','Pandsu','https://commons.wikimedia.org/wiki/File:Omelete%2C_Omelette..jpg','CC BY-SA 4.0','https://creativecommons.org/licenses/by-sa/4.0/','Omelete de tomate, cogumelos e ervas'),
 ('rec-autoral-panqueca-banana-aveia','Panqueca de banana e aveia','panqueca-banana-aveia','Panquecas pequenas e douradas, naturalmente doces pela banana madura.','1. Amasse as bananas com um garfo até formar um purê.
 2. Misture os ovos, a aveia e a canela até obter uma massa homogênea.
 3. Aqueça uma frigideira antiaderente em fogo baixo.
@@ -39,13 +39,13 @@ INSERT INTO recipes (id,title,slug,description,instructions,prep_minutes,serving
 3. Cozinhe em fogo baixo, mexendo continuamente e raspando fundo e laterais.
 4. Para enrolar, retire do fogo quando a massa soltar do fundo da panela ao passar a espátula.
 5. Transfira para um prato untado, cubra e deixe esfriar.
-6. Com mãos ligeiramente untadas, faça bolinhas e passe no granulado, se desejar.',50,20,'Sobremesa','FACIL','OWN','Receitando','https://upload.wikimedia.org/wikipedia/commons/b/bb/BrigadeiroBrazil.jpg','Wikimedia Commons','VitorTo','https://commons.wikimedia.org/wiki/File:BrigadeiroBrazil.jpg','CC BY-SA 3.0','https://creativecommons.org/licenses/by-sa/3.0/','Brigadeiro de chocolate com granulado'),
+6. Com mãos ligeiramente untadas, faça bolinhas e passe no granulado, se desejar.',50,20,'Sobremesa','FACIL','OWN','Receitando','https://upload.wikimedia.org/wikipedia/commons/b/b0/BrigadeiroBrazil.jpg','Wikimedia Commons','VitorTo','https://commons.wikimedia.org/wiki/File:BrigadeiroBrazil.jpg','CC BY-SA 3.0','https://creativecommons.org/licenses/by-sa/3.0/','Brigadeiro de chocolate com granulado'),
 ('rec-autoral-bolo-cenoura-chocolate','Bolo de cenoura com chocolate','bolo-cenoura-chocolate','Bolo fofinho de cenoura com cobertura simples de chocolate.','1. Preaqueça o forno a 180 °C. Unte e enfarinhe uma forma média.
 2. Bata no liquidificador a cenoura cortada, os ovos e o óleo até a mistura ficar lisa.
-3. Misture o creme com o açúcar e incorpore à farinha numa tigela, sem bater demais.
+3. Misture a massa batida com o açúcar e incorpore à farinha numa tigela, sem bater demais.
 4. Junte o fermento delicadamente e despeje na forma.
 5. Asse por 35 a 45 minutos; teste com palito no centro e deixe esfriar.
-6. Derreta o chocolate em intervalos curtos, misture o creme de leite, espalhe sobre o bolo e finalize com granulado, se desejar.',70,10,'Sobremesa','MEDIA','OWN','Receitando','https://upload.wikimedia.org/wikipedia/commons/c/cc/Bolo_de_cenoura_com_chocolate_e_granulado.jpg','Wikimedia Commons','Sintegrity','https://commons.wikimedia.org/wiki/File:Bolo_de_cenoura_com_chocolate_e_granulado.jpg','CC BY-SA 4.0','https://creativecommons.org/licenses/by-sa/4.0/','Bolo de cenoura com cobertura de chocolate e granulado'),
+6. Derreta o chocolate em intervalos curtos, misture o creme de leite, espalhe sobre o bolo e finalize com granulado, se desejar.',70,10,'Sobremesa','MEDIA','OWN','Receitando','https://upload.wikimedia.org/wikipedia/commons/c/c5/Bolo_de_cenoura_com_chocolate_e_granulado.jpg','Wikimedia Commons','Sintegrity','https://commons.wikimedia.org/wiki/File:Bolo_de_cenoura_com_chocolate_e_granulado.jpg','CC BY-SA 4.0','https://creativecommons.org/licenses/by-sa/4.0/','Bolo de cenoura com cobertura de chocolate e granulado'),
 ('rec-autoral-sopa-caseira-legumes','Sopa caseira de legumes','sopa-caseira-legumes','Caldo reconfortante com batata, cenoura e abobrinha.','1. Lave, descasque e corte os legumes em cubos parecidos.
 2. Refogue cebola e alho no azeite até ficarem macios.
 3. Adicione a batata, a cenoura, a abobrinha e a água.
