@@ -1,4 +1,4 @@
-name: Referências brasileiras de receitas (somente links)
+name: Referências externas de receitas (somente links)
 on:
   workflow_dispatch:
     inputs:

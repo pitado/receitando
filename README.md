@@ -1,128 +1,115 @@
 # Receitando
 
-**Receitando** é uma aplicação web de receitas, organização da despensa, recomendação por ingredientes e preparo colaborativo em tempo real.
+**Receitando** é uma plataforma de receitas que combina descoberta de pratos, aproveitamento de ingredientes da despensa, recursos de comunidade e preparação colaborativa em tempo real.
 
-**[Abrir o Receitando](https://receitando.miguelpita.com.br)** · **[API](https://api.receitando.miguelpita.com.br/api/health)**
+**[Acessar o Receitando](https://receitando.miguelpita.com.br)** · **[API — saúde](https://api.receitando.miguelpita.com.br/api/health)** · **[Documentação técnica](docs/README.md)**
 
-[![Frontend CI](https://github.com/pitado/receitando/actions/workflows/ci.yml/badge.svg)](https://github.com/pitado/receitando/actions/workflows/ci.yml) [![API CI](https://github.com/pitado/receitando/actions/workflows/api-worker-ci.yml/badge.svg)](https://github.com/pitado/receitando/actions/workflows/api-worker-ci.yml) [![Licença AGPLv3](https://img.shields.io/badge/Licen%C3%A7a-AGPLv3-blue)](LICENSE)
+[![CI frontend](https://github.com/pitado/receitando/actions/workflows/ci.yml/badge.svg)](https://github.com/pitado/receitando/actions/workflows/ci.yml)
+[![CI API](https://github.com/pitado/receitando/actions/workflows/api-worker-ci.yml/badge.svg)](https://github.com/pitado/receitando/actions/workflows/api-worker-ci.yml)
+[![Licença AGPL-3.0](https://img.shields.io/badge/licen%C3%A7a-AGPL--3.0-96462B)](LICENSE)
 
-## Fase 4 — System Design e Infraestrutura
+## Arquitetura atual
 
-O projeto documenta a arquitetura para **1 milhão de escritas e 2 milhões de leituras**, backend REST stateless, frontend web/mobile, integração WebSocket e desenho de API de pagamentos hipotética.
-
-| Material | Acesso |
-| --- | --- |
-| **Documento obrigatório de System Design** | [Ler System Design — Fase 4](docs/system-design-fase4.md) |
-| **Diagrama de componentes** | [Prévia visual no GitHub](docs/diagramas/componentes.md) |
-| **DER PostgreSQL** | [Prévia visual no GitHub](docs/diagramas/der.md) · [Editar arquivo .drawio](DER.drawio) |
-| **Sequência UML: matching** | [Prévia](docs/diagramas/sequencia-matching.md) · [Editar .drawio](Diagrama-de-Sequencia.drawio) |
-| **Teste de carga SQL real** | [Metodologia, números e limites](tests/load/README.md) |
-| **WebSocket Receitando Juntos** | [Especificação e testes](docs/receitando-juntos.md) |
-| **Índice de documentação** | [Todos os documentos](docs/README.md) |
-
-A defesa arquitetural pública será preparada em **slides separados**, conforme a exigência de apresentação. Este repositório mantém o documento técnico e evidências. A avaliação de escalabilidade distingue **operações SQL executadas** de **requisições HTTP de ponta a ponta**.
-
-## Arquitetura técnica
+O frontend é uma aplicação **Next.js 16 / React 19 / TypeScript**, distribuída com Cloudflare Workers/OpenNext e adaptada a navegadores desktop e mobile (PWA). A **API REST stateless** roda em outro Cloudflare Worker. Os dados relacionais e sessões estão no **Neon PostgreSQL 17**, conectado por **Cloudflare Hyperdrive** e driver `pg`. Imagens ficam no **R2**. Salas de preparo compartilhado utilizam **WebSocket e Durable Objects**, com estado isolado por sala. O serviço **Resend** gerencia e-mails.
 
 ```mermaid
 flowchart LR
-  Browser["Web / PWA móvel"] --> UI["Frontend Next.js 16"]
-  UI -->|"REST/HTTPS"| API["Cloudflare Worker API stateless"]
-  API --> HD["Cloudflare Hyperdrive"]
-  HD --> PG[("Neon PostgreSQL 17")]
-  API --> R2[("Cloudflare R2")]
-  API --> EMAIL["Resend"]
-  Browser <-->|"WSS"| DO["Durable Objects — CookingRoom"]
-  API --> DO
+    U["Web / mobile PWA"] --> F["Frontend Next.js / Worker"]
+    F -->|"REST / HTTPS"| A["API Worker stateless"]
+    A -->|"pg"| H["Cloudflare Hyperdrive"]
+    H --> P[("Neon PostgreSQL 17")]
+    A --> R[("Cloudflare R2")]
+    A --> E["Resend"]
+    U <-->|"WebSocket WSS"| D["Durable Objects — CookingRoom"]
+    A --> D
 ```
 
-| Camada | Escolha atual |
-| --- | --- |
-| Frontend | **Next.js 16**, React 19, TypeScript, OpenNext, Cloudflare Workers |
-| Backend | **API REST stateless** em Cloudflare Worker |
-| Banco relacional | **Neon PostgreSQL 17**, conectado via **Cloudflare Hyperdrive** |
-| Dados binários | Cloudflare **R2** |
-| Tempo real | **Durable Objects + WebSocket** |
-| E-mail | **Resend** |
-| CI/CD | **GitHub Actions** |
+O Worker HTTP não mantém sessões na memória; informações persistentes ficam no PostgreSQL. O **estado WebSocket** é coordenado separadamente por Durable Objects. Não existe app mobile nativo. A integração de pagamento é apenas um **mapeamento acadêmico**, não um recurso ativo do produto.
 
-O frontend é **web responsivo/PWA**, acessível de celulares, não aplicativo nativo. O Worker REST não armazena sessões na memória de uma instância. As sessões e dados de usuário persistem no banco; cada sala WebSocket tem seu próprio estado no Durable Object.
+## Documentação da Fase 4 — System Design
 
-### Evidência de dimensionamento
+O professor solicitou uma arquitetura que apresente estratégia para **1 milhão de escritas e 2 milhões de leituras**, REST stateless, frontend web/mobile e mapeamento de WebSocket e API de pagamentos. O foco é a **justificativa arquitetural**, com dimensionamento e tratamento de gargalos — não executar obrigatoriamente 3 milhões de chamadas HTTP.
 
-Em **31/10/2026**, um teste **isolado no Neon PostgreSQL 17.11** registrou 1 milhão de linhas e confirmou 2 milhões de buscas por chave primária indexada, usando dados sintéticos. Isso **não equivale** a 3 milhões de requisições HTTP na API nem garante os mesmos resultados sob concorrência em produção.
+| Material | Prévia | Editar / fonte |
+| --- | --- | --- |
+| **Documento obrigatório de System Design** | [Fase 4 — System Design](docs/system-design-fase4.md) | [Código e infraestrutura](docs/architecture.md) |
+| **Diagrama de componentes real** | [Visualizar no GitHub](docs/diagramas/componentes.md) | [Componentes.drawio](receitando-diagrama-componentes.drawio) |
+| **DER Neon PostgreSQL 17** | [Visualizar no GitHub](docs/diagramas/der.md) | [DER.drawio](DER.drawio) · [DBML](receitando-der.dbml) |
+| **UML — Matching** | [Visualizar no GitHub](docs/diagramas/sequencia-matching.md) | [Sequência.drawio](Diagrama-de-Sequencia.drawio) · [PlantUML](receitando-diagrama-sequencia-matching.puml) |
+| **UML — Envio e moderação** | [Visualizar no GitHub](docs/diagramas/sequencia-envio-moderacao.md) | [Moderação.drawio](receitando-diagrama-sequencia-envio-moderacao.drawio) · [PlantUML](receitando-diagrama-sequencia-envio-moderacao.puml) |
+| **WebSocket Receitando Juntos** | [Especificação](docs/receitando-juntos.md) | [Worker CookingRoom](backend/worker-prototype/src/cooking-room.ts) |
+| **Evidências de engenharia** | [Metodologia e resultados](tests/load/README.md) | [Workflow HTTP/Neon isolado](.github/workflows/neon-http-real.yml) |
 
-A estratégia para suportar o volume combina Workers horizontais, pooling Hyperdrive, índices e paginação PostgreSQL, armazenamento de imagem separado, controle de taxas, métricas e possibilidade de ampliar a capacidade do Neon. [Entenda os cálculos, gargalos e trade-offs](docs/system-design-fase4.md).
+Os diagramas `.drawio` são **editáveis no diagrams.net**, com componentes, relações, conectores e rótulos. As páginas `.md` apresentam prévias Mermaid no GitHub. Leia também o [índice de diagramas](DIAGRAMAS-EDITAVEIS.md).
+
+### Estratégia para suportar a volumetria
+
+- **Workers:** distribuição horizontal de processamento REST sem sessões em memória por instância.
+- **Hyperdrive:** gestão de conexões entre a borda e o PostgreSQL.
+- **Neon PostgreSQL:** índices, paginação, consultas eficientes, transações e ampliação do compute conforme a carga.
+- **R2:** armazenar arquivos sem sobrecarregar o banco relacional.
+- **Durable Objects:** coordenação isolada e consistente de eventos WebSocket por sala.
+- **Operação:** métricas de latência e erro, controle de taxa, cache seguro para informações públicas e análise de gargalos.
+
+Os ensaios registrados em [testes de carga](tests/load/README.md) são complementares à proposta. **Não** equivalem a uma certificação de 3 milhões de requisições HTTP sustentadas na infraestrutura atual.
 
 ## Funcionalidades
 
-**Receitas e descoberta:** catálogo, filtros, busca textual, páginas detalhadas, ingredientes normalizados e suas variações, cálculo de compatibilidade com o que existe em casa.
+- **Receitas:** catálogo, filtros, busca textual, detalhes e fontes.
+- **Combinador:** receitas compatíveis com ingredientes disponíveis; normalização e aliases canônicos.
+- **Despensa:** quantidades opcionais, validade, aproveitamento prioritário e lista de compras.
+- **Contas e comunidade:** cadastro, login, favoritos, comentários, avaliações e submissão de receitas com moderação.
+- **Adaptação culinária:** ajuste de rendimento e substituições contextualizadas.
+- **Receitando Juntos:** salas por convite com sincronização de etapas, presença e recuperação após reconexão.
 
-**Despensa:** cadastro de alimentos e validade opcional; priorização de receitas que aproveitam itens próximos do vencimento e lista de compras com ingredientes faltantes. O matching básico trabalha por presença do ingrediente, não pela quantidade exata disponível.
+Receitas autorais e da comunidade são separadas de **links editoriais** para sites de terceiros. A referência à fonte não autoriza copiar conteúdo ou fotografias protegidos.
 
-**Comunidade:** conta e sessão com cookie seguro, perfil, favoritos, votos, comentários e publicação de receitas da comunidade com moderação. Imagens são enviadas para o R2.
-
-**Adaptação culinária:** cálculo de porções e substituições de ingredientes com contextualização e indicação das limitações.
-
-**Receitando Juntos:** salas compartilhadas com convite, sincronização de etapas, presença, alterações concorrentes e recuperação do estado após reconexão. As salas têm expiração e limites de conexões.
-
-**Fontes:** receitas autorais e conteúdo submetido com responsabilidade editorial; referências de sites brasileiros são **links para a fonte**, e não autorização para copiar receita ou foto de terceiros.
-
-## Estrutura de pastas
+## Estrutura
 
 ```text
-receitando/
-├── frontend/                             Next.js, interface e testes
-├── backend/worker-prototype/
-│   ├── src/                              API, módulos e WebSocket
-│   ├── migrations/postgres/              Schema PostgreSQL versionado
-│   ├── scripts/                          Testes e referências editoriais
-│   └── tests/                            Testes de rotas e persistência
-├── docs/                                 System Design e documentação
-├── tests/load/                           Evidências e cenários de carga
-└── .github/workflows/                    Integração e deploy
+frontend/                               Next.js, React, interface e testes
+backend/worker-prototype/
+  src/                                  API REST, adaptador PostgreSQL e CookingRoom
+  migrations/postgres/                  Schema e seeds PostgreSQL
+  scripts/                              Testes e importação de links autorizados
+  tests/                                Testes da API e camada PostgreSQL
+docs/                                   System Design, API, banco e diagramas Mermaid
+tests/load/                             Evidências e scripts de benchmark isolado
+.github/workflows/                      CI, deploy e verificações manuais
 ```
 
-## Executar para desenvolvimento
+## Desenvolvimento
 
 Recomendado: **Node.js 22**.
 
 ```bash
+# terminal 1
 cd frontend
 npm ci
 npm run dev
-```
 
-API (em outro terminal):
-
-```bash
+# terminal 2
 cd backend/worker-prototype
 npm ci
-npm run typecheck
 npm run dev
 ```
 
-Para endpoints que consultam dados, configure uma **conexão PostgreSQL de desenvolvimento isolada** no Hyperdrive local. Não utilizar a branch Neon `production` para fixtures ou testes de estresse.
+A API requer **PostgreSQL de desenvolvimento isolado** para executar rotas que consultam dados. Configure o Hyperdrive local conforme o [guia de deploy e ambientes](docs/deploy.md); não usar credenciais ou dados de produção em testes.
 
-## Evidência HTTP de PostgreSQL na Cloudflare
-
-Em 31/10/2026, um Worker de benchmark publicado na Cloudflare, com Hyperdrive apontado para uma branch isolada Neon, executou **1.000 POSTs com escrita SQL e 2.000 GETs com leitura SQL**: todas as requisições concluídas sem erro, **+1.000 registros confirmados**, p95 **206,77 ms** e média **42,59 requisições/s**. É uma amostra curta, não a execução de 3 milhões de requisições durante 24h. [Relatório e evidências](tests/load/README.md) · [Execução no GitHub](https://github.com/pitado/receitando/actions/runs/41232599160).
-
-## Testes
-
-No backend:
-
+**Validação da API:**
 ```bash
+cd backend/worker-prototype
 npm run typecheck
 npm test
 npm run test:postgres
 npm run test:ws
+npm run dry-run
 ```
 
-A integração com schema real exige `POSTGRES_TEST_URL` apontando para **PostgreSQL local temporário**. O CI cria esse serviço e executa as verificações. O teste de sala usa dois clientes WebSocket locais, sem tocar em usuários reais. O workflow de carga `.github/workflows/load-test.yml` contém os cenários `smoke`, `professor-check` e `professor`, configurados com PostgreSQL isolado e k6; só resultados efetivamente executados devem ser apresentados como evidência.
+**Validação do frontend:** `npm run lint`, `npm run typecheck` e `npm run test:coverage`. A integração PostgreSQL de CI utiliza um banco temporário separado do Neon de produção.
 
-## Documentação
+## Guias
 
-[Arquitetura](docs/architecture.md) · [Banco PostgreSQL](docs/database.md) · [API](docs/api.md) · [Deploy](docs/deploy.md) · [Catálogo e direitos](docs/catalogo.md) · [Documentação completa](docs/README.md)
+[Arquitetura](docs/architecture.md) · [Schema PostgreSQL](docs/database.md) · [API](docs/api.md) · [Deploy](docs/deploy.md) · [Catálogo e licenças](docs/catalogo.md) · [Contribuindo](CONTRIBUTING.md) · [Segurança](SECURITY.md)
 
-Código original sob licença **GNU AGPL-3.0**; imagens, textos externos e contribuições preservam os direitos/licenças específicos de seus autores.
+**Licença:** código original sob [GNU AGPL-3.0](LICENSE). Textos, receitas e imagens de terceiros seguem suas próprias licenças e atribuições.
