@@ -1,7 +1,8 @@
 import { sha256 } from "./security";
+import type { PgCompatDatabase } from "./postgres-adapter";
 
 export interface Env {
-  db: D1Database;
+  db: PgCompatDatabase;
   DATABASE_ENGINE?: "postgres";
   HYPERDRIVE?: Hyperdrive;
   COOKING_ROOMS?: DurableObjectNamespace;

@@ -109,7 +109,7 @@ export async function withSelectedDatabase<T>(env: Env, operation: (selectedEnv:
   const client = new Client({ connectionString: env.HYPERDRIVE.connectionString });
   await client.connect();
   try {
-    return await operation({ ...env, db: new PgCompatDatabase(client) as unknown as D1Database });
+    return await operation({ ...env, db: new PgCompatDatabase(client) });
   } finally {
     await client.end();
   }
