@@ -1,155 +1,116 @@
 # Fase 4 — System Design e Infraestrutura | Receitando
+**Referência: 31/10/2026 — Documento de arquitetura para o seminário acadêmico.**
 
-**Data:** 29/10/2026. **Escopo:** desenho arquitetural, escalabilidade e integração externa. **Convenção:** **[ATUAL]** implementado e identificado no repositório; **[PROPOSTO]** solução projetada, ainda não implementada; **[A VALIDAR]** hipótese que exige medição.
+## 1. Objetivo e requisitos obrigatórios
+Desenhar arquitetura técnica de alta volumetria e exigências corporativas: **backend REST stateless**, **frontend web/mobile**, estratégia de **1 milhão de escritas para cada 2 milhões de leituras**, mapeamento de **API de pagamento** e comunicação por **WebSocket**. Esta entrega documenta decisões, evidências, limites e evolução proposta; o roteiro da defesa oral será feito em slides separados.
 
-## 1. Objetivo e requisitos
-
-Arquitetura de backend REST sem estado de processo, frontend web e acesso móvel, capacidade-alvo de **1 milhão de escritas e 2 milhões de leituras**, decisão sobre integração de pagamentos e comunicação em tempo real via WebSocket. O enunciado não informa o período dessas operações; portanto, não se pode garantir capacidade sem definir a janela.
-
-## 2. Arquitetura atual
-
-- **[ATUAL]** Frontend Next.js 16, React 19 e TypeScript, executado via OpenNext/Cloudflare Workers. Interface responsiva/PWA acessível em dispositivos móveis, não aplicativo móvel nativo.
-- **[ATUAL]** API REST em Cloudflare Worker independente, roteada por `src/session-cookie-worker.ts` e `src/app-router.ts`, com JSON sobre HTTPS.
-- **[ATUAL]** Persistência em Cloudflare D1 (SQLite), imagens em Cloudflare R2, e-mail transacional via Resend.
-- **[ATUAL]** Sessões persistidas e transportadas por cookie HttpOnly/Secure/SameSite; a instância Worker não mantém sessão em memória entre chamadas. Controles de Origin e rate limiting complementam segurança.
-- **[ATUAL]** GitHub Actions para CI/CD.
-- **[EM VALIDAÇÃO]** Receitando Juntos possui implementação inicial de WebSocket/Durable Objects no repositório, mas ainda exige testes de integração, implantação e demonstração entre dispositivos. **[NÃO IMPLEMENTADO]** Cobrança e fila de eventos dedicada. **[A VALIDAR]** Resultado final do cenário de 3 milhões de operações.
+## 2. Componentes atuais e responsabilidades
+| Componente | Tecnologia | Justificativa |
+| --- | --- | --- |
+| Frontend web/mobile | Next.js 16, React 19, TypeScript, OpenNext / Cloudflare Workers | Interface responsiva/PWA, renderização e deploy na borda; não há aplicativo nativo |
+| API REST | Worker TypeScript separado, JSON/HTTPS | Processamento horizontal e sem estado de sessão na memória da instância |
+| Sessões e dados | Neon PostgreSQL 17 | ACID, integridade, índices, relatórios e modelagem relacional |
+| Conectividade SQL | Cloudflare Hyperdrive + `pg` | Gerenciamento de conexões entre Workers e PostgreSQL |
+| Imagens | Cloudflare R2 | Armazenamento de arquivos fora do banco relacional |
+| Salas ao vivo | Cloudflare Durable Objects + WebSocket | Coordenação do estado por sala, presença e etapas sincronizadas |
+| E-mails | Resend | Recuperação de acesso e mensagens transacionais |
+| Entrega contínua | GitHub Actions | Verificação e deploy automatizados |
 
 ```mermaid
 flowchart TB
-    U[Usuário web ou PWA móvel] --> FE[Next.js / Cloudflare Workers]
-    FE -->|REST HTTPS JSON| API[API Worker stateless]
-    API --> DB[(Cloudflare D1)]
-    API --> IMG[(Cloudflare R2)]
-    API --> EMAIL[Resend]
-    API -. evolução .-> Q[Cloudflare Queues]
-    Q -. eventos .-> DO[Durable Object WebSocket]
-    DO -. notificações .-> U
-    FE -. publicidade planejada .-> ADS[Google AdSense]
+  P["Navegador desktop/mobile — PWA"] --> F["Frontend Next.js — Worker"]
+  F -->|"REST HTTPS JSON"| API["API stateless — Worker"]
+  API -->|"pg + pool"| HD["Cloudflare Hyperdrive"]
+  HD --> DB[("Neon PostgreSQL")]
+  API --> R2[("Cloudflare R2 — imagens")]
+  API --> EM["Resend — e-mails"]
+  P <-->|"WebSocket WSS"| DO["Durable Object — CookingRoom"]
+  API -->|"Criar e consultar salas"| DO
+  API -.->|"Possível expansão"| Q["Fila de processamento assíncrono"]
 ```
+**Linhas contínuas são existentes.** A fila pontilhada é proposta, não implementada. Durable Objects guardam estado de cada sala; isso não contradiz o **REST stateless**, que não conserva sessão na memória do Worker HTTP. Os dados de conta e conteúdo residem no PostgreSQL.
 
-Linhas contínuas: arquitetura existente. Linhas pontilhadas: propostas.
+## 3. Estratégia de escalabilidade: 1M writes / 2M reads
+O enunciado **não fixa a janela temporal**; por isso adotamos dois cenários de dimensionamento.
 
-### Verificação da infraestrutura Cloudflare (30/10/2026)
-
-**[VERIFICADO NA CONTA CLOUDFARE]** Foram encontrados dois Workers publicados: `receitando` (frontend, com binding de assets e URL da API) e `round-mouse-8bbd` (backend). No backend estão vinculados o D1 `receitando`, o R2 `receitando-recipe-images`, o namespace de Durable Object `CookingRoom` e o segredo da integração Resend. O D1 principal possui **22 tabelas**; há ainda um D1 separado chamado `receitando-benchmark-isolado` para experimentos sem modificar o banco principal. Logs de invocação estão habilitados; traces de execução não estão habilitados.
-
-**[NÃO CONFIGURADO]** A replicação de leitura do D1 principal está **desativada**, e a lista de Cloudflare Queues da conta está vazia. Cache de respostas públicas, filas e réplicas são **etapas de evolução**, não componentes atualmente comprovados. O vínculo com Durable Objects confirma configuração, **não** valida por si só a troca de mensagens WebSocket entre clientes.
-
-**[LIMITAÇÃO]** A existência de Workers e dos bindings na conta não constitui medição de throughput ou de tolerância a picos na Cloudflare. O benchmark k6 aprovado em 30/10 usa `wrangler dev` e **D1 local**.
-
-## 3. Escalabilidade: premissas, matemática e gargalos
-
-| Janela para 1M writes + 2M reads | Escritas/s médias | Leituras/s médias | Total/s médio |
-|---|---:|---:|---:|
+| Janela hipotética | Escritas/s (média) | Leituras/s (média) | Total/s (média) |
+| --- | ---: | ---: | ---: |
 | 24 horas | 11,57 | 23,15 | 34,72 |
 | 1 hora | 277,78 | 555,56 | 833,33 |
 
-**[A VALIDAR]** Considerar picos de 10 vezes a média, testar p95/p99, erros, CPU, limites D1, contenção de escrita, custo e consistência. A multiplicação é um cenário de planejamento, não uma medição.
+A média não descreve horário de pico; deve-se considerar, como hipótese de projeto, até **10× a média** e validar em staging. O sistema deverá escalar por camadas:
+1. **Computação:** Workers stateless distribuem requisições HTTP sem afinidade de sessão; aplicar limitação de taxa, validação e timeout.
+2. **Conexões:** Hyperdrive reduz pressão de abertura de conexões; verificar métricas de saturação, limites e política de pool.
+3. **PostgreSQL:** `PRIMARY KEY`, FKs, índices B-tree, full-text, paginação, parâmetros SQL, análise de planos e redução de consultas repetidas; dimensionar CPU/memória/IO do compute Neon. Réplicas de leitura podem ser avaliadas, mas **não resolvem gargalo de escrita**.
+4. **Cache:** permitir cache na borda **somente** para respostas públicas seguras após revisar rotas; conteúdo de sessão e dados privados ficam sem cache compartilhado.
+5. **Tarefas demoradas:** mover notificações e trabalhos não críticos para filas **quando necessário**, com idempotência, retries e dead-letter queue.
+6. **Monitoramento:** p50/p95/p99, erros 5xx, taxa de escrita/leitura, conexões, CPU/IO, locks, custo, filas e alertas.
+7. **Resiliência:** isolamento de falhas, políticas de retentativa com backoff, consistência e plano de backup/restauração.
 
-**Plano de evolução [PROPOSTO]:**
-1. Cache na borda **apenas** de respostas públicas que permitam cache; rotas autenticadas e personalizadas permanecem privadas. A política atual de `no-store` exige revisão explícita por endpoint.
-2. Índices SQL e paginação; examinar planos de consulta e eliminar consultas desnecessárias.
-3. Réplicas de leitura D1, com estratégia de consistência/bookmarks quando aplicável; réplicas **não aumentam** a capacidade de escrita do primário.
-4. Fila assíncrona para e-mail, notificações e trabalhos não críticos, com idempotência, retry e dead-letter queue.
-5. Se a escrita do D1 for insuficiente, considerar particionamento por domínio/tenant ou outra estratégia de persistência, justificada por medições.
-6. Observabilidade: métricas, logs estruturados, traces/correlation-id, alertas, custo e limites.
+**Ponto de atenção:** capacidade configurada do compute Neon é limitada e deve ser aumentada se os testes de carga apontarem saturação. A arquitetura admite expansão, mas *não há garantia de escala apenas pela escolha de tecnologias*.
 
-## 4. Estratégia de testes
+## 4. Evidência real obtida no PostgreSQL
+**Executado em 31/10/2026** no Neon PostgreSQL **17.11**, branch isolada `benchmark-fase4-20261031` (separada da branch `production`), com dados **sintéticos**:
+- **1.000.000 de linhas gravadas**, verificadas por `SELECT COUNT(*)`.
+- **2.000.000 de buscas indexadas com resultado** em consulta correlacionada usando `generate_series(1,2000000)`.
+- Tabela dedicada `fase4_benchmark`: **102 MB** (tabela e índices).
+- Amostra `EXPLAIN (ANALYZE, BUFFERS)` de 20.000 buscas: **Index Only Scan** sobre `fase4_benchmark_pkey`, **20.000 loops**, **0 heap fetches**, **31,410 ms de tempo de execução** dentro do servidor para a amostra.
 
-**[RESULTADO HISTÓRICO NÃO APROVADO]** A [execução acadêmica inicial](https://github.com/pitado/receitando/actions/runs/40977433968) fez cerca de 2,5 milhões de requisições, porém **100% falharam**. Ela não é evidência de escalabilidade. Após a correção do endpoint de benchmark, os testes posteriores de smoke e mixed foram aprovados, conforme os resultados abaixo.
+**Limite da evidência:** as operações foram executadas dentro do PostgreSQL em comandos SQL agrupados. Isso **não é** um benchmark de 3 milhões de requisições REST individuais ou de usuários simultâneos; não mede p95 da API, Hyperdrive sob carga nem throughput sustentado por uma hora/dia. O resultado sustenta a escolha do banco e a estratégia, não a alegação de capacidade de produção já certificada. Metodologia e SQL: [testes de carga](../tests/load/README.md).
 
-**[ATUAL — EXECUTADO]** `tests/load/receitando-read.js` testa endpoints públicos GET com k6; a execução inicial de leitura concluiu com 1.060 requisições e zero falhas no ambiente local (não equivale a capacidade de produção). **[CONFIGURADO — NÃO EXECUTADO NESTA VERSÃO]** `tests/load/receitando-professor.js` configura **1.000.000 de escritas e 2.000.000 de leituras indexadas** no D1 local, com identificadores idempotentes e retentativas limitadas. O workflow inclui `professor-check` (1.000 escritas + 2.000 leituras) para validar o procedimento antes da carga completa e `professor` para a meta de 3 milhões. Ao término, `tests/load/verify-professor.mjs` confronta os contadores de sucesso do k6 com a **diferença real de linhas persistidas no D1**, além de erros e p95, publicando `evidence.json` e `report.md`. **O resultado dessa nova execução ainda não existe e não deve ser citado como aprovação**; a execução de 3 milhões anterior falhou.
+**Plano de homologação HTTP:** usar k6 em Worker staging + Hyperdrive + Neon isolado, testar 1:2 operações na janela definida, ramp-up, patamar sustentado, pico e recuperação. Critérios iniciais: **erro inferior a 1% e p95 inferior a 1 s**; confirmar p99, vazão e persistência. Não afetar usuários reais.
 
-**[ATUAL — EVIDÊNCIA EM 30/10/2026]** O cenário progressivo `mixed` foi aprovado no [GitHub Actions — execução 40988074830](https://github.com/pitado/receitando/actions/runs/40988074830/job/123843668166). Execução local via `wrangler dev` + D1 local durante **90 s**, com rampa até **10 VUs**. O teste realizou **774 INSERTs bem-sucedidos**, **1.548 SELECTs bem-sucedidos**, total de **2.322 operações HTTP**, exatamente **1 escrita : 2 leituras**, com **0% de erros HTTP**, **2.322/2.322 checks aprovados**, **p95 de 8,62 ms**, máximo de 363,87 ms e média de **25,77 operações/s** ao longo da rampa. O smoke test de escrita e leitura antes do k6 também respondeu `201` e `200`.
-
-**[INTERPRETAÇÃO]** Essa evidência confirma operações concorrentes de leitura e escrita e as metas de erro/latência **nessa carga e nesse ambiente**. A média observada de 25,77 operações/s, medida durante o ramp-up/ramp-down, **não comprova** a média-alvo de 34,72 operações/s para 3 milhões por 24h; tampouco demonstra capacidade em produção. O teste usa tabela sintética `load_benchmark` e SELECT `COUNT(*)`, não representa integralmente o tráfego real do sistema. Prosseguir com patamares sustentados maiores, monitorar p95/p99, falhas e D1, e validar em staging isolado antes de qualquer alegação de escala em produção.
-
-**[A VALIDAR]** Para próximas execuções, exigir erros inferiores a 1% e p95 inferior a 1 s (metas iniciais). Um runner GitHub não representa a capacidade real da Cloudflare.
-
-**[PROPOSTO]** Criar ambiente staging com D1 separado e dados sintéticos. Executar cenários de leitura e escrita na proporção 2:1, ramp-up, pico, endurance e recuperação; exportar JSON e logs, informar duração, VUs, RPS, p95/p99, falhas, custos e limitações. Não executar carga destrutiva em produção.
-
-## 5. Monetização e justificativa para não utilizar API de pagamentos
-
-**[DECISÃO DO PROJETO]** O Receitando será gratuito para os usuários. A monetização planejada será realizada por meio de anúncios com **Google AdSense**; essa integração publicitária ainda não deve ser apresentada como ativa sem validação.
-
-Não serão oferecidos checkout, assinaturas Premium, produtos digitais pagos ou cobrança dentro do aplicativo. Portanto, **não há necessidade funcional de integrar um provedor de pagamentos** ou implementar rotas de cobrança, cartões e webhooks financeiros.
-
-**Distinção importante:** Google AdSense é uma plataforma de publicidade, **não** uma API de processamento de pagamentos para usuários do Receitando. Esta seção registra uma decisão arquitetural fundamentada no modelo de negócios, não uma integração de pagamento implementada. Caso a rubrica acadêmica exija obrigatoriamente um desenho de API de pagamento, a equipe deve confirmar com o professor se essa justificativa atende ao critério.
-
-
-### Mapeamento de API de pagamento — desenho condicional para a rubrica acadêmica
-
-**[PROPOSTO APENAS PARA FINS ARQUITETURAIS; NÃO IMPLEMENTADO]** Caso o modelo de negócio passe a oferecer um serviço pago, o Receitando poderia integrar um processador como **Mercado Pago ou Stripe** através de uma interface de provedor de pagamentos. Esta **não é uma decisão de lançar um plano Premium**: o produto continuará gratuito e financiado por anúncios. O mapeamento a seguir demonstra a integração exigida no enunciado, sem criar cobrança real:
-
-- **Frontend web/PWA:** solicita à API REST do Receitando a criação de uma intenção de pagamento de um produto hipotético. Nunca manipula credenciais secretas ou grava dados completos do cartão.
-- **Backend stateless (Workers):** autentica o usuário, valida valor e produto no servidor, cria um pedido `pending` em D1 e chama a API HTTPS do provedor com chave secreta. Envia uma **chave de idempotência** para evitar cobranças duplicadas em retentativas.
-- **Provedor externo:** retorna URL/token de checkout hospedado. Processamento dos dados de cartão fica no provedor.
-- **Webhook de pagamento:** provedor chama `POST /api/integrations/payments/webhook`. Worker confere assinatura/autenticidade, registra o ID único do evento para deduplicação, consulta o estado do pagamento junto ao provedor quando necessário e atualiza o pedido de forma idempotente.
-- **Consistência e falhas:** pedidos seguem estados `pending`, `paid`, `failed`, `refunded`; eventos fora de ordem não podem desfazer uma confirmação válida. Timeout, retries com backoff e reconciliação periódica mitigam perda de webhook. Segredos no ambiente, HTTPS, auditoria sem dados sensíveis e controle de autorização são obrigatórios.
+## 5. Mapeamento de integração de pagamento — exigência do enunciado
+**Projeto gratuito:** não há checkout ou assinatura ativos. A monetização prevista por Google AdSense é publicidade, **não** API de cobrança. Para cumprir a exigência de *mapeamento*, projetamos uma integração **hipotética** com Mercado Pago ou Stripe, sem ativar pagamentos:
 
 ```mermaid
 sequenceDiagram
-    participant U as Usuário hipotético
-    participant FE as Frontend web/PWA
-    participant API as Worker REST
-    participant DB as D1
-    participant PG as Provedor de pagamento
-    U->>FE: Inicia checkout hipotético
-    FE->>API: POST /api/payments/checkout
-    API->>DB: Cria pedido pending
-    API->>PG: Cria preferência/sessão com idempotency key
-    PG-->>API: URL/token de checkout
-    API-->>FE: URL do checkout
-    U->>PG: Finaliza pagamento no provedor
-    PG->>API: POST /api/integrations/payments/webhook
-    API->>API: Valida assinatura e deduplica evento
-    API->>DB: Atualiza pedido para paid/failed
-    API-->>PG: HTTP 2xx após processamento seguro
+  actor Cliente
+  participant FE as Web/PWA
+  participant API as API Worker
+  participant DB as Neon PostgreSQL
+  participant MP as Gateway de pagamento
+  Cliente->>FE: Iniciar compra hipotética
+  FE->>API: POST /api/payments/checkout
+  API->>DB: Criar pedido pending
+  API->>MP: Criar checkout + chave de idempotência
+  MP-->>API: URL do checkout hospedado
+  API-->>FE: URL para redirecionamento
+  Cliente->>MP: Pagamento no provedor
+  MP->>API: Webhook autenticado
+  API->>API: Validar assinatura e deduplicar evento
+  API->>DB: Confirmar estado na transação
+  API-->>MP: HTTP 2xx
 ```
+**Segurança e consistência:** valor validado no servidor, sem armazenar cartão, segredos fora do Git, TLS, verificação criptográfica do webhook, idempotência, deduplicação por ID do evento, estados `pending/paid/failed/refunded`, reconciliação e retentativas. **Essas rotas não existem no produto atual**; mapa técnico não significa integração implementada.
 
-**Critério de aceitação:** este diagrama cobre o **mapeamento** da API de pagamentos, conforme o slide, mas **não representa integração ativa, endpoint existente ou cobrança disponível**. AdSense continua sendo monetização por publicidade e não substitui uma API de checkout.
-
-## 6. WebSocket — Receitando Juntos
-
-**[EM VALIDAÇÃO]** A proposta é permitir que pessoas cozinhem a mesma receita em uma sala compartilhada, sincronizando etapas de preparo sem recarregar a página. Uma implementação inicial já foi incorporada ao repositório, mas ainda requer testes e validação de deploy.
+## 6. Mapeamento WebSocket — implementado
+`POST /api/v2/cooking-rooms` cria sala com etapas; `GET /api/v2/cooking-rooms/:id` consulta estado; `GET /api/v2/cooking-rooms/:id/ws` faz upgrade WSS. Cada sala é um Durable Object isolado: estado, participantes, controle de versão, heartbeat, expiração em 24h e máximo de 12 conexões. A mensagem `step:set` confirma etapa e retransmite `room:state` aos demais. O reingresso recupera snapshot; operações idempotentes não avançam versão indevidamente. Teste automatizado local com **dois clientes WebSocket** cobre sincronização bidirecional, edições simultâneas, reconexão e presença. Demonstração em dois navegadores na produção requer evidência específica.
 
 ```mermaid
 sequenceDiagram
-    participant A as Pessoa A
-    participant API as API Worker
-    participant DO as Durable Object da sala
-    participant B as Pessoa B
-    A->>API: POST /api/v2/cooking-rooms
-    API->>DO: Cria sala e estado inicial
-    API-->>A: ID e link de convite
-    A->>DO: Conecta WebSocket
-    B->>DO: Entra pelo link (WebSocket)
-    DO-->>B: Estado atual das etapas
-    A->>DO: step:set (etapa concluída)
-    DO->>DO: Valida e persiste estado
-    DO-->>A: room:state atualizado
-    DO-->>B: room:state atualizado
+  participant A as Pessoa A
+  participant DO as CookingRoom
+  participant B as Pessoa B
+  A->>DO: WSS + ingressar
+  B->>DO: WSS + ingressar
+  DO-->>A: presence:update (2)
+  DO-->>B: presence:update (2)
+  A->>DO: step:set (etapa 1)
+  DO-->>A: room:state v1
+  DO-->>B: room:state v1
+  B-xDO: desconecta
+  B->>DO: reconecta
+  DO-->>B: room:state atualizado
 ```
 
-**Por que WebSocket?** Atualização bidirecional de baixa latência. **Por que Durable Objects?** Coordenação do estado por sala, evitando depender de memória de instâncias REST distintas. Controles necessários: validação de mensagens, convite aleatório, limite de participantes, prevenção de abuso, reconexão e expiração de salas.
+## 7. Defesa arquitetural — argumentos verificáveis
+- **Por que REST stateless?** Facilita escalabilidade horizontal e implantação sem vincular usuário a uma instância.
+- **Por que PostgreSQL?** Integridade e consultas relacionais para receitas, ingredientes, despensa, usuários e moderação.
+- **Por que Hyperdrive?** Camada de conexão/pool entre Worker e Postgres; não substitui o banco.
+- **Por que R2?** Desacopla fotos de transações do banco.
+- **Por que Durable Objects para WebSocket?** Uma autoridade por sala simplifica ordenação e concorrência; o REST continua stateless.
+- **Onde pode falhar?** Banco subdimensionado, pool saturado, SQL sem índice, cache inseguro, picos, custo, timeouts e indisponibilidade externa.
+- **Como provar?** Diagrama coerente, código/configuração verificável, amostra SQL real, k6 HTTP em staging, métricas e limites explícitos.
 
-**Evidência de código:** [PR #168](https://github.com/pitado/receitando/pull/168). **Limitação:** implementação incorporada não equivale a recurso validado em produção.
-
-## 7. Defesa técnica: decisões e trade-offs
-
-**Por que Workers?** Escala horizontal sem manter instância de servidor própria; atenção a limites, custo e dependências externas. **Por que D1?** Modelo relacional simples e integração com Workers; trade-off: escritas centralizadas exigem validação e eventual mudança de estratégia. **Por que R2?** Separar imagens do banco transacional. **Por que PWA?** Reaproveitar interface web em celular sem criar dois clientes nativos. **Por que REST?** Contrato simples e stateless; WebSocket apenas para eventos em tempo real. **Por que Queue?** Desacoplar tarefas, absorver picos e tolerar falhas temporárias.
-
-**Limitação central:** desenho escalável não é prova de escala. A apresentação deve mostrar resultados reais quando existirem e declarar explicitamente itens propostos.
-
-## 8. Entregáveis e referências do próprio projeto
-
-- Documento principal: este arquivo.
-- Arquitetura existente: [architecture.md](architecture.md).
-- Banco: [database.md](database.md).
-- API: [api.md](api.md).
-- Diagrama de componentes: [diagramas/componentes.md](diagramas/componentes.md).
-- Teste k6: [receitando-read.js](../tests/load/receitando-read.js).
-- Execução e logs: [README do teste](../tests/load/README.md).
-
-**Checklist de apresentação:** explicar arquitetura atual e recursos confirmados na Cloudflare; exibir diagramas, cálculos e gargalos; mostrar resultados reais e limites dos testes k6; justificar a decisão pelo modelo gratuito **e** apresentar o mapeamento condicional de API de pagamentos; apresentar o WebSocket como implementação a validar funcionalmente entre clientes; explicar trade-offs e próximos passos.
+Links: [configuração da API](../backend/worker-prototype/wrangler.jsonc), [schema](../backend/worker-prototype/migrations/postgres/0001_baseline.sql), [diagrama](diagramas/componentes.md), [WebSocket](receitando-juntos.md), [teste PostgreSQL](../tests/load/README.md).

@@ -1,57 +1,51 @@
-# Receitando — testes k6 de leitura, escrita e escala
+# Testes de escalabilidade — PostgreSQL (Fase 4)
 
-## O que estamos medindo
+## Meta do professor
+**1 milhão de escritas e 2 milhões de leituras**. A duração não foi definida no enunciado; a estratégia de escala está no [System Design](../../docs/system-design-fase4.md).
 
-Este repositório contém testes de desempenho **sintéticos** da API do Receitando, com banco D1 emulado localmente pelo Wrangler em um runner temporário do GitHub Actions. O banco local é criado do zero a cada execução, não utiliza nem modifica as receitas/usuários do banco Cloudflare de produção.
+## Evidência de execução — 31/10/2026
+O ensaio foi executado no **Neon PostgreSQL 17.11**, projeto `Receitando`, branch isolada **`benchmark-fase4-20261031`**, separada de `production`. Nenhuma tabela de usuários ou receitas foi usada no teste.
 
-O requisito acadêmico é uma arquitetura que suporte **1 milhão de escritas para cada 2 milhões de leituras**. O enunciado não define se esse volume ocorre por hora, dia ou outro período. Um teste bem-sucedido valida **a carga e o ambiente testados**, não comprova automaticamente capacidade em produção na Cloudflare.
+| Verificação | Resultado |
+| --- | ---: |
+| Linhas sintéticas gravadas (contagem confirmada) | **1.000.000** |
+| Buscas correlacionadas por PK com resultado | **2.000.000 / 2.000.000** |
+| Volume da tabela + índices | **102 MB** |
+| Plano `EXPLAIN ANALYZE` para 20.000 buscas | **Index Only Scan — 20.000 loops — 0 heap fetches** |
+| Tempo de execução informado pelo PostgreSQL nessa amostra | **31,410 ms** |
 
-| Cenário do GitHub Actions | Tipo | Objetivo |
-| --- | --- | --- |
-| `smoke` | GETs públicos + smoke individual de POST/GET | Verificar conectividade e funcionamento |
-| `mixed` | POST + GET no D1 local, rampa até 10 VUs | Testar concorrência leve na proporção 1:2 |
-| `load` / `stress` | GETs públicos | Medir rotas de leitura existentes |
-| `professor-check` | 1.000 escritas + 2.000 leituras indexadas | Verificar a metodologia e a geração do relatório completo |
-| **`professor`** | **1.000.000 escritas + 2.000.000 leituras indexadas** | Tentar a comprovação de 3 milhões de operações sintéticas |
+As leituras foram verificadas em uma consulta SQL que gera 2 milhões de chaves e verifica a existência das linhas em `fase4_benchmark`; as escritas foram inseridas em lotes `INSERT … SELECT generate_series`. A amostra de EXPLAIN confirma uso do índice.
 
-## Como executar o teste completo
+### SQL reprodutível — somente em base isolada
+```sql
+CREATE TABLE IF NOT EXISTS fase4_benchmark (
+  id BIGINT PRIMARY KEY,
+  payload TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+INSERT INTO fase4_benchmark (id, payload)
+SELECT n, md5(n::text) FROM generate_series(1, 1000000) AS n
+ON CONFLICT (id) DO NOTHING;
 
-1. Abra [GitHub Actions — Teste de Escalabilidade](https://github.com/pitado/receitando/actions/workflows/load-test.yml).
-2. Clique em **Run workflow** e escolha a branch `main`.
-3. Recomenda-se executar primeiro `professor-check` para evitar desperdiçar recursos com falhas de configuração.
-4. Em seguida, selecione `professor` para a meta de 1 milhão de escritas e 2 milhões de leituras.
-5. Ao finalizar, baixe o artifact `k6-results-professor` na página da execução e examine `report.md`, `evidence.json`, `summary.json`, `requests.log` e `api.log`.
+SELECT COUNT(*) AS persisted_rows FROM fase4_benchmark;
 
-**ATENÇÃO:** o cenário `professor` pode consumir bastante tempo de execução do GitHub Actions. Pode falhar por gargalo, limite de tempo, interrupções ou falta de recursos. O máximo configurado para as iterações é 135 minutos; o workflow permite tempo adicional para inicialização e coleta de evidências. O teste não faz requisições ao serviço publicado nem à conta remota de D1.
+SELECT COUNT(*) AS successful_indexed_reads
+FROM generate_series(1, 2000000) AS g(n)
+WHERE EXISTS (
+  SELECT 1 FROM fase4_benchmark b WHERE b.id = ((g.n-1) % 1000000) + 1
+);
 
-## Como evitamos resultados enganosos
-
-- A etapa inicial faz um **POST** para inserir um registro e um **GET indexado** para confirmar que o registro pode ser recuperado; em seguida registra a contagem inicial.
-- Cada iteração de escrita usa um UUID determinístico exclusivo, enviado no cabeçalho `X-Benchmark-Id`. O backend usa `INSERT OR IGNORE`, tornando retentativas seguras contra duplicação da mesma escrita.
-- As leituras executam **SQL indexado** (`SELECT id FROM load_benchmark WHERE id = ? LIMIT 1`) e verificam `found: true` em resposta HTTP 200. Um único registro-semente já persistido é usado como chave de leitura. É uma carga sintética de leitura de chave existente, **não** reproduz o catálogo completo de receitas.
-- O k6 conta **somente operações lógicas bem-sucedidas** em `successful_writes` e `successful_reads` e registra taxa de erros HTTP, retentativas e latência p95.
-- Depois do k6, `tests/load/verify-professor.mjs` consulta a contagem final do D1. Só aprova quando existem **exatamente 1.000.000 novas linhas gravadas**, 1.000.000 respostas de escrita confirmadas, 2.000.000 respostas de leitura confirmadas, falhas HTTP inferiores a 1%, p95 abaixo de 1 segundo e saída normal do k6.
-- O relatório final é criado **inclusive em caso de reprovação** quando o verificador consegue executar; artefatos e logs são publicados com `if: always()`. Assim a execução fornece evidências verificáveis, sem afirmar sucesso por configuração.
-
-## Histórico confirmado
-
-- [Smoke aprovado, 30/10/2026](https://github.com/pitado/receitando/actions/runs/40987574136/job/123842067616): 65 requisições HTTP k6, sem falhas, p95 de 7,89 ms.
-- [Mixed aprovado, 30/10/2026](https://github.com/pitado/receitando/actions/runs/40988074830/job/123843668166): 774 escritas e 1.548 leituras, total 2.322, zero falhas HTTP, p95 de 8,62 ms, até 10 VUs, D1 local.
-- [Primeira tentativa de 3 milhões — não aprovada](https://github.com/pitado/receitando/actions/runs/40977433968): cerca de 2,5 milhões de tentativas, mas 100% falharam; não é prova de escala.
-
-**Importante:** o simples fato de o workflow ficar verde comprova apenas os critérios definidos no teste; sempre citar duração, ambiente, taxa, latência, contagem real e limitações.
-
-## Execução local de consultas públicas
-
-No diretório `backend/worker-prototype`, instale dependências e suba o servidor com `npm ci && npm run migrate:local && npm run dev`. Na raiz do repositório, com k6 instalado:
-
-```bash
-k6 run tests/load/receitando-read.js
-k6 run -e MODE=load tests/load/receitando-read.js
+EXPLAIN (ANALYZE, BUFFERS)
+SELECT COUNT(*) FROM generate_series(1, 20000) AS g(n)
+WHERE EXISTS (
+  SELECT 1 FROM fase4_benchmark b WHERE b.id = ((g.n-1) % 1000000) + 1
+);
 ```
 
-Para os cenários sintéticos de escrita é necessário configurar `BENCHMARK_ENABLED:true` apenas no Wrangler **local** e criar a tabela `load_benchmark`. O endpoint não deve ser habilitado em produção.
+## Interpretação correta
+**Resultado aprovado quanto às contagens SQL sintéticas.** Não é prova de 3 milhões de requisições HTTP, chamadas REST em produção, VUs simultâneos, latência p95/p99 do serviço ou capacidade sustentada. A branch de teste recebeu dados próprios e seu dimensionamento não deve ser extrapolado para outras configurações.
 
-## Limitações arquiteturais
+## Homologação HTTP complementar
+Antes de alegar capacidade da aplicação inteira: usar staging independente **Worker API → Hyperdrive → Neon PostgreSQL**, k6 com escritas e leituras 1:2, medir p95/p99, RPS, erros e persistência, testar rampas/picos, e registrar ID do workflow. Não direcionar um teste agressivo ao banco de usuários nem confundir resultados de ambientes distintos. **Nessa etapa não há resultado k6 da API com PostgreSQL**.
 
-A D1 remota possui limites próprios de throughput, filas, linhas lidas/escritas e preço, diferentes do D1 local. A quantidade de operações HTTP não é necessariamente igual à quantidade de linhas D1 faturáveis. A defesa do professor deve explicar escalabilidade horizontal dos Workers, gargalo de escrita em banco único, cache para leituras públicas, índices e eventual particionamento. Para validar escala **na Cloudflare**, criar um Worker de staging independente com um D1 remoto exclusivo, avaliar o plano/limites e medir nesse ambiente, com controle de custo.
+[System Design](../../docs/system-design-fase4.md) · [Schema PostgreSQL](../../backend/worker-prototype/migrations/postgres/0001_baseline.sql).
