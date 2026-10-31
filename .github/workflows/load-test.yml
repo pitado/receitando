@@ -17,6 +17,7 @@ permissions:
   contents: read
 jobs:
   production-http:
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
@@ -43,5 +44,25 @@ jobs:
         with:
           name: production-http-${{ inputs.scenario || 'professor-check' }}
           path: results/load/production-http-read-probe.json
+          if-no-files-found: warn
+          retention-days: 14
+
+  production-neon-reads:
+    name: Produção — catálogo e Neon PostgreSQL
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Medir 2.000 GETs reais no catálogo via API/Hyperdrive/Neon
+        run: node tests/load/probe-production-neon-reads.mjs
+      - name: Anexar métricas
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-neon-read-evidence
+          path: results/load/production-neon-read-evidence.json
           if-no-files-found: warn
           retention-days: 14
