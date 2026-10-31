@@ -28,6 +28,8 @@ jobs:
     timeout-minutes: 155
     env:
       TEST_SCENARIO: ${{ inputs.scenario || 'professor-check' }}
+      POSTGRES_TEST_URL: postgresql://postgres:postgres@127.0.0.1:5432/receitando_benchmark
+      CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE: postgresql://postgres:postgres@127.0.0.1:5432/receitando_benchmark
     services:
       postgres:
         image: postgres:17
@@ -40,8 +42,6 @@ jobs:
         options: >-
           --health-cmd "pg_isready -U postgres -d receitando_benchmark"
           --health-interval 10s --health-timeout 5s --health-retries 10
-      POSTGRES_TEST_URL: postgresql://postgres:postgres@127.0.0.1:5432/receitando_benchmark
-      CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE: postgresql://postgres:postgres@127.0.0.1:5432/receitando_benchmark
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
