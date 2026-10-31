@@ -1,0 +1,109 @@
+name: Fase 4 - HTTP real Cloudflare Hyperdrive Neon
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  real-neon-http:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: backend/worker-prototype/package-lock.json
+      - name: Instalar dependencias
+        working-directory: backend/worker-prototype
+        run: npm ci
+      - name: Publicar Worker real temporario, com Hyperdrive para branch Neon isolada
+        working-directory: backend/worker-prototype
+        run: |
+          set -euo pipefail
+          TOKEN=$(openssl rand -hex 24)
+          NONCE=$(openssl rand -hex 2)
+          echo "::add-mask::$TOKEN"
+          echo "BENCHMARK_TOKEN=$TOKEN" >> "$GITHUB_ENV"
+          echo "BENCHMARK_RUN_NONCE=$NONCE" >> "$GITHUB_ENV"
+          npx wrangler deploy --config wrangler.benchmark.jsonc --var "BENCHMARK_TOKEN:$TOKEN" > /tmp/benchmark-deploy.log 2>&1 || { sed -E 's/[a-f0-9]{48}/[REDACTED]/g' /tmp/benchmark-deploy.log; exit 1; }
+          URL=$(grep -Eo 'https://[a-z0-9.-]+\.workers\.dev' /tmp/benchmark-deploy.log | head -n1)
+          test -n "$URL"
+          echo "BENCHMARK_BASE_URL=$URL" >> "$GITHUB_ENV"
+          echo "Dedicated Worker: $URL"
+      - name: Validar INSERT e SELECT HTTP no Neon e guardar baseline
+        run: |
+          set -euo pipefail
+          base="$BENCHMARK_BASE_URL/api/internal/load-benchmark"
+          for i in $(seq 1 15); do
+            status=$(curl --max-time 15 -sS -o /dev/null -w '%{http_code}' -H "X-Benchmark-Token: $BENCHMARK_TOKEN" "$BENCHMARK_BASE_URL/api/health" || true)
+            [ "$status" = 200 ] && break
+            sleep 3
+          done
+          echo "health HTTP status=$status"
+          test "$status" = 200
+          created=$(curl --max-time 25 --fail-with-body -sS -X POST -H "X-Benchmark-Token: $BENCHMARK_TOKEN" "$base")
+          echo "POST response: $created"
+          seed=$(echo "$created" | jq -r '.id // empty')
+          [[ "$seed" =~ ^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$ ]]
+          found=$(curl --max-time 25 --fail-with-body -sS -H "X-Benchmark-Token: $BENCHMARK_TOKEN" "$base?id=$seed" | jq -r '.found')
+          echo "GET found=$found"
+          test "$found" = true
+          count=$(curl --max-time 25 --fail-with-body -sS -H "X-Benchmark-Token: $BENCHMARK_TOKEN" "$base" | jq -r '.total')
+          echo "COUNT total=$count"
+          [[ "$count" =~ ^[0-9]+$ ]]
+          echo "BENCHMARK_SEED_ID=$seed" >> "$GITHUB_ENV"
+          echo "BENCHMARK_BASELINE=$count" >> "$GITHUB_ENV"
+          echo "Neon real via Worker/Hyperdrive: POST 201, GET 200, persisted rows $count"
+      - name: Instalar k6
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y gnupg ca-certificates
+          curl -fsSL https://dl.k6.io/key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/k6-archive-keyring.gpg
+          echo 'deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main' | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update -qq
+          sudo apt-get install -y k6
+      - name: Executar 1000 INSERTs e 2000 SELECTs HTTP com PostgreSQL real
+        timeout-minutes: 36
+        run: |
+          mkdir -p results/load
+          set +e
+          k6 run -e BASE_URL="$BENCHMARK_BASE_URL" \
+            -e BENCHMARK_TOKEN="$BENCHMARK_TOKEN" \
+            -e BENCHMARK_SEED_ID="$BENCHMARK_SEED_ID" \
+            -e BENCHMARK_RUN_NONCE="$BENCHMARK_RUN_NONCE" \
+            -e TARGET_WRITES=1000 -e TARGET_READS=2000 \
+            --summary-export=results/load/summary.json \
+            tests/load/receitando-neon-real.js > results/load/requests.log 2>&1
+          code=$?
+          tail -n 70 results/load/requests.log
+          echo "K6_EXIT_CODE=$code" >> "$GITHUB_ENV"
+      - name: Contar registros efetivos no Neon e conferir latencia/erros
+        run: |
+          BASE_URL="$BENCHMARK_BASE_URL" BENCHMARK_TOKEN="$BENCHMARK_TOKEN" \
+          TARGET_WRITES=1000 TARGET_READS=2000 \
+          K6_EXIT_CODE="$K6_EXIT_CODE" SCENARIO=real-neon-http \
+          node tests/load/verify-professor.mjs
+      - name: Salvar evidencias sem credenciais
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fase4-http-neon-real
+          path: |
+            results/load/summary.json
+            results/load/report.md
+            results/load/evidence.json
+            results/load/requests.log
+          retention-days: 30
+          if-no-files-found: warn
+      - name: Excluir Worker temporario
+        if: always()
+        working-directory: backend/worker-prototype
+        run: |
+          curl -sS --request DELETE \
+            --header "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/scripts/receitando-fase4-neon-http" \
+            | jq '{success,errors}' || true

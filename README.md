@@ -104,6 +104,10 @@ npm run dev
 
 Para endpoints que consultam dados, configure uma **conexão PostgreSQL de desenvolvimento isolada** no Hyperdrive local. Não utilizar a branch Neon `production` para fixtures ou testes de estresse.
 
+## Evidência HTTP de PostgreSQL na Cloudflare
+
+Em 31/10/2026, um Worker de benchmark publicado na Cloudflare, com Hyperdrive apontado para uma branch isolada Neon, executou **1.000 POSTs com escrita SQL e 2.000 GETs com leitura SQL**: todas as requisições concluídas sem erro, **+1.000 registros confirmados**, p95 **206,77 ms** e média **42,59 requisições/s**. É uma amostra curta, não a execução de 3 milhões de requisições durante 24h. [Relatório e evidências](tests/load/README.md) · [Execução no GitHub](https://github.com/pitado/receitando/actions/runs/41232599160).
+
 ## Testes
 
 No backend:

@@ -51,6 +51,30 @@ Antes de alegar capacidade da aplicação inteira: usar staging independente **W
 [System Design](../../docs/system-design-fase4.md) · [Schema PostgreSQL](../../backend/worker-prototype/migrations/postgres/0001_baseline.sql).
 
 
+## Evidência HTTP com escrita PostgreSQL real (31/10/2026)
+
+**[GitHub Actions — execução APROVADA 41232599160](https://github.com/pitado/receitando/actions/runs/41232599160)** · [Artefatos da execução](https://github.com/pitado/receitando/actions/runs/41232599160)
+
+O teste foi executado **na Cloudflare real**, com `Cloudflare Worker → driver pg → Hyperdrive exclusivo → Neon PostgreSQL 17.11` na branch isolada `benchmark-fase4-20261031`. Não utilizou emulação Wrangler local ou banco principal de usuários. A API de benchmark utiliza o mesmo roteador REST e adaptador PostgreSQL do Receitando com autenticação por token temporário, e opera sobre a tabela sintética `load_benchmark`. O Worker temporário foi excluído no final.
+
+| Métrica HTTP verificada | Resultado |
+| --- | ---: |
+| Escritas REST `POST /api/internal/load-benchmark` | **1.000 / 1.000** |
+| Leituras REST `GET /api/internal/load-benchmark?id=…` | **2.000 / 2.000** |
+| Diferença de linhas persistidas no PostgreSQL | **+1.000** |
+| Erros HTTP e aplicação | **0% (0/3.000)** |
+| Latência HTTP p95 | **206,77 ms** |
+| Latência HTTP média | **176,47 ms** |
+| Vazão média total | **42,59 requisições/s** |
+| Vazão média de escrita | **14,20 POSTs/s** |
+| Vazão média de leitura | **28,39 GETs/s** |
+| Clientes virtuais configurados no k6 | **6 para POST; 12 para GET** |
+| Retentativas | **0** |
+
+**Comparação acadêmica:** 3 milhões de operações distribuídas em 24h exigem média de **34,72 ops/s** (11,57 escritas/s + 23,15 leituras/s). Neste ensaio curto, a vazão medida de **42,59 ops/s** superou essa média, inclusive nas duas classes de operação. Isso indica **viabilidade técnica inicial** da estratégia para o mix sintético, mas não equivale a comprovar **1 milhão de POSTs e 2 milhões de GETs executados** ou **24h sustentadas**. O banco de benchmark pode ter dimensionamento distinto do principal e a tabela é intencionalmente muito simples; catálogo e transações reais exigem validação adicional.
+
+Código: [workflow manual](../../.github/workflows/neon-http-real.yml) · [Worker restrito](../../backend/worker-prototype/src/benchmark-entry.ts) · [k6](receitando-neon-real.js). Os resultados anteriores em Durable Objects e no catálogo estão documentados abaixo, sem misturar os tipos de persistência.
+
 ## Testes HTTP reais — Cloudflare em produção (31/10/2026)
 
 São ensaios **independentes** da contagem SQL sintética anterior. Requisições originadas pelo GitHub Actions atingiram a API pública `api.receitando.miguelpita.com.br`, sem usar Wrangler local.
