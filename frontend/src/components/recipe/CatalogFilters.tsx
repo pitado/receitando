@@ -44,6 +44,7 @@ const difficultyLabels: Record<RecipeDifficulty, string> = {
 function sourceLabel(value: string) {
   if (value === "community") return "Comunidade";
   if (value === "wikibooks") return "Wikilivros";
+  if (value === "receitando") return "Receitando";
   return value;
 }
 
@@ -72,6 +73,7 @@ function SelectFields({
         >
           <option value="">Qualquer origem</option>
           <option value="community">Comunidade</option>
+          <option value="receitando">Receitando</option>
           <option value="wikibooks">Wikilivros</option>
         </select>
       </label>
