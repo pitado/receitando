@@ -2,17 +2,17 @@
 
 Os diagramas são **arquivos de texto PlantUML (`.puml`)**, e não arquivos de imagem ou `.drawio`. Mantêm a organização UML dos diagramas anteriores, mas representam o banco **Neon PostgreSQL 17** conectado via **Cloudflare Hyperdrive**.
 
-| Assunto | Fonte UML editável | Prévia renderizada pelo GitHub |
+| Assunto | **Abrir desenho (GitHub)** | Fonte UML editável |
 | --- | --- | --- |
-| Componentes da infraestrutura | [receitando-diagrama-componentes.puml](receitando-diagrama-componentes.puml) | [Componentes](docs/diagramas/componentes.md) |
-| DER relacional PostgreSQL | [DER.puml](DER.puml) · [Modelo DBML](receitando-der.dbml) | [DER](docs/diagramas/der.md) |
-| Sequência: matching e despensa | [receitando-diagrama-sequencia-matching.puml](receitando-diagrama-sequencia-matching.puml) | [Matching](docs/diagramas/sequencia-matching.md) |
-| Sequência: envio e moderação | [receitando-diagrama-sequencia-envio-moderacao.puml](receitando-diagrama-sequencia-envio-moderacao.puml) | [Moderação](docs/diagramas/sequencia-envio-moderacao.md) |
-| Classes dos contratos do frontend | [receitando-contratos-dados-frontend.puml](receitando-contratos-dados-frontend.puml) | [Contratos](docs/diagramas/contratos-frontend.md) |
+| DER relacional PostgreSQL | **[Visualizar DER](DER.md)** | [DER.puml](DER.puml) · [Modelo DBML](receitando-der.dbml) |
+| Componentes da infraestrutura | **[Visualizar componentes](Diagrama-de-Componentes.md)** | [Componentes.puml](receitando-diagrama-componentes.puml) |
+| Sequência: matching e despensa | **[Visualizar matching](Diagrama-de-Sequencia.md)** | [Matching.puml](receitando-diagrama-sequencia-matching.puml) |
+| Sequência: envio e moderação | **[Visualizar moderação](Diagrama-de-Moderacao.md)** | [Moderação.puml](receitando-diagrama-sequencia-envio-moderacao.puml) |
+| Classes dos contratos do frontend | **[Visualizar classes](Diagrama-de-Classes.md)** | [Classes.puml](receitando-contratos-dados-frontend.puml) |
 
 ## Como visualizar e editar
 
-- **Visualizar no GitHub:** abra a prévia em Markdown; cada página contém um diagrama Mermaid renderizado, feito em texto.
+- **Visualizar no GitHub:** clique em **Visualizar** na tabela acima. O desenho aparece dentro da página Markdown, sem precisar instalar programas.
 - **Editar UML:** abra um arquivo `.puml` no VS Code com a extensão PlantUML, ou cole o código em um editor PlantUML.
 - **Editar o DER relacional:** também pode usar [receitando-der.dbml](receitando-der.dbml) em um editor DBML; é fonte textual, não imagem.
 
