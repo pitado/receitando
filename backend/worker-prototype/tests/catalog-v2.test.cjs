@@ -91,9 +91,8 @@ test("catálogo v2 retorna item leve, total real e hasMore", async () => {
     (call) => call.op === "first" && call.sql.startsWith("SELECT COUNT(*) AS total"),
   );
   assert.ok(countCall);
-  assert.match(countCall.sql, /lower\(COALESCE\(r\.external_source, ''\)\) = 'wikibooks'/);
-  assert.match(countCall.sql, /r\.source_type = 'USER'/);
-  assert.match(countCall.sql, /r\.image_url IS NOT NULL/);
+  assert.match(countCall.sql, /r\.source_type IN \('OWN', 'OPEN_DATASET', 'USER'\)/);
+  assert.doesNotMatch(countCall.sql, /r\.image_url IS NOT NULL/);
 });
 
 test("catálogo v2 aplica busca, filtros e ordenação popular", async () => {
@@ -134,4 +133,21 @@ test("catálogo v2 aplica busca, filtros e ordenação popular", async () => {
   assert.match(listCall.sql, /recipe_votes/);
   assert.match(listCall.sql, /favorites/);
   assert.match(listCall.sql, /recipe_comments/);
+});
+
+test("catálogo aceita receitas autorais sem foto e filtro Receitando", async () => {
+  const db = createDb(async ({op, sql}) => {
+    if (op === "first" && sql.includes("COUNT(*)")) return {total: 1};
+    if (op === "all" && sql.includes("FROM recipe_tags")) return [];
+    if (op === "all" && sql.includes("r.source_name AS sourceName")) return [{...recipe, sourceName: "Receitando", externalSource: null, imageUrl: null}];
+    return undefined;
+  });
+  const res = await catalogV2Worker.fetch(request("?source=receitando"), env(db));
+  assert.equal(res.status, 200);
+  const data = await res.json();
+  assert.equal(data.items.length, 1);
+  assert.equal(data.items[0].imageUrl, null);
+  const query = db.calls.find((c) => c.op === "first" && c.sql.includes("COUNT(*)"));
+  assert.match(query.sql, /r\.source_type = 'OWN'/);
+  assert.doesNotMatch(query.sql, /r\.image_url IS NOT NULL/);
 });
