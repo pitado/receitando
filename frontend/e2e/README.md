@@ -17,7 +17,7 @@ Ela complementa os testes unitários do frontend e os testes de integração da 
 
 ## API durante os testes
 
-A suíte **não usa produção** e não escreve no D1.
+A suíte **não usa produção** e não escreve no PostgreSQL.
 
 O Playwright inicia o frontend local com:
 

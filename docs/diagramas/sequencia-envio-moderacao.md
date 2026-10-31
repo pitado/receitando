@@ -1,6 +1,6 @@
 # Sequência UML — envio e moderação
 
-Fluxo de envio de receitas com foto, persistência no D1, limpeza em caso de erro e revisão administrativa.
+Fluxo de envio de receitas com foto, persistência no PostgreSQL, limpeza em caso de erro e revisão administrativa.
 
 **Prévia visual gerada pelo GitHub usando Mermaid:**
 
@@ -11,7 +11,7 @@ sequenceDiagram
     participant F as Frontend
     participant A as API recipe-submission-worker
     participant R as Cloudflare R2
-    participant D as Cloudflare D1
+    participant D as Neon PostgreSQL
     actor M as Administrador
 
     rect rgb(239, 246, 255)
@@ -22,7 +22,7 @@ sequenceDiagram
       A->>R: Salvar imagem no bucket
       R-->>A: Objeto salvo
       A->>D: INSERT recipe_submissions (PENDING)
-      alt Falha de persistência D1
+      alt Falha de persistência PostgreSQL
         D-->>A: Erro
         A->>R: DELETE imagem recém-criada
         A-->>F: Erro de envio

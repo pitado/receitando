@@ -33,7 +33,7 @@ Evite incluir dados reais de terceiros. Use contas e valores de teste.
 - recuperação de senha e envio pelo Resend;
 - autorização de rotas autenticadas;
 - rate limiting;
-- Cloudflare D1;
+- Neon PostgreSQL;
 - secrets do GitHub Actions e Cloudflare;
 - CORS e políticas de segurança do frontend;
 - importadores que escrevem dados no banco;
@@ -77,7 +77,7 @@ Os buckets atuais cobrem:
 
 Ao atingir o limite, a API responde `429` com `Retry-After`. E-mails e IPs usados nesses controles são persistidos apenas como chaves SHA-256.
 
-Uma regra de WAF/Rate Limiting na borda da Cloudflare pode complementar essa defesa antes de a requisição chegar ao Worker e ao D1.
+Uma regra de WAF/Rate Limiting na borda da Cloudflare pode complementar essa defesa antes de a requisição chegar ao Worker e ao PostgreSQL.
 
 ## Conteúdo externo e XSS
 
@@ -89,7 +89,7 @@ Se futuramente for necessário renderizar HTML rico vindo de fonte externa ou co
 
 ## Queries e banco
 
-Valores recebidos por requisições da API devem ser enviados ao D1 por statements preparados com `.bind()`. SQL dinâmico pode ser usado apenas para estrutura controlada internamente, como a quantidade de placeholders `?`, nunca para interpolar texto fornecido pelo usuário.
+Valores recebidos por requisições da API devem ser enviados ao PostgreSQL por statements preparados com `.bind()`. SQL dinâmico pode ser usado apenas para estrutura controlada internamente, como a quantidade de placeholders `?`, nunca para interpolar texto fornecido pelo usuário.
 
 As migrations usam chaves estrangeiras e políticas de cascata/restrição para proteger integridade referencial.
 

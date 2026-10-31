@@ -19,7 +19,7 @@ A numeração RF01–RF16 e RNF01–RNF09 preserva a que já existe em `docs/esc
 | RF02 | O sistema deve permitir consultar os detalhes de uma receita. | UC03 |
 | RF13 | O sistema deve armazenar a origem das receitas importadas. | UC21 |
 | RF14 | O sistema deve exibir imagens de receitas quando houver imagem livre válida associada. | UC01, UC03 |
-| RF17 | O sistema deve permitir busca textual por título e descrição usando índice FTS5, com ordenação por relevância. | UC02 |
+| RF17 | O sistema deve permitir busca textual por título e descrição usando índice busca full-text PostgreSQL, com ordenação por relevância. | UC02 |
 | RF18 | O sistema deve paginar a listagem por `limit` (1 a 60, padrão 36) e `offset`, com filtro opcional por fonte. | UC01 |
 | RF29 | O sistema deve apresentar na página inicial receitas populares, comentários recentes e totais consolidados. | UC20 |
 
@@ -84,7 +84,7 @@ A numeração RF01–RF16 e RNF01–RNF09 preserva a que já existe em `docs/esc
 | RNF15 | Identificadores usados no rate limiting (e-mail e IP) devem ser persistidos apenas como hash SHA-256, com retenção de 2 horas. | `lib/auth-rate-limit.ts` |
 | RNF17 | Conteúdo culinário de fonte externa deve ser renderizado como texto, nunca como HTML da origem. | importador e página de detalhe |
 | RNF18 | A sessão deve ter validade de 30 dias contados da criação. | `index.ts` |
-| RNF21 | Todo acesso ao D1 deve usar statements parametrizados com `.bind()`. | workers da API |
+| RNF21 | Todo acesso ao PostgreSQL deve usar statements parametrizados com `.bind()`. | workers da API |
 | RNF22 | A autorização por dono deve ser aplicada em despensa, favoritos, votos e comentários. | workers correspondentes |
 | RNF23 | As imagens de submissão devem ser servidas apenas sob o prefixo `submissions/`, com bloqueio de travessia de caminho e `X-Content-Type-Options: nosniff`. | `recipe-submission-worker.ts` |
 | RNF24 | O tipo da imagem enviada deve ser determinado pelo conteúdo do arquivo, não pela extensão ou pelo cabeçalho informado. | `recipe-submission-worker.ts` |
@@ -126,8 +126,8 @@ A numeração RF01–RF16 e RNF01–RNF09 preserva a que já existe em `docs/esc
 | Código | Requisito |
 | --- | --- |
 | RNF09 | Os componentes devem passar pelas validações automatizadas do CI antes da publicação. |
-| RNF19 | O frontend deve possuir testes unitários (Vitest/Testing Library) e fluxo E2E (Playwright); a API deve possuir testes de regras puras e testes de rota com D1 simulado. |
-| RNF20 | O deploy do frontend e da API deve ocorrer por workflows do GitHub Actions, aplicando as migrations do D1 antes da publicação da API. |
+| RNF19 | O frontend deve possuir testes unitários (Vitest/Testing Library) e fluxo E2E (Playwright); a API deve possuir testes de regras puras e testes de rota com PostgreSQL simulado. |
+| RNF20 | O deploy do frontend e da API deve ocorrer por workflows do GitHub Actions, aplicando as migrations do PostgreSQL antes da publicação da API. |
 | RNF30 | A importação de catálogo deve ser independente do deploy da aplicação. |
 
 ---
@@ -190,7 +190,7 @@ A numeração RF01–RF16 e RNF01–RNF09 preserva a que já existe em `docs/esc
 | Código | Regra |
 | --- | --- |
 | RN18 | Receitas importadas devem registrar procedência e atribuição de licença da receita e da imagem. |
-| RN20 | A busca textual monta a consulta FTS5 com até 8 tokens distintos, combinados por conjunção de prefixos. |
+| RN20 | A busca textual monta a consulta busca full-text PostgreSQL com até 8 tokens distintos, combinados por conjunção de prefixos. |
 | RN21 | Conteúdo culinário de terceiros é convertido para texto na importação e renderizado como texto na interface. |
 
 ---
@@ -254,7 +254,7 @@ Estas eu documentei como ausências. São decisões de produto ainda não tomada
 
 | # | Ausência no sistema |
 | --- | --- |
-| 6 | Não existe forma de conceder o papel `ADMIN` pela aplicação. Não há rota, seed nem script; a promoção depende de alteração direta no D1. Isso torna o UC19 não reproduzível por quem clonar o projeto do zero. |
+| 6 | Não existe forma de conceder o papel `ADMIN` pela aplicação. Não há rota, seed nem script; a promoção depende de alteração direta no PostgreSQL. Isso torna o UC19 não reproduzível por quem clonar o projeto do zero. |
 | 7 | O autor de uma submissão nunca é notificado do resultado. O `authorEmail` é coletado e armazenado, mas nenhum envio ocorre nesse fluxo. Coletar um dado pessoal sem uso declarado é um ponto frágil. |
 | 8 | Não há exclusão de conta nem exportação de dados pessoais. Relevante se o trabalho precisar tratar LGPD. |
 | 9 | Não há denúncia nem moderação de comentários. Só o autor remove o próprio texto; um comentário abusivo não tem caminho de remoção. |

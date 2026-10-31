@@ -105,7 +105,7 @@ A rota de imagem:
 - envia `X-Content-Type-Options: nosniff`;
 - usa cache público de longa duração para o objeto imutável.
 
-Se a foto for gravada no R2, mas a inserção da submissão no D1 falhar depois, a API remove o objeto recém-enviado para evitar arquivo órfão.
+Se a foto for gravada no R2, mas a inserção da submissão no PostgreSQL falhar depois, a API remove o objeto recém-enviado para evitar arquivo órfão.
 
 ## Limites do conteúdo enviado
 
@@ -159,7 +159,7 @@ validação local de tipo/tamanho
    ↓
 POST /api/recipe-submissions
    ├── R2: foto
-   └── D1: recipe_submissions (PENDING)
+   └── PostgreSQL: recipe_submissions (PENDING)
    ↓
 moderação ADMIN
    ├── APPROVED → catálogo v2
