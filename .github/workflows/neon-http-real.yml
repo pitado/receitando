@@ -50,13 +50,17 @@ jobs:
             [ "$status" = 200 ] && break
             sleep 3
           done
+          echo "health HTTP status=$status"
           test "$status" = 200
           created=$(curl --max-time 25 --fail-with-body -sS -X POST -H "X-Benchmark-Token: $BENCHMARK_TOKEN" "$base")
+          echo "POST response: $created"
           seed=$(echo "$created" | jq -r '.id // empty')
           [[ "$seed" =~ ^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$ ]]
           found=$(curl --max-time 25 --fail-with-body -sS -H "X-Benchmark-Token: $BENCHMARK_TOKEN" "$base?id=$seed" | jq -r '.found')
+          echo "GET found=$found"
           test "$found" = true
           count=$(curl --max-time 25 --fail-with-body -sS -H "X-Benchmark-Token: $BENCHMARK_TOKEN" "$base" | jq -r '.total')
+          echo "COUNT total=$count"
           [[ "$count" =~ ^[0-9]+$ ]]
           echo "BENCHMARK_SEED_ID=$seed" >> "$GITHUB_ENV"
           echo "BENCHMARK_BASELINE=$count" >> "$GITHUB_ENV"
@@ -105,4 +109,8 @@ jobs:
       - name: Excluir Worker temporario
         if: always()
         working-directory: backend/worker-prototype
-        run: npx wrangler delete --name receitando-fase4-neon-http --force || true
+        run: |
+          curl -sS --request DELETE \
+            --header "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/scripts/receitando-fase4-neon-http" \
+            | jq '{success,errors}' || true
