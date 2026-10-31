@@ -61,7 +61,7 @@ jobs:
       - name: Iniciar API Cloudflare Worker local apontando ao PostgreSQL
         working-directory: backend/worker-prototype
         run: |
-          nohup npx wrangler dev --local --ip 127.0.0.1 --port 8787 --inspector-port 8788 --var BENCHMARK_ENABLED:true > /tmp/receitando-api.log 2>&1 &
+          NODE_OPTIONS=--max-old-space-size=4096 nohup npx wrangler dev --local --ip 127.0.0.1 --port 8787 --inspector-port 8788 --var BENCHMARK_ENABLED:true --log-level warn > /tmp/receitando-api.log 2>&1 &
           for i in $(seq 1 60); do
             if curl --fail --silent http://127.0.0.1:8787/api/health >/dev/null; then exit 0; fi
             sleep 2
@@ -101,7 +101,7 @@ jobs:
             professor) TARGET_WRITES=1000000; TARGET_READS=2000000 ;;
             *) echo 'Cenário inválido'; exit 1 ;;
           esac
-          echo "Cenário $TEST_SCENARIO: $TARGET_WRITES POST + $TARGET_READS GET via Worker + Hyperdrive local + Postgres isolado"
+          echo "Cenário $TEST_SCENARIO: $TARGET_WRITES POST + $TARGET_READS GET via Wrangler local + PostgreSQL isolado (sem pooling Hyperdrive)"
           timeout --signal=TERM --kill-after=15s 8400s k6 run \
             -e BASE_URL=http://127.0.0.1:8787 \
             -e BENCHMARK_SEED_ID="$BENCHMARK_SEED_ID" \
