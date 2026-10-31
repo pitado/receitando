@@ -75,5 +75,4 @@ Um HTTP 403/1010 do Cloudflare é bloqueio do cliente e não comprova defeito no
 Worker. Não desative proteções ou altere a identidade do cliente para contorná-lo.
 Use os eventos de segurança do proprietário para diagnosticar o bloqueio.
 
-A cópia de imagens do catálogo continua no workflow dedicado `import-wikibooks`;
-não faz parte do deploy da API nem dos testes de salas.
+A importação opcional de **links editoriais** ocorre no workflow manual `import-external-references.yml`; não executa cópia de imagens e não faz parte do deploy ou dos testes WebSocket.

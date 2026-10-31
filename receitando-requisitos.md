@@ -19,7 +19,7 @@ A numeração RF01–RF16 e RNF01–RNF09 preserva a que já existe em `docs/esc
 | RF02 | O sistema deve permitir consultar os detalhes de uma receita. | UC03 |
 | RF13 | O sistema deve armazenar a origem das receitas importadas. | UC21 |
 | RF14 | O sistema deve exibir imagens de receitas quando houver imagem livre válida associada. | UC01, UC03 |
-| RF17 | O sistema deve permitir busca textual por título e descrição usando índice busca full-text PostgreSQL, com ordenação por relevância. | UC02 |
+| RF17 | O sistema deve permitir busca textual por título e descrição utilizando o índice de busca textual do PostgreSQL, com ordenação por relevância. | UC02 |
 | RF18 | O sistema deve paginar a listagem por `limit` (1 a 60, padrão 36) e `offset`, com filtro opcional por fonte. | UC01 |
 | RF29 | O sistema deve apresentar na página inicial receitas populares, comentários recentes e totais consolidados. | UC20 |
 
@@ -126,9 +126,9 @@ A numeração RF01–RF16 e RNF01–RNF09 preserva a que já existe em `docs/esc
 | Código | Requisito |
 | --- | --- |
 | RNF09 | Os componentes devem passar pelas validações automatizadas do CI antes da publicação. |
-| RNF19 | O frontend deve possuir testes unitários (Vitest/Testing Library) e fluxo E2E (Playwright); a API deve possuir testes de regras puras e testes de rota com PostgreSQL simulado. |
-| RNF20 | O deploy do frontend e da API deve ocorrer por workflows do GitHub Actions, aplicando as migrations do PostgreSQL antes da publicação da API. |
-| RNF30 | A importação de catálogo deve ser independente do deploy da aplicação. |
+| RNF19 | O frontend deve possuir testes unitários (Vitest/Testing Library) e fluxo E2E (Playwright); a API deve possuir testes de regras puras e testes de rota com banco simulado e integração com PostgreSQL real isolado. |
+| RNF20 | O deploy do frontend e da API deve ocorrer por workflows do GitHub Actions, com migrations PostgreSQL previamente revisadas e aplicadas em etapa controlada, independente do deploy. |
+| RNF30 | A registro de referências externas deve ser independente do deploy da aplicação. |
 
 ---
 
@@ -224,12 +224,12 @@ Não são defeitos: são fronteiras conscientes da versão atual e devem constar
 | RF20 | UC12 | `/despensa` |
 | RF10 | UC13 | `catalog64-worker.ts` |
 | RF11, RF12 | UC14, UC15 | `social-worker.ts` |
-| RF13 | UC21 | `scripts/import-wikibooks-v2.mjs` |
-| RF17 | UC02 | `catalog-v2-worker.ts`, migration `0015` |
+| RF13 | UC21 | `scripts/import-external-references.mjs` |
+| RF17 | UC02 | `catalog-v2-worker.ts`, `migrations/postgres/0001_baseline.sql` |
 | RF22 | UC16 | `RecipeShoppingList.tsx` |
 | RF23, RF24 | UC17 | `recipe-adaptation-worker.ts`, `lib/recipe-adaptation.ts` |
-| RF25, RF26, RF27 | UC18, UC19 | `recipe-submission-worker.ts`, migration `0016` |
-| RF28 | UC10 | `profile-worker.ts`, migration `0006` |
+| RF25, RF26, RF27 | UC18, UC19 | `recipe-submission-worker.ts`, `migrations/postgres/0001_baseline.sql` |
+| RF28 | UC10 | `profile-worker.ts`, `migrations/postgres/0001_baseline.sql` |
 | RF29 | UC20 | `home-worker.ts` |
 
 ---

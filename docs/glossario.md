@@ -108,10 +108,10 @@ Este glossário reúne os principais termos de **negócio, produto e tecnologia*
 | **Atribuição** | Exibição e preservação das informações necessárias para reconhecer a origem e a autoria de conteúdos externos utilizados no projeto. |
 | **Importação de catálogo** | Processo automatizado que coleta receitas, imagens e metadados de fontes externas e grava os dados aceitos no banco. |
 | **Licença livre** | Licença que permite determinado uso e redistribuição do conteúdo sob condições específicas. Não significa ausência de autoria ou obrigação de atribuição. |
-| **MediaWiki API** | Interface utilizada pelos scripts do projeto para consultar dados do ecossistema Wikimedia. |
+| **MediaWiki API** | API do ecossistema Wikimedia usada no histórico do projeto, não no processo ativo de importação de links. |
 | **Sanitização** | Tratamento de conteúdo externo para remover ou neutralizar estruturas potencialmente perigosas antes de utilizá-lo na aplicação. |
 | **Wikimedia Commons** | Repositório de mídia livre utilizado como fonte das imagens associadas às receitas. |
-| **Wikilivros** | Projeto Wikimedia utilizado como fonte operacional atual do conteúdo textual das receitas em português. |
+| **Wikilivros** | Fonte histórica no catálogo e nos contratos de origem; o workflow ativo não extrai o conteúdo integral do site. |
 
 ## 7. Termos que podem causar confusão
 
