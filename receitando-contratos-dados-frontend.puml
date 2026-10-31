@@ -1,0 +1,74 @@
+@startuml
+title Receitando - UML de classes: contratos do frontend
+' Receitando - UML textual versionado; banco real: Neon PostgreSQL via Hyperdrive.
+skinparam backgroundColor #FBF2E8
+skinparam defaultFontName Arial
+skinparam ArrowColor #96462B
+skinparam Shadowing false
+
+hide empty members
+skinparam classAttributeIconSize 0
+class Recipe {
+  +id: string
+  +title: string
+  +slug: string
+  +description: string
+  +prepMinutes: number
+  +servings: number
+  +ingredients: RecipeIngredient[]
+  +tags: string[]
+}
+class Ingredient {
+  +id: string
+  +name: string
+  +normalizedName: string
+  +category: string
+  +isStaple?: boolean
+}
+class RecipeIngredient {
+  +ingredientId: string
+  +name: string
+  +quantity: number | null
+  +unit: string | null
+  +optional: boolean
+}
+class RecipeCatalogResponse {
+  +items: RecipeCatalogItem[]
+  +pagination: object
+  +filters: object
+}
+class RecipeCatalogItem {
+  +id: string
+  +slug: string
+  +title: string
+  +imageUrl: string | null
+}
+class MatchRecipeResult {
+  +id: string
+  +compatibility: number
+  +status: RecipeMatchStatus
+  +foundIngredients: MatchIngredient[]
+  +missingIngredients: MatchIngredient[]
+}
+class RecipeAdaptationResult {
+  +engineVersion: "1.0"
+  +scaleFactor: number
+  +confidence: number
+  +ingredients: RecipeAdaptationIngredient[]
+}
+class RecipeAdaptationIngredient {
+  +ingredientId: string
+  +originalName: string
+  +adaptedName: string
+  +optional: boolean
+  +unavailable: boolean
+}
+Recipe "1" *-- "0..*" RecipeIngredient
+RecipeIngredient --> Ingredient : ingredientId
+RecipeCatalogResponse "1" *-- "0..*" RecipeCatalogItem
+RecipeAdaptationResult "1" *-- "0..*" RecipeAdaptationIngredient
+note bottom of RecipeAdaptationResult
+  Contratos extraídos de frontend/src/types/recipe.ts.
+  Este diagrama representa tipos de interface, não tabelas PostgreSQL.
+end note
+@enduml

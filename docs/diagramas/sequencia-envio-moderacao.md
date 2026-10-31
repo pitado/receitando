@@ -11,6 +11,7 @@ sequenceDiagram
     participant F as Frontend
     participant A as API recipe-submission-worker
     participant R as Cloudflare R2
+    participant H as Cloudflare Hyperdrive
     participant D as Neon PostgreSQL
     actor M as Administrador
 
@@ -21,13 +22,16 @@ sequenceDiagram
       A->>A: Validar campos e foto (até 12 MB)
       A->>R: Salvar imagem no bucket
       R-->>A: Objeto salvo
-      A->>D: INSERT recipe_submissions (PENDING)
+      A->>H: INSERT recipe_submissions (PENDING)
+      H->>D: SQL parametrizado
       alt Falha de persistência PostgreSQL
-        D-->>A: Erro
+        D-->>H: Erro
+        H-->>A: Erro
         A->>R: DELETE imagem recém-criada
         A-->>F: Erro de envio
       else Persistência concluída
-        D-->>A: ID da submissão
+        D-->>H: ID da submissão
+        H-->>A: Persistência confirmada
         A-->>F: Submissão PENDING
         F-->>U: Receita enviada para revisão
       end
@@ -37,23 +41,30 @@ sequenceDiagram
       Note over F,M: Moderação administrativa
       M->>F: Abre painel de moderação
       F->>A: GET /api/admin/recipe-submissions
-      A->>D: Verificar sessão e users.role = ADMIN
-      D-->>A: Autorizado
-      A->>D: SELECT recipe_submissions
-      D-->>A: Pendências
+      A->>H: Verificar sessão e users.role = ADMIN
+      H->>D: SELECT autorização
+      D-->>H: Autorizado
+      H-->>A: Autorizado
+      A->>H: SELECT recipe_submissions
+      H->>D: Consulta
+      D-->>H: Pendências
+      H-->>A: Pendências
       A-->>F: Lista de submissões
       M->>F: Decide aprovar ou rejeitar
       F->>A: PATCH /api/admin/recipe-submissions/:id
       alt Aprovada
-        A->>D: INSERT recipes (source_type=USER)
-        A->>D: UPDATE recipe_submissions (APPROVED)
+        A->>H: Transação: INSERT recipes + UPDATE APPROVED
+        H->>D: SQL transacional
       else Rejeitada
-        A->>D: UPDATE recipe_submissions (REJECTED, rejection_reason)
+        A->>H: UPDATE REJECTED / rejection_reason
+        H->>D: SQL transacional
       end
+      D-->>H: COMMIT
+      H-->>A: Revisão persistida
       A-->>F: Resultado da moderação
     end
 ```
 
-**Para editar as caixas e conexões:** [abrir o arquivo-fonte `.drawio`](../../receitando-diagrama-sequencia-envio-moderacao.drawio). O GitHub exibe o XML quando você abre um `.drawio` diretamente; por isso esta página fornece a visualização sem precisar instalar ou baixar nada.
+**Fonte UML textual editável:** [receitando-diagrama-sequencia-envio-moderacao.puml](../../receitando-diagrama-sequencia-envio-moderacao.puml). A prévia acima usa Mermaid no GitHub.
 
 [Voltar ao índice dos diagramas](../../DIAGRAMAS-EDITAVEIS.md)

@@ -73,4 +73,4 @@ erDiagram
   }
 ```
 
-O editável [DER.drawio](../../DER.drawio) permanece disponível, mas **o schema PostgreSQL é a referência técnica** até que o arquivo de desenho seja alinhado. [Ver banco](../database.md).
+O [DER em PlantUML](../../DER.puml) é a fonte editável em texto; o [DBML](../../receitando-der.dbml) é uma representação relacional complementar. O schema PostgreSQL versionado é a fonte de verdade. [Ver banco](../database.md).

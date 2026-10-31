@@ -1,31 +1,40 @@
 @startuml
-title Receitando — Matching / REST stateless + Neon PostgreSQL
+title Receitando - UML de sequência: matching com PostgreSQL
+' Receitando - UML textual versionado; banco real: Neon PostgreSQL via Hyperdrive.
+skinparam backgroundColor #FBF2E8
+skinparam defaultFontName Arial
+skinparam ArrowColor #96462B
+skinparam Shadowing false
+
 autonumber
 actor "Usuário" as U
 participant "Frontend /combinar" as F
-participant "API REST catalog64-worker" as A
+participant "API catalog64-worker" as A
 participant "recipe-utils" as N
 participant "Cloudflare Hyperdrive" as H
 database "Neon PostgreSQL 17" as PG
-U -> F : Informa ingredientes ou usa despensa
-alt Digitação
+U -> F : Informa ingredientes ou seleciona despensa
+alt Ingredientes digitados
   F -> A : POST /api/recipes/match
 else Despensa autenticada
   F -> A : GET /api/recipes/match/pantry
-  A -> H : SELECT pantry_items WHERE user_id=?
+  A -> H : SELECT pantry_items WHERE user_id = ?
   H -> PG : SQL parametrizado
   PG --> H : ingredient_id[]
   H --> A : IDs da despensa
 end
-A -> N : Normaliza nomes e aliases
-N --> A : Formas canônicas
-A -> H : SELECT ingredients, aliases, recipes,
-recipe_ingredients
-H -> PG : Consulta via pg/Hyperdrive
-PG --> H : Linhas relacionais
-H --> A : Resultados
-A -> A : Ignorar opcionais/is_staple,
-calcular encontrados e faltantes
-A --> F : MatchRecipeResult[] em JSON
-F --> U : Exibe compatibilidade e receitas
+A -> N : Normalizar nomes e aliases
+N --> A : Ingredientes canônicos
+A -> H : Consultar ingredients e ingredient_aliases
+H -> PG : SELECT indexado
+PG --> H : ingredient_id[]
+H --> A : Correspondências exatas
+A -> H : Consultar recipes + recipe_ingredients
+H -> PG : SELECT / JOIN parametrizado
+PG --> H : Receitas e relações
+H --> A : Linhas SQL
+A -> A : Ignorar ingredientes opcionais e is_staple
+A -> A : Calcular encontrados / obrigatórios
+A --> F : MatchRecipeResult[] (JSON)
+F --> U : Compatibilidade e ingredientes faltantes
 @enduml

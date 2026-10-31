@@ -19,4 +19,4 @@ flowchart TB
 
 O Worker REST é stateless; cookies seguros identificam sessões persistidas no PostgreSQL. O estado por sala WebSocket é independente e coordenado por um Durable Object. Imagens ficam no R2, não no banco relacional.
 
-[System Design](../system-design-fase4.md) · [Schema PostgreSQL](../../backend/worker-prototype/migrations/postgres/0001_baseline.sql) · [WebSocket](../receitando-juntos.md).
+[Fonte UML textual (.puml)](../../receitando-diagrama-componentes.puml) · [System Design](../system-design-fase4.md) · [Schema PostgreSQL](../../backend/worker-prototype/migrations/postgres/0001_baseline.sql) · [WebSocket](../receitando-juntos.md).
