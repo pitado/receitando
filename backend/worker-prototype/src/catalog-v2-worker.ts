@@ -130,9 +130,7 @@ async function listCatalogV2(request: Request, env: Env): Promise<Response> {
 
   const fromParts = ["FROM recipes r"];
   const where: string[] = [
-    "(lower(COALESCE(r.external_source, '')) = 'wikibooks' OR r.source_type = 'USER')",
-    "r.image_url IS NOT NULL",
-    "trim(r.image_url) <> ''",
+    "r.source_type IN ('OWN', 'OPEN_DATASET', 'USER')",
   ];
   const bindings: Array<string | number> = [];
 
@@ -143,6 +141,8 @@ async function listCatalogV2(request: Request, env: Env): Promise<Response> {
   }
   if (source === "community") {
     where.push("r.source_type = 'USER'");
+  } else if (source === "receitando") {
+    where.push("r.source_type = 'OWN'");
   } else if (source) {
     where.push("lower(r.external_source) = ?");
     bindings.push(source);
