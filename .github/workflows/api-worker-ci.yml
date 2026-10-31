@@ -57,7 +57,7 @@ jobs:
         run: npm run test:ws
       - run: npm run dry-run
 
-  # Verifica a API atual usando Neon antes de remover o banco D1 legado.
+  # Verifica a saúde dos endpoints PostgreSQL publicados sem modificar dados.
   probe-production-api:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest

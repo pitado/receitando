@@ -132,7 +132,7 @@ export default {
     const remember = isSessionCreation ? await rememberPreference(request) : false;
 
     const authenticatedRequest = requestWithCookieAuthorization(request, cookieToken);
-    const response = path.startsWith("/api/v2/cooking-rooms")
+    const response = (path === "/api/health" || path.startsWith("/api/v2/cooking-rooms"))
       ? await appRouter.fetch(authenticatedRequest, env)
       : await withSelectedDatabase(env, (selectedEnv) => appRouter.fetch(authenticatedRequest, selectedEnv));
     if (response.status === 101) return response;

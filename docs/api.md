@@ -1,6 +1,6 @@
 # API do Receitando
 
-A API de produção roda em **Cloudflare Workers**, usa **Cloudflare D1** para dados relacionais e **Cloudflare R2** para imagens enviadas pela comunidade. As rotas de aplicação respondem em JSON, exceto a entrega de imagens do R2.
+A API de produção roda em **Cloudflare Workers**, usa **Neon PostgreSQL** para dados relacionais e **Cloudflare R2** para imagens enviadas pela comunidade. As rotas de aplicação respondem em JSON, exceto a entrega de imagens do R2.
 
 Base de produção:
 
@@ -181,7 +181,7 @@ Uma troca bem-sucedida invalida as sessões existentes do usuário.
 
 Parâmetros:
 
-- `q`: busca textual por título/descrição via FTS5;
+- `q`: busca textual por título/descrição via full-text PostgreSQL;
 - `source`: filtro por fonte externa;
 - `mealType`: filtro por tipo de refeição;
 - `difficulty`: `FACIL`, `MEDIA` ou `DIFICIL`;
@@ -190,7 +190,7 @@ Parâmetros:
 - `limit`: 1–60, padrão 36;
 - `offset`: paginação.
 
-Sem busca, `relevance` é normalizado para `recent`. Com `q`, a busca monta uma consulta FTS5 com até oito tokens distintos e usa `bm25()` para relevância.
+Sem busca, `relevance` é normalizado para `recent`. Com `q`, a busca monta uma consulta full-text PostgreSQL com até oito tokens distintos e usa `bm25()` para relevância.
 
 O catálogo público v2 inclui receitas do Wikilivros e receitas da comunidade já aprovadas (`source_type = 'USER'`). Seeds/demos ficam fora e os cards precisam possuir `image_url`.
 
@@ -394,7 +394,7 @@ Validações principais:
 
 A API detecta o tipo da imagem pelos bytes do arquivo, não confia apenas no nome/extensão e grava o objeto em `submissions/AAAA/MM/{id}.{ext}` no binding R2 `RECIPE_IMAGES`.
 
-Se o upload no R2 ocorrer, mas a gravação da submissão no D1 falhar, a API remove o objeto recém-enviado antes de responder `500`.
+Se o upload no R2 ocorrer, mas a gravação da submissão no PostgreSQL falhar, a API remove o objeto recém-enviado antes de responder `500`.
 
 Submissões válidas nascem com `status = 'PENDING'`.
 
@@ -443,12 +443,12 @@ Favoritos, votos e comentários são vinculados ao usuário autenticado nas oper
 
 ## Testes do contrato
 
-A suíte da API chama `fetch()` dos Workers reais com um D1 simulado para validar roteamento, autenticação, autorização e persistência sem tocar no banco de produção.
+A suíte da API chama `fetch()` dos Workers reais com um PostgreSQL simulado para validar roteamento, autenticação, autorização e persistência sem tocar no banco de produção.
 
 Os testes cobrem, entre outros pontos:
 
 - canonicalização e staples;
-- FTS5 e catálogo v2;
+- full-text PostgreSQL e catálogo v2;
 - autenticação e sessão;
 - rate limiting;
 - despensa;

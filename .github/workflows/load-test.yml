@@ -1,18 +1,15 @@
-name: Teste de Escalabilidade (k6)
+name: Teste de carga — API REST + PostgreSQL isolado (k6)
 
 on:
   workflow_dispatch:
     inputs:
       scenario:
-        description: Cenário de teste
+        description: "Volume de operações HTTP: smoke, professor-check ou professor"
         required: true
         default: smoke
         type: choice
         options:
           - smoke
-          - mixed
-          - load
-          - stress
           - professor-check
           - professor
 
@@ -20,9 +17,24 @@ permissions:
   contents: read
 
 jobs:
-  load-test:
+  postgres-load:
     runs-on: ubuntu-latest
     timeout-minutes: 155
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: receitando_benchmark
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d receitando_benchmark"
+          --health-interval 10s --health-timeout 5s --health-retries 10
+    env:
+      POSTGRES_TEST_URL: postgresql://postgres:postgres@127.0.0.1:5432/receitando_benchmark
+      CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE: postgresql://postgres:postgres@127.0.0.1:5432/receitando_benchmark
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -30,102 +42,83 @@ jobs:
           node-version: '22'
           cache: npm
           cache-dependency-path: backend/worker-prototype/package-lock.json
-      - name: Instalar dependências e preparar banco isolado
+      - name: Preparar banco PostgreSQL exclusivo do runner
         working-directory: backend/worker-prototype
         run: |
           npm ci
-          npm run migrate:local
-          npx wrangler d1 execute receitando --local --command 'CREATE TABLE IF NOT EXISTS load_benchmark (id TEXT PRIMARY KEY)'
-      - name: Iniciar API local
+          sudo apt-get update -qq
+          sudo apt-get install -y postgresql-client
+          psql "$POSTGRES_TEST_URL" -v ON_ERROR_STOP=1 -c 'CREATE TABLE load_benchmark (id TEXT PRIMARY KEY)'
+          npm run typecheck
+          npm run test:postgres
+      - name: Iniciar API Cloudflare Worker local apontando ao PostgreSQL
         working-directory: backend/worker-prototype
         run: |
-          nohup npm run dev -- --ip 127.0.0.1 --port 8787 --var BENCHMARK_ENABLED:true > /tmp/receitando-api.log 2>&1 &
-          for i in $(seq 1 45); do
-            if curl -fsS http://127.0.0.1:8787/api/health > /dev/null; then exit 0; fi
+          nohup npx wrangler dev --local --ip 127.0.0.1 --port 8787 --inspector-port 8788 --var BENCHMARK_ENABLED:true > /tmp/receitando-api.log 2>&1 &
+          for i in $(seq 1 60); do
+            if curl --fail --silent http://127.0.0.1:8787/api/health >/dev/null; then exit 0; fi
             sleep 2
           done
           cat /tmp/receitando-api.log
           exit 1
-      - name: Validar INSERT, SELECT por índice e contagem D1
+      - name: Comprovar INSERT e SELECT pela API REST e registrar baseline
         run: |
           set -euo pipefail
           base=http://127.0.0.1:8787/api/internal/load-benchmark
-          created=$(curl --fail-with-body --silent --show-error -X POST "$base")
+          created=$(curl --fail-with-body -sS -X POST "$base")
           seed=$(echo "$created" | jq -r '.id // empty')
           [[ "$seed" =~ ^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$ ]]
-          read_json=$(curl --fail-with-body --silent --show-error "$base?id=$seed")
-          test "$(echo "$read_json" | jq -r '.found')" = true
-          count_json=$(curl --fail-with-body --silent --show-error "$base")
-          baseline=$(echo "$count_json" | jq -r '.total')
+          response=$(curl --fail-with-body -sS "$base?id=$seed")
+          test "$(echo "$response" | jq -r '.found')" = true
+          baseline=$(curl --fail-with-body -sS "$base" | jq -r '.total')
           [[ "$baseline" =~ ^[0-9]+$ ]]
           echo "BENCHMARK_SEED_ID=$seed" >> "$GITHUB_ENV"
           echo "BENCHMARK_BASELINE=$baseline" >> "$GITHUB_ENV"
-          echo "Smoke aprovado: insert 201; SELECT indexado encontrou registro; baseline=$baseline"
+          echo "Smoke REST/Postgres aprovado; baseline=$baseline"
       - name: Instalar k6
         run: |
-          sudo gpg -k
-          sudo apt-get update
           sudo apt-get install -y gnupg ca-certificates
           curl -fsSL https://dl.k6.io/key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/k6-archive-keyring.gpg
           echo 'deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main' | sudo tee /etc/apt/sources.list.d/k6.list
-          sudo apt-get update
+          sudo apt-get update -qq
           sudo apt-get install -y k6
-      - name: Executar teste com logs
+      - name: Executar volume REST conforme cenário
         timeout-minutes: 145
         run: |
-          mkdir -p results/load
           set +e
-          if [ '${{ inputs.scenario }}' = professor ] || [ '${{ inputs.scenario }}' = professor-check ]; then
-            if [ '${{ inputs.scenario }}' = professor ]; then
-              TARGET_WRITES=1000000
-              TARGET_READS=2000000
-            else
-              TARGET_WRITES=1000
-              TARGET_READS=2000
-            fi
-            echo "Iniciando ${{ inputs.scenario }}: $TARGET_WRITES escritas + $TARGET_READS leituras em D1 LOCAL (sem tocar no banco de produção)."
-            timeout --signal=TERM --kill-after=15s 8400s k6 run \
-              -e BASE_URL=http://127.0.0.1:8787 \
-              -e BENCHMARK_SEED_ID="$BENCHMARK_SEED_ID" \
-              -e TARGET_WRITES="$TARGET_WRITES" \
-              -e TARGET_READS="$TARGET_READS" \
-              --summary-export=results/load/summary.json \
-              tests/load/receitando-professor.js > results/load/requests.log 2>&1
-          elif [ '${{ inputs.scenario }}' = mixed ]; then
-            timeout --signal=TERM --kill-after=15s 180s k6 run -e BASE_URL=http://127.0.0.1:8787 --summary-export=results/load/summary.json tests/load/receitando-mixed.js > results/load/requests.log 2>&1
-          else
-            timeout --signal=TERM --kill-after=15s 180s k6 run -e BASE_URL=http://127.0.0.1:8787 -e MODE=${{ inputs.scenario }} -e DETAILED_LOGS=1 --summary-export=results/load/summary.json --out json=results/load/metrics.json tests/load/receitando-read.js > results/load/requests.log 2>&1
-          fi
+          mkdir -p results/load
+          case "${{ inputs.scenario }}" in
+            smoke) TARGET_WRITES=100; TARGET_READS=200 ;;
+            professor-check) TARGET_WRITES=1000; TARGET_READS=2000 ;;
+            professor) TARGET_WRITES=1000000; TARGET_READS=2000000 ;;
+            *) echo 'Cenário inválido'; exit 1 ;;
+          esac
+          echo "Cenário ${{ inputs.scenario }}: $TARGET_WRITES POST + $TARGET_READS GET via Worker + Hyperdrive local + Postgres isolado"
+          timeout --signal=TERM --kill-after=15s 8400s k6 run \
+            -e BASE_URL=http://127.0.0.1:8787 \
+            -e BENCHMARK_SEED_ID="$BENCHMARK_SEED_ID" \
+            -e TARGET_WRITES="$TARGET_WRITES" \
+            -e TARGET_READS="$TARGET_READS" \
+            --summary-export=results/load/summary.json \
+            tests/load/receitando-professor.js > results/load/requests.log 2>&1
           code=$?
-          echo "Resultado do k6 (últimas 80 linhas):"
           tail -n 80 results/load/requests.log
-          echo "### Teste k6 — ${{ inputs.scenario }}" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Status do processo: $code" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Arquivos completos: artifact k6-results-${{ inputs.scenario }}" >> "$GITHUB_STEP_SUMMARY"
-          if [ -f results/load/summary.json ]; then
-            node -e 'const s=require("./results/load/summary.json"); const m=s.metrics||{}; for(const [k,label] of [["http_reqs","Requisições"],["http_req_failed","Falhas"],["http_req_duration","Latência"]]){const v=m[k]?.values||{}; console.log("- "+label+": "+JSON.stringify(v));}' >> "$GITHUB_STEP_SUMMARY"
-          fi
-          if [ '${{ inputs.scenario }}' = professor ] || [ '${{ inputs.scenario }}' = professor-check ]; then
-            BASE_URL=http://127.0.0.1:8787 \
-              TARGET_WRITES="$TARGET_WRITES" \
-              TARGET_READS="$TARGET_READS" \
-              K6_EXIT_CODE="$code" \
-              SCENARIO='${{ inputs.scenario }}' \
-              node tests/load/verify-professor.mjs
-            verify_code=$?
-            if [ "$verify_code" -ne 0 ]; then code="$verify_code"; fi
-          fi
-          exit "$code"
-      - name: Salvar log da API
+          BASE_URL=http://127.0.0.1:8787 \
+            TARGET_WRITES="$TARGET_WRITES" TARGET_READS="$TARGET_READS" \
+            K6_EXIT_CODE="$code" SCENARIO="${{ inputs.scenario }}" \
+            node tests/load/verify-professor.mjs
+          verify_code=$?
+          test "$code" -eq 0 && test "$verify_code" -eq 0
+      - name: Guardar logs
         if: always()
         run: |
           mkdir -p results/load
           cp /tmp/receitando-api.log results/load/api.log || true
-      - name: Publicar resultados
+      - name: Publicar evidências
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: k6-results-${{ inputs.scenario }}
+          name: postgres-k6-${{ inputs.scenario }}
           path: results/load/
           if-no-files-found: warn
           retention-days: 14

@@ -1,4 +1,4 @@
--- PostgreSQL schema generated from Receitando production D1 schema (2026-10-30); does not contain user data.
+-- Receitando: schema relacional PostgreSQL 17 (Neon). Não contém dados de usuários.
 -- Session and date fields are text for compatibility with existing API.
 BEGIN;
 
@@ -214,7 +214,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_users_handle_unique
 ON users(handle)
 WHERE handle IS NOT NULL;
 
--- FTS5 replacement: indexed PostgreSQL Portuguese full-text search.
+-- PostgreSQL: índice de pesquisa textual em português.
 CREATE INDEX IF NOT EXISTS idx_recipes_search_tsv ON recipes USING GIN (to_tsvector('portuguese', coalesce(title,'') || ' ' || coalesce(description,'')));
 CREATE OR REPLACE VIEW recipe_search AS SELECT id AS recipe_id, title, description, to_tsvector('portuguese', coalesce(title,'') || ' ' || coalesce(description,'')) AS search_vector FROM recipes;
 COMMIT;

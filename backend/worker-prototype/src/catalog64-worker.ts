@@ -317,7 +317,7 @@ async function listRecipes(request: Request, env: Env): Promise<Response> {
   const search = ftsRecipeQuery(url.searchParams.get("q") ?? "");
   const source = (url.searchParams.get("source") ?? "").trim().toLowerCase();
 
-  let rows: D1Result<{ id: string }>;
+  let rows: { results: { id: string }[] };
   if (search && source) {
     rows = await env.db
       .prepare(`

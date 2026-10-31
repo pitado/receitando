@@ -14,7 +14,7 @@ A página `/receitas` usa o endpoint **`GET /api/v2/recipes`**, com paginação,
 
 A listagem de receitas permite pesquisa textual por `q`.
 
-A API utiliza SQLite **FTS5** sobre título e descrição, com busca por termos/prefixos e ordenação por relevância. A busca principal não depende de `LIKE '%termo%'` em toda a tabela de receitas.
+A API utiliza PostgreSQL **full-text PostgreSQL** sobre título e descrição, com busca por termos/prefixos e ordenação por relevância. A busca principal não depende de `LIKE '%termo%'` em toda a tabela de receitas.
 
 O catálogo v2 também permite filtrar por:
 
@@ -66,7 +66,7 @@ O motor de adaptação possui uma regra separada e consegue comparar algumas qua
 
 ## 4. Despensa
 
-Usuários autenticados possuem uma despensa persistente no D1.
+Usuários autenticados possuem uma despensa persistente no PostgreSQL.
 
 É possível listar, adicionar, atualizar quantidade/unidade/validade, remover itens e usar a despensa diretamente no matching. Toda operação é vinculada ao `user_id` autenticado.
 
@@ -157,7 +157,7 @@ Se não houver substituição suficientemente confiável para aquele contexto, a
 
 O sistema possui cadastro, login, logout, consulta da sessão atual e sessão persistente.
 
-Senhas são derivadas com PBKDF2 e o D1 guarda somente o hash do token de sessão.
+Senhas são derivadas com PBKDF2 e o PostgreSQL guarda somente o hash do token de sessão.
 
 ## 6. Rate limiting
 
@@ -220,7 +220,7 @@ Limites do envio:
 - foto de até 12 MB;
 - tipos reais aceitos: JPG, PNG e WebP.
 
-A foto é enviada em `multipart/form-data`. A API valida a assinatura do arquivo e armazena o objeto no Cloudflare R2 (`RECIPE_IMAGES`). Se a persistência no D1 falhar depois do upload, o objeto criado é removido.
+A foto é enviada em `multipart/form-data`. A API valida a assinatura do arquivo e armazena o objeto no Cloudflare R2 (`RECIPE_IMAGES`). Se a persistência no PostgreSQL falhar depois do upload, o objeto criado é removido.
 
 Toda submissão válida nasce com `status = 'PENDING'` e não entra automaticamente no catálogo.
 
@@ -289,7 +289,7 @@ Metadados da receita e da imagem são preservados separadamente para atribuiçã
 
 A API é organizada em autenticação/perfil, recuperação, catálogo v2, fontes, ingredientes, receitas/matching, adaptação, submissões/moderação, despensa, favoritos, votos, comentários e home.
 
-A produção usa Cloudflare D1 para usuários, sessões, catálogo canônico, aliases, FTS5, despensa, favoritos, recuperação, comunidade, procedência, submissões/moderação e rate limiting.
+A produção usa Neon PostgreSQL para usuários, sessões, catálogo canônico, aliases, full-text PostgreSQL, despensa, favoritos, recuperação, comunidade, procedência, submissões/moderação e rate limiting.
 
 Cloudflare R2 armazena as imagens enviadas pela comunidade e imagens operacionais espelhadas do catálogo. As fotos de submissões são servidas pela API em `/api/recipe-submission-images/:key`.
 
@@ -303,7 +303,7 @@ Detalhes:
 
 O frontend possui testes com Vitest/Testing Library e fluxo E2E com Playwright.
 
-A API possui testes de regras puras e testes de rota com D1 simulado, incluindo canonicalização, staples, FTS5, autenticação, autorização, rate limiting, catálogo v2, matching, adaptação de receitas, recuperação, interação social e submissão/moderação de receitas.
+A API possui testes de regras puras e testes de rota com PostgreSQL simulado, incluindo canonicalização, staples, full-text PostgreSQL, autenticação, autorização, rate limiting, catálogo v2, matching, adaptação de receitas, recuperação, interação social e submissão/moderação de receitas.
 
 CI também executa lint/typecheck/build/dry-run conforme o componente.
 

@@ -416,7 +416,7 @@ async function approveSubmission(
   const recipeId = `user-${submission.id}`;
   const slug = slugFromSubmission(submission.title, submission.id);
   const now = new Date().toISOString();
-  const statements: D1PreparedStatement[] = [
+  const statements: ReturnType<Env["db"]["prepare"]>[] = [
     env.db
       .prepare(`
         INSERT OR IGNORE INTO recipes (

@@ -1,369 +1,91 @@
 # Receitando
 
-## Documentação do projeto
+**Receitando** é uma aplicação web de receitas, organização da despensa, recomendação por ingredientes e preparo colaborativo em tempo real.
 
-Para conhecer a arquitetura do Receitando, os principais documentos estão reunidos aqui:
+**[Abrir o Receitando](https://receitando.miguelpita.com.br)** · **[API](https://api.receitando.miguelpita.com.br/api/health)**
 
-| Documento | O que você encontra |
+[![Frontend CI](https://github.com/pitado/receitando/actions/workflows/ci.yml/badge.svg)](https://github.com/pitado/receitando/actions/workflows/ci.yml) [![API CI](https://github.com/pitado/receitando/actions/workflows/api-worker-ci.yml/badge.svg)](https://github.com/pitado/receitando/actions/workflows/api-worker-ci.yml) [![Licença AGPLv3](https://img.shields.io/badge/Licen%C3%A7a-AGPLv3-blue)](LICENSE)
+
+## Fase 4 — System Design e Infraestrutura
+
+O projeto documenta a arquitetura para **1 milhão de escritas e 2 milhões de leituras**, backend REST stateless, frontend web/mobile, integração WebSocket e desenho de API de pagamentos hipotética.
+
+| Material | Acesso |
 | --- | --- |
-| **[System Design](docs/system-design.md)** | Estrutura da aplicação, infraestrutura, escalabilidade e integrações |
-| **[Diagrama de componentes](docs/diagramas/componentes.md)** | Visualização da comunicação entre frontend, API e serviços Cloudflare |
-| **[WebSocket — Receitando Juntos](docs/websocket-receitando-juntos.md)** | Criação de salas, troca de mensagens e sincronização das etapas |
-| **[Defesa da arquitetura](docs/defesa-arquitetura.md)** | Explicações das escolhas técnicas e roteiro para apresentação |
+| **Documento obrigatório de System Design** | [Ler System Design — Fase 4](docs/system-design-fase4.md) |
+| **Diagrama de componentes** | [Prévia visual no GitHub](docs/diagramas/componentes.md) |
+| **DER PostgreSQL** | [Prévia visual no GitHub](docs/diagramas/der.md) · [Editar arquivo .drawio](DER.drawio) |
+| **Sequência UML: matching** | [Prévia](docs/diagramas/sequencia-matching.md) · [Editar .drawio](Diagrama-de-Sequencia.drawio) |
+| **Teste de carga SQL real** | [Metodologia, números e limites](tests/load/README.md) |
+| **WebSocket Receitando Juntos** | [Especificação e testes](docs/receitando-juntos.md) |
+| **Índice de documentação** | [Todos os documentos](docs/README.md) |
 
-Os [testes de carga](tests/load/README.md) e suas [execuções no GitHub Actions](https://github.com/pitado/receitando/actions/workflows/load-test.yml) também estão documentados. Já validamos leituras e escritas simultâneas no ambiente local; o resultado de um teste local não deve ser confundido com garantia de capacidade em produção.
+A defesa arquitetural pública será preparada em **slides separados**, conforme a exigência de apresentação. Este repositório mantém o documento técnico e evidências. A avaliação de escalabilidade distingue **operações SQL executadas** de **requisições HTTP de ponta a ponta**.
 
-[Ver todos os documentos](docs/README.md)
+## Arquitetura técnica
 
-## 📐 DER e Diagrama de Sequência — acesso rápido
-
-Os **dois diagramas principais estão na raiz do repositório**, com nomes simples. Para visualizar diretamente no GitHub, clique em **Ver prévia**; para abrir e editar, use o arquivo **.drawio** no [diagrams.net](https://app.diagrams.net/).
-
-| Diagrama | 👁️ Visualizar no GitHub | ✏️ Arquivo editável na raiz |
-| --- | --- | --- |
-| **DER — Diagrama Entidade-Relacionamento** (estrutura SQL do D1) | **[Ver prévia do DER](docs/diagramas/der.md)** | [DER.drawio](DER.drawio) |
-| **Diagrama de Sequência UML** (busca de receitas por ingredientes) | **[Ver prévia da sequência](docs/diagramas/sequencia-matching.md)** | [Diagrama-de-Sequencia.drawio](Diagrama-de-Sequencia.drawio) |
-
-[![Frontend CI](https://github.com/pitado/receitando/actions/workflows/ci.yml/badge.svg)](https://github.com/pitado/receitando/actions/workflows/ci.yml)
-[![API Worker CI](https://github.com/pitado/receitando/actions/workflows/api-worker-ci.yml/badge.svg)](https://github.com/pitado/receitando/actions/workflows/api-worker-ci.yml)
-[![License: GNU AGPLv3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
-
-O **Receitando** é uma aplicação web acadêmica que ajuda a transformar os ingredientes disponíveis em casa em decisões práticas: descobrir o que cozinhar, aproveitar alimentos antes do vencimento, adaptar receitas e saber o que ainda precisa ser comprado.
-
-O usuário pode informar ingredientes manualmente ou manter uma **despensa persistente** vinculada à conta. O sistema resolve variações para ingredientes canônicos, calcula compatibilidade com o catálogo e mostra o que já está disponível e o que falta.
-
-A evolução atual do projeto vai além de um buscador de receitas: a despensa pode registrar validade, o combinador prioriza o aproveitamento de itens próximos do vencimento em resultados de compatibilidade semelhante e o detalhe da receita gera uma lista de compras baseada no que falta em casa.
-
-> Escopo formal: [`docs/escopo.md`](docs/escopo.md)  
-> Glossário de termos: [`docs/glossario.md`](docs/glossario.md)  
-> Funcionalidades implementadas: [`docs/funcionalidades.md`](docs/funcionalidades.md)  
-> Índice da documentação: [`docs/README.md`](docs/README.md)
-
-## Diagramas — visualização no GitHub
-
-O GitHub não abre arquivos `.drawio` como desenho (mostra XML). **Para ver o diagrama visualmente, clique em “Ver prévia”**. As prévias são diagramas Mermaid renderizados pelo próprio GitHub, enquanto as versões `.drawio` continuam editáveis.
-
-| Diagrama | Prévia visual | Editar no diagrams.net |
-| --- | --- | --- |
-| DER do banco de dados | [👁 Ver prévia no GitHub](docs/diagramas/der.md) | [✏️ Arquivo editável](./DER.drawio) |
-| Sequência UML — busca por ingredientes | [👁 Ver prévia no GitHub](docs/diagramas/sequencia-matching.md) | [✏️ Arquivo editável](./Diagrama-de-Sequencia.drawio) |
-| Sequência UML — envio e moderação | [👁 Ver prévia no GitHub](docs/diagramas/sequencia-envio-moderacao.md) | [✏️ Arquivo editável](./receitando-diagrama-sequencia-envio-moderacao.drawio) |
-| Componentes da arquitetura | [👁 Ver prévia no GitHub](docs/diagramas/componentes.md) | [✏️ Arquivo editável](./receitando-diagrama-componentes.drawio) |
-| Contratos TypeScript do frontend | [👁 Ver prévia no GitHub](docs/diagramas/contratos-frontend.md) | [✏️ Arquivo editável](./receitando-contratos-dados-frontend.drawio) |
-
-[**Ver documentação dos diagramas e formatos adicionais**](DIAGRAMAS-EDITAVEIS.md)
-
-## Acesso
-
-- **Site:** https://receitando.miguelpita.com.br
-- **API:** https://api.receitando.miguelpita.com.br
-
-## Diferenciais atuais
-
-### Despensa com validade
-
-Cada item da despensa pode ter uma data de validade opcional. A interface:
-
-- mostra a validade do item;
-- destaca alimentos vencidos ou próximos do vencimento;
-- exibe avisos como `Vence hoje`, `Vence amanhã` e `Vence em N dias`;
-- ordena itens com validade mais próxima antes dos itens sem validade;
-- permite adicionar o item primeiro e ajustar a validade depois.
-
-O aviso de vencimento atual é **in-app**. Web Push, e-mail automático ou outra notificação em segundo plano ainda não fazem parte da implementação.
-
-### Matching com prioridade de consumo
-
-O matching continua usando compatibilidade como critério principal. Quando o usuário escolhe **Usar minha despensa**, o frontend também considera a validade para desempatar receitas com compatibilidade próxima.
-
-A regra atual é:
-
-1. diferenças de compatibilidade superiores a 5 pontos mantêm a maior compatibilidade primeiro;
-2. dentro dessa faixa de 5 pontos, receitas que usam ingredientes mais urgentes recebem prioridade;
-3. depois disso, permanecem os critérios de compatibilidade, menor quantidade de faltantes, menor tempo de preparo e título.
-
-Peso de urgência usado na interface:
-
-| Situação do ingrediente | Peso |
-| --- | ---: |
-| vencido ou vence hoje | 5 |
-| vence amanhã | 4 |
-| vence em 2–3 dias | 3 |
-| vence em 4–7 dias | 1 |
-| mais de 7 dias ou sem validade | 0 |
-
-A porcentagem de compatibilidade em si **não é alterada pela validade**. A validade atua apenas na ordenação de resultados próximos quando o matching é feito pela despensa.
-
-### Lista de compras automática
-
-No detalhe da receita, usuários autenticados podem comparar a receita com a própria despensa e gerar uma lista somente com os ingredientes obrigatórios que ainda faltam.
-
-- ingredientes já presentes são removidos da lista;
-- opcionais e ingredientes básicos (`is_staple`) não entram na lista principal;
-- a lista pode ser copiada;
-- a comparação da lista continua seguindo presença/ausência, assim como o matching geral.
-
-### Adaptação e substituição de ingredientes
-
-O detalhe da receita também possui um **motor culinário experimental** que permite:
-
-- alterar o número de porções;
-- recalcular quantidades quando o rendimento original permite;
-- marcar ingredientes indisponíveis;
-- usar a despensa como referência;
-- detectar quando a quantidade cadastrada parece insuficiente em unidades comparáveis;
-- sugerir substituições conhecidas com nível de confiança e justificativa;
-- considerar sinais do contexto culinário antes de recomendar uma troca.
-
-Quando não existe substituição considerada confiável para aquele contexto, o sistema informa a limitação em vez de assumir uma equivalência arbitrária.
-
-## O que já está implementado
-
-### Receitas, busca e matching
-
-- catálogo navegável e detalhe completo;
-- busca textual indexada com SQLite FTS5;
-- catálogo v2 com busca, filtros, ordenação e paginação;
-- catálogo canônico de ingredientes e aliases;
-- normalização conservadora de variações de ingredientes;
-- equivalência por IDs canônicos, sem substring como regra de matching;
-- ingredientes básicos (`is_staple`) que não penalizam a compatibilidade;
-- percentual de compatibilidade;
-- ingredientes encontrados, faltantes, opcionais e básicos;
-- matching manual com até 40 ingredientes;
-- matching diretamente pela despensa;
-- prioridade de consumo por validade na ordenação da interface;
-- adaptação de receita e substituições contextuais;
-- lista de compras automática baseada na despensa.
-
-### Conta, despensa e comunidade
-
-- cadastro, login e logout;
-- sessão persistente por cookie `HttpOnly`;
-- perfil com nome, `@` e avatar;
-- recuperação de senha por código enviado por e-mail;
-- despensa persistente por usuário;
-- quantidade, unidade e validade opcionais na despensa;
-- favoritos persistentes;
-- gostei/não gostei;
-- comentários;
-- edição e exclusão apenas do próprio comentário;
-- feed da home com receitas populares, comentários recentes e totais.
-
-### Comunidade e moderação
-
-- página `/enviar-receita` com formulário para compartilhar receitas com a comunidade;
-- envio permitido para usuário autenticado ou anônimo; `recipe_submissions.user_id` é opcional;
-- no fluxo atual do frontend, a foto do prato é obrigatória; o upload do arquivo é feito em `multipart/form-data` e armazenado no Cloudflare R2;
-- a API também mantém compatibilidade com uma URL HTTPS legada de imagem quando não recebe arquivo;
-- arquivos enviados são limitados a 12 MB e aceitam somente conteúdo detectado como `image/jpeg`, `image/png` ou `image/webp`;
-- cada envio aceita até 50 ingredientes e até 30 passos de preparo;
-- submissões nascem como `PENDING` e seguem para `APPROVED` ou `REJECTED` após revisão;
-- painel `/admin/receitas` restrito a usuários com `role = 'ADMIN'`;
-- moderação registra `reviewed_by`, `reviewed_at`, `rejection_reason` e, quando aprovada, `published_recipe_id`;
-- receitas aprovadas são publicadas com `source_type = 'USER'` e passam a aparecer no catálogo v2.
-
-### Segurança
-
-- PBKDF2 via Web Crypto para senhas;
-- SHA-256 para tokens de sessão e identificadores de rate limiting persistidos;
-- cookie `HttpOnly`, `Secure` e `SameSite=Strict` em produção;
-- validação de `Origin` em mutações do navegador;
-- CORS credenciado restrito às origens configuradas;
-- statements SQL parametrizados com `.bind()`;
-- autorização por usuário em despensa, favoritos, votos e comentários;
-- autorização por papel (`role = 'ADMIN'`) nas rotas de moderação;
-- validação do tipo real e do tamanho das imagens enviadas pela comunidade;
-- remoção do objeto recém-enviado no R2 quando a persistência da submissão falha depois do upload;
-- rate limiting em login, cadastro e solicitação de recuperação;
-- resposta genérica no reset para reduzir enumeração de contas;
-- secrets fora do repositório;
-- conteúdo externo tratado como texto antes da renderização.
-
-### Catálogo externo
-
-- receitas do **Wikilivros em português**;
-- imagens com licença livre do **Wikimedia Commons**;
-- importação manual via GitHub Actions;
-- canonicalização e aliases de ingredientes;
-- procedência da receita;
-- procedência, autor, página e licença da imagem;
-- créditos exibidos no detalhe da receita.
-
-## Limitação atual do matching
-
-O matching principal ainda é **booleano**: considera se o ingrediente está presente ou ausente.
-
-Quantidade e unidade são armazenadas e usadas pelo motor de adaptação em comparações compatíveis, mas **não alteram a porcentagem de compatibilidade do combinador**. Portanto, possuir `1 ovo` conta como presença do ingrediente `ovo`, mesmo que uma receita exija mais unidades.
-
-Ingredientes marcados `is_staple`, como água, sal, pimenta e óleo genérico na política atual, continuam fazendo parte da receita, mas não entram no denominador da compatibilidade nem na lista principal de faltantes.
-
-## Arquitetura
-
-```text
-Navegador
-   │
-   ▼
-Next.js + React
-OpenNext / Cloudflare Worker
-   │
-   │ HTTP + JSON + cookie HttpOnly
-   ▼
-API Cloudflare Worker
-   │
-   ├── Cloudflare D1        dados relacionais
-   ├── Cloudflare R2        imagens enviadas pela comunidade
-   └── Resend               e-mail de recuperação de senha
+```mermaid
+flowchart LR
+  Browser["Web / PWA móvel"] --> UI["Frontend Next.js 16"]
+  UI -->|"REST/HTTPS"| API["Cloudflare Worker API stateless"]
+  API --> HD["Cloudflare Hyperdrive"]
+  HD --> PG[("Neon PostgreSQL 17")]
+  API --> R2[("Cloudflare R2")]
+  API --> EMAIL["Resend"]
+  Browser <-->|"WSS"| DO["Durable Objects — CookingRoom"]
+  API --> DO
 ```
 
-O frontend nunca acessa o banco diretamente.
+| Camada | Escolha atual |
+| --- | --- |
+| Frontend | **Next.js 16**, React 19, TypeScript, OpenNext, Cloudflare Workers |
+| Backend | **API REST stateless** em Cloudflare Worker |
+| Banco relacional | **Neon PostgreSQL 17**, conectado via **Cloudflare Hyperdrive** |
+| Dados binários | Cloudflare **R2** |
+| Tempo real | **Durable Objects + WebSocket** |
+| E-mail | **Resend** |
+| CI/CD | **GitHub Actions** |
 
-A API atual fica em `backend/worker-prototype/`. Apesar do nome histórico do diretório, essa é a implementação de backend mantida na árvore principal.
+O frontend é **web responsivo/PWA**, acessível de celulares, não aplicativo nativo. O Worker REST não armazena sessões na memória de uma instância. As sessões e dados de usuário persistem no banco; cada sala WebSocket tem seu próprio estado no Durable Object.
 
-O `wrangler.jsonc` aponta para `src/session-cookie-worker.ts`. Depois das regras de sessão/CORS, `src/app-router.ts` direciona a requisição ao Worker responsável.
+### Evidência de dimensionamento
 
-```text
-session-cookie-worker
-        ↓
-app-router
-   ├── auth-rate-limit-worker
-   ├── home-worker
-   ├── catalog-v2-worker
-   ├── recipe-submission-worker
-   ├── recipe-adaptation-worker
-   ├── social-worker
-   ├── catalog64-worker
-   ├── profile-worker
-   ├── password-reset-worker
-   ├── pantry-worker
-   └── index
-```
+Em **31/10/2026**, um teste **isolado no Neon PostgreSQL 17.11** registrou 1 milhão de linhas e confirmou 2 milhões de buscas por chave primária indexada, usando dados sintéticos. Isso **não equivale** a 3 milhões de requisições HTTP na API nem garante os mesmos resultados sob concorrência em produção.
 
-Detalhes: [`docs/architecture.md`](docs/architecture.md).
+A estratégia para suportar o volume combina Workers horizontais, pooling Hyperdrive, índices e paginação PostgreSQL, armazenamento de imagem separado, controle de taxas, métricas e possibilidade de ampliar a capacidade do Neon. [Entenda os cálculos, gargalos e trade-offs](docs/system-design-fase4.md).
 
-## API — visão rápida
+## Funcionalidades
 
-| Método | Rota | Função |
-| --- | --- | --- |
-| `GET` | `/api/health` | healthcheck |
-| `POST` | `/api/auth/register` | cadastro |
-| `POST` | `/api/auth/login` | login |
-| `GET` / `PATCH` | `/api/auth/me` | perfil |
-| `POST` | `/api/auth/logout` | logout |
-| `POST` | `/api/auth/forgot-password` | solicitar recuperação |
-| `POST` | `/api/auth/verify-reset-code` | validar código |
-| `POST` | `/api/auth/reset-password` | trocar senha |
-| `GET` | `/api/sources` | fontes do catálogo |
-| `GET` | `/api/ingredients` | ingredientes canônicos |
-| `GET` | `/api/recipes` | catálogo legado e busca |
-| `GET` | `/api/v2/recipes` | catálogo com filtros e paginação |
-| `GET` | `/api/recipes/:slug` | detalhe da receita |
-| `POST` | `/api/recipes/match` | matching manual |
-| `GET` | `/api/recipes/match/pantry` | matching pela despensa |
-| `POST` | `/api/recipes/:slug/adapt` | adaptar receita/substituições |
-| `POST` | `/api/recipe-submissions` | enviar receita da comunidade |
-| `GET` | `/api/recipe-submission-images/:key` | imagem enviada, servida do R2 |
-| `GET` | `/api/admin/recipe-submissions` | fila de moderação (somente ADMIN) |
-| `PATCH` | `/api/admin/recipe-submissions/:id` | aprovar ou rejeitar envio |
-| `GET` / `POST` | `/api/pantry` | listar/adicionar/atualizar despensa |
-| `DELETE` | `/api/pantry/:itemId` | remover item |
-| `GET` / `POST` | `/api/favorites` | favoritos |
-| `DELETE` | `/api/favorites/:recipeId` | remover favorito |
-| `GET` | `/api/recipes/:recipeId/social` | resumo social |
-| `PUT` / `DELETE` | `/api/recipes/:recipeId/vote` | voto |
-| `GET` / `POST` | `/api/recipes/:recipeId/comments` | comentários |
-| `PATCH` / `DELETE` | `/api/recipe-comments/:commentId` | comentário próprio |
-| `GET` | `/api/home-feed` | feed da home |
+**Receitas e descoberta:** catálogo, filtros, busca textual, páginas detalhadas, ingredientes normalizados e suas variações, cálculo de compatibilidade com o que existe em casa.
 
-A página `/receitas` usa efetivamente `GET /api/v2/recipes`. Esse endpoint aceita `q`, `source`, `mealType`, `difficulty`, `maxPrepMinutes`, `sort`, `limit` e `offset`.
+**Despensa:** cadastro de alimentos e validade opcional; priorização de receitas que aproveitam itens próximos do vencimento e lista de compras com ingredientes faltantes. O matching básico trabalha por presença do ingrediente, não pela quantidade exata disponível.
 
-Documentação completa: [`docs/api.md`](docs/api.md).
+**Comunidade:** conta e sessão com cookie seguro, perfil, favoritos, votos, comentários e publicação de receitas da comunidade com moderação. Imagens são enviadas para o R2.
 
-## Regra de matching canônico
+**Adaptação culinária:** cálculo de porções e substituições de ingredientes com contextualização e indicação das limitações.
 
-```text
-texto informado/importado
-        ↓
-normalização
-        ↓
-nome completo + forma canônica conservadora
-        ↓
-ingredients.normalized_name / ingredient_aliases.normalized_alias
-        ↓
-ingredient_id canônico
-        ↓
-matching por presença
-```
+**Receitando Juntos:** salas compartilhadas com convite, sincronização de etapas, presença, alterações concorrentes e recuperação do estado após reconexão. As salas têm expiração e limites de conexões.
 
-Exemplo:
+**Fontes:** receitas autorais e conteúdo submetido com responsabilidade editorial; referências de sites brasileiros são **links para a fonte**, e não autorização para copiar receita ou foto de terceiros.
 
-```text
-cebola / cebolas / cebolas picadas / cebola média
-                         ↓
-                       cebola
-```
-
-Compostos semanticamente diferentes permanecem separados: `óleo` não equivale automaticamente a `óleo de gergelim torrado`, e `açúcar` não equivale automaticamente a `açúcar de confeiteiro`.
-
-## Banco de dados
-
-Produção utiliza **Cloudflare D1**. O schema inclui usuários, sessões, catálogo canônico de ingredientes, aliases, receitas, despensa, favoritos, recuperação de senha, comunidade, atribuição de conteúdo, rate limiting e busca FTS5.
-
-As imagens enviadas pela comunidade ficam no **Cloudflare R2**, no bucket ligado por `RECIPE_IMAGES`, e são servidas pela rota `/api/recipe-submission-images/:key`. O conteúdo binário da imagem não é armazenado no D1; o banco guarda a URL associada à submissão/receita.
-
-A coluna `pantry_items.expires_at` já fazia parte do schema original e agora é usada pela interface de validade; portanto, essa evolução não exigiu uma migration nova.
-
-Migrations:
-
-```text
-backend/worker-prototype/migrations/
-```
-
-Detalhes: [`docs/database.md`](docs/database.md).
-
-## Estrutura do repositório
+## Estrutura de pastas
 
 ```text
 receitando/
-├── frontend/                       aplicação Next.js
-│   └── e2e/                        suíte Playwright
-├── backend/
-│   ├── README.md
-│   └── worker-prototype/           API atual de produção
-│       ├── migrations/             migrations do D1
-│       ├── scripts/                importação/canonicalização
-│       ├── src/                    Workers e bibliotecas
-│       └── tests/                  testes da API
-├── docs/                           documentação oficial
-├── .github/                        CI, deploy, Dependabot e templates
-├── AUTHORS.md
-├── CHANGELOG.md
-├── CONTRIBUTING.md
-├── SECURITY.md
-├── receitando-requisitos.md
-├── receitando-casos-de-uso.md
-├── LICENSE
-└── README.md
+├── frontend/                             Next.js, interface e testes
+├── backend/worker-prototype/
+│   ├── src/                              API, módulos e WebSocket
+│   ├── migrations/postgres/              Schema PostgreSQL versionado
+│   ├── scripts/                          Testes e referências editoriais
+│   └── tests/                            Testes de rotas e persistência
+├── docs/                                 System Design e documentação
+├── tests/load/                           Evidências e cenários de carga
+└── .github/workflows/                    Integração e deploy
 ```
 
-A implementação antiga em NestJS + Prisma + PostgreSQL foi retirada da árvore principal e preservada na branch `legacy/nest-prisma`.
+## Executar para desenvolvimento
 
-## Stack
-
-**Frontend:** Next.js 16, React 19, TypeScript, App Router, OpenNext e Cloudflare Workers.
-
-**API:** Cloudflare Workers, TypeScript, Wrangler, Cloudflare D1, Cloudflare R2, Web Crypto API e Resend.
-
-**Infraestrutura:** GitHub Actions, Cloudflare Workers, Cloudflare D1, Cloudflare R2 e Dependabot.
-
-## Desenvolvimento local
-
-Pré-requisitos:
-
-- Node.js **20.9 ou superior, abaixo da versão 25** (faixa suportada: 20.9–24.x; CI validando com Node 22);
-- npm 10+.
-
-### Frontend
+Recomendado: **Node.js 22**.
 
 ```bash
 cd frontend
@@ -371,131 +93,32 @@ npm ci
 npm run dev
 ```
 
-`frontend/.env.local`:
-
-```dotenv
-NEXT_PUBLIC_API_URL=http://localhost:8787
-```
-
-### API
+API (em outro terminal):
 
 ```bash
 cd backend/worker-prototype
 npm ci
-npm run migrate:local
+npm run typecheck
 npm run dev
 ```
 
-Endereços padrão:
+Para endpoints que consultam dados, configure uma **conexão PostgreSQL de desenvolvimento isolada** no Hyperdrive local. Não utilizar a branch Neon `production` para fixtures ou testes de estresse.
 
-- frontend: `http://localhost:3000`;
-- API: `http://localhost:8787`.
+## Testes
 
-### Variáveis e secrets
-
-Variáveis públicas da API definidas em `backend/worker-prototype/wrangler.jsonc`:
-
-- `FRONTEND_URL` — lista de origens permitidas pelo CORS, separadas por vírgula; inclui produção, `www`, endereço `workers.dev` e `localhost`;
-- `EMAIL_FROM` — remetente usado nos e-mails transacionais de recuperação de senha.
-
-Secret do Worker, nunca versionado no repositório:
-
-- `RESEND_API_KEY` — obrigatório para o envio do código de recuperação de senha pelo Resend.
-
-Secrets usados pelos workflows de deploy/importação:
-
-- `CLOUDFLARE_API_TOKEN`;
-- `CLOUDFLARE_ACCOUNT_ID`.
-
-O token de deploy deve ter as permissões de edição necessárias nos recursos usados pelo fluxo — Workers Scripts, D1 e R2. O bucket `receitando-recipe-images` é pré-criado, portanto o workflow não depende de permissão administrativa para listar ou criar buckets R2.
-
-## Qualidade e testes
-
-Frontend:
+No backend:
 
 ```bash
-cd frontend
-npm run lint
-npm run typecheck
-npm run test:coverage
-npm run build
-```
-
-API:
-
-```bash
-cd backend/worker-prototype
 npm run typecheck
 npm test
-npm run dry-run
+npm run test:postgres
+npm run test:ws
 ```
 
-E2E em Chromium com Playwright:
-
-```bash
-cd frontend/e2e
-npm ci
-npx playwright install --with-deps chromium
-npm test
-```
-
-A suíte combina testes unitários e testes de rota com D1 simulado. O repositório também possui E2E em navegador com Playwright.
-
-### Acessibilidade e SEO
-
-- o layout possui skip link **“Pular para o conteúdo principal”**, direcionado a `#conteudo-principal`, com estado `:focus-visible` para navegação por teclado;
-- `frontend/src/app/robots.ts` bloqueia indexação de `/admin/`, `/conta/`, `/despensa/`, `/favoritos/`, `/entrar` e `/cadastro`;
-- `frontend/src/app/sitemap.ts` inclui as páginas públicas principais e gera as entradas do catálogo em lotes paginados de 100 receitas.
-
-## Deploy
-
-Frontend e API possuem workflows separados, e a importação do catálogo é independente do deploy.
-
-### Workflows do GitHub Actions
-
-| Workflow | Função |
-| --- | --- |
-| **Frontend CI** (`ci.yml`) | lint, typecheck, testes com cobertura e build |
-| **API Worker CI** (`api-worker-ci.yml`) | typecheck, testes e dry-run |
-| **E2E Playwright** (`e2e.yml`) | Chromium real e artefatos retidos por 7 dias |
-| **Deploy Cloudflare** (`deploy-cloudflare.yml`) | valida, compila e publica o frontend |
-| **Deploy API Cloudflare** (`deploy-api-cloudflare.yml`) | valida a API, aplica migrations e publica o Worker |
-| **Importar receitas do Wikilivros** (`import-wikibooks.yml`) | execução manual com escolha de categoria e meta de receitas |
-
-Todos os seis workflows configuram Node.js 22.
-
-Guia operacional: [`docs/deploy.md`](docs/deploy.md).
+A integração com schema real exige `POSTGRES_TEST_URL` apontando para **PostgreSQL local temporário**. O CI cria esse serviço e executa as verificações. O teste de sala usa dois clientes WebSocket locais, sem tocar em usuários reais. O workflow de carga `.github/workflows/load-test.yml` contém os cenários `smoke`, `professor-check` e `professor`, configurados com PostgreSQL isolado e k6; só resultados efetivamente executados devem ser apresentados como evidência.
 
 ## Documentação
 
-- [`docs/system-design.md`](docs/system-design.md) — visão geral da arquitetura e plano de escalabilidade;
-- [`docs/diagramas/componentes.md`](docs/diagramas/componentes.md) — diagrama de componentes;
-- [`docs/websocket-receitando-juntos.md`](docs/websocket-receitando-juntos.md) — comunicação em tempo real;
-- [`docs/defesa-arquitetura.md`](docs/defesa-arquitetura.md) — roteiro para a apresentação;
-- [`docs/README.md`](docs/README.md) — índice;
-- [`docs/escopo.md`](docs/escopo.md) — escopo acadêmico;
-- [`docs/glossario.md`](docs/glossario.md) — termos do projeto;
-- [`docs/funcionalidades.md`](docs/funcionalidades.md) — estado implementado;
-- [`docs/architecture.md`](docs/architecture.md) — arquitetura;
-- [`docs/api.md`](docs/api.md) — contrato HTTP;
-- [`docs/database.md`](docs/database.md) — D1, índices e migrations;
-- [`docs/catalogo.md`](docs/catalogo.md) — receitas, imagens e licenças;
-- [`docs/motor-adaptacao.md`](docs/motor-adaptacao.md) — motor de adaptação e substituições;
-- [`docs/mobile-upload-login.md`](docs/mobile-upload-login.md) — upload de receitas e login em mobile;
-- [`docs/testes.md`](docs/testes.md) — estratégia de testes;
-- [`docs/deploy.md`](docs/deploy.md) — CI/deploy/operação;
-- [`docs/estrutura-repositorio.md`](docs/estrutura-repositorio.md) — estrutura do código;
-- [`receitando-requisitos.md`](receitando-requisitos.md) — análise de requisitos;
-- [`receitando-casos-de-uso.md`](receitando-casos-de-uso.md) — casos de uso;
-- [`frontend/README.md`](frontend/README.md) — frontend;
-- [`backend/worker-prototype/README.md`](backend/worker-prototype/README.md) — API atual;
-- [`CONTRIBUTING.md`](CONTRIBUTING.md) — contribuição;
-- [`SECURITY.md`](SECURITY.md) — segurança.
+[Arquitetura](docs/architecture.md) · [Banco PostgreSQL](docs/database.md) · [API](docs/api.md) · [Deploy](docs/deploy.md) · [Catálogo e direitos](docs/catalogo.md) · [Documentação completa](docs/README.md)
 
-## Licença
-
-O código original do Receitando é disponibilizado sob **GNU Affero General Public License v3.0 (AGPL-3.0-only)**. Essa licença não altera as licenças próprias das receitas e imagens importadas de terceiros.
-
----
-
-Projeto acadêmico em evolução, com produção baseada em **Next.js + Cloudflare Workers + Cloudflare D1 + Cloudflare R2 + GitHub Actions**.
+Código original sob licença **GNU AGPL-3.0**; imagens, textos externos e contribuições preservam os direitos/licenças específicos de seus autores.
