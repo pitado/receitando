@@ -67,7 +67,7 @@ const report = [
   `- **Ambiente:** ${evidence.environment}`,
   `- **Execução:** ${runUrl}`,
   `- **Escritas HTTP bem-sucedidas:** ${successfulWrites ?? 'indisponível'} / ${targetWrites}`,
-  `- **Leituras SQL bem-sucedidas:** ${successfulReads ?? 'indisponível'} / ${targetReads}`,
+  `- **Leituras HTTP com SELECT PostgreSQL bem-sucedidas:** ${successfulReads ?? 'indisponível'} / ${targetReads}`,
   `- **Linhas efetivamente persistidas (delta PostgreSQL):** ${deltaWrites ?? 'indisponível'} / ${targetWrites}`,
   `- **Taxa de erros HTTP:** ${failures === null ? 'indisponível' : (failures * 100).toFixed(4) + '%'}`,
   `- **Latência p95:** ${p95 ?? 'indisponível'} ms`,
@@ -75,7 +75,7 @@ const report = [
   `- **Retentativas:** ${retries ?? 0}`,
   '',
   ...(problems.length ? ['## Motivos de não aprovação', ...problems.map(p => '- ' + p), ''] : []),
-  '> Limitação: o resultado mede a API emulada via Wrangler + PostgreSQL local no runner do GitHub, não a escalabilidade real da Cloudflare em produção.',
+  '> Limitação: este cenário mede HTTP num Worker real da Cloudflare com Hyperdrive e PostgreSQL isolado, usando tabela sintética; não constitui prova de 3 milhões de operações ou de estabilidade por 24 horas.',
   '',
 ].join('\n');
 
