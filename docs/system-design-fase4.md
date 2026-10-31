@@ -1,138 +1,231 @@
-# Fase 4 — System Design e Infraestrutura | Receitando
-**Referência: 31/10/2026 — Documento de arquitetura para o seminário acadêmico.**
+# Receitando — System Design e infraestrutura
 
-## 1. Objetivo e requisitos obrigatórios
-Desenhar arquitetura técnica de alta volumetria e exigências corporativas: **backend REST stateless**, **frontend web/mobile**, estratégia de **1 milhão de escritas para cada 2 milhões de leituras**, mapeamento de **API de pagamento** e comunicação por **WebSocket**. Esta entrega documenta decisões, evidências, limites e evolução proposta; o roteiro da defesa oral será feito em slides separados.
+**Documento de arquitetura do projeto | Fase 4 — Engenharia de Software**  
+**Estado:** arquitetura publicada + estratégias de evolução identificadas. **Fonte:** [código do Receitando](https://github.com/pitado/receitando) e [documentação da aplicação](README.md).
 
-## 2. Componentes atuais e responsabilidades
-| Componente | Tecnologia | Justificativa |
-| --- | --- | --- |
-| Frontend web/mobile | Next.js 16, React 19, TypeScript, OpenNext / Cloudflare Workers | Interface responsiva/PWA, renderização e deploy na borda; não há aplicativo nativo |
-| API REST | Worker TypeScript separado, JSON/HTTPS | Processamento horizontal e sem estado de sessão na memória da instância |
-| Sessões e dados | Neon PostgreSQL 17 | ACID, integridade, índices, relatórios e modelagem relacional |
-| Conectividade SQL | Cloudflare Hyperdrive + `pg` | Gerenciamento de conexões entre Workers e PostgreSQL |
-| Imagens | Cloudflare R2 | Armazenamento de arquivos fora do banco relacional |
-| Salas ao vivo | Cloudflare Durable Objects + WebSocket | Coordenação do estado por sala, presença e etapas sincronizadas |
-| E-mails | Resend | Recuperação de acesso e mensagens transacionais |
-| Entrega contínua | GitHub Actions | Verificação e deploy automatizados |
+> **Leitura dos diagramas:** linhas contínuas representam fluxos/componentes existentes; linhas tracejadas representam opções **propostas**, ainda não implementadas. A arquitetura projetada não equivale a capacidade de produção certificada.
+
+## 1. Escopo e requisitos
+
+O Receitando ajuda a descobrir receitas a partir de ingredientes disponíveis, manter uma despensa, compartilhar receitas e cozinhar com outras pessoas em tempo real.
+
+| Requisito | Solução arquitetural |
+| --- | --- |
+| Frontend web/mobile | Next.js 16 + React 19, interface responsiva/PWA (**não** app nativo) |
+| Backend HTTP stateless | API REST/JSON em Cloudflare Workers; sessões fora da memória do Worker |
+| Dados relacionais | Neon PostgreSQL 17 via Cloudflare Hyperdrive + `pg` |
+| Imagens | Cloudflare R2; conteúdo binário fora das tabelas relacionais |
+| Colaboração em tempo real | WebSocket e Durable Objects por sala |
+| Alta volumetria | Estratégia para **1 milhão de escritas + 2 milhões de leituras**; horizonte temporal explicitado na seção 6 |
+| Integrações | Resend (e-mail) e mapeamento de **pagamentos hipotéticos**, sem checkout ativo |
+
+Requisitos de qualidade orientadores: consistência, segurança de sessão, latência, disponibilidade, evolução independente dos componentes e observabilidade. Detalhes funcionais estão em [escopo](escopo.md) e [funcionalidades](funcionalidades.md).
+
+## 2. Contexto — quem usa e de que depende
+
+```mermaid
+flowchart LR
+    U["Pessoa usando navegador<br/>desktop ou celular"]
+    R["Receitando<br/>web + API + preparo colaborativo"]
+    M["Resend<br/>e-mails"]
+    P["Neon PostgreSQL<br/>dados relacionais"]
+    C["Cloudflare<br/>Workers / R2 / Durable Objects"]
+    G["Gateway de pagamento<br/>proposta acadêmica"]
+
+    U <-->|"HTTPS / WebSocket"| R
+    R -->|"envio de e-mail"| M
+    R -->|"persistência"| P
+    R -->|"execução e arquivos"| C
+    R -.->|"checkout / webhook — não implementado"| G
+```
+
+**Limite do sistema:** o navegador não possui acesso direto ao PostgreSQL ou às credenciais dos provedores. Recursos de pagamento não existem na versão atual.
+
+## 3. Arquitetura de containers e infraestrutura
 
 ```mermaid
 flowchart TB
-  P["Navegador desktop/mobile — PWA"] --> F["Frontend Next.js — Worker"]
-  F -->|"REST HTTPS JSON"| API["API stateless — Worker"]
-  API -->|"pg + pool"| HD["Cloudflare Hyperdrive"]
-  HD --> DB[("Neon PostgreSQL")]
-  API --> R2[("Cloudflare R2 — imagens")]
-  API --> EM["Resend — e-mails"]
-  P <-->|"WebSocket WSS"| DO["Durable Object — CookingRoom"]
-  API -->|"Criar e consultar salas"| DO
-  API -.->|"Possível expansão"| Q["Fila de processamento assíncrono"]
+    B["Navegador web / mobile PWA"]
+    subgraph CF["Cloudflare — infraestrutura publicada"]
+        FE["Frontend Worker<br/>Next.js / React / OpenNext"]
+        API["API Worker<br/>REST stateless / TypeScript"]
+        HD["Hyperdrive<br/>conexões PostgreSQL"]
+        R2[("R2<br/>imagens")]
+        DO["Durable Object<br/>CookingRoom por sala"]
+    end
+    PG[("Neon PostgreSQL 17<br/>contas, sessões, receitas, despensa")]
+    MAIL["Resend<br/>recuperação de acesso"]
+    B -->|"HTTPS"| FE
+    FE -->|"REST / JSON"| API
+    B -->|"WSS / HTTP da API"| API
+    API -->|"driver pg / SQL"| HD
+    HD -->|"pool / PostgreSQL"| PG
+    API -->|"upload / leitura"| R2
+    API -->|"criar sala / encaminhar WSS"| DO
+    API -->|"mensagens"| MAIL
 ```
-**Linhas contínuas são existentes.** A fila pontilhada é proposta, não implementada. Durable Objects guardam estado de cada sala; isso não contradiz o **REST stateless**, que não conserva sessão na memória do Worker HTTP. Os dados de conta e conteúdo residem no PostgreSQL.
 
-## 3. Estratégia de escalabilidade: 1M writes / 2M reads
-O enunciado **não fixa a janela temporal**; por isso adotamos dois cenários de dimensionamento.
+| Componente | Por que está separado? | Trade-off |
+| --- | --- | --- |
+| Workers REST | Processamento HTTP distribuído, sem afinidade com instância | Dependência dos serviços de dados e limites da plataforma |
+| PostgreSQL | Transações, FKs e consultas relacionais para receitas/ingredientes/usuários | CPU, I/O, conexões e contenção de escrita |
+| Hyperdrive | Gerencia conectividade/pooling dos Workers com o banco | **Não aumenta sozinho** o poder de processamento do PostgreSQL |
+| R2 | Fotos não sobrecarregam armazenamento/transações SQL | Permissões, consistência operacional entre upload e registro SQL |
+| Durable Objects | Uma autoridade de estado por sala de WebSocket | Gestão de conexões, limites e ciclo de vida da sala |
 
-| Janela hipotética | Escritas/s (média) | Leituras/s (média) | Total/s (média) |
+Código: [roteador](../backend/worker-prototype/src/app-router.ts) · [adaptador PostgreSQL](../backend/worker-prototype/src/lib/postgres-adapter.ts) · [configuração da API](../backend/worker-prototype/wrangler.jsonc) · [diagrama de componentes editável](../receitando-diagrama-componentes.puml).
+
+## 4. Fluxo REST stateless
+
+Exemplo de operação autenticada na despensa:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor U as Usuário
+    participant FE as Navegador / Next.js
+    participant API as API Worker
+    participant HD as Hyperdrive
+    participant PG as Neon PostgreSQL
+
+    U->>FE: Abre a despensa
+    FE->>API: GET /api/pantry (cookie HttpOnly)
+    API->>HD: Verificar sessão / consultar pantry_items
+    HD->>PG: SQL parametrizado
+    PG-->>HD: Sessão e itens do usuário
+    HD-->>API: Resultado SQL
+    API-->>FE: HTTP 200 + JSON (no-store)
+    FE-->>U: Exibe os ingredientes
+```
+
+**Stateless:** a API não conserva sessão na memória do Worker entre requisições. Cookies identificam a sessão, cujo estado é persistido no PostgreSQL. Mutação exige autorização e validação adequada; a API aplica políticas como CORS/Origin, hash de senhas, consultas parametrizadas e rate limiting nas rotas de autenticação. [Contrato REST](api.md) · [segurança](../SECURITY.md).
+
+## 5. Modelo de dados — entidades essenciais
+
+```mermaid
+erDiagram
+    USERS ||--o{ SESSIONS : possui
+    USERS ||--o{ PANTRY_ITEMS : mantem
+    INGREDIENTS ||--o{ PANTRY_ITEMS : referencia
+    RECIPES ||--o{ RECIPE_INGREDIENTS : possui
+    INGREDIENTS ||--o{ RECIPE_INGREDIENTS : participa
+    INGREDIENTS ||--o{ INGREDIENT_ALIASES : possui
+    USERS ||--o{ FAVORITES : salva
+    RECIPES ||--o{ FAVORITES : recebe
+    USERS o|--o{ RECIPE_SUBMISSIONS : envia
+    RECIPES ||--o{ RECIPE_COMMENTS : recebe
+    USERS ||--o{ RECIPE_COMMENTS : escreve
+```
+
+O **relacionamento muitos-para-muitos** entre receitas e ingredientes utiliza `recipe_ingredients`. A busca textual possui índice GIN no PostgreSQL; `recipe_search` é uma **VIEW**, não uma tabela FTS5. As regras de integridade e as transações seguem o [schema PostgreSQL versionado](../backend/worker-prototype/migrations/postgres/0001_baseline.sql).
+
+**[Ver DER completo e renderizado](../DER.md)** · [fonte UML editável](../DER.puml) · [detalhes do banco](database.md).
+
+## 6. Escalabilidade — 1 milhão de escritas e 2 milhões de leituras
+
+**O enunciado não determina uma janela temporal.** As taxas abaixo são médias aritméticas para duas hipóteses; não representam picos nem capacidade já garantida.
+
+| Janela hipotética | 1M escritas | 2M leituras | Total |
 | --- | ---: | ---: | ---: |
-| 24 horas | 11,57 | 23,15 | 34,72 |
-| 1 hora | 277,78 | 555,56 | 833,33 |
+| **24 horas** (86.400 s) | **11,57/s** | **23,15/s** | **34,72 operações/s** |
+| **1 hora** (3.600 s) | **277,78/s** | **555,56/s** | **833,33 operações/s** |
 
-A média não descreve horário de pico; deve-se considerar, como hipótese de projeto, até **10× a média** e validar em staging. O sistema deverá escalar por camadas:
-1. **Computação:** Workers stateless distribuem requisições HTTP sem afinidade de sessão; aplicar limitação de taxa, validação e timeout.
-2. **Conexões:** Hyperdrive reduz pressão de abertura de conexões; verificar métricas de saturação, limites e política de pool.
-3. **PostgreSQL:** `PRIMARY KEY`, FKs, índices B-tree, full-text, paginação, parâmetros SQL, análise de planos e redução de consultas repetidas; dimensionar CPU/memória/IO do compute Neon. Réplicas de leitura podem ser avaliadas, mas **não resolvem gargalo de escrita**.
-4. **Cache:** permitir cache na borda **somente** para respostas públicas seguras após revisar rotas; conteúdo de sessão e dados privados ficam sem cache compartilhado.
-5. **Tarefas demoradas:** mover notificações e trabalhos não críticos para filas **quando necessário**, com idempotência, retries e dead-letter queue.
-6. **Monitoramento:** p50/p95/p99, erros 5xx, taxa de escrita/leitura, conexões, CPU/IO, locks, custo, filas e alertas.
-7. **Resiliência:** isolamento de falhas, políticas de retentativa com backoff, consistência e plano de backup/restauração.
+```mermaid
+flowchart LR
+    Q["Tráfego variável<br/>leituras e escritas"] --> API["Workers<br/>processamento HTTP distribuído"]
+    API --> HD["Hyperdrive<br/>controle das conexões"]
+    HD --> PG[("PostgreSQL<br/>índices e transações")]
+    PG -.-> CPU["Ampliar compute do Neon<br/>conforme métricas"]
+    API -.-> CACHE["Cache para GET público<br/>após política de invalidação"]
+    API -.-> RL["Expandir rate limit / proteção<br/>e observabilidade"]
+```
 
-**Ponto de atenção:** capacidade configurada do compute Neon é limitada e deve ser aumentada se os testes de carga apontarem saturação. A arquitetura admite expansão, mas *não há garantia de escala apenas pela escolha de tecnologias*.
+**Estratégia por gargalo:**
 
-## 4. Evidência real obtida no PostgreSQL
-**Executado em 31/10/2026** no Neon PostgreSQL **17.11**, branch isolada `benchmark-fase4-20261031` (separada da branch `production`), com dados **sintéticos**:
-- **1.000.000 de linhas gravadas**, verificadas por `SELECT COUNT(*)`.
-- **2.000.000 de buscas indexadas com resultado** em consulta correlacionada usando `generate_series(1,2000000)`.
-- Tabela dedicada `fase4_benchmark`: **102 MB** (tabela e índices).
-- Amostra `EXPLAIN (ANALYZE, BUFFERS)` de 20.000 buscas: **Index Only Scan** sobre `fase4_benchmark_pkey`, **20.000 loops**, **0 heap fetches**, **31,410 ms de tempo de execução** dentro do servidor para a amostra.
+| Risco observado | Mitigação / decisão | Como verificar |
+| --- | --- | --- |
+| Muitas requisições HTTP | Distribuição nos Workers; limites de taxa onde necessários | req/s, HTTP 429/5xx, p95/p99 |
+| Pool ou banco saturado | Monitorar Hyperdrive/conexões, dimensionar compute Neon | conexões, erros, CPU, I/O |
+| SQL caro ou concorrente | Índices, paginação, `EXPLAIN`, transações curtas | queries lentas, locks, tempo por consulta |
+| Fotos sobrecarregando SQL | Armazenamento dos arquivos em R2 (**em uso**) | operações e custos por serviço |
+| Pico/indisponibilidade | Timeouts, backoff e degradação planejada; validar recuperação | erros, latência, recuperação e alertas |
 
-**Limite da evidência:** as operações foram executadas dentro do PostgreSQL em comandos SQL agrupados. Isso **não é** um benchmark de 3 milhões de requisições REST individuais ou de usuários simultâneos; não mede p95 da API, Hyperdrive sob carga nem throughput sustentado por uma hora/dia. O resultado sustenta a escolha do banco e a estratégia, não a alegação de capacidade de produção já certificada. Metodologia e SQL: [testes de carga](../tests/load/README.md).
+**Estado de implementação:** Workers, Hyperdrive, PostgreSQL, R2 e controle de sessão existem. **Cache de GET públicos, ampliação de compute, réplicas de leitura e filas são estratégias condicionais**, não infraestrutura já comprovadamente implantada. Réplicas não resolvem gargalo de escrita. Uma hipótese de pico **10×** exige validação específica, não deve ser apresentada como garantida.
 
-**Plano de homologação HTTP:** usar k6 em Worker staging + Hyperdrive + Neon isolado, testar 1:2 operações na janela definida, ramp-up, patamar sustentado, pico e recuperação. Critérios iniciais: **erro inferior a 1% e p95 inferior a 1 s**; confirmar p99, vazão e persistência. Não afetar usuários reais.
+**Dimensionamento de armazenamento:** 1 milhão de **operações de escrita** não significa necessariamente 1 milhão de novas linhas permanentes. Para estimar GB, ainda seria necessário conhecer o tamanho dos registros, a retenção, os índices e a proporção de INSERT/UPDATE/DELETE.
 
+**Evidências, não promessas:** [testes e metodologia](../tests/load/README.md) incluem ensaio SQL em branch Neon isolada e ensaio HTTP limitado (1.000 POSTs + 2.000 GETs, 0 falhas) com Worker/Hyperdrive/PostgreSQL isolados. **Não comprovam 3 milhões de requisições HTTP nem operação contínua sob pico.**
 
-### Evidência complementar — chamadas HTTP reais em produção (31/10/2026)
-
-- **Cloudflare Worker + Durable Objects:** **1.000 POSTs (HTTP 201) + 2.000 GETs (HTTP 200)**, nenhuma falha, p95 POST **730,35 ms**, p95 GET **56,55 ms**, média **21,97 req/s**, [execução e artefatos](https://github.com/pitado/receitando/actions/runs/41231664394).
-- **Cloudflare Worker + Hyperdrive + Neon PostgreSQL (leitura de catálogo):** **2.000 GETs (HTTP 200)**, 12 requisições concorrentes no cliente de carga, nenhuma falha, p95 **515,85 ms**, média **26,19 req/s**, [execução e artefatos](https://github.com/pitado/receitando/actions/runs/41231920170).
-
-Esses são **testes HTTP reais em produção**, mas **nenhum executou escritas SQL via API de produção**. As escritas HTTP são persistidas em Durable Objects. Os resultados não certificam os 34,72 ops/s médios durante 24h, nem os 3 milhões de HTTP requests do cenário acadêmico. A arquitetura pode ser dimensionada para o objetivo; a configuração atual ainda exige benchmark representativo e prolongado para afirmar que a meta foi atingida.
-
-### Teste HTTP de escrita e leitura no PostgreSQL pela Cloudflare — APROVADO
-
-**[Execução real no GitHub Actions (31/10/2026)](https://github.com/pitado/receitando/actions/runs/41232599160).** Um Worker remoto dedicado reutilizou o roteador REST e a integração `pg` do Receitando, conectado via Hyperdrive **exclusivo** ao Neon PostgreSQL de benchmark (branch isolada, sem acesso à base de usuários).
-
-- **POSTs HTTP que gravaram no PostgreSQL:** 1.000 de 1.000.
-- **GETs HTTP com SELECT no PostgreSQL:** 2.000 de 2.000.
-- **Linhas persistidas após o teste:** +1.000 confirmadas no banco.
-- **Falhas:** 0/3.000. **Latência p95:** 206,77 ms. **Vazão média:** 42,59 requisições por segundo, sendo 14,20 escritas/s e 28,39 leituras/s.
-- **Concorrência k6:** 6 VUs de escrita e 12 VUs de leitura. O Worker temporário foi excluído ao final.
-
-A vazão observada supera a **média calculada para 3 milhões de operações distribuídas em 24 horas** (34,72 ops/s); contudo, o cenário real executou **3.000 requisições**, e não 3 milhões, durante uma janela curta. Portanto, não comprova uma operação contínua de 24h ou de 3M HTTP requests e nem valida transações reais do produto na instância principal do Neon.
-
-[Detalhes, scripts e evidências](../tests/load/README.md).
-
-## 5. Mapeamento de integração de pagamento — exigência do enunciado
-**Projeto gratuito:** não há checkout ou assinatura ativos. A monetização prevista por Google AdSense é publicidade, **não** API de cobrança. Para cumprir a exigência de *mapeamento*, projetamos uma integração **hipotética** com Mercado Pago ou Stripe, sem ativar pagamentos:
+## 7. WebSocket — Receitando Juntos (implementado)
 
 ```mermaid
 sequenceDiagram
-  actor Cliente
-  participant FE as Web/PWA
-  participant API as API Worker
-  participant DB as Neon PostgreSQL
-  participant MP as Gateway de pagamento
-  Cliente->>FE: Iniciar compra hipotética
-  FE->>API: POST /api/payments/checkout
-  API->>DB: Criar pedido pending
-  API->>MP: Criar checkout + chave de idempotência
-  MP-->>API: URL do checkout hospedado
-  API-->>FE: URL para redirecionamento
-  Cliente->>MP: Pagamento no provedor
-  MP->>API: Webhook autenticado
-  API->>API: Validar assinatura e deduplicar evento
-  API->>DB: Confirmar estado na transação
-  API-->>MP: HTTP 2xx
-```
-**Segurança e consistência:** valor validado no servidor, sem armazenar cartão, segredos fora do Git, TLS, verificação criptográfica do webhook, idempotência, deduplicação por ID do evento, estados `pending/paid/failed/refunded`, reconciliação e retentativas. **Essas rotas não existem no produto atual**; mapa técnico não significa integração implementada.
+    autonumber
+    actor A as Pessoa A
+    actor B as Pessoa B
+    participant API as API Worker
+    participant DO as CookingRoom (Durable Object)
 
-## 6. Mapeamento WebSocket — implementado
-`POST /api/v2/cooking-rooms` cria sala com etapas; `GET /api/v2/cooking-rooms/:id` consulta estado; `GET /api/v2/cooking-rooms/:id/ws` faz upgrade WSS. Cada sala é um Durable Object isolado: estado, participantes, controle de versão, heartbeat, expiração em 24h e máximo de 12 conexões. A mensagem `step:set` confirma etapa e retransmite `room:state` aos demais. O reingresso recupera snapshot; operações idempotentes não avançam versão indevidamente. Teste automatizado local com **dois clientes WebSocket** cobre sincronização bidirecional, edições simultâneas, reconexão e presença. Demonstração em dois navegadores na produção requer evidência específica.
+    A->>API: POST /api/v2/cooking-rooms
+    API->>DO: Criar/inicializar sala
+    API-->>A: HTTP 201 + id
+    A->>API: GET /api/v2/cooking-rooms/id/ws (WSS)
+    API->>DO: Encaminhar WebSocket
+    B->>API: GET /api/v2/cooking-rooms/id/ws (WSS)
+    API->>DO: Encaminhar WebSocket
+    A->>DO: step:set (etapa concluída)
+    DO->>DO: Persistir estado e versão da sala
+    DO-->>A: room:state atualizado
+    DO-->>B: room:state atualizado
+    B->>DO: Reconexão
+    DO-->>B: Snapshot mais recente
+```
+
+Cada sala é coordenada por seu Durable Object, **sem transformar o Worker REST em stateful**. A solução contempla presença, atualizações concorrentes, reconexão, máximo de **12 conexões** por sala e validade lógica de **24 horas**. O estado colaborativo da sala **não é uma escrita na tabela de receitas do Neon**.
+
+[Implementação](../backend/worker-prototype/src/cooking-room.ts) · [especificação e testes](receitando-juntos.md) · [sequência UML de matching](../Diagrama-de-Sequencia.md).
+
+## 8. Pagamentos — mapeamento exigido, NÃO implementado
+
+O Receitando é gratuito; **não existe checkout, assinatura nem `/api/payments/checkout` na API atual**. O fluxo abaixo é uma **proposta de integração** caso o produto venha a cobrar pagamentos.
 
 ```mermaid
 sequenceDiagram
-  participant A as Pessoa A
-  participant DO as CookingRoom
-  participant B as Pessoa B
-  A->>DO: WSS + ingressar
-  B->>DO: WSS + ingressar
-  DO-->>A: presence:update (2)
-  DO-->>B: presence:update (2)
-  A->>DO: step:set (etapa 1)
-  DO-->>A: room:state v1
-  DO-->>B: room:state v1
-  B-xDO: desconecta
-  B->>DO: reconecta
-  DO-->>B: room:state atualizado
+    autonumber
+    actor U as Cliente
+    participant F as Frontend
+    participant A as API Worker
+    participant PG as PostgreSQL
+    participant G as Gateway externo
+
+    U->>F: Inicia compra hipotética
+    F->>A: POST /api/payments/checkout (proposta)
+    A->>PG: Grava pedido pending (proposta)
+    A->>G: Cria checkout com idempotência
+    G-->>A: URL do checkout hospedado
+    A-->>F: URL para redirecionamento
+    U->>G: Realiza pagamento
+    G->>A: Webhook assinado
+    A->>A: Verifica assinatura / deduplica evento
+    A->>PG: Atualiza estado em transação
+    A-->>G: HTTP 2xx
 ```
 
-## 7. Defesa arquitetural — argumentos verificáveis
-- **Por que REST stateless?** Facilita escalabilidade horizontal e implantação sem vincular usuário a uma instância.
-- **Por que PostgreSQL?** Integridade e consultas relacionais para receitas, ingredientes, despensa, usuários e moderação.
-- **Por que Hyperdrive?** Camada de conexão/pool entre Worker e Postgres; não substitui o banco.
-- **Por que R2?** Desacopla fotos de transações do banco.
-- **Por que Durable Objects para WebSocket?** Uma autoridade por sala simplifica ordenação e concorrência; o REST continua stateless.
-- **Onde pode falhar?** Banco subdimensionado, pool saturado, SQL sem índice, cache inseguro, picos, custo, timeouts e indisponibilidade externa.
-- **Como provar?** Diagrama coerente, código/configuração verificável, amostra SQL real, k6 HTTP em staging, métricas e limites explícitos.
+**Fronteiras de segurança da proposta:** credenciais apenas no servidor, valor validado pelo backend, checkout hospedado, assinatura do webhook, estados e idempotência; **sem armazenamento de cartão no Receitando**. O gateway é uma dependência externa prevista, não uma integração já contratada.
 
-Links: [configuração da API](../backend/worker-prototype/wrangler.jsonc), [schema](../backend/worker-prototype/migrations/postgres/0001_baseline.sql), [diagrama](diagramas/componentes.md), [WebSocket](receitando-juntos.md), [teste PostgreSQL](../tests/load/README.md).
+## 9. Riscos e justificativas para a defesa pública
+
+| Pergunta da banca | Resposta arquitetural |
+| --- | --- |
+| Por que REST stateless? | Permite processar requisições em Workers sem sessão vinculada à instância; persistência fora do processo. |
+| Por que PostgreSQL e não apenas KV/NoSQL? | Receitas, ingredientes, usuários e moderação têm relações, FKs e operações transacionais. |
+| Hyperdrive faz o banco escalar? | **Não**: controla conexões, mas CPU/I/O/locks do PostgreSQL continuam limitantes. |
+| Como REST e WebSocket convivem? | REST fica stateless; Durable Object mantém a autoridade de estado por sala. |
+| O que acontece com 10× o tráfego? | É cenário a dimensionar e testar, monitorando picos, banco, conexões e custos — não promessa de capacidade. |
+| Onde pode haver falha? | Neon, rede/provedores externos, R2, sala WebSocket e consultas; medir erros, latência e recuperação. |
+
+**Conclusão:** a arquitetura separa HTTP, dados relacionais, arquivos e tempo real para permitir evolução com responsabilidades claras. Ela apresenta **um caminho para a volumetria exigida**, mas não substitui dimensionamento de recursos e validação em cargas representativas.
+
+### Referências técnicas do próprio projeto
+
+[Diagrama de componentes — ver desenho](../Diagrama-de-Componentes.md) · [DER — ver desenho](../DER.md) · [Diagrama de sequência — ver desenho](../Diagrama-de-Sequencia.md) · [Modelo PostgreSQL](database.md) · [API](api.md) · [Testes](../tests/load/README.md) · [Documentação geral](README.md).
