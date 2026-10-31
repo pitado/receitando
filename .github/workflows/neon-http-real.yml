@@ -1,12 +1,5 @@
 name: Fase 4 - HTTP real Cloudflare Hyperdrive Neon
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - 'backend/worker-prototype/wrangler.benchmark.jsonc'
-      - 'backend/worker-prototype/src/benchmark-entry.ts'
-      - 'tests/load/receitando-neon-real.js'
-      - '.github/workflows/neon-http-real.yml'
   workflow_dispatch:
 permissions:
   contents: read
