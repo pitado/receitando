@@ -18,7 +18,7 @@ try {
 } catch (error) { problems.push(`k6 summary ausente/inválido: ${error.message}`); }
 
 try {
-  const response = await fetch(base + '/api/internal/load-benchmark', { signal: AbortSignal.timeout(60000) });
+  const response = await fetch(base + '/api/internal/load-benchmark', { signal: AbortSignal.timeout(60000), headers: process.env.BENCHMARK_TOKEN ? { 'X-Benchmark-Token': process.env.BENCHMARK_TOKEN } : {} });
   const data = await response.json();
   if (!response.ok || data.ok !== true || !Number.isSafeInteger(data.total)) throw Error('Resposta final de contagem inválida.');
   countAfter = data.total;
@@ -48,7 +48,7 @@ const approved = problems.length === 0;
 const evidence = {
   scenario: process.env.SCENARIO,
   status: approved ? 'APROVADO' : 'NÃO APROVADO',
-  environment: 'GitHub Actions Ubuntu + Wrangler dev + PostgreSQL isolado no runner, banco isolado de produção',
+  environment: 'Cloudflare Worker remoto real + Hyperdrive exclusivo + Neon PostgreSQL isolado',
   run_url: runUrl,
   targets: { writes: targetWrites, reads: targetReads },
   actual: {
@@ -59,7 +59,7 @@ const evidence = {
   },
   k6_exit_code: k6Exit,
   problems,
-  caveat: 'Benchmark sintético local: não comprova automaticamente a capacidade em produção na Cloudflare.',
+  caveat: 'Worker remoto Cloudflare com banco Neon isolado; não representa usuários/volume da produção principal.',
 };
 const report = [
   '# Evidência do benchmark Receitando — ' + evidence.status,
