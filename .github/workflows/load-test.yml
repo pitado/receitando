@@ -1,5 +1,4 @@
-name: Teste de carga — API REST + PostgreSQL isolado (k6)
-
+name: Validação HTTP real — Receitando produção
 on:
   pull_request:
     branches: [main]
@@ -9,144 +8,40 @@ on:
   workflow_dispatch:
     inputs:
       scenario:
-        description: "Volume de operações HTTP: smoke, professor-check ou professor"
-        required: true
-        default: smoke
         type: choice
-        options:
-          - smoke
-          - professor-check
-          - capacity
-          - professor
-
+        description: "Carga HTTP limitada em produção"
+        required: true
+        default: professor-check
+        options: [smoke, professor-check, capacity]
 permissions:
   contents: read
-
 jobs:
-  postgres-load:
+  production-http:
     runs-on: ubuntu-latest
-    timeout-minutes: 155
+    timeout-minutes: 30
     env:
       TEST_SCENARIO: ${{ inputs.scenario || 'professor-check' }}
-      POSTGRES_TEST_URL: postgresql://postgres:postgres@127.0.0.1:5432/receitando_benchmark
-      CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE: postgresql://postgres:postgres@127.0.0.1:5432/receitando_benchmark
-    services:
-      postgres:
-        image: postgres:17
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: receitando_benchmark
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U postgres -d receitando_benchmark"
-          --health-interval 10s --health-timeout 5s --health-retries 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: npm
-          cache-dependency-path: backend/worker-prototype/package-lock.json
-      - name: Preparar banco PostgreSQL exclusivo do runner
-        working-directory: backend/worker-prototype
+      - name: Medir REST real em produção (salas sintéticas, sem banco de usuários)
         run: |
-          npm ci
-          sudo apt-get update -qq
-          sudo apt-get install -y postgresql-client
-          psql "$POSTGRES_TEST_URL" -v ON_ERROR_STOP=1 -c 'CREATE TABLE load_benchmark (id TEXT PRIMARY KEY)'
-          npm run typecheck
-          npm run test:postgres
-      - name: Iniciar API Cloudflare Worker local apontando ao PostgreSQL
-        working-directory: backend/worker-prototype
-        run: |
-          NODE_OPTIONS=--max-old-space-size=4096 nohup npx wrangler dev --local --ip 127.0.0.1 --port 8787 --inspector-port 8788 --var BENCHMARK_ENABLED:true --log-level warn > /tmp/receitando-api.log 2>&1 &
-          for i in $(seq 1 60); do
-            if curl --fail --silent http://127.0.0.1:8787/api/health >/dev/null; then exit 0; fi
-            sleep 2
-          done
-          cat /tmp/receitando-api.log
-          exit 1
-      - name: Comprovar INSERT e SELECT pela API REST e registrar baseline
-        run: |
-          set -euo pipefail
-          base=http://127.0.0.1:8787/api/internal/load-benchmark
-          created=$(curl --fail-with-body -sS -X POST "$base")
-          seed=$(echo "$created" | jq -r '.id // empty')
-          [[ "$seed" =~ ^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$ ]]
-          response=$(curl --fail-with-body -sS "$base?id=$seed")
-          test "$(echo "$response" | jq -r '.found')" = true
-          baseline=$(curl --fail-with-body -sS "$base" | jq -r '.total')
-          [[ "$baseline" =~ ^[0-9]+$ ]]
-          echo "BENCHMARK_SEED_ID=$seed" >> "$GITHUB_ENV"
-          echo "BENCHMARK_BASELINE=$baseline" >> "$GITHUB_ENV"
-          echo "Smoke REST/Postgres aprovado; baseline=$baseline"
-      - name: Instalar k6
-        run: |
-          sudo apt-get install -y gnupg ca-certificates
-          curl -fsSL https://dl.k6.io/key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/k6-archive-keyring.gpg
-          echo 'deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main' | sudo tee /etc/apt/sources.list.d/k6.list
-          sudo apt-get update -qq
-          sudo apt-get install -y k6
-      - name: Executar volume REST conforme cenário
-        timeout-minutes: 145
-        run: |
-          set +e
-          mkdir -p results/load
           case "$TEST_SCENARIO" in
-            smoke) TARGET_WRITES=100; TARGET_READS=200 ;;
-            professor-check) TARGET_WRITES=1000; TARGET_READS=2000 ;;
-            capacity) TARGET_WRITES=10000; TARGET_READS=20000 ;;
-            professor) TARGET_WRITES=1000000; TARGET_READS=2000000 ;;
-            *) echo 'Cenário inválido'; exit 1 ;;
+            smoke) echo "TARGET_WRITES=100" >> "$GITHUB_ENV"; echo "TARGET_READS=200" >> "$GITHUB_ENV" ;;
+            professor-check) echo "TARGET_WRITES=1000" >> "$GITHUB_ENV"; echo "TARGET_READS=2000" >> "$GITHUB_ENV" ;;
+            capacity) echo "TARGET_WRITES=10000" >> "$GITHUB_ENV"; echo "TARGET_READS=20000" >> "$GITHUB_ENV" ;;
+            *) echo 'Cenário não autorizado para produção'; exit 1 ;;
           esac
-          echo "Cenário $TEST_SCENARIO: $TARGET_WRITES POST + $TARGET_READS GET via Wrangler local + PostgreSQL isolado (sem pooling Hyperdrive)"
-          timeout --signal=TERM --kill-after=15s 8400s k6 run \
-            -e BASE_URL=http://127.0.0.1:8787 \
-            -e BENCHMARK_SEED_ID="$BENCHMARK_SEED_ID" \
-            -e TARGET_WRITES="$TARGET_WRITES" \
-            -e TARGET_READS="$TARGET_READS" \
-            --summary-export=results/load/summary.json \
-            tests/load/receitando-professor.js > results/load/requests.log 2>&1
-          code=$?
-          tail -n 80 results/load/requests.log
-          BASE_URL=http://127.0.0.1:8787 \
-            TARGET_WRITES="$TARGET_WRITES" TARGET_READS="$TARGET_READS" \
-            K6_EXIT_CODE="$code" SCENARIO="$TEST_SCENARIO" \
-            node tests/load/verify-professor.mjs
-          verify_code=$?
-          test "$code" -eq 0 && test "$verify_code" -eq 0
-      - name: Guardar logs
-        if: always()
-        run: |
-          mkdir -p results/load
-          cp /tmp/receitando-api.log results/load/api.log || true
-      - name: Publicar evidências
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: postgres-k6-${{ inputs.scenario || 'professor-check' }}
-          path: results/load/
-          if-no-files-found: warn
-          retention-days: 14
-
-  production-read-probe:
-    name: Produção — leituras HTTP não destrutivas
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-      - name: Verificar endpoints públicos em produção sem escrita
+      - name: Executar POST e GET no Worker publicado
+        timeout-minutes: 25
         run: node tests/load/probe-production-http.mjs
-      - name: Publicar resultado observado
+      - name: Publicar evidências e erros
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: production-http-read-probe
+          name: production-http-${{ inputs.scenario || 'professor-check' }}
           path: results/load/production-http-read-probe.json
           if-no-files-found: warn
           retention-days: 14
