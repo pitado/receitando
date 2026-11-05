@@ -73,6 +73,12 @@ export function AccountClient() {
         const [pantry, favorites] = await Promise.all([getPantry(), listFavorites()]);
         if (cancelled) return;
         setUser(currentUser);
+        if (new URLSearchParams(window.location.search).get("editar") === "1") {
+          setEditName(currentUser.name);
+          setEditHandle(suggestedHandle(currentUser));
+          setEditAvatar(currentUser.avatarKey || "tomato");
+          setIsEditing(true);
+        }
         setPantryCount(pantry.length);
         setFavoriteCount(favorites.length);
         setHour(new Date().getHours());

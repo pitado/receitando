@@ -104,9 +104,8 @@ export async function updateProfile(
 }
 
 export async function logout(): Promise<void> {
-  try {
-    await apiRequest<void>("/api/auth/logout", { method: "POST" });
-  } finally {
-    clearAuthSession();
-  }
+  // Só apagar o indicador local após o servidor encerrar o cookie da sessão.
+  // Em uma falha de rede, não afirmar que a pessoa saiu da conta.
+  await apiRequest<void>("/api/auth/logout", { method: "POST" });
+  clearAuthSession();
 }

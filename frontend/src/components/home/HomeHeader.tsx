@@ -8,6 +8,7 @@ import { listRecipes } from "@/services/recipes.service";
 import type { RecipeCatalogItem } from "@/types/recipe";
 
 import { BiteWordmark } from "./BiteWordmark";
+import { HomeAccountMenu } from "./HomeAccountMenu";
 import styles from "./HomeHeader.module.css";
 
 function normalize(value: string) {
@@ -185,10 +186,13 @@ export function HomeHeader() {
             <BiteWordmark compact />
           </Link>
 
-          <Link className={styles.submitButton} href="/enviar-receita">
-            <span className={styles.submitDesktop}>Enviar receita</span>
-            <span className={styles.submitMobile}>Enviar</span>
-          </Link>
+          <div className={styles.rightActions}>
+            <HomeAccountMenu searchOpen={open} onOpen={() => setOpen(false)} />
+            <Link className={styles.submitButton} href="/enviar-receita">
+              <span className={styles.submitDesktop}>Enviar receita</span>
+              <span className={styles.submitMobile}>Enviar</span>
+            </Link>
+          </div>
         </div>
 
         <div
