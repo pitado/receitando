@@ -13,7 +13,7 @@ import { HomeHero } from "./HomeHero";
 import { HomeLiveSections } from "./HomeLiveSections";
 
 type LoadState = "idle" | "loading" | "ready" | "error";
-const DEFAULT_INGREDIENTS = ["banana", "aveia", "ovo", "canela"];
+const DEFAULT_INGREDIENTS = ["leite", "ovo", "queijo", "polvilho doce", "óleo", "sal"];
 
 function uniqueIngredients(values: string[]) {
   const seen = new Set<string>();
