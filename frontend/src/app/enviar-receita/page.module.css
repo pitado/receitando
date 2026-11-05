@@ -59,3 +59,50 @@
     margin-top: 1rem;
   }
 }
+
+/* Rebranding 2026 — área editorial de envio + formulário do produto. */
+.surface { background: var(--home-papel); min-height: calc(100svh - var(--home-topo)); }
+.page {
+  align-items: start;
+  color: var(--home-tinta);
+  font-family: var(--font-home-copy), system-ui, sans-serif;
+  gap: clamp(24px, 4vw, 60px);
+  padding-block: clamp(28px, 4vw, 64px) 94px;
+  grid-template-columns: minmax(260px,.83fr) minmax(0,1.17fr);
+}
+.intro {
+  background: var(--home-cafe);
+  border: 0;
+  border-radius: 27px;
+  box-shadow: none;
+  color: var(--home-papel);
+  padding: clamp(26px, 4vw, 50px);
+  top: calc(var(--home-topo) + 22px);
+}
+.intro h1 {
+  color: var(--home-papel);
+  font: 400 clamp(36px, 4.6vw, 62px)/1.1 var(--font-home-title), Impact, sans-serif;
+  letter-spacing: -.012em;
+}
+.intro :is(p,div) { font-family: var(--font-home-copy), system-ui, sans-serif; }
+.intro p { color: #f4ddc7; line-height: 1.65; }
+.tips { gap: 11px; margin-top: 30px; }
+.tips span {
+  background: #f0d4b3;
+  border: 0;
+  border-radius: 13px;
+  color: var(--home-tinta);
+  font-weight: 700;
+  min-height: 46px;
+  padding: 12px 15px;
+}
+.page :where(button,a,input,select,textarea):focus-visible { outline: 3px solid var(--home-canela); outline-offset: 3px; }
+@media(max-width:900px) {
+  .page { grid-template-columns: 1fr; padding-block: 24px 62px; }
+  .intro { position: static; }
+}
+@media(max-width:560px) {
+  .intro { border-radius: 21px; padding: 25px 21px; }
+  .intro h1 { font-size: clamp(34px, 10vw, 49px); }
+  .tips { margin-top: 22px; }
+}

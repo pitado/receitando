@@ -10,8 +10,10 @@ export const metadata: Metadata = {
 
 export default function AccountPage() {
   return (
-    <div className={`container page-shell ${styles.page}`}>
-      <AccountClient />
+    <div className={styles.surface}>
+      <div className={`container page-shell ${styles.page}`}>
+        <AccountClient />
+      </div>
     </div>
   );
 }

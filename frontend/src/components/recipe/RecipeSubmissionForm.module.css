@@ -88,3 +88,46 @@
 }
 
 @media (prefers-reduced-motion: reduce) { .progressTrack span { transition: none; } }
+
+/* Identidade editorial do Receitando, sem modificar validações nem upload. */
+.form {
+  background: #fbf2e8;
+  border: 1px solid var(--home-linha);
+  border-radius: 27px;
+  box-shadow: none;
+  color: var(--home-tinta);
+  font-family: var(--font-home-copy),system-ui,sans-serif;
+  padding: clamp(18px, 3vw, 40px);
+}
+.progress { background: #f2dfc9; border-radius: 16px; }
+.progressHeader span { color: var(--home-cafe); }
+.progressHeader strong,.stepIntro h2,.reviewCard h3 {
+  font-family: var(--font-home-title),Impact,sans-serif;
+  font-weight: 400;
+  letter-spacing: -.01em;
+}
+.progressTrack { background: #dfc8ac; }
+.progressTrack span { background: var(--home-cafe); }
+.progress .stepActive { color: var(--home-cafe); }
+.stepIntro > span { background: var(--home-cafe); color: #fbf2e8; }
+.stepIntro h2 { font-size: clamp(25px,3vw,36px); line-height: 1.13; }
+.form input,.form textarea,.form select {
+  background: #fffaf4;
+  border: 1.5px solid var(--home-linha);
+  border-radius: 14px;
+  color: var(--home-tinta);
+}
+.form input:focus,.form textarea:focus,.form select:focus { border-color: var(--home-cafe); box-shadow: 0 0 0 3px #95462a20; }
+.reviewCard,.photoField,.notice { background: #f2dfc9; border-color: var(--home-linha); }
+.photoPicker { background: #fffaf4; border-color: var(--home-linha); }
+.photoPickerButton,.next,.submit {
+  background: var(--home-cafe);
+  border-color: var(--home-cafe);
+  border-radius: 999px;
+  box-shadow: none;
+  color: #fbf2e8;
+}
+.next:hover,.submit:hover:not(:disabled) { background: var(--home-cafe-esc); border-color: var(--home-cafe-esc); }
+.back { border-color: var(--home-linha); border-radius: 999px; color: var(--home-tinta); }
+.form :where(button,input,textarea,select):focus-visible { outline: 3px solid var(--home-canela); outline-offset: 2px; }
+@media(max-width:560px) { .form { border-radius: 21px; padding: 18px; } }

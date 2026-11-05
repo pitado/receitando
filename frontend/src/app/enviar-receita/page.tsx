@@ -12,7 +12,8 @@ export const metadata: Metadata = {
 
 export default function SubmitRecipePage() {
   return (
-    <div className={`container page-shell ${styles.page}`}>
+    <div className={styles.surface}>
+      <div className={`container page-shell ${styles.page}`}>
       <div className={styles.intro}>
         <SectionTitle
           as="h1"
@@ -25,11 +26,12 @@ export default function SubmitRecipePage() {
         <div className={styles.tips}>
           <span>✓ ingredientes claros</span>
           <span>✓ passo a passo completo</span>
-          <span>✓ foto do prato, se tiver</span>
+          <span>✓ foto do prato (obrigatória)</span>
         </div>
       </div>
 
       <RecipeSubmissionForm />
+      </div>
     </div>
   );
 }
