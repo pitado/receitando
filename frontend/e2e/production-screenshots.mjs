@@ -3,6 +3,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 
 const base = "https://receitando.miguelpita.com.br";
+console.log("Auditoria pos-deploy: nova vitrine e matching PostgreSQL corrigido");
 const output = path.resolve("audit-captures");
 const routes = [
   ["inicio", "/"],
