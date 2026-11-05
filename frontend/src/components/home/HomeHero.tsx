@@ -88,7 +88,7 @@ export function HomeHero({
                 id="home-ingredient"
                 list="receitando-ingredients"
                 onChange={(event) => setValue(event.target.value)}
-                placeholder="Ex.: tomate, banana, queijo..."
+                placeholder="Digite um ingrediente..."
                 value={value}
               />
               <datalist id="receitando-ingredients">
@@ -136,7 +136,7 @@ export function HomeHero({
                   sizes="(max-width: 860px) 90vw, 40vw"
                   src="https://pqqojywezkftgvmkqxye.supabase.co/storage/v1/object/public/recipe-images/imported/b601e21e688058918332da6f6962b35989752213fe3ea4b63cef33f0b33c0720"
                 />
-              )
+              )}
             </div>
             <div className={styles.featureDetails}>
               <p>INSPIRAÇÃO DO SANTA RECEITA</p>
