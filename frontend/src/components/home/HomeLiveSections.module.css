@@ -397,3 +397,23 @@
   .outlineButton,
   .outlineButtonSmall { transition: none; }
 }
+/* Estados de carregamento, erro e ausência de resultados sem mostrar sugestões falsas. */
+.emptyRecipes {
+  color: var(--home-cinza);
+  font: 400 16px/1.55 var(--font-home-copy), system-ui, sans-serif;
+  margin: 0;
+  padding: 26px 0;
+}
+.emptyRecipes p { margin: 0 0 14px; }
+.retryButton {
+  background: var(--home-barro);
+  border: 2px solid var(--home-barro);
+  border-radius: 999px;
+  color: var(--home-papel);
+  cursor: pointer;
+  font: 700 15px/1 var(--font-home-copy), system-ui, sans-serif;
+  min-height: 42px;
+  padding: 10px 18px;
+}
+.retryButton:hover { background: var(--home-cafe-esc); }
+.retryButton:focus-visible { outline: 3px solid var(--home-gema); outline-offset: 3px; }

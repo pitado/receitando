@@ -5,14 +5,14 @@ import { useEffect, useState } from "react";
 import { AUTH_CHANGED_EVENT, hasAuthSessionHint } from "@/services/auth-storage";
 import { getCurrentUser, type AuthUser } from "@/services/auth.service";
 import { getHomeFeed, type HomeFeed } from "@/services/home.service";
-import { getPantry } from "@/services/pantry.service";
+import { getPantry, PANTRY_CHANGED_EVENT } from "@/services/pantry.service";
 import { matchRecipes } from "@/services/recipes.service";
 import type { MatchRecipeResult } from "@/types/recipe";
 
 import { HomeHero } from "./HomeHero";
 import { HomeLiveSections } from "./HomeLiveSections";
 
-const DEFAULT_INGREDIENTS = ["arroz", "ovo", "tomate"];
+type LoadState = "idle" | "loading" | "ready" | "error";
 
 function uniqueIngredients(values: string[]) {
   const seen = new Set<string>();
@@ -36,89 +36,111 @@ function sortMatches(items: MatchRecipeResult[]) {
 }
 
 export function HomeWorkspace() {
-  const [ingredients, setIngredients] = useState<string[]>(DEFAULT_INGREDIENTS);
+  // Sem pressupor ingredientes na cozinha de um visitante.
+  const [ingredients, setIngredients] = useState<string[]>([]);
   const [matches, setMatches] = useState<MatchRecipeResult[]>([]);
+  const [matchState, setMatchState] = useState<LoadState>("idle");
+  const [matchRetry, setMatchRetry] = useState(0);
   const [feed, setFeed] = useState<HomeFeed | null>(null);
+  const [feedState, setFeedState] = useState<LoadState>("loading");
+  const [feedRetry, setFeedRetry] = useState(0);
   const [user, setUser] = useState<AuthUser | null>(null);
   const [pantryCount, setPantryCount] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
+    getHomeFeed()
+      .then((result) => {
+        if (cancelled) return;
+        setFeed(result);
+        setFeedState("ready");
+      })
+      .catch(() => {
+        if (!cancelled) setFeedState("error");
+      });
 
-    async function loadHome() {
-      const feedResult = await Promise.allSettled([getHomeFeed()]);
-      if (!cancelled && feedResult[0].status === "fulfilled") setFeed(feedResult[0].value);
+    return () => { cancelled = true; };
+  }, [feedRetry]);
 
-      if (!hasAuthSessionHint()) return;
+  useEffect(() => {
+    let active = true;
+    let version = 0;
 
-      const accountResult = await Promise.allSettled([getCurrentUser(), getPantry()]);
-      if (cancelled) return;
+    async function loadSession() {
+      const thisVersion = ++version;
+      if (!hasAuthSessionHint()) {
+        setUser(null);
+        setPantryCount(0);
+        setIngredients([]);
+        return;
+      }
 
-      if (accountResult[0].status === "fulfilled") setUser(accountResult[0].value);
+      const [accountResult, pantryResult] = await Promise.allSettled([
+        getCurrentUser(),
+        getPantry(),
+      ]);
+      if (!active || thisVersion !== version) return;
 
-      if (accountResult[1].status === "fulfilled") {
-        const pantry = accountResult[1].value;
+      if (accountResult.status === "fulfilled") setUser(accountResult.value);
+      else setUser(null);
+
+      if (pantryResult.status === "fulfilled") {
+        const pantry = pantryResult.value;
         setPantryCount(pantry.length);
         setIngredients(uniqueIngredients(pantry.map((item) => item.ingredientName)));
       }
     }
 
-    void loadHome();
-
-    function handleAuthChange() {
-      if (!hasAuthSessionHint()) {
-        setUser(null);
-        setPantryCount(0);
-        setIngredients(DEFAULT_INGREDIENTS);
-        setMatches([]);
-        return;
-      }
-      void loadHome();
-    }
-
-    window.addEventListener(AUTH_CHANGED_EVENT, handleAuthChange);
-
+    void loadSession();
+    window.addEventListener(AUTH_CHANGED_EVENT, loadSession);
+    window.addEventListener(PANTRY_CHANGED_EVENT, loadSession);
     return () => {
-      cancelled = true;
-      window.removeEventListener(AUTH_CHANGED_EVENT, handleAuthChange);
+      active = false;
+      window.removeEventListener(AUTH_CHANGED_EVENT, loadSession);
+      window.removeEventListener(PANTRY_CHANGED_EVENT, loadSession);
     };
   }, []);
 
   useEffect(() => {
     const selected = uniqueIngredients(ingredients);
-    if (selected.length === 0) {
-      const resetTimeout = window.setTimeout(() => {
-        setMatches([]);
-      }, 0);
-
-      return () => window.clearTimeout(resetTimeout);
-    }
-
     const controller = new AbortController();
-    const timeout = window.setTimeout(async () => {
+
+    const reset = window.setTimeout(() => {
+      setMatches([]);
+      setMatchState(selected.length ? "loading" : "idle");
+    }, 0);
+
+    const timeout = selected.length ? window.setTimeout(async () => {
       try {
         const result = await matchRecipes(selected, controller.signal);
-        if (!controller.signal.aborted) setMatches(sortMatches(result));
+        if (!controller.signal.aborted) {
+          setMatches(sortMatches(result));
+          setMatchState("ready");
+        }
       } catch {
-        if (!controller.signal.aborted) setMatches([]);
-      } finally {
+        if (!controller.signal.aborted) {
+          setMatches([]);
+          setMatchState("error");
+        }
       }
-    }, 180);
+    }, 220) : null;
 
     return () => {
-      window.clearTimeout(timeout);
+      window.clearTimeout(reset);
+      if (timeout !== null) window.clearTimeout(timeout);
       controller.abort();
     };
-  }, [ingredients]);
+  }, [ingredients, matchRetry]);
 
   function addIngredient(value: string) {
-    const next = uniqueIngredients([...ingredients, value]);
-    setIngredients(next);
+    setIngredients((current) => uniqueIngredients([...current, value]));
   }
 
   function removeIngredient(value: string) {
     const normalized = value.toLocaleLowerCase("pt-BR");
-    setIngredients(ingredients.filter((ingredient) => ingredient.toLocaleLowerCase("pt-BR") !== normalized));
+    setIngredients((current) =>
+      current.filter((ingredient) => ingredient.toLocaleLowerCase("pt-BR") !== normalized),
+    );
   }
 
   return (
@@ -126,15 +148,21 @@ export function HomeWorkspace() {
       <HomeHero
         ingredients={ingredients}
         matches={matches}
+        matchState={matchState}
         onAddIngredient={addIngredient}
         onRemoveIngredient={removeIngredient}
       />
       <HomeLiveSections
         feed={feed}
+        feedState={feedState}
+        matchState={matchState}
+        hasIngredients={ingredients.length > 0}
         matches={matches}
         pantryCount={pantryCount}
         user={user}
         onAddIngredient={addIngredient}
+        onRetryFeed={() => { setFeedState("loading"); setFeedRetry((value) => value + 1); }}
+        onRetryMatch={() => setMatchRetry((value) => value + 1)}
       />
     </>
   );

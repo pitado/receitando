@@ -12,6 +12,7 @@ const QUICK_INGREDIENTS = ["arroz", "tomate", "ovo", "frango", "batata", "cenour
 type HomeHeroProps = {
   ingredients: string[];
   matches: MatchRecipeResult[];
+  matchState: "idle" | "loading" | "ready" | "error";
   onAddIngredient: (ingredient: string) => void;
   onRemoveIngredient: (ingredient: string) => void;
 };
@@ -31,6 +32,7 @@ function RecipeName({ recipe }: { recipe: MatchRecipeResult | undefined }) {
 export function HomeHero({
   ingredients,
   matches,
+  matchState,
   onAddIngredient,
   onRemoveIngredient,
 }: HomeHeroProps) {
@@ -70,6 +72,14 @@ export function HomeHero({
         <b aria-hidden="true">×</b>
       </button>
     ));
+
+    if (matchState === "loading") {
+      return <><span>Buscando receitas com </span>{have}<span>...</span></>;
+    }
+
+    if (matchState === "error") {
+      return <><span>Não foi possível buscar receitas com </span>{have}<span>. Tente novamente abaixo.</span></>;
+    }
 
     if (!bestMatch) {
       return (
@@ -206,13 +216,19 @@ export function HomeHero({
         <div className={styles.summary}>
           {ingredients.length === 0 ? (
             <span>Comece digitando ou escolha um ingrediente acima.</span>
+          ) : matchState === "loading" ? (
+            <span role="status">Analisando os ingredientes e procurando combinações...</span>
+          ) : matchState === "error" ? (
+            <><span>Não foi possível consultar as combinações agora.</span><a href="#combinacoes">Tentar novamente</a></>
+          ) : matches.length === 0 ? (
+            <><span>Nenhuma combinação encontrada ainda. Experimente adicionar outro ingrediente.</span><a href="#combinacoes">Ver sugestões</a></>
           ) : (
             <>
               {readyCount > 0 ? <span>{readyCount} {readyCount === 1 ? "pronta" : "prontas"} pra fazer</span> : null}
               {readyCount > 0 && oneAwayCount > 0 ? <span>, </span> : null}
               {oneAwayCount > 0 ? <span>{oneAwayCount} a um ingrediente de distância</span> : null}
               {(readyCount > 0 || oneAwayCount > 0) ? <span>, </span> : null}
-              <span>{usableCount} {usableCount === 1 ? "usando o que você tem" : "usando o que você tem"}</span>
+              <span>{usableCount} {usableCount === 1 ? "combinação encontrada" : "combinações encontradas"}</span>
               <a href="#combinacoes">Ver combinações</a>
             </>
           )}

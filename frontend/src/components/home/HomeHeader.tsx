@@ -52,7 +52,7 @@ function SearchRecipe({ recipe, query, onNavigate, tabIndex }: {
       tabIndex={tabIndex}
     >
       <span className={styles.searchResultName}>{highlightTitle(recipe.title, query)}</span>
-      <span className={styles.searchResultMeta}>{recipe.mealType || "Receita"}, {recipe.prepMinutes} min</span>
+      <span className={styles.searchResultMeta}>{recipe.mealType || "Receita"}{recipe.prepMinutes > 0 ? ", " + recipe.prepMinutes + " min" : ""}</span>
     </Link>
   );
 }
@@ -204,7 +204,12 @@ export function HomeHeader() {
             <input
               aria-label="Buscar pelo nome do prato"
               autoComplete="off"
-              onChange={(event) => setQuery(event.target.value)}
+              onChange={(event) => {
+                setQuery(event.target.value);
+                setResults([]);
+                setResultCount(0);
+                setLoading(Boolean(event.target.value.trim()));
+              }}
               placeholder="Buscar pelo nome do prato"
               ref={inputRef}
               tabIndex={open ? 0 : -1}
@@ -221,7 +226,7 @@ export function HomeHeader() {
                 <Link href="/combinar" onClick={closeSearch} tabIndex={open ? 0 : -1}><strong>Combinar</strong><span>o que dá pra fazer agora</span></Link>
                 <Link href="/despensa" onClick={closeSearch} tabIndex={open ? 0 : -1}><strong>Despensa</strong><span>o que você tem em casa</span></Link>
                 <Link href="/favoritos" onClick={closeSearch} tabIndex={open ? 0 : -1}><strong>Favoritos</strong><span>seu caderno de receitas</span></Link>
-                <Link href="/receitas" onClick={closeSearch} tabIndex={open ? 0 : -1}><strong>Receitas</strong><span>catálogo com {recipeCount} pratos</span></Link>
+                <Link href="/receitas" onClick={closeSearch} tabIndex={open ? 0 : -1}><strong>Receitas</strong><span>{recipeCount ? "catálogo com " + recipeCount + " pratos" : "explore o catálogo"}</span></Link>
               </nav>
             </section>
 

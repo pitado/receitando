@@ -13,14 +13,21 @@ import styles from "./HomeLiveSections.module.css";
 
 type HomeLiveSectionsProps = {
   feed: HomeFeed | null;
+  feedState: "idle" | "loading" | "ready" | "error";
+  matchState: "idle" | "loading" | "ready" | "error";
+  hasIngredients: boolean;
   matches: MatchRecipeResult[];
+  onRetryFeed: () => void;
+  onRetryMatch: () => void;
   pantryCount: number;
   user: AuthUser | null;
   onAddIngredient: (ingredient: string) => void;
 };
 
 function formatDate(value: string) {
-  return new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short" }).format(new Date(value));
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "data indisponível";
+  return new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short" }).format(date);
 }
 
 function statusLabel(recipe: MatchRecipeResult) {
@@ -74,7 +81,7 @@ function MatchRow({
         <Link className={styles.recipeTitle} href={"/receitas/" + recipe.slug}>
           {recipe.title}
         </Link>
-        <span className={styles.recipeMeta}>{recipe.mealType || "Receita"}, {recipe.prepMinutes} min</span>
+        <span className={styles.recipeMeta}>{recipe.mealType || "Receita"}{recipe.prepMinutes > 0 ? ", " + recipe.prepMinutes + " min" : ""}</span>
       </div>
 
       <div className={styles.ingredients}>
@@ -106,7 +113,7 @@ function PopularRow({ recipe }: { recipe: HomePopularRecipe }) {
 
       <div className={styles.recipeInfo}>
         <Link className={styles.recipeTitle} href={"/receitas/" + recipe.slug}>{recipe.title}</Link>
-        <span className={styles.recipeMeta}>{recipe.mealType || "Receita"}, {recipe.prepMinutes} min</span>
+        <span className={styles.recipeMeta}>{recipe.mealType || "Receita"}{recipe.prepMinutes > 0 ? ", " + recipe.prepMinutes + " min" : ""}</span>
       </div>
 
       <div className={styles.ingredients}>
@@ -124,7 +131,12 @@ function PopularRow({ recipe }: { recipe: HomePopularRecipe }) {
 
 export function HomeLiveSections({
   feed,
+  feedState,
+  matchState,
+  hasIngredients,
   matches,
+  onRetryFeed,
+  onRetryMatch,
   pantryCount,
   user,
   onAddIngredient,
@@ -142,16 +154,38 @@ export function HomeLiveSections({
             <p>A lista se reorganiza conforme sua bancada muda. Toque num ingrediente que falta para adicioná-lo.</p>
           </div>
 
-          <div className={styles.recipeList}>
-            {visibleMatches.length > 0
-              ? visibleMatches.map((recipe) => (
+          <div className={styles.recipeList} aria-live="polite">
+            {hasIngredients ? (
+              matchState === "loading" || matchState === "idle" ? (
+                <p className={styles.emptyRecipes} role="status">Buscando as melhores combinações para sua bancada...</p>
+              ) : matchState === "error" ? (
+                <div className={styles.emptyRecipes}>
+                  <p>A busca de combinações está indisponível agora. Seus ingredientes continuam selecionados.</p>
+                  <button className={styles.retryButton} onClick={onRetryMatch} type="button">Tentar novamente</button>
+                </div>
+              ) : visibleMatches.length > 0 ? (
+                visibleMatches.map((recipe) => (
                   <MatchRow key={recipe.id} onAddIngredient={onAddIngredient} recipe={recipe} />
                 ))
-              : feed?.popular.slice(0, 6).map((recipe) => <PopularRow key={recipe.id} recipe={recipe} />)}
+              ) : (
+                <p className={styles.emptyRecipes}>Ainda não encontramos combinações para estes ingredientes. Acrescente mais um ingrediente ou explore o catálogo.</p>
+              )
+            ) : feedState === "loading" ? (
+              <p className={styles.emptyRecipes} role="status">Carregando sugestões de receitas...</p>
+            ) : feedState === "error" ? (
+              <div className={styles.emptyRecipes}>
+                <p>Não foi possível carregar as sugestões agora.</p>
+                <button className={styles.retryButton} onClick={onRetryFeed} type="button">Tentar novamente</button>
+              </div>
+            ) : feed?.popular.length ? (
+              feed.popular.slice(0, 6).map((recipe) => <PopularRow key={recipe.id} recipe={recipe} />)
+            ) : (
+              <p className={styles.emptyRecipes}>Não há receitas populares no momento. Explore o catálogo completo.</p>
+            )}
           </div>
 
           <Link className={styles.outlineButton} href="/receitas">
-            Ver as {recipeCount} receitas
+            {recipeCount > 0 ? "Ver as " + recipeCount + " receitas" : "Explorar todas as receitas"}
           </Link>
         </div>
       </section>
@@ -162,7 +196,7 @@ export function HomeLiveSections({
             <article>
               <strong>01</strong>
               <h3>Conte o que tem.</h3>
-              <p>Digite ou escolha. Três ingredientes já bastam para começar.</p>
+              <p>Digite ou escolha ingredientes. O Receitando procura opções com o que você tem.</p>
             </article>
             <article>
               <strong>02</strong>
