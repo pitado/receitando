@@ -150,8 +150,8 @@ export function HomeLiveSections({
       <section className={styles.combinationsSection} id="combinacoes">
         <div className="home-container">
           <div className={styles.sectionHeading}>
-            <h2>Uma ideia puxa outra</h2>
-            <p>Descubra pratos de verdade e, quando disponível, veja o que combina com sua seleção.</p>
+            <h2>Do que já dá pra fazer ao que falta pouco</h2>
+            <p>A lista se reorganiza conforme sua bancada muda. Toque num ingrediente que falta para adicioná-lo.</p>
           </div>
 
           <div className={styles.recipeList} aria-live="polite">
@@ -259,7 +259,7 @@ export function HomeLiveSections({
 
           {user ? (
             <p className={styles.pantryNote}>
-              Sua despensa tem {pantryCount} {pantryCount === 1 ? "ingrediente" : "ingredientes"} e está sendo usada nesta bancada.
+              Sua despensa tem {pantryCount} {pantryCount === 1 ? "ingrediente" : "ingredientes"} e está disponível na sua área de Despensa.
             </p>
           ) : null}
 
