@@ -1,0 +1,41 @@
+name: Capturas de Telas - Auditoria Visual
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/visual-audit.yml"
+      - "frontend/e2e/production-screenshots.mjs"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  screenshots:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/e2e/package-lock.json
+      - name: Instalar Playwright
+        working-directory: frontend/e2e
+        run: npm ci
+      - name: Instalar Chromium
+        working-directory: frontend/e2e
+        run: npx playwright install --with-deps chromium
+      - name: Capturar site em producao
+        working-directory: frontend/e2e
+        run: node production-screenshots.mjs
+      - name: Salvar evidencias
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: capturas-rebranding-receitando
+          path: frontend/e2e/audit-captures/
+          retention-days: 30
