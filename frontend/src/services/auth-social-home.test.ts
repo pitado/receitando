@@ -124,10 +124,17 @@ describe("auth.service", () => {
     });
   });
 
-  it("sempre limpa a sessão local ao sair, mesmo se a API falhar", async () => {
+  it("não informa logout se o servidor falhar e mantém a sessão para nova tentativa", async () => {
     apiRequestMock.mockRejectedValueOnce(new Error("API indisponível"));
 
     await expect(logout()).rejects.toThrow("API indisponível");
+    expect(clearAuthSessionMock).not.toHaveBeenCalled();
+  });
+
+  it("encerra a sessão local após confirmação do servidor", async () => {
+    apiRequestMock.mockResolvedValueOnce(undefined);
+    await expect(logout()).resolves.toBeUndefined();
+    expect(apiRequestMock).toHaveBeenCalledWith("/api/auth/logout", { method: "POST" });
     expect(clearAuthSessionMock).toHaveBeenCalledTimes(1);
   });
 });
