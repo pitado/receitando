@@ -2,8 +2,6 @@
 
 import { useId, useState } from "react";
 
-import { Button } from "@/components/ui/Button";
-
 import styles from "./IngredientInput.module.css";
 
 interface IngredientInputProps {
@@ -33,8 +31,8 @@ export function IngredientInput({
 
   return (
     <form className={styles.form} onSubmit={handleSubmit}>
-      <label className={styles.label} htmlFor={inputId}>
-        Adicione um ingrediente
+      <label className={styles.srOnly} htmlFor={inputId}>
+        Adicionar ingrediente
       </label>
       <div className={styles.controls}>
         <input
@@ -50,19 +48,17 @@ export function IngredientInput({
             setValue(event.target.value);
             onValueChange?.();
           }}
-          placeholder="Ex.: ovo, banana ou farinha"
+          placeholder="Ex.: ovo, banana..."
           type="text"
           value={value}
         />
-        <Button disabled={disabled} type="submit" variant="secondary">
+        <button className={styles.button} disabled={disabled} type="submit">
           Adicionar
-        </Button>
+        </button>
       </div>
-      {error ? (
-        <p className={styles.error} id={errorId} role="alert">
-          {error}
-        </p>
-      ) : null}
+      <p aria-live="polite" className={styles.error} id={errorId}>
+        {error ?? ""}
+      </p>
     </form>
   );
 }

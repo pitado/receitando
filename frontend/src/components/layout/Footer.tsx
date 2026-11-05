@@ -8,7 +8,7 @@ import styles from "./Footer.module.css";
 export function Footer() {
   const pathname = usePathname();
 
-  if (pathname === "/cadastro" || pathname === "/recuperar-senha" || pathname === "/despensa" || pathname === "/receitas" || pathname === "/favoritos") {
+  if (pathname === "/cadastro" || pathname === "/recuperar-senha" || pathname === "/despensa" || pathname === "/receitas" || pathname === "/favoritos" || pathname === "/entrar" || pathname === "/combinar" || pathname === "/conta" || pathname === "/enviar-receita" || pathname === "/inspiracoes" || pathname.startsWith("/receitas/")) {
     return null;
   }
 

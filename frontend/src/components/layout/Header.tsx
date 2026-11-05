@@ -80,7 +80,7 @@ function LegacyHeader() {
 export function Header() {
   const pathname = usePathname();
 
-  if (pathname === "/" || pathname === "/cadastro" || pathname === "/recuperar-senha" || pathname === "/despensa" || pathname === "/receitas" || pathname === "/favoritos") {
+  if (pathname === "/" || pathname === "/cadastro" || pathname === "/recuperar-senha" || pathname === "/despensa" || pathname === "/receitas" || pathname === "/favoritos" || pathname === "/entrar" || pathname === "/combinar" || pathname === "/conta" || pathname === "/enviar-receita" || pathname === "/inspiracoes" || pathname.startsWith("/receitas/")) {
     return <HomeHeader />;
   }
 
