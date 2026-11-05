@@ -240,7 +240,7 @@ async function efficientMatch(env: Env, ingredientIds: string[]) {
       AND i.is_staple = 0
       AND ri.ingredient_id IN (${mark})
     GROUP BY ri.recipe_id
-    ORDER BY foundCount DESC
+    ORDER BY COUNT(DISTINCT ri.ingredient_id) DESC
     LIMIT 80
   `).bind(...ingredientIds).all<{ recipeId: string; foundCount: number }>();
 

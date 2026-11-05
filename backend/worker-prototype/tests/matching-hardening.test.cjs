@@ -60,6 +60,8 @@ test("matching resolve variação canônica e não penaliza ingrediente básico"
     }
     if (op === "all" && sql.includes("COUNT(DISTINCT ri.ingredient_id) AS foundCount")) {
       assert.ok(sql.includes("i.is_staple = 0"));
+      // Evita ORDER BY foundCount: o PostgreSQL diferencia aliases camelCase.
+      assert.ok(sql.includes("ORDER BY COUNT(DISTINCT ri.ingredient_id) DESC"));
       return [{ recipeId: "recipe-1", foundCount: 1 }];
     }
     if (op === "all" && sql.startsWith("SELECT id, title, slug")) {
