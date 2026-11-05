@@ -70,19 +70,24 @@ export function AccountClient() {
     async function load() {
       try {
         const currentUser = await getCurrentUser();
-        const [pantry, favorites] = await Promise.all([getPantry(), listFavorites()]);
         if (cancelled) return;
         setUser(currentUser);
+        setHasError(false);
+        setIsLoading(false);
         if (new URLSearchParams(window.location.search).get("editar") === "1") {
           setEditName(currentUser.name);
           setEditHandle(suggestedHandle(currentUser));
           setEditAvatar(currentUser.avatarKey || "tomato");
           setIsEditing(true);
         }
-        setPantryCount(pantry.length);
-        setFavoriteCount(favorites.length);
         setHour(new Date().getHours());
         setGreetingVariation(Math.floor(Math.random() * 5));
+
+        // Perfil e edição não dependem da disponibilidade de despensa/favoritos.
+        const [pantry, favorites] = await Promise.allSettled([getPantry(), listFavorites()]);
+        if (cancelled) return;
+        if (pantry.status === "fulfilled") setPantryCount(pantry.value.length);
+        if (favorites.status === "fulfilled") setFavoriteCount(favorites.value.length);
       } catch {
         if (!cancelled) setHasError(true);
       } finally {
