@@ -93,15 +93,17 @@ export function BiteWordmark({ centered = false, compact = false }: BiteWordmark
     const word = wordRef.current;
     if (!word) return;
     const observer = new ResizeObserver(applyMask);
+    const frames = activeFrames.current;
+    const timers = crumbTimers.current;
     observer.observe(word);
     return () => {
       observer.disconnect();
       if (settleTimer.current !== null) window.clearTimeout(settleTimer.current);
       if (restoreFrame.current !== null) window.cancelAnimationFrame(restoreFrame.current);
-      for (const frame of activeFrames.current) window.cancelAnimationFrame(frame);
-      for (const timer of crumbTimers.current) window.clearTimeout(timer);
-      activeFrames.current.clear();
-      crumbTimers.current.clear();
+      for (const frame of frames) window.cancelAnimationFrame(frame);
+      for (const timer of timers) window.clearTimeout(timer);
+      frames.clear();
+      timers.clear();
     };
   }, [applyMask]);
 
