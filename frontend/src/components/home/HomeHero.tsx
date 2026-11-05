@@ -116,7 +116,7 @@ export function HomeHero({
             ) : matchState === "ready" && featuredMatch ? (
               <>Já temos sugestões para você. <a href="#combinacoes">Explorar combinações</a></>
             ) : (
-              <>Gostou da inspiração? <a href="/receitas">Explore nossas receitas</a></>
+              <>Gostou da inspiração? <Link href="/receitas">Explore nossas receitas</Link></>
             )}
           </div>
         </div>
