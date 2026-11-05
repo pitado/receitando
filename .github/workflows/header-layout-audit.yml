@@ -5,6 +5,9 @@ on:
     paths:
       - ".github/workflows/header-layout-audit.yml"
       - "frontend/e2e/header-layout-audit.mjs"
+      - "frontend/src/components/home/HomeHeader.module.css"
+      - "frontend/src/components/home/HomeHeader.tsx"
+      - "frontend/src/components/home/HomeAccountMenu.tsx"
   workflow_dispatch:
 
 permissions:
