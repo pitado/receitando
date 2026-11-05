@@ -1,0 +1,36 @@
+name: Smoke API - Combinacoes
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/smoke-api-match.yml"
+      - "backend/worker-prototype/src/catalog64-worker.ts"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Confirmar home-feed publico
+        run: |
+          curl --fail --silent --show-error --max-time 20 \
+            https://api.receitando.miguelpita.com.br/api/home-feed \
+            | node -e 'let s=""; process.stdin.on("data",c=>s+=c).on("end",()=>{const p=JSON.parse(s);if(!p.totals||!Array.isArray(p.popular))process.exit(1);console.log("Feed OK - receitas: "+p.totals.recipes)})'
+      - name: Confirmar matching real com exemplo da home
+        run: |
+          code=$(curl --silent --show-error --max-time 25 \
+            -o /tmp/matching.json -w '%{http_code}' \
+            -X POST https://api.receitando.miguelpita.com.br/api/recipes/match \
+            -H 'Content-Type: application/json' \
+            -H 'Origin: https://receitando.miguelpita.com.br' \
+            --data '{"ingredients":["leite","ovo","queijo","polvilho doce","óleo","sal"]}')
+          echo "HTTP status matching: $code"
+          if [ "$code" != "200" ]; then
+            head -c 350 /tmp/matching.json
+            exit 1
+          fi
+          node -e 'const fs=require("fs");const a=JSON.parse(fs.readFileSync("/tmp/matching.json","utf8"));if(!Array.isArray(a)||a.length<1)process.exit(1);console.log("Matching OK - "+a.length+" receitas; melhor: "+a[0].title+" ("+a[0].compatibility+"%)")'
