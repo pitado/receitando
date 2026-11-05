@@ -31,7 +31,7 @@ export default async function InspirationsPage() {
   }
 
   return (
-    <main className={styles.page}>
+    <div className={styles.page}>
       <div className={styles.container}>
         <Link className={styles.back} href="/receitas">← Voltar às receitas</Link>
         <div className={styles.hero}>
@@ -59,6 +59,6 @@ export default async function InspirationsPage() {
         </div>
         <p className={styles.footer}>Conhece uma receita sua para compartilhar? <Link href="/enviar-receita">Envie ao Receitando</Link>. Publicamos receitas completas somente com direitos de uso verificados.</p>
       </div>
-    </main>
+    </div>
   );
 }
