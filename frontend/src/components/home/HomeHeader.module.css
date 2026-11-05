@@ -391,3 +391,54 @@
   .submitButton { min-height:42px; min-width:67px; font-size:14px; padding:9px 10px; }
   .profileMenu { right:-75px; }
 }
+
+
+/* Responsividade real do cabeçalho: quatro ações sem sobreposição em celulares. */
+@media (max-width: 640px) {
+  .topInner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 7px;
+    padding-inline: 16px;
+  }
+  .searchTrigger {
+    flex: 0 0 42px;
+    height: 42px;
+    width: 42px;
+  }
+  .logo {
+    flex: 0 1 auto;
+    min-width: 0;
+    margin-inline: auto;
+    justify-self: auto;
+  }
+  .logo > div { max-width: 100%; }
+  .topInner .logo button {
+    font-size: clamp(18px, 5.15vw, 22px);
+    min-height: 42px;
+    padding-inline: 0;
+  }
+  .rightActions {
+    flex: 0 0 auto;
+    gap: 6px;
+    justify-self: auto;
+  }
+  .submitButton { flex: none; }
+}
+@media (max-width: 420px) {
+  .topInner { gap: 5px; padding-inline: 12px; }
+  .searchTrigger { flex-basis: 37px; height: 37px; width: 37px; }
+  .topInner .logo button {
+    font-size: clamp(16px, 5.12vw, 21px);
+    padding-inline: 0;
+  }
+  .rightActions { gap: 5px; }
+  .submitButton { min-width: 68px; padding: 9px 11px; }
+}
+@media (max-width: 350px) {
+  .topInner { gap: 4px; padding-inline: 9px; }
+  .rightActions { gap: 3px; }
+  .submitButton { font-size: 13px; min-width: 58px; padding-inline: 8px; }
+  .topInner .logo button { font-size: clamp(15px, 4.9vw, 17px); }
+}
