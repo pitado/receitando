@@ -384,7 +384,7 @@
 @media(max-width:420px) {
   .topInner { padding-inline:12px; }
   .searchTrigger { width:38px; height:38px; }
-  .logo button { font-size:clamp(20px,5.6vw,24px); padding-inline:2px; }
+  .logo a { font-size:clamp(20px,5.6vw,24px); padding-inline:2px; }
   .rightActions { gap:5px; }
   .profileTrigger,.profileLogin,.profilePlaceholder { width:37px; height:37px; min-width:37px; min-height:37px; }
   .profileAvatar { width:31px; height:31px; }
@@ -414,7 +414,7 @@
     justify-self: auto;
   }
   .logo > div { max-width: 100%; }
-  .topInner .logo button {
+  .topInner .logo a {
     font-size: clamp(18px, 5.15vw, 22px);
     min-height: 42px;
     padding-inline: 0;
@@ -429,7 +429,7 @@
 @media (max-width: 420px) {
   .topInner { gap: 5px; padding-inline: 12px; }
   .searchTrigger { flex-basis: 37px; height: 37px; width: 37px; }
-  .topInner .logo button {
+  .topInner .logo a {
     font-size: clamp(16px, 5.12vw, 21px);
     padding-inline: 0;
   }
@@ -440,7 +440,7 @@
   .topInner { gap: 4px; padding-inline: 9px; }
   .rightActions { gap: 3px; }
   .submitButton { font-size: 13px; min-width: 58px; padding-inline: 8px; }
-  .topInner .logo button { font-size: clamp(15px, 4.9vw, 17px); }
+  .topInner .logo a { font-size: clamp(15px, 4.9vw, 17px); }
 }
 
 
@@ -458,7 +458,7 @@
     margin-inline:auto;
     justify-self:auto;
   }
-  .topInner .logo button {
+  .topInner .logo a {
     font-size:clamp(24px,3.5vw,33px);
     min-height:48px;
     padding-inline:0;

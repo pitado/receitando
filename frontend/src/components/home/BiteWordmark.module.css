@@ -31,7 +31,6 @@
 }
 
 .wordmark:active { transform: scale(0.97); }
-.wordmark { -webkit-mask-composite: source-in; mask-composite: intersect; }
 .wordmark:focus-visible {
   border-radius: 8px;
   outline: 3px solid var(--home-gema);
@@ -83,11 +82,11 @@
 .bite-right { transform: translate(-50%, -50%) rotate(90deg); }
 .bite-bottom { transform: translate(-50%, -50%) rotate(180deg); }
 
-.crumbLayer { inset: 0; pointer-events: none; position: absolute; }
+.crumbLayer { inset: 0; overflow: visible; pointer-events: none; position: absolute; }
 
 .crumb {
   animation: crumb-fall 900ms ease-out var(--crumb-delay) both;
-  background: var(--home-papel);
+  background: var(--home-gema);
   height: 4px;
   left: var(--crumb-x);
   position: absolute;
@@ -98,7 +97,7 @@
 @keyframes crumb-fall {
   0% { opacity: 0; transform: translate3d(0, 0, 0) rotate(0deg); }
   20% { opacity: 1; }
-  100% { opacity: 0; transform: translate3d(8px, 14px, 0) rotate(85deg); }
+  100% { opacity: 0; transform: translate3d(var(--crumb-dx, 8px), var(--crumb-dy, 14px), 0) rotate(85deg); }
 }
 
 @media (max-width: 640px) {
@@ -116,3 +115,6 @@
   .crumbLayer { display: none; }
   .wordmark:active { transform: none; }
 }
+/* O link da marca não fica aninhado em outro elemento interativo. */
+.wordmark { text-decoration: none; -webkit-tap-highlight-color: transparent; }
+.crumb { border-radius: 2px; }

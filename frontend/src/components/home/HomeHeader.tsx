@@ -182,9 +182,9 @@ export function HomeHeader() {
             </svg>
           </button>
 
-          <Link aria-label="Receitando — início" className={styles.logo} href="/">
+          <div className={styles.logo}>
             <BiteWordmark compact />
-          </Link>
+          </div>
 
           <div className={styles.rightActions}>
             <HomeAccountMenu searchOpen={open} onOpen={() => setOpen(false)} />
