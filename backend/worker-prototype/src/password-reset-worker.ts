@@ -1,4 +1,5 @@
 import pantryWorker from "./pantry-worker";
+import { buildPasswordResetEmail } from "./lib/password-reset-email";
 import { bytesToBase64Url, hashPassword, sha256, verifyPassword } from "./lib/security";
 import {
   apiError,
@@ -41,6 +42,7 @@ async function sendResetEmail(env: Env, email: string, code: string): Promise<vo
     throw new Error("Resend não configurado: defina RESEND_API_KEY e EMAIL_FROM.");
   }
 
+  const message = buildPasswordResetEmail(code);
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
@@ -51,76 +53,26 @@ async function sendResetEmail(env: Env, email: string, code: string): Promise<vo
     body: JSON.stringify({
       from: env.EMAIL_FROM,
       to: [email],
-      subject: "Seu código está na mesa — volte para sua cozinha",
-      text: `Volte para sua cozinha.\n\nParece que a senha ficou fora da receita, mas isso é fácil de resolver.\n\nSeu código de recuperação é: ${code}\n\nEle expira em 10 minutos.\n\nSe você não pediu para trocar sua senha, pode ignorar este e-mail com tranquilidade.\n\nReceitando — ideias para o que já mora na sua cozinha.`,
-      html: `
-        <!doctype html>
-        <html lang="pt-BR">
-          <head>
-            <meta charset="utf-8">
-            <meta name="viewport" content="width=device-width,initial-scale=1">
-            <title>Volte para sua cozinha</title>
-          </head>
-          <body style="margin:0;padding:0;background:#fff6e9;color:#2a1608;font-family:Arial,Helvetica,sans-serif;">
-            <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">Seu código do Receitando está na mesa e expira em 10 minutos.</div>
-            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;background:#fff6e9;">
-              <tr>
-                <td align="center" style="padding:40px 16px;">
-                  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:600px;background:#fffaf4;border:1px solid #ead5c5;border-radius:24px;overflow:hidden;">
-                    <tr>
-                      <td align="center" style="padding:36px 32px 18px;">
-                        <img src="https://receitando.miguelpita.com.br/receitando-logo.svg" width="210" alt="Receitando" style="display:block;width:210px;max-width:100%;height:auto;border:0;outline:none;text-decoration:none;">
-                      </td>
-                    </tr>
-                    <tr>
-                      <td style="padding:12px 40px 0;text-align:center;">
-                        <div style="font-size:12px;line-height:1.4;font-weight:800;letter-spacing:2px;color:#c2452c;text-transform:uppercase;">Recuperação de senha</div>
-                        <h1 style="margin:14px 0 12px;font-family:Georgia,'Times New Roman',serif;font-size:38px;line-height:1.05;font-weight:600;color:#2a1608;">Volte para sua cozinha.</h1>
-                        <p style="margin:0 auto;max-width:450px;font-size:16px;line-height:1.7;color:#6b4b3b;">Parece que a senha ficou fora da receita, mas isso é fácil de resolver. Seu código já está na mesa.</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td style="padding:30px 40px;">
-                        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;background:#f8dfcd;border:1px solid #efc7ad;border-radius:18px;">
-                          <tr>
-                            <td align="center" style="padding:24px 20px;">
-                              <div style="font-size:12px;line-height:1.4;font-weight:800;letter-spacing:1.6px;color:#9a3d28;text-transform:uppercase;">Seu código está na mesa</div>
-                              <div style="margin-top:10px;font-family:Arial,Helvetica,sans-serif;font-size:38px;line-height:1;font-weight:800;letter-spacing:10px;color:#2a1608;">${code}</div>
-                            </td>
-                          </tr>
-                        </table>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td style="padding:0 40px 8px;text-align:center;">
-                        <p style="margin:0;font-size:15px;line-height:1.7;color:#6b4b3b;">Ele expira em <strong style="color:#2a1608;">10 minutos</strong> — tempo suficiente para voltar ao fogão sem deixar nada queimar.</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td style="padding:22px 40px 36px;">
-                        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;border-top:1px solid #ead5c5;">
-                          <tr>
-                            <td style="padding-top:20px;text-align:center;font-size:13px;line-height:1.6;color:#8a6c5b;">Se você não pediu para trocar sua senha, pode ignorar este e-mail. Sua conta continua segura e nenhuma alteração será feita.</td>
-                          </tr>
-                        </table>
-                      </td>
-                    </tr>
-                  </table>
-                  <div style="padding:22px 12px 0;font-size:12px;line-height:1.6;color:#9b7d6c;text-align:center;">Receitando · ideias para o que já mora na sua cozinha.</div>
-                </td>
-              </tr>
-            </table>
-          </body>
-        </html>
-      `,
+      subject: message.subject,
+      text: message.text,
+      html: message.html,
     }),
   });
 
   if (!response.ok) {
-    const detail = await response.text();
-    console.error("Resend error", response.status, detail);
+    const payload = await response.json().catch(() => null) as { name?: string; statusCode?: number } | null;
+    // Não registrar conteúdo do e-mail, destinatário, token ou código nos logs.
+    console.error("Resend request rejected", {
+      status: response.status,
+      reason: payload?.name || "unknown",
+    });
     throw new Error("Falha ao enviar e-mail pelo Resend.");
   }
+
+  const payload = await response.json().catch(() => null) as { id?: string } | null;
+  console.info("Password reset email accepted by Resend", {
+    providerId: payload?.id || "unknown",
+  });
 }
 
 async function requestReset(request: Request, env: Env): Promise<Response> {
