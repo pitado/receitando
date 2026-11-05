@@ -1,0 +1,63 @@
+name: Smoke Visual - Home Publicada
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/home-visual-smoke.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  home:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/e2e/package-lock.json
+      - working-directory: frontend/e2e
+        run: npm ci
+      - working-directory: frontend/e2e
+        run: npx playwright install --with-deps chromium
+      - name: Testar e capturar home em producao
+        working-directory: frontend/e2e
+        run: |
+          node --input-type=module <<'NODE'
+          import { chromium } from "@playwright/test";
+          import fs from "node:fs/promises";
+          const browser = await chromium.launch({headless:true});
+          await fs.mkdir("home-preview",{recursive:true});
+          const report=[];
+          for (const size of [
+            {name:"mobile",width:390,height:844},
+            {name:"desktop",width:1440,height:900}
+          ]) {
+            const page = await browser.newPage({viewport:{width:size.width,height:size.height}});
+            const response = await page.goto("https://receitando.miguelpita.com.br/",{waitUntil:"domcontentloaded",timeout:30000});
+            await page.waitForTimeout(2500);
+            const photo = await page.locator('img[alt*="Pão caseiro econômico"]').count()
+              ? await page.locator('img[alt*="Pão caseiro econômico"]').first().evaluate(el => el.complete && el.naturalWidth > 0)
+              : false;
+            const fallback = await page.getByText("Feito com carinho").isVisible().catch(()=>false);
+            const removable = await page.getByRole("button",{name:"Remover leite"}).isVisible().catch(()=>false);
+            await page.screenshot({path:"home-preview/"+size.name+".png",fullPage:true,animations:"disabled"});
+            const result = {viewport:size.name,status:response?.status(),photoLoaded:photo,fallbackVisible:fallback,removableChip:removable};
+            report.push(result);
+            console.log(JSON.stringify(result));
+            if(response?.status()!==200||!removable||(!photo&&!fallback))process.exitCode=1;
+            await page.close();
+          }
+          await fs.writeFile("home-preview/report.json",JSON.stringify(report,null,2));
+          await browser.close();
+          NODE
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: preview-home-apos-correcoes
+          path: frontend/e2e/home-preview/
+          retention-days: 30
