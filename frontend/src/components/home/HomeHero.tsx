@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 import { getIngredients, type IngredientOption } from "@/services/pantry.service";
@@ -7,7 +9,7 @@ import type { MatchRecipeResult } from "@/types/recipe";
 
 import styles from "./HomeHero.module.css";
 
-const QUICK_INGREDIENTS = ["arroz", "tomate", "ovo", "frango", "batata", "cenoura"];
+const QUICK_INGREDIENTS = ["banana", "tomate", "batata", "frango", "macarrão", "cenoura", "alho", "aveia"];
 
 type HomeHeroProps = {
   ingredients: string[];
@@ -21,217 +23,122 @@ function normalize(value: string) {
   return value.trim().toLocaleLowerCase("pt-BR");
 }
 
-function isSameIngredient(a: string, b: string) {
-  return normalize(a) === normalize(b);
-}
-
-function RecipeName({ recipe }: { recipe: MatchRecipeResult | undefined }) {
-  return <span className={styles.recipeName}>{recipe ? recipe.title.toLocaleLowerCase("pt-BR") : ""}</span>;
-}
-
 export function HomeHero({
-  ingredients,
-  matches,
-  matchState,
-  onAddIngredient,
-  onRemoveIngredient,
+  ingredients, matches, matchState, onAddIngredient, onRemoveIngredient,
 }: HomeHeroProps) {
   const [value, setValue] = useState("");
   const [ingredientOptions, setIngredientOptions] = useState<IngredientOption[]>([]);
-  const [ingredientOptionsLoaded, setIngredientOptionsLoaded] = useState(false);
 
   useEffect(() => {
-    if (ingredientOptionsLoaded) return;
-    void getIngredients()
-      .then((options) => {
-        setIngredientOptions(options);
-        setIngredientOptionsLoaded(true);
-      })
-      .catch(() => setIngredientOptionsLoaded(true));
-  }, [ingredientOptionsLoaded]);
+    let active = true;
+    getIngredients()
+      .then((options) => { if (active) setIngredientOptions(options); })
+      .catch(() => { /* A edição dos ingredientes funciona mesmo sem sugestões da API. */ });
+    return () => { active = false; };
+  }, []);
 
-  const bestMatch = useMemo(() => matches[0], [matches]);
-  const readyCount = matches.filter((recipe) => recipe.status === "READY").length;
-  const oneAwayCount = matches.filter((recipe) => recipe.missingIngredients.length === 1).length;
-  const usableCount = matches.length;
-
-  const phrase = (() => {
-    if (ingredients.length === 0) {
-      return <span>O que tem aí na sua cozinha?</span>;
-    }
-
-    const have = ingredients.map((ingredient) => (
-      <button
-        aria-label={"Remover " + ingredient}
-        className={styles.haveChip}
-        key={ingredient}
-        onClick={() => onRemoveIngredient(ingredient)}
-        type="button"
-      >
-        <span>{ingredient}</span>
-        <b aria-hidden="true">×</b>
-      </button>
-    ));
-
-    if (matchState === "loading") {
-      return <><span>Buscando receitas com </span>{have}<span>...</span></>;
-    }
-
-    if (matchState === "error") {
-      return <><span>Não foi possível buscar receitas com </span>{have}<span>. Tente novamente abaixo.</span></>;
-    }
-
-    if (!bestMatch) {
-      return (
-        <>
-          <span>Com </span>
-          {have}
-          <span>, ainda não fecha uma receita. Que tal mais um ingrediente?</span>
-        </>
-      );
-    }
-
-    const missing = bestMatch.missingIngredients;
-
-    if (missing.length === 0) {
-      return (
-        <>
-          <span>Com </span>
-          {have}
-          <span>, dá pra fazer </span>
-          <RecipeName recipe={bestMatch} />
-          <span>.</span>
-        </>
-      );
-    }
-
-    const missingButtons = missing.slice(0, 3).map((ingredient) => (
-      <button
-        className={styles.missingChip}
-        key={ingredient.id}
-        onClick={() => onAddIngredient(ingredient.name)}
-        type="button"
-      >
-        <span aria-hidden="true">+</span>
-        {ingredient.name}
-      </button>
-    ));
-
-    if (missing.length === 1) {
-      return (
-        <>
-          <span>Com </span>
-          {have}
-          <span>, falta só </span>
-          {missingButtons}
-          <span> pra fazer </span>
-          <RecipeName recipe={bestMatch} />
-          <span>.</span>
-        </>
-      );
-    }
-
-    if (missing.length === 2) {
-      return (
-        <>
-          <span>Com </span>
-          {have}
-          <span>, faltam só </span>
-          {missingButtons[0]}
-          <span> e </span>
-          {missingButtons[1]}
-          <span> pra fazer </span>
-          <RecipeName recipe={bestMatch} />
-          <span>.</span>
-        </>
-      );
-    }
-
-    return (
-      <>
-        <span>Com </span>
-        {have}
-        <span>, você está a </span>
-        <strong className={styles.missingCount}>{missing.length}</strong>
-        <span> ingredientes de </span>
-        <RecipeName recipe={bestMatch} />
-        <span>.</span>
-      </>
-    );
-  })();
+  const readyCount = useMemo(
+    () => matches.filter((recipe) => recipe.status === "READY").length,
+    [matches],
+  );
+  const featuredMatch = matches.find((recipe) => recipe.status === "READY");
+  const hasExample = ingredients.length > 0;
 
   function addTypedIngredient() {
-    const candidate = value.trim();
-    if (!candidate) return;
-
-    onAddIngredient(candidate);
+    const ingredient = value.trim();
+    if (!ingredient) return;
+    onAddIngredient(ingredient);
     setValue("");
   }
 
   return (
     <section className={styles.hero} id="inicio">
-      <div className={"home-container " + styles.heroInner}>
-        <h1 aria-live="polite">{phrase}</h1>
+      <div className={"home-container " + styles.heroGrid}>
+        <div className={styles.copy}>
+          <p className={styles.eyebrow}><span className={styles.sparkle} aria-hidden="true">✳</span> IDEIAS QUE COMEÇAM EM CASA</p>
+          <h1>Uma cozinha cheia de <span>possibilidades.</span></h1>
+          <p className={styles.lead}>Escolha os ingredientes que você tem. A gente te ajuda a encontrar o próximo prato — sem complicar.</p>
 
-        <div className={styles.controls}>
-          <form
-            className={styles.addForm}
-            onSubmit={(event) => {
-              event.preventDefault();
-              addTypedIngredient();
-            }}
-          >
-            <input
-              aria-label="Adicionar ingrediente"
-              list="receitando-ingredients"
-              onChange={(event) => setValue(event.target.value)}
-              placeholder="O que mais tem aí?"
-              value={value}
-            />
-            <datalist id="receitando-ingredients">
-              {ingredientOptions.map((option) => <option key={option.id} value={option.name} />)}
-            </datalist>
-            <button type="submit">Adicionar</button>
-          </form>
-
-          <div aria-label="Atalhos de ingredientes" className={styles.quickList}>
-            {QUICK_INGREDIENTS.map((ingredient) => {
-              const selected = ingredients.some((item) => isSameIngredient(item, ingredient));
-              return (
+          <div className={styles.pantryPanel}>
+            <div className={styles.pantryHeading}>
+              <span>SUA BANCADA</span>
+              <span className={styles.count}>{ingredients.length} {ingredients.length === 1 ? "ingrediente" : "ingredientes"}</span>
+            </div>
+            <div className={styles.selectedIngredients} aria-label="Ingredientes selecionados">
+              {hasExample ? ingredients.map((ingredient) => (
                 <button
-                  aria-disabled={selected}
+                  aria-label={"Remover " + ingredient}
+                  className={styles.ingredientChip}
+                  key={ingredient}
+                  onClick={() => onRemoveIngredient(ingredient)}
+                  title={"Remover " + ingredient}
+                  type="button"
+                >
+                  {ingredient}<span aria-hidden="true">×</span>
+                </button>
+              )) : <span className={styles.emptyHint}>Comece com um ingrediente que tenha por aí.</span>}
+            </div>
+            <form
+              className={styles.addForm}
+              onSubmit={(event) => { event.preventDefault(); addTypedIngredient(); }}
+            >
+              <label className="sr-only" htmlFor="home-ingredient">Adicionar ingrediente</label>
+              <input
+                id="home-ingredient"
+                list="receitando-ingredients"
+                onChange={(event) => setValue(event.target.value)}
+                placeholder="Ex.: tomate, banana, queijo..."
+                value={value}
+              />
+              <datalist id="receitando-ingredients">
+                {ingredientOptions.map((option) => <option key={option.id} value={option.name} />)}
+              </datalist>
+              <button type="submit">Adicionar <span aria-hidden="true">+</span></button>
+            </form>
+            <div className={styles.quickList}>
+              <span className={styles.quickLabel}>TENTE TAMBÉM</span>
+              {QUICK_INGREDIENTS.filter((ingredient) =>
+                !ingredients.some((selected) => normalize(selected) === normalize(ingredient)),
+              ).slice(0, 5).map((ingredient) => (
+                <button
                   className={styles.quickButton}
-                  disabled={selected}
                   key={ingredient}
                   onClick={() => onAddIngredient(ingredient)}
                   type="button"
-                >
-                  {ingredient}
-                </button>
-              );
-            })}
+                >+ {ingredient}</button>
+              ))}
+            </div>
+          </div>
+
+          <div className={styles.summary} aria-live="polite">
+            {matchState === "ready" && readyCount > 0 ? (
+              <><span className={styles.statusDot} /> {readyCount} {readyCount === 1 ? "receita pronta" : "receitas prontas"} com sua seleção. <a href="#combinacoes">Ver ideias</a></>
+            ) : matchState === "ready" && featuredMatch ? (
+              <>Já temos sugestões para você. <a href="#combinacoes">Explorar combinações</a></>
+            ) : (
+              <>Gostou da inspiração? <a href="/receitas">Explore nossas receitas</a></>
+            )}
           </div>
         </div>
 
-        <div className={styles.summary}>
-          {ingredients.length === 0 ? (
-            <span>Comece digitando ou escolha um ingrediente acima.</span>
-          ) : matchState === "loading" ? (
-            <span role="status">Analisando os ingredientes e procurando combinações...</span>
-          ) : matchState === "error" ? (
-            <><span>Não foi possível consultar as combinações agora.</span><a href="#combinacoes">Tentar novamente</a></>
-          ) : matches.length === 0 ? (
-            <><span>Nenhuma combinação encontrada ainda. Experimente adicionar outro ingrediente.</span><a href="#combinacoes">Ver sugestões</a></>
-          ) : (
-            <>
-              {readyCount > 0 ? <span>{readyCount} {readyCount === 1 ? "pronta" : "prontas"} pra fazer</span> : null}
-              {readyCount > 0 && oneAwayCount > 0 ? <span>, </span> : null}
-              {oneAwayCount > 0 ? <span>{oneAwayCount} a um ingrediente de distância</span> : null}
-              {(readyCount > 0 || oneAwayCount > 0) ? <span>, </span> : null}
-              <span>{usableCount} {usableCount === 1 ? "combinação encontrada" : "combinações encontradas"}</span>
-              <a href="#combinacoes">Ver combinações</a>
-            </>
-          )}
+        <div className={styles.featureSide}>
+          <Link className={styles.featureCard} href="/receitas/pao-de-queijo-mineiro" aria-label="Ver receita de pão de queijo caseiro">
+            <div className={styles.featureImage}>
+              <Image
+                alt="Pães de queijo dourados, receita disponível no Receitando"
+                fill
+                priority
+                sizes="(max-width: 860px) 90vw, 40vw"
+                src="https://upload.wikimedia.org/wikipedia/commons/a/aa/Pao_de_queijo_brasil.jpg"
+              />
+            </div>
+            <div className={styles.featureDetails}>
+              <p>DA NOSSA COZINHA PARA A SUA</p>
+              <h2>Pão de queijo caseiro</h2>
+              <div className={styles.featureFooter}><span>Uma ideia para começar · 50 min</span><strong>Ver receita <span aria-hidden="true">↗</span></strong></div>
+            </div>
+          </Link>
+          <span className={styles.featureCaption}>Uma receita de verdade, só para abrir o apetite.</span>
         </div>
       </div>
     </section>

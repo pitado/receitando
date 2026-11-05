@@ -417,3 +417,6 @@
 }
 .retryButton:hover { background: var(--home-cafe-esc); }
 .retryButton:focus-visible { outline: 3px solid var(--home-gema); outline-offset: 3px; }
+
+/* Sugestões reais e rotuladas como inspiração em caso de falha de matching. */
+.inspirationList { border-top: 1px solid var(--home-linha); margin-top: 22px; }

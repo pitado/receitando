@@ -150,8 +150,8 @@ export function HomeLiveSections({
       <section className={styles.combinationsSection} id="combinacoes">
         <div className="home-container">
           <div className={styles.sectionHeading}>
-            <h2>Do que já dá pra fazer ao que falta pouco</h2>
-            <p>A lista se reorganiza conforme sua bancada muda. Toque num ingrediente que falta para adicioná-lo.</p>
+            <h2>Uma ideia puxa outra</h2>
+            <p>Descubra pratos de verdade e, quando disponível, veja o que combina com sua seleção.</p>
           </div>
 
           <div className={styles.recipeList} aria-live="polite">
@@ -160,15 +160,20 @@ export function HomeLiveSections({
                 <p className={styles.emptyRecipes} role="status">Buscando as melhores combinações para sua bancada...</p>
               ) : matchState === "error" ? (
                 <div className={styles.emptyRecipes}>
-                  <p>A busca de combinações está indisponível agora. Seus ingredientes continuam selecionados.</p>
-                  <button className={styles.retryButton} onClick={onRetryMatch} type="button">Tentar novamente</button>
+                  <p>Ainda não conseguimos comparar sua bancada. Enquanto isso, inspire-se com estas receitas do catálogo.</p>
+                  <button className={styles.retryButton} onClick={onRetryMatch} type="button">Atualizar sugestões</button>
+                  {feed?.popular?.length ? (
+                    <div className={styles.inspirationList}>
+                      {feed.popular.slice(0, 4).map((recipe) => <PopularRow key={recipe.id} recipe={recipe} />)}
+                    </div>
+                  ) : null}
                 </div>
               ) : visibleMatches.length > 0 ? (
                 visibleMatches.map((recipe) => (
                   <MatchRow key={recipe.id} onAddIngredient={onAddIngredient} recipe={recipe} />
                 ))
               ) : (
-                <p className={styles.emptyRecipes}>Ainda não encontramos combinações para estes ingredientes. Acrescente mais um ingrediente ou explore o catálogo.</p>
+                <div className={styles.emptyRecipes}><p>Sem combinações exatas por enquanto. Explore estas receitas do catálogo e descubra outras possibilidades.</p>{feed?.popular?.length ? <div className={styles.inspirationList}>{feed.popular.slice(0, 4).map((recipe) => <PopularRow key={recipe.id} recipe={recipe} />)}</div> : null}</div>
               )
             ) : feedState === "loading" ? (
               <p className={styles.emptyRecipes} role="status">Carregando sugestões de receitas...</p>

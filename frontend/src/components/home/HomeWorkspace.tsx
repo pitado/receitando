@@ -13,6 +13,7 @@ import { HomeHero } from "./HomeHero";
 import { HomeLiveSections } from "./HomeLiveSections";
 
 type LoadState = "idle" | "loading" | "ready" | "error";
+const DEFAULT_INGREDIENTS = ["leite", "ovo", "queijo", "polvilho doce", "óleo", "sal"];
 
 function uniqueIngredients(values: string[]) {
   const seen = new Set<string>();
@@ -37,7 +38,7 @@ function sortMatches(items: MatchRecipeResult[]) {
 
 export function HomeWorkspace() {
   // Sem pressupor ingredientes na cozinha de um visitante.
-  const [ingredients, setIngredients] = useState<string[]>([]);
+  const [ingredients, setIngredients] = useState<string[]>(DEFAULT_INGREDIENTS);
   const [matches, setMatches] = useState<MatchRecipeResult[]>([]);
   const [matchState, setMatchState] = useState<LoadState>("idle");
   const [matchRetry, setMatchRetry] = useState(0);
@@ -71,7 +72,7 @@ export function HomeWorkspace() {
       if (!hasAuthSessionHint()) {
         setUser(null);
         setPantryCount(0);
-        setIngredients([]);
+        setIngredients(DEFAULT_INGREDIENTS);
         return;
       }
 
