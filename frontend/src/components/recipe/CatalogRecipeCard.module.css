@@ -222,3 +222,5 @@
     transform: none;
   }
 }
+
+.fallback svg { display:block; filter:drop-shadow(0 6px 5px rgba(35,15,8,.14)); }

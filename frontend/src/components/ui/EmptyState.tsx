@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { RecipeArtwork } from "@/components/art/RecipeArtwork";
 
 import styles from "./EmptyState.module.css";
 
@@ -12,7 +13,7 @@ interface EmptyStateProps {
 export function EmptyState({
   action,
   description,
-  icon = "♡",
+  icon = <RecipeArtwork kind="heart" size={35} />,
   title,
 }: EmptyStateProps) {
   return (

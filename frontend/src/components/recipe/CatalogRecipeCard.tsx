@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { FavoriteButton } from "@/components/recipe/FavoriteButton";
+import { RecipeArtwork, type RecipeArtworkKind } from "@/components/art/RecipeArtwork";
 import { RecipeTransitionLink } from "@/components/recipe/RecipeTransitionLink";
 import type { MatchRecipeResult, RecipeCatalogItem, RecipeDifficulty } from "@/types/recipe";
 
@@ -33,14 +34,14 @@ function sourceLabel(recipe: RecipeCatalogItem) {
   return (recipe.source.name || "COMUNIDADE").toLocaleUpperCase("pt-BR");
 }
 
-function mealIcon(mealType: string) {
+function mealArtwork(mealType: string): RecipeArtworkKind {
   const normalized = mealType.toLocaleLowerCase("pt-BR");
-  if (normalized.includes("café")) return "☕";
-  if (normalized.includes("sobremesa")) return "🍰";
-  if (normalized.includes("lanche")) return "🍪";
-  if (normalized.includes("jantar")) return "🌙";
-  if (normalized.includes("almoço")) return "🍲";
-  return "🍽";
+  if (normalized.includes("café")) return "breakfast";
+  if (normalized.includes("sobremesa")) return "dessert";
+  if (normalized.includes("lanche")) return "snack";
+  if (normalized.includes("jantar")) return "dinner";
+  if (normalized.includes("almoço")) return "lunch";
+  return "dish";
 }
 
 export function CatalogRecipeCard({
@@ -78,7 +79,7 @@ export function CatalogRecipeCard({
           />
         ) : (
           <div className={styles.fallback} aria-hidden="true">
-            <span>{mealIcon(recipe.mealType)}</span>
+            <RecipeArtwork kind={mealArtwork(recipe.mealType)} size={76} />
           </div>
         )}
 

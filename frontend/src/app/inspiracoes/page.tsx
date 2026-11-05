@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { RecipeArtwork } from "@/components/art/RecipeArtwork";
 import { apiRequest } from "@/services/api-client";
 import styles from "./page.module.css";
 
@@ -49,7 +50,7 @@ export default async function InspirationsPage() {
                 <span className={styles.category}>{recipe.category}</span>
                 <span className={styles.source}>{recipe.sourceName}</span>
               </div>
-              <div className={styles.illustration} aria-hidden="true">✦</div>
+              <div className={styles.illustration} aria-hidden="true"><RecipeArtwork kind="sparkle" size={50} /></div>
               <h2>{recipe.title}</h2>
               {recipe.sourceAuthor ? <p className={styles.credit}>Crédito: {recipe.sourceAuthor}</p> : <p className={styles.credit}>Fonte: {recipe.sourceName}</p>}
               <p className={styles.legalShort}>Conteúdo original no site da fonte.</p>

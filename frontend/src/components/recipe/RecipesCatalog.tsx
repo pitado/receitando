@@ -11,6 +11,7 @@ import {
 
 import { CatalogFilters } from "@/components/recipe/CatalogFilters";
 import { CatalogRecipeCard } from "@/components/recipe/CatalogRecipeCard";
+import { RecipeArtwork } from "@/components/art/RecipeArtwork";
 import { AUTH_CHANGED_EVENT, hasAuthSessionHint } from "@/services/auth-storage";
 import { listFavorites } from "@/services/favorites.service";
 import { getPantry } from "@/services/pantry.service";
@@ -38,12 +39,12 @@ const PAGE_SIZE = 36;
 const SEARCH_DELAY_MS = 300;
 
 const mealTabs = [
-  { value: "", label: "Todas", icon: "▦" },
-  { value: "Café da manhã", label: "Café da manhã", icon: "☕" },
-  { value: "Almoço", label: "Almoço", icon: "🍲" },
-  { value: "Jantar", label: "Jantar", icon: "🌙" },
-  { value: "Lanche", label: "Lanche", icon: "🍪" },
-  { value: "Sobremesa", label: "Sobremesa", icon: "🍰" },
+  { value: "", label: "Todas", icon: "all" },
+  { value: "Café da manhã", label: "Café da manhã", icon: "breakfast" },
+  { value: "Almoço", label: "Almoço", icon: "lunch" },
+  { value: "Jantar", label: "Jantar", icon: "dinner" },
+  { value: "Lanche", label: "Lanche", icon: "snack" },
+  { value: "Sobremesa", label: "Sobremesa", icon: "dessert" },
 ] as const;
 
 function mergeRecipes(
@@ -423,7 +424,7 @@ export function RecipesCatalog({
                 role="tab"
                 type="button"
               >
-                <span aria-hidden="true">{tab.icon}</span>
+                <RecipeArtwork kind={tab.icon} size={22} />
                 {tab.label}
               </button>
             ))}

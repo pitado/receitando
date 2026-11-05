@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import type { MatchRecipeResult, RecipeDifficulty } from "@/types/recipe";
+import { RecipeArtwork } from "@/components/art/RecipeArtwork";
 
 import styles from "./MatchResultRow.module.css";
 
@@ -91,7 +92,7 @@ export function MatchResultRow({
 
         {urgentIngredientNames.length > 0 ? (
           <p className={styles.urgency}>
-            🕒 usa {joinNames(urgentIngredientNames)}, que{" "}
+            <RecipeArtwork kind="clock" size={17} /> usa {joinNames(urgentIngredientNames)}, que{" "}
             {urgentIngredientNames.length === 1 ? "vence" : "vencem"} logo
           </p>
         ) : null}
