@@ -1,6 +1,5 @@
 import pantryWorker from "./pantry-worker";
 import { buildPasswordResetEmail } from "./lib/password-reset-email";
-import { buildPasswordResetEmail } from "./lib/password-reset-email";
 import { bytesToBase64Url, hashPassword, sha256, verifyPassword } from "./lib/security";
 import {
   apiError,
