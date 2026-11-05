@@ -88,7 +88,7 @@ export function HomeWorkspace() {
       if (pantryResult.status === "fulfilled") {
         const pantry = pantryResult.value;
         setPantryCount(pantry.length);
-        setIngredients(uniqueIngredients(pantry.map((item) => item.ingredientName)));
+        // A home exibe um exemplo editável; a despensa real continua acessível em /despensa.
       }
     }
 

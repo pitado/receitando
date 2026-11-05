@@ -57,11 +57,11 @@ export function HomeHero({
         <div className={styles.copy}>
           <p className={styles.eyebrow}><span className={styles.sparkle} aria-hidden="true">✳</span> IDEIAS QUE COMEÇAM EM CASA</p>
           <h1>Uma cozinha cheia de <span>possibilidades.</span></h1>
-          <p className={styles.lead}>Escolha os ingredientes que você tem. A gente te ajuda a encontrar o próximo prato — sem complicar.</p>
+          <p className={styles.lead}>Estes ingredientes são só um exemplo. Tire pelo × o que não tem e coloque os seus — uma boa ideia começa assim.</p>
 
           <div className={styles.pantryPanel}>
             <div className={styles.pantryHeading}>
-              <span>SUA BANCADA</span>
+              <span>UM EXEMPLO PARA COMEÇAR · TROQUE PELO ×</span>
               <span className={styles.count}>{ingredients.length} {ingredients.length === 1 ? "ingrediente" : "ingredientes"}</span>
             </div>
             <div className={styles.selectedIngredients} aria-label="Ingredientes selecionados">
