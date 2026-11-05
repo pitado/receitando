@@ -442,3 +442,26 @@
   .submitButton { font-size: 13px; min-width: 58px; padding-inline: 8px; }
   .topInner .logo button { font-size: clamp(15px, 4.9vw, 17px); }
 }
+
+
+/* Entre tablet e notebook: o wordmark não pode invadir os controles de conta. */
+@media (min-width: 641px) and (max-width: 1000px) {
+  .topInner {
+    display:flex;
+    justify-content:space-between;
+    gap:12px;
+  }
+  .searchTrigger { flex:none; }
+  .logo {
+    flex:0 1 auto;
+    min-width:0;
+    margin-inline:auto;
+    justify-self:auto;
+  }
+  .topInner .logo button {
+    font-size:clamp(24px,3.5vw,33px);
+    min-height:48px;
+    padding-inline:0;
+  }
+  .rightActions { flex:none; gap:9px; justify-self:auto; }
+}
