@@ -1,5 +1,6 @@
 import pantryWorker from "./pantry-worker";
 import { buildPasswordResetEmail } from "./lib/password-reset-email";
+import { buildPasswordResetEmail } from "./lib/password-reset-email";
 import { bytesToBase64Url, hashPassword, sha256, verifyPassword } from "./lib/security";
 import {
   apiError,
@@ -57,22 +58,30 @@ async function sendResetEmail(env: Env, email: string, code: string): Promise<vo
       text: message.text,
       html: message.html,
     }),
+    signal: AbortSignal.timeout(15000),
   });
 
   if (!response.ok) {
-    const payload = await response.json().catch(() => null) as { name?: string; statusCode?: number } | null;
-    // Não registrar conteúdo do e-mail, destinatário, token ou código nos logs.
-    console.error("Resend request rejected", {
+    const rawDetail = await response.text();
+    let providerCode = "unknown";
+    try {
+      const details = JSON.parse(rawDetail) as { name?: string };
+      providerCode = String(details.name || "unknown").slice(0, 80);
+    } catch { /* Não registrar o corpo bruto: pode conter endereços de e-mail. */ }
+    console.error("Password reset provider rejected message", {
       status: response.status,
-      reason: payload?.name || "unknown",
+      providerCode,
     });
     throw new Error("Falha ao enviar e-mail pelo Resend.");
   }
 
-  const payload = await response.json().catch(() => null) as { id?: string } | null;
-  console.info("Password reset email accepted by Resend", {
-    providerId: payload?.id || "unknown",
-  });
+  const responseBody = await response.json().catch(() => null) as { id?: string } | null;
+  if (!responseBody?.id) {
+    console.error("Password reset provider returned no message ID");
+    throw new Error("O provedor de e-mail não confirmou a solicitação.");
+  }
+  // Aceito pelo provedor não significa entregue na caixa postal (pode haver bounce).
+  console.info("Password reset provider accepted message", { providerMessageId: responseBody.id });
 }
 
 async function requestReset(request: Request, env: Env): Promise<Response> {

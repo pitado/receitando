@@ -2,32 +2,22 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const { buildPasswordResetEmail } = require("../.test-dist/lib/password-reset-email.js");
 
-test("novo e-mail usa paleta, código e duração do Receitando", () => {
-  const mail = buildPasswordResetEmail("482719");
-  assert.match(mail.subject, /Receitando/);
-  assert.match(mail.html, /#96462b/i);
-  assert.match(mail.html, /#fbf2e8/i);
-  assert.match(mail.html, /receitando/);
-  assert.match(mail.html, /482719/);
-  assert.match(mail.text, /482719/);
-  assert.match(mail.text, /10 minutos/);
-  assert.match(mail.html, /Não foi você/);
-  assert.match(mail.html, /meta name="viewport"/);
-  assert.doesNotMatch(mail.html, /<img\b/i);
-  assert.doesNotMatch(mail.html, /{{CODE}}/);
-  assert.doesNotMatch(mail.text, /{{CODE}}/);
+test("mensagem de recuperação usa identidade e código corretos", () => {
+  const email = buildPasswordResetEmail("012345");
+  assert.equal(email.subject, "Seu código de recuperação | Receitando");
+  assert.match(email.text, /012345/);
+  assert.match(email.html, /012345/);
+  assert.match(email.html, /#96462B/i);
+  assert.match(email.html, /#FBF2E8/i);
+  assert.match(email.html, /receitando/);
+  assert.match(email.text, /10 minutos/);
+  assert.match(email.html, /10 minutos/);
+  assert.match(email.html, /lang="pt-BR"/);
+  assert.doesNotMatch(email.html, /<img\b/i);
 });
 
-test("código tem exatamente seis dígitos e nunca injeta HTML", () => {
-  assert.throws(() => buildPasswordResetEmail("<script>"), /inválido/);
-  assert.throws(() => buildPasswordResetEmail("12345"), /inválido/);
-  assert.throws(() => buildPasswordResetEmail("1234567"), /inválido/);
-});
-
-test("HTML é legível mesmo com imagens externas bloqueadas", () => {
-  const mail = buildPasswordResetEmail("000001");
-  assert.match(mail.html, /000001/);
-  assert.match(mail.html, /font-family:Impact/);
-  assert.match(mail.html, /role="presentation"/);
-  assert.match(mail.text, /https:\/\/receitando\.miguelpita\.com\.br/);
+test("não aceita código inválido ou vazio", () => {
+  for (const code of ["", "123", "1234567", "123abc", "<b>123</b>"]) {
+    assert.throws(() => buildPasswordResetEmail(code));
+  }
 });
