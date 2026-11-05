@@ -199,3 +199,8 @@
 @media(prefers-reduced-motion:reduce) {
   .featureCard,.ingredientChip { transition: none; transform: none; }
 }
+
+/* Reserva visual acessível para casos em que o servidor da foto esteja indisponível. */
+.photoFallback { align-items: center; background: radial-gradient(circle at 65% 30%, #ecd4a6, #b96d43 70%, #91482c); color: #fff9ed; display: flex; flex-direction: column; gap: 14px; height: 100%; justify-content: center; position: absolute; width: 100%; }
+.photoFallback span { font: 400 100px/1 var(--font-home-title),sans-serif; }
+.photoFallback strong { font: 400 clamp(20px,3vw,36px)/1.2 var(--font-home-title),sans-serif; max-width: 13ch; text-align: center; }

@@ -27,6 +27,7 @@ export function HomeHero({
   ingredients, matches, matchState, onAddIngredient, onRemoveIngredient,
 }: HomeHeroProps) {
   const [value, setValue] = useState("");
+  const [featuredImageError, setFeaturedImageError] = useState(false);
   const [ingredientOptions, setIngredientOptions] = useState<IngredientOption[]>([]);
 
   useEffect(() => {
@@ -122,20 +123,25 @@ export function HomeHero({
         </div>
 
         <div className={styles.featureSide}>
-          <Link className={styles.featureCard} href="/receitas/pao-de-queijo-mineiro" aria-label="Ver receita de pão de queijo caseiro">
+          <Link className={styles.featureCard} href="/receitas/santa-receita-pao-caseiro-economico" aria-label="Ver receita de pão caseiro econômico">
             <div className={styles.featureImage}>
-              <Image
-                alt="Pães de queijo dourados, receita disponível no Receitando"
-                fill
-                priority
-                sizes="(max-width: 860px) 90vw, 40vw"
-                src="https://upload.wikimedia.org/wikipedia/commons/a/aa/Pao_de_queijo_brasil.jpg"
-              />
+              {featuredImageError ? (
+                <div className={styles.photoFallback} aria-hidden="true"><span>✳</span><strong>Feito com carinho</strong></div>
+              ) : (
+                <Image
+                  alt="Pão caseiro econômico recém-assado, receita do Santa Receita"
+                  fill
+                  onError={() => setFeaturedImageError(true)}
+                  priority
+                  sizes="(max-width: 860px) 90vw, 40vw"
+                  src="https://pqqojywezkftgvmkqxye.supabase.co/storage/v1/object/public/recipe-images/imported/b601e21e688058918332da6f6962b35989752213fe3ea4b63cef33f0b33c0720"
+                />
+              )
             </div>
             <div className={styles.featureDetails}>
-              <p>DA NOSSA COZINHA PARA A SUA</p>
-              <h2>Pão de queijo caseiro</h2>
-              <div className={styles.featureFooter}><span>Uma ideia para começar · 50 min</span><strong>Ver receita <span aria-hidden="true">↗</span></strong></div>
+              <p>INSPIRAÇÃO DO SANTA RECEITA</p>
+              <h2>Pão Caseiro Econômico</h2>
+              <div className={styles.featureFooter}><span>Para se inspirar · 70 min</span><strong>Ver receita <span aria-hidden="true">↗</span></strong></div>
             </div>
           </Link>
           <span className={styles.featureCaption}>Uma receita de verdade, só para abrir o apetite.</span>
