@@ -12,7 +12,7 @@ const securityHeaders = [
       "base-uri 'self'",
       "form-action 'self'",
       "frame-ancestors 'none'",
-      "img-src 'self' data: blob: https://upload.wikimedia.org https://api.receitando.miguelpita.com.br http://localhost:8787",
+      "img-src 'self' data: blob: https://upload.wikimedia.org https://pqqojywezkftgvmkqxye.supabase.co https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev https://api.receitando.miguelpita.com.br http://localhost:8787",
       "font-src 'self' data:",
       "style-src 'self' 'unsafe-inline'",
       "script-src 'self' 'unsafe-inline'",
@@ -29,6 +29,16 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "upload.wikimedia.org",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "pqqojywezkftgvmkqxye.supabase.co",
+        pathname: "/storage/v1/object/public/recipe-images/**",
+      },
+      {
+        protocol: "https",
+        hostname: "pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev",
         pathname: "/**",
       },
       {
