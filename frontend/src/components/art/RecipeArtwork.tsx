@@ -3,7 +3,7 @@ import type { CSSProperties } from "react";
 /** Ilustrações vetoriais autorais do Receitando — sem emoji ou pacote de ícones. */
 export type RecipeArtworkKind =
   | "all" | "breakfast" | "lunch" | "dinner" | "snack" | "dessert"
-  | "dish" | "pan" | "sparkle" | "heart" | "clock" | "arrow" | "play";
+  | "dish" | "pan" | "sparkle" | "heart" | "clock" | "arrow" | "play" | "check" | "undo";
 
 type Props = {
   kind: RecipeArtworkKind;
@@ -114,6 +114,8 @@ export function RecipeArtwork({ kind, size = 24, className, filled = false, styl
       {kind === "arrow" ? (
         <><path d="M14 49 49 14M24 14h25v25" /></>
       ) : null}
+      {kind === "check" ? (<path d="m13 33 13 13 25-27" />) : null}
+      {kind === "undo" ? (<><path d="M23 18H9V4" /><path d="M9 18a24 24 0 1 1-2 27" /></>) : null}
       {kind === "play" ? (
         <path d="M20 10 53 32 20 54V10Z" fill="currentColor" fillOpacity=".14" />
       ) : null}

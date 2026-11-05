@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 import { apiRequest } from "@/services/api-client";
 
+import { RecipeArtwork } from "@/components/art/RecipeArtwork";
 import styles from "./CookTogetherButton.module.css";
 
 export function CookTogetherButton({ slug, title, steps }: { slug: string; title: string; steps: string[] }) {
@@ -32,7 +33,7 @@ export function CookTogetherButton({ slug, title, steps }: { slug: string; title
 
   return (
     <section aria-label="Cozinhar junto" className={styles.card}>
-      <div aria-hidden="true" className={styles.symbol}>✳</div>
+      <div aria-hidden="true" className={styles.symbol}><RecipeArtwork kind="sparkle" size={38} /></div>
       <div className={styles.copy}>
         <span className={styles.eyebrow}>COZINHA COMPARTILHADA</span>
         <h2>Cozinhar junto é mais gostoso.</h2>
@@ -41,7 +42,7 @@ export function CookTogetherButton({ slug, title, steps }: { slug: string; title
       </div>
       <div className={styles.action}>
         <button type="button" onClick={() => void create()} disabled={busy}>
-          {busy ? "Preparando sala..." : "Começar juntos"} <span aria-hidden="true">↗</span>
+          {busy ? "Preparando sala..." : "Começar juntos"} <RecipeArtwork kind="arrow" size={17} />
         </button>
         {error ? <p role="alert">{error}</p> : null}
       </div>

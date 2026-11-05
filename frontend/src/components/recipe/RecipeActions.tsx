@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { RecipeArtwork } from "@/components/art/RecipeArtwork";
 import styles from "./RecipeActions.module.css";
 
 type WakeLockSentinelLike = { release: () => Promise<void> };
@@ -141,12 +142,12 @@ export function RecipeActions({ steps, title }: RecipeActionsProps) {
     <div className={styles.actions}>
       {steps.length > 0 ? (
         <button className={styles.primaryAction} onClick={openCookMode} type="button">
-          <span aria-hidden="true">▶</span>
+          <RecipeArtwork kind="play" size={17} />
           Modo cozinhar
         </button>
       ) : null}
       <button className={styles.secondaryAction} onClick={() => void shareRecipe()} type="button">
-        <span aria-hidden="true">↗</span>
+        <RecipeArtwork kind="arrow" size={16} />
         Compartilhar
       </button>
       <span aria-live="polite" className={styles.shareStatus}>{shareStatus}</span>

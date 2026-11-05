@@ -123,7 +123,7 @@ export function RecipeShoppingList({ ingredients }: RecipeShoppingListProps) {
           <div className={styles.footer}>
             <small>A versão atual compara presença do ingrediente; quantidade disponível na despensa ainda não reduz esta lista.</small>
             <button onClick={() => void copyList()} type="button">
-              {copied ? "Lista copiada ✓" : "Copiar lista de compras"}
+              {copied ? "Lista copiada" : "Copiar lista de compras"}
             </button>
           </div>
         </>

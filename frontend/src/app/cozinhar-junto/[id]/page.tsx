@@ -9,6 +9,7 @@ import { CookingRoomConnection, type CookingRoom, type ConnectionStatus } from "
 import { getRecipeBySlug } from "@/services/recipes.service";
 import type { Recipe } from "@/types/recipe";
 
+import { RecipeArtwork } from "@/components/art/RecipeArtwork";
 import styles from "./page.module.css";
 
 function suggestedSeconds(instruction: string): number | null {
@@ -151,7 +152,7 @@ export default function CookingRoomPage() {
 
       <header className={styles.hero}>
         <div className={styles.heroTop}>
-          <span className={styles.eyebrow}><span aria-hidden="true">✳</span> COZINHA COMPARTILHADA</span>
+          <span className={styles.eyebrow}><RecipeArtwork kind="sparkle" size={18} /> COZINHA COMPARTILHADA</span>
           <span className={styles.heroMeta}>Feito para preparar em boa companhia</span>
         </div>
         <div className={styles.heroContent}>
@@ -161,21 +162,21 @@ export default function CookingRoomPage() {
             <p className={styles.heroDescription}>Uma receita, várias mãos. Acompanhem as etapas e celebrem cada conquista juntos, em tempo real.</p>
             <div className={styles.heroActions}>
               <button type="button" className={styles.shareButton} onClick={() => void copyInvite()}>
-                <span aria-hidden="true">↗</span> {copied ? "Convite copiado!" : "Convidar alguém"}
+                <RecipeArtwork kind="arrow" size={17} /> {copied ? "Convite copiado!" : "Convidar alguém"}
               </button>
-              {room ? <Link className={styles.recipeButton} href={"/receitas/" + room.recipeSlug}>Ver receita completa <span aria-hidden="true">↗</span></Link> : null}
+              {room ? <Link className={styles.recipeButton} href={"/receitas/" + room.recipeSlug}>Ver receita completa <RecipeArtwork kind="arrow" size={17} /></Link> : null}
             </div>
           </div>
           <div className={styles.heroBadge} aria-hidden="true">
-            <span className={styles.heroBadgeRing}><span>🍳</span></span>
+            <span className={styles.heroBadgeRing}><RecipeArtwork kind="pan" size={100} /></span>
             <span className={styles.heroBadgeCaption}>BORA COZINHAR!</span>
           </div>
         </div>
         <div className={styles.heroFooter}>
           <div className={styles.presence}>
             <div className={styles.avatars} aria-hidden="true">
-              <span className={styles.avatarA}>✳</span>
-              {room && room.onlineCount > 1 ? <span className={styles.avatarB}>✦</span> : null}
+              <span className={styles.avatarA}><RecipeArtwork kind="sparkle" size={24} /></span>
+              {room && room.onlineCount > 1 ? <span className={styles.avatarB}><RecipeArtwork kind="sparkle" size={24} /></span> : null}
               {room && room.onlineCount > 2 ? <span className={styles.avatarExtra}>+{room.onlineCount - 2}</span> : null}
             </div>
             <p className={styles.presenceLabel}>
@@ -199,7 +200,7 @@ export default function CookingRoomPage() {
           <div className={styles.inviteField}>
             <label htmlFor="invite-url">Link do convite</label>
             <input id="invite-url" type="text" readOnly value={invitation} onFocus={(event) => event.currentTarget.select()} />
-            <button type="button" onClick={() => void copyInvite()}>{copied ? "Copiado ✓" : "Copiar"}</button>
+            <button type="button" onClick={() => void copyInvite()}>{copied ? "Copiado" : "Copiar"}</button>
           </div>
           {shareError ? <p role="alert" className={styles.shareNote}>Não foi possível copiar automaticamente. Selecione e copie o link acima.</p> : null}
           <button type="button" className={styles.closeShare} onClick={() => setShareOpen(false)} aria-label="Fechar convite">×</button>
@@ -233,19 +234,19 @@ export default function CookingRoomPage() {
             <div className={styles.mainColumn}>
               <section className={styles.guidedCard} aria-labelledby="guided-heading">
                 <div className={styles.guidedTop}>
-                  <span className={styles.guidedOverline}><span className={styles.sparkle} aria-hidden="true">✦</span> MODO PREPARO</span>
+                  <span className={styles.guidedOverline}><RecipeArtwork kind="sparkle" size={19} /> MODO PREPARO</span>
                   <span className={styles.stepCounter}>PASSO {String(currentIndex + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}</span>
                 </div>
                 <p className={styles.stepSubheading}>{room.completed[currentIndex] ? "Essa parte já foi feita!" : "Agora é a vez deste passo"}</p>
                 <h2 id="guided-heading">{currentStep}</h2>
                 {suggestion !== null ? (
                   <button type="button" className={styles.suggestion} onClick={() => startTimer(suggestion)}>
-                    <span aria-hidden="true">◷</span> Iniciar timer sugerido de {displayDuration(suggestion)}
+                    <RecipeArtwork kind="clock" size={18} /> Iniciar timer sugerido de {displayDuration(suggestion)}
                   </button>
-                ) : <p className={styles.guidedTip}><span aria-hidden="true">✳</span> Vá com calma: todos acompanham a mesma receita.</p>}
+                ) : <p className={styles.guidedTip}><RecipeArtwork kind="sparkle" size={18} /> Vá com calma: todos acompanham a mesma receita.</p>}
                 <div className={styles.guidedActions}>
                   <button type="button" className={styles.completeButton} disabled={!connected} onClick={() => toggle(currentIndex)}>
-                    <span aria-hidden="true">{room.completed[currentIndex] ? "↶" : "✓"}</span>
+                    <RecipeArtwork kind={room.completed[currentIndex] ? "undo" : "check"} size={19} />
                     {room.completed[currentIndex] ? "Desmarcar etapa" : "Concluir esta etapa"}
                   </button>
                   <div className={styles.stepNavigation} aria-label="Navegar pelas etapas">
@@ -272,7 +273,7 @@ export default function CookingRoomPage() {
                         <span className={styles.stepNumber} aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
                         <span className={styles.stepBody}><span className={styles.stepText}>{step}</span><small>{room.completed[index] ? "Concluída por alguém da sala" : "A fazer"}</small></span>
                       </label>
-                      <button type="button" onClick={() => setSelectedIndex(index)} className={styles.focusStep} aria-label={"Ver detalhes da etapa " + (index + 1)} aria-current={index === currentIndex ? "step" : undefined}>↗</button>
+                      <button type="button" onClick={() => setSelectedIndex(index)} className={styles.focusStep} aria-label={"Ver detalhes da etapa " + (index + 1)} aria-current={index === currentIndex ? "step" : undefined}><RecipeArtwork kind="arrow" size={17} /></button>
                     </li>
                   ))}
                 </ol>
@@ -282,7 +283,7 @@ export default function CookingRoomPage() {
             <aside className={styles.sidebar} aria-label="Ferramentas da cozinha">
               <section className={styles.toolCard} aria-labelledby="timer-title">
                 <p className={styles.sectionEyebrow}>SUA BANCADA</p>
-                <div className={styles.toolHeading}><h2 id="timer-title">Timer de cozinha</h2><span aria-hidden="true">◷</span></div>
+                <div className={styles.toolHeading}><h2 id="timer-title">Timer de cozinha</h2><RecipeArtwork kind="clock" size={23} /></div>
                 <p className={styles.toolDescription}>O tempo fica só neste aparelho, sem interferir na receita compartilhada.</p>
                 <div className={styles.timerDisplay} role="timer" aria-label={"Tempo restante " + displayClock(timerSeconds)}>{displayClock(timerSeconds)}</div>
                 <div className={styles.timerPresets} aria-label="Tempos rápidos">
@@ -297,7 +298,7 @@ export default function CookingRoomPage() {
 
               <section className={styles.toolCard} aria-labelledby="ingredients-title">
                 <p className={styles.sectionEyebrow}>TUDO À MÃO</p>
-                <div className={styles.toolHeading}><h2 id="ingredients-title">Ingredientes</h2><span aria-hidden="true">✳</span></div>
+                <div className={styles.toolHeading}><h2 id="ingredients-title">Ingredientes</h2><RecipeArtwork kind="sparkle" size={25} /></div>
                 {recipe?.ingredients?.length ? (
                   <ul className={styles.ingredientsList}>
                     {recipe.ingredients.map((ingredient) => {
@@ -306,24 +307,24 @@ export default function CookingRoomPage() {
                     })}
                   </ul>
                 ) : <p className={styles.toolDescription}>Confira a lista de ingredientes e as quantidades na receita original.</p>}
-                <Link className={styles.ingredientsLink} href={"/receitas/" + room.recipeSlug}>Abrir receita e ingredientes <span aria-hidden="true">↗</span></Link>
+                <Link className={styles.ingredientsLink} href={"/receitas/" + room.recipeSlug}>Abrir receita e ingredientes <RecipeArtwork kind="arrow" size={16} /></Link>
               </section>
 
-              <div className={styles.sideReminder}><span aria-hidden="true">♥</span><p>O melhor ingrediente é fazer junto. <strong>Compartilhe seu convite!</strong></p></div>
+              <div className={styles.sideReminder}><RecipeArtwork kind="heart" size={22} filled /><p>O melhor ingrediente é fazer junto. <strong>Compartilhe seu convite!</strong></p></div>
             </aside>
           </div>
 
           {allDone ? (
             <section className={styles.finishBanner} aria-live="polite">
-              <span aria-hidden="true">✳</span>
+              <RecipeArtwork kind="sparkle" size={24} />
               <div><p className={styles.sectionEyebrow}>MISSÃO CUMPRIDA</p><h2>Da nossa cozinha para a mesa!</h2><p>Vocês finalizaram todas as etapas. Agora é só aproveitar.</p></div>
-              <button type="button" onClick={() => void copyInvite()}>Compartilhar resultado ↗</button>
+              <button type="button" onClick={() => void copyInvite()}>Compartilhar resultado</button>
             </section>
           ) : null}
         </>
       ) : (
         <section className={styles.loadingPanel} role="status">
-          <div className={styles.loadingSymbol} aria-hidden="true">✳</div>
+          <div className={styles.loadingSymbol} aria-hidden="true"><RecipeArtwork kind="sparkle" size={30} /></div>
           <h2>Preparando sua cozinha...</h2>
           <p>As etapas aparecerão assim que a conexão com a sala for confirmada.</p>
           {connectionStatus === "unavailable" ? <button type="button" onClick={() => connection.current?.retry()}>Tentar novamente</button> : null}

@@ -413,3 +413,10 @@
 @media (prefers-reduced-motion: reduce) {
   .page *, .page *::before, .page *::after { transition: none !important; }
 }
+
+/* Artes próprias vetoriais no lugar de caracteres decorativos. */
+.heroBadgeRing > svg { display:block; max-width:82%; height:auto; filter:drop-shadow(1px 3px 1px rgba(58,29,21,.14)); }
+.avatars svg, .toolHeading svg, .guidedOverline svg, .guidedTip svg, .eyebrow svg, .sideReminder svg {
+  display:inline-block; vertical-align:middle; flex:none;
+}
+.avatarA svg, .avatarB svg { width:23px; height:23px; }

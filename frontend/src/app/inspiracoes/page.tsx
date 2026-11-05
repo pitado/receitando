@@ -54,7 +54,7 @@ export default async function InspirationsPage() {
               <h2>{recipe.title}</h2>
               {recipe.sourceAuthor ? <p className={styles.credit}>Crédito: {recipe.sourceAuthor}</p> : <p className={styles.credit}>Fonte: {recipe.sourceName}</p>}
               <p className={styles.legalShort}>Conteúdo original no site da fonte.</p>
-              <a className={styles.open} href={recipe.sourceUrl} target="_blank" rel="noopener noreferrer">Ver receita original ↗</a>
+              <a className={styles.open} href={recipe.sourceUrl} target="_blank" rel="noopener noreferrer">Ver receita original <RecipeArtwork kind="arrow" size={16} /></a>
             </article>
           ))}
         </div>

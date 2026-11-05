@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import type { CSSProperties } from "react";
 
 import { CookTogetherButton } from "@/components/recipe/CookTogetherButton";
+import { RecipeArtwork } from "@/components/art/RecipeArtwork";
 import { FavoriteButton } from "@/components/recipe/FavoriteButton";
 import { RecipeActions } from "@/components/recipe/RecipeActions";
 import { RecipeAdapter } from "@/components/recipe/RecipeAdapter";
@@ -54,13 +55,13 @@ export default async function RecipeDetailPage({ params }: RecipeDetailPageProps
             {recipe.prepMinutes > 0 ? <div><dt>Preparo</dt><dd>{formatPrepTime(recipe.prepMinutes)}</dd></div> : null}
             {recipe.servings > 0 ? <div><dt>Rendimento</dt><dd>{recipe.servings} {recipe.servings === 1 ? "porção" : "porções"}</dd></div> : null}
             {!isExternalRecipe ? <div><dt>Dificuldade</dt><dd>{difficultyLabels[recipe.difficulty]}</dd></div> : null}
-            <div><dt>Origem</dt><dd>{recipe.source.url ? <a href={recipe.source.url} rel="noreferrer" target="_blank">{recipe.source.name} ↗</a> : recipe.source.name}</dd></div>
+            <div><dt>Origem</dt><dd>{recipe.source.url ? <a href={recipe.source.url} rel="noreferrer" target="_blank">{recipe.source.name} <RecipeArtwork kind="arrow" size={14} /></a> : recipe.source.name}</dd></div>
           </dl>
-          {recipe.source.license ? <p className={styles.sourceNote}>Fonte atribuída a {recipe.source.author || recipe.source.name}. Conteúdo sob {recipe.source.license}{recipe.source.licenseUrl ? <> · <a href={recipe.source.licenseUrl} rel="noreferrer" target="_blank">ver licença ↗</a></> : null}.</p> : null}
+          {recipe.source.license ? <p className={styles.sourceNote}>Fonte atribuída a {recipe.source.author || recipe.source.name}. Conteúdo sob {recipe.source.license}{recipe.source.licenseUrl ? <> · <a href={recipe.source.licenseUrl} rel="noreferrer" target="_blank">ver licença <RecipeArtwork kind="arrow" size={14} /></a></> : null}.</p> : null}
           {recipe.tags.length > 0 ? <div className={styles.tags}>{recipe.tags.map((tag) => <span key={tag}>{tag}</span>)}</div> : null}
         </div>
         <div aria-label={`Foto de ${recipe.title}`} className={styles.visual} style={transitionStyle}>
-          {recipe.imageUrl ? <><Image alt={imageAttribution?.alt || recipe.title} className={styles.recipeImage} fill sizes="(min-width: 800px) 45vw, 100vw" src={recipe.imageUrl} />{hasImageCredit ? <p className={styles.imageCredit}>Imagem: {imageAttribution?.author || imageAttribution?.source || "Wikimedia Commons"}{imageAttribution?.pageUrl ? <> · <a href={imageAttribution.pageUrl} rel="noreferrer" target="_blank">fonte ↗</a></> : null}{imageAttribution?.license ? <> · {imageAttribution.license}</> : null}{imageAttribution?.licenseUrl ? <> · <a href={imageAttribution.licenseUrl} rel="noreferrer" target="_blank">licença ↗</a></> : null}</p> : null}</> : <><span className={styles.plate}><span /></span><p>Feita com o que já mora na sua cozinha.</p></>}
+          {recipe.imageUrl ? <><Image alt={imageAttribution?.alt || recipe.title} className={styles.recipeImage} fill sizes="(min-width: 800px) 45vw, 100vw" src={recipe.imageUrl} />{hasImageCredit ? <p className={styles.imageCredit}>Imagem: {imageAttribution?.author || imageAttribution?.source || "Wikimedia Commons"}{imageAttribution?.pageUrl ? <> · <a href={imageAttribution.pageUrl} rel="noreferrer" target="_blank">fonte <RecipeArtwork kind="arrow" size={14} /></a></> : null}{imageAttribution?.license ? <> · {imageAttribution.license}</> : null}{imageAttribution?.licenseUrl ? <> · <a href={imageAttribution.licenseUrl} rel="noreferrer" target="_blank">licença <RecipeArtwork kind="arrow" size={14} /></a></> : null}</p> : null}</> : <><span className={styles.plate}><span /></span><p>Feita com o que já mora na sua cozinha.</p></>}
         </div>
       </header>
 

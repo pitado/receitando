@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { RecipeArtwork } from "@/components/art/RecipeArtwork";
 
 import { addFavorite, listFavorites, removeFavorite } from "@/services/favorites.service";
 import { AUTH_CHANGED_EVENT, hasAuthSessionHint } from "@/services/auth-storage";
@@ -79,7 +80,7 @@ export function FavoriteButton({ ariaLabel, initialFavorite = false, label = tru
         onClick={() => void toggleFavorite()}
         type="button"
       >
-        <span aria-hidden="true">{favorite ? "♥" : "♡"}</span>
+        <span aria-hidden="true"><RecipeArtwork kind="heart" size={22} filled={favorite} /></span>
         {label ? <span>{favorite ? "Salva" : "Salvar"}</span> : null}
       </button>
       {feedback ? <span className={styles.feedback} role="status">{feedback}</span> : null}
