@@ -1,0 +1,39 @@
+name: Auditoria de Layout - Cabeçalho
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/header-layout-audit.yml"
+      - "frontend/e2e/header-layout-audit.mjs"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  header-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 17
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/e2e/package-lock.json
+      - name: Instalar dependencias
+        working-directory: frontend/e2e
+        run: npm ci
+      - name: Instalar Chromium
+        working-directory: frontend/e2e
+        run: npx playwright install --with-deps chromium
+      - name: Verificar layout em celular e computador
+        working-directory: frontend/e2e
+        run: node header-layout-audit.mjs
+      - name: Salvar capturas do cabeçalho
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: auditoria-header-receitando
+          path: frontend/e2e/header-layout-captures
+          retention-days: 30
