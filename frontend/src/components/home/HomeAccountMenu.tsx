@@ -57,7 +57,9 @@ export function HomeAccountMenu({ searchOpen, onOpen }: HomeAccountMenuProps) {
   }, []);
 
   useEffect(() => {
-    if (searchOpen) setMenuOpen(false);
+    if (!searchOpen) return;
+    const frame = window.requestAnimationFrame(() => setMenuOpen(false));
+    return () => window.cancelAnimationFrame(frame);
   }, [searchOpen]);
 
   useEffect(() => {
