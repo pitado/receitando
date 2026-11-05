@@ -1,0 +1,46 @@
+name: Teste do Efeito de Mordida
+on:
+  push:
+    branches: [main]
+    paths:
+      - "frontend/src/components/home/BiteWordmark.tsx"
+      - "frontend/src/components/home/BiteWordmark.module.css"
+      - "frontend/e2e/tests/bite-wordmark.spec.ts"
+      - ".github/workflows/bite-wordmark-qa.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  bite-effect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 16
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Instalar aplicação
+        working-directory: frontend
+        run: npm ci
+      - name: Instalar testes
+        working-directory: frontend/e2e
+        run: npm ci
+      - name: Instalar Chromium
+        working-directory: frontend/e2e
+        run: npx playwright install --with-deps chromium
+      - name: Testar mordida e recomposição
+        working-directory: frontend/e2e
+        run: npx playwright test tests/bite-wordmark.spec.ts --workers=1
+      - name: Salvar evidências
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: receitando-mordida-qa
+          path: |
+            frontend/e2e/playwright-report
+            frontend/e2e/test-results
+          retention-days: 14
