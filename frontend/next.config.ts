@@ -1,5 +1,8 @@
 import type { NextConfig } from "next";
 
+// Next.js development needs eval for React Fast Refresh; production CSP stays strict.
+const isDevelopment = process.env.NODE_ENV === "development";
+
 const securityHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "X-Frame-Options", value: "DENY" },
@@ -15,8 +18,8 @@ const securityHeaders = [
       "img-src 'self' data: blob: https://upload.wikimedia.org https://pqqojywezkftgvmkqxye.supabase.co https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev https://api.receitando.miguelpita.com.br http://localhost:8787",
       "font-src 'self' data:",
       "style-src 'self' 'unsafe-inline'",
-      "script-src 'self' 'unsafe-inline'",
-      "connect-src 'self' https://api.receitando.miguelpita.com.br wss://api.receitando.miguelpita.com.br http://localhost:8787 ws://localhost:8787",
+      `script-src 'self' 'unsafe-inline'${isDevelopment ? " 'unsafe-eval'" : ""}`,
+      `connect-src 'self' https://api.receitando.miguelpita.com.br wss://api.receitando.miguelpita.com.br http://localhost:8787 ws://localhost:8787${isDevelopment ? " ws://127.0.0.1:3000 ws://localhost:3000" : ""}`,
       "object-src 'none'",
     ].join("; "),
   },
