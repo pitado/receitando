@@ -44,7 +44,7 @@ test("login redireciona para a despensa sem expor token no Web Storage", async (
 
   await page.goto("/entrar");
   await page.getByLabel("E-mail").fill("pessoa@example.com");
-  await page.getByLabel("Senha").fill("senha-segura-123");
+  await page.locator("#login-password").fill("senha-segura-123");
   await page.getByLabel("Lembrar de mim").check();
   await page.getByRole("button", { name: "Entrar" }).click();
 
@@ -82,7 +82,7 @@ test("login inválido apresenta erro sem navegar", async ({ page }) => {
 
   await page.goto("/entrar");
   await page.getByLabel("E-mail").fill("pessoa@example.com");
-  await page.getByLabel("Senha").fill("senha-incorreta-123");
+  await page.locator("#login-password").fill("senha-incorreta-123");
   await page.getByRole("button", { name: "Entrar" }).click();
 
   await expect(
