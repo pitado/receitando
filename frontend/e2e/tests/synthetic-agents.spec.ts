@@ -41,7 +41,7 @@ test.describe("50 jornadas sinteticas isoladas", () => {
         await page.getByRole("button", { name: "Adicionar" }).click();
         await expect(page.getByText("1 adicionado")).toBeVisible();
       } else {
-        await expect(page.getByRole("link", { name: "Entrar na minha conta" }))
+        await expect(page.getByRole("link", { name: "Entrar na minha conta" }).first())
           .toHaveAttribute("href", "/entrar?next=/despensa");
       }
     });
