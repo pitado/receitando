@@ -14,7 +14,11 @@ const personas = [
   ...Array.from({ length: 10 }, (_, i) => ({ group: "mobile", i, route: "/despensa" })),
   ...Array.from({ length: 5 }, (_, i) => ({ group: "avancado", i, route: "/combinar" })),
 ];
-const selected = process.env.AGENT_PILOT === "1" ? personas.slice(0, 5) : personas;
+// Pilot samples each distinct journey instead of repeating five beginners.
+const pilotIndices = [0, 15, 25, 35, 45];
+const selected = process.env.AGENT_PILOT === "1"
+  ? personas.filter((_, index) => pilotIndices.includes(index))
+  : personas;
 
 test.describe("50 jornadas sinteticas isoladas", () => {
   for (const [index, persona] of selected.entries()) {
