@@ -32,7 +32,7 @@ test.describe("50 jornadas sinteticas isoladas", () => {
         await expect(page.getByRole("heading", { level: 1, name: "Cozinhe com o que você já tem." })).toBeVisible();
         const ingredient = persona.group === "economico" ? "arroz" : "tomate";
         await page.getByRole("button", { name: ingredient, exact: true }).click();
-        await expect(page.getByLabel("Ingredientes que você tem")).toContainText(ingredient);
+        await expect(page.getByLabel("Ingredientes que você tem")).toHaveValue(ingredient);
         await page.getByRole("button", { name: "Buscar receitas" }).click();
         await expect(page).toHaveURL(/\/combinar\?/);
       } else if (persona.route === "/combinar") {
