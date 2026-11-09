@@ -8,6 +8,7 @@ type Room = {
   completed: boolean[];
   version: number;
   createdAt: number;
+  mode?: "remote" | "together";
 };
 const ROOM_TTL = 24 * 60 * 60 * 1000;
 const MAX_CLIENTS = 12;
@@ -50,7 +51,7 @@ export class CookingRoom extends DurableObject<Env> {
       }
       const room: Room = {
         recipeSlug: data.recipeSlug, title: data.title.trim(), steps: data.steps,
-        completed: data.steps.map(() => false), version: 0, createdAt: Date.now(),
+        completed: data.steps.map(() => false), version: 0, createdAt: Date.now(), mode: "remote",
       };
       const created = await this.ctx.storage.transaction(async txn => {
         if (await txn.get("room")) return false;
@@ -83,9 +84,33 @@ export class CookingRoom extends DurableObject<Env> {
 
   async webSocketMessage(ws: WebSocket, raw: string | ArrayBuffer): Promise<void> {
     if (typeof raw !== "string" || raw.length > 1024) return;
-    let message: { type?: string; stepIndex?: number; completed?: boolean } | null;
+    let message: { type?: string; stepIndex?: number; completed?: boolean; mode?: string; text?: string; emoji?: string; name?: string } | null;
     try { message = JSON.parse(raw); } catch { return; }
-    if (!message || message.type !== "step:set" || !Number.isInteger(message.stepIndex) || typeof message.completed !== "boolean") return;
+    if (!message || typeof message !== "object") return;
+    // Social events are ephemeral; no messages or reactions are stored.
+    if (message.type === "social:chat" || message.type === "social:help" || message.type === "social:reaction") {
+      const name = typeof message.name === "string" ? message.name.trim().slice(0, 32) : "Participante";
+      if (message.type === "social:chat" && typeof message.text === "string" && message.text.trim().length > 0 && message.text.length <= 280) {
+        this.broadcast({ type: "social:chat", name, text: message.text.trim(), at: Date.now() });
+      } else if (message.type === "social:help") {
+        this.broadcast({ type: "social:help", name, at: Date.now() });
+      } else if (message.type === "social:reaction" && ["heart", "clap", "celebrate"].includes(message.emoji ?? "")) {
+        this.broadcast({ type: "social:reaction", name, emoji: message.emoji, at: Date.now() });
+      }
+      return;
+    }
+    if (message.type === "room:mode" && (message.mode === "remote" || message.mode === "together")) {
+      await this.ctx.storage.transaction(async txn => {
+        const room = await txn.get<Room>("room");
+        if (!room || this.expired(room)) return;
+        room.mode = message.mode as "remote" | "together";
+        room.version++;
+        await txn.put("room", room);
+        this.broadcast({ type: "room:state", ...room, onlineCount: this.clients().length });
+      });
+      return;
+    }
+    if (message.type !== "step:set" || !Number.isInteger(message.stepIndex) || typeof message.completed !== "boolean") return;
     const index = message.stepIndex!;
     const completed = message.completed;
     try {

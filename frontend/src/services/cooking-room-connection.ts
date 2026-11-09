@@ -7,10 +7,13 @@ export type CookingRoom = {
   completed: boolean[];
   version: number;
   onlineCount: number;
+  mode?: "remote" | "together";
 };
+export type SocialEvent = { type: "social:chat" | "social:help" | "social:reaction"; name: string; text?: string; emoji?: string; at: number };
 export type ConnectionStatus = "connecting" | "connected" | "retrying" | "offline" | "unavailable";
 type Callbacks = {
   onRoom: (room: CookingRoom) => void;
+  onSocial?: (event: SocialEvent) => void;
   onStatus: (status: ConnectionStatus, message: string) => void;
 };
 const API = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8787").replace(/\/$/, "");
@@ -130,6 +133,8 @@ export class CookingRoomConnection {
         } else if (data.type === "presence:update" && this.room && Number.isInteger(data.onlineCount)) {
           this.room = { ...this.room, onlineCount: data.onlineCount };
           this.callbacks.onRoom(this.room);
+        } else if (["social:chat", "social:help", "social:reaction"].includes(data.type) && typeof data.name === "string" && Number.isFinite(data.at)) {
+          this.callbacks.onSocial?.(data as SocialEvent);
         } else if (data.type === "pong") {
           clearTimeout(this.watchdog);
         }
@@ -168,6 +173,17 @@ export class CookingRoomConnection {
     try { this.socket.send(JSON.stringify({ type: "step:set", stepIndex: index, completed })); }
     catch { this.retryLater(); }
   }
+
+  private send(message: object) {
+    if (!this.ready || this.socket?.readyState !== WebSocket.OPEN) return false;
+    try { this.socket.send(JSON.stringify(message)); return true; }
+    catch { this.retryLater(); return false; }
+  }
+
+  sendChat(name: string, text: string) { return this.send({ type: "social:chat", name, text }); }
+  sendReaction(name: string, emoji: "heart" | "clap" | "celebrate") { return this.send({ type: "social:reaction", name, emoji }); }
+  requestHelp(name: string) { return this.send({ type: "social:help", name }); }
+  setMode(mode: "remote" | "together") { return this.send({ type: "room:mode", mode }); }
 
   dispose() {
     this.disposed = true;
