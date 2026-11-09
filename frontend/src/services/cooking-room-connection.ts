@@ -9,7 +9,10 @@ export type CookingRoom = {
   onlineCount: number;
 };
 export type ConnectionStatus = "connecting" | "connected" | "retrying" | "offline" | "unavailable";
+export type SocialReaction = "heart" | "clap" | "help" | "ready";
+export type SocialEvent = { reaction: SocialReaction; at: number };
 type Callbacks = {
+  onSocialEvent?: (event: SocialEvent) => void;
   onRoom: (room: CookingRoom) => void;
   onStatus: (status: ConnectionStatus, message: string) => void;
 };
@@ -130,6 +133,8 @@ export class CookingRoomConnection {
         } else if (data.type === "presence:update" && this.room && Number.isInteger(data.onlineCount)) {
           this.room = { ...this.room, onlineCount: data.onlineCount };
           this.callbacks.onRoom(this.room);
+        } else if (data.type === "social:event" && ["heart", "clap", "help", "ready"].includes(data.reaction) && typeof data.at === "number") {
+          this.callbacks.onSocialEvent?.({ reaction: data.reaction, at: data.at });
         } else if (data.type === "pong") {
           clearTimeout(this.watchdog);
         }
@@ -167,6 +172,12 @@ export class CookingRoomConnection {
     if (!this.ready || this.socket?.readyState !== WebSocket.OPEN) return;
     try { this.socket.send(JSON.stringify({ type: "step:set", stepIndex: index, completed })); }
     catch { this.retryLater(); }
+  }
+
+  react(reaction: SocialReaction): boolean {
+    if (!this.ready || this.socket?.readyState !== WebSocket.OPEN) return false;
+    try { this.socket.send(JSON.stringify({ type: "social:react", reaction })); return true; }
+    catch { this.retryLater(); return false; }
   }
 
   dispose() {
