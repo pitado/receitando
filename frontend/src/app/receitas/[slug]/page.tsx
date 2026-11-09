@@ -21,17 +21,34 @@ import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
 const BASE_URL = "https://receitando.miguelpita.com.br";
+function cleanSnippet(value: string): string {
+  return value.replace(/<[^>]*>/g, " ").replace(/&nbsp;/gi, " ").replace(/\s+/g, " ").replace(/\s+([,.;:!?])/g, "$1").trim();
+}
+
+function recipeSearchDescription(recipe: Recipe): string {
+  const title = cleanSnippet(recipe.title);
+  const raw = cleanSnippet(recipe.description || "");
+  // Evita usar listas de etapas e marcadores de preparo como descrição de busca.
+  const usable = raw && !/^(modo de preparo|ingredientes|\\d+[.)]|passo a passo\\s*[:;])/i.test(raw)
+    ? raw.split(/(?:modo de preparo|ingredientes)\\s*[:;]/i)[0].trim()
+    : "";
+  const intro = usable.length >= 35 ? usable : `Aprenda a fazer ${title} em casa com ingredientes e modo de preparo explicados passo a passo.`;
+  const extra = recipe.prepMinutes > 0 ? ` Pronto em ${recipe.prepMinutes} minutos.` : "";
+  return (intro + extra).slice(0, 158).trim();
+}
+
 export async function generateMetadata({ params }: RecipeDetailPageProps): Promise<Metadata> {
   const { slug } = await params;
   try {
     const recipe = await getRecipeBySlug(slug);
-    const description = recipe.description?.trim() || `Aprenda a preparar ${recipe.title} com ingredientes e passo a passo no Receitando.`;
+    const description = recipeSearchDescription(recipe);
     const url = `${BASE_URL}/receitas/${encodeURIComponent(recipe.slug)}`;
     return {
       title: recipe.title,
       description,
       alternates: { canonical: url },
-      openGraph: { title: recipe.title, description, url, type: "article", images: recipe.imageUrl ? [{ url: recipe.imageUrl }] : undefined },
+      openGraph: { title: `${recipe.title} | Receitando`, siteName: "Receitando", description, url, type: "article", locale: "pt_BR", images: recipe.imageUrl ? [{ url: recipe.imageUrl, alt: recipe.title }] : undefined },
+      twitter: { card: "summary_large_image", title: recipe.title, description, images: recipe.imageUrl ? [recipe.imageUrl] : undefined },
       robots: { index: true, follow: true },
     };
   } catch {
@@ -62,7 +79,7 @@ export default async function RecipeDetailPage({ params }: RecipeDetailPageProps
     "@context": "https://schema.org",
     "@type": "Recipe",
     name: recipe.title,
-    description: recipe.description,
+    description: recipeSearchDescription(recipe),
     url: `${BASE_URL}/receitas/${encodeURIComponent(recipe.slug)}`,
     ...(recipe.imageUrl ? { image: [recipe.imageUrl] } : {}),
     ...(recipe.prepMinutes > 0 ? { totalTime: `PT${recipe.prepMinutes}M` } : {}),
