@@ -123,15 +123,15 @@
 /* Marca vetorial enviada pelo criador; a máscara de mordidas continua funcional. */
 .wordmark { color: #98462B; }
 .word {
-  background: url("/receitando-wordmark.svg") center / contain no-repeat;
+  background: url("/receitando-wordmark-header.svg") center / contain no-repeat;
   width: min(430px, 78vw);
   aspect-ratio: 1950 / 280;
-  height: auto;
+  height: 36px;
   font-size: 0;
   line-height: 0;
 }
-.compact .word { width: 250px; }
+.compact .word { width: 250px; height: 36px; }
 @media (max-width: 640px) {
-  .compact .word { width: min(180px, 48vw); }
+  .compact .word { width: min(180px, 48vw); height: 26px; }
   .compact .wordmark { min-height: 0; padding: 8px 4px; }
 }
