@@ -5,8 +5,8 @@ import { listRecipes } from "@/services/recipes.service";
 const BASE_URL = "https://receitando.miguelpita.com.br";
 const PAGE_SIZE = 100;
 
-// Atualiza o sitemap a cada hora para incluir receitas recém-publicadas.
-export const revalidate = 3600;
+// Gera o sitemap sob demanda: não depende da API durante o build e reflete novas receitas.
+export const dynamic = "force-dynamic";
 
 async function getRecipeEntries(): Promise<MetadataRoute.Sitemap> {
   const entries: MetadataRoute.Sitemap = [];
