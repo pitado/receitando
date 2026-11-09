@@ -16,7 +16,11 @@ const onest = Onest({ display: "swap", subsets: ["latin"], variable: "--font-hom
 
 export const metadata: Metadata = {
   title: { default: "Receitando", template: "%s | Receitando" },
-  description: "Descubra receitas possíveis com os ingredientes que você já tem em casa.",
+  description: "Encontre receitas fáceis e deliciosas com os ingredientes que você já tem em casa. Descubra ideias para o dia a dia e aproveite melhor seus alimentos.",
+  metadataBase: new URL("https://receitando.miguelpita.com.br"),
+  applicationName: "Receitando",
+  openGraph: { type: "website", locale: "pt_BR", siteName: "Receitando", title: "Receitando — Receitas para o seu dia a dia", description: "Descubra receitas e aproveite os ingredientes que você já tem em casa.", url: "https://receitando.miguelpita.com.br" },
+  robots: { index: true, follow: true },
 };
 
 interface RootLayoutProps { children: ReactNode; }
