@@ -24,7 +24,6 @@ export function Footer() {
           <nav aria-label="Navegação do rodapé" className={styles.homeLinks}>
             <Link href="/receitas">Receitas</Link>
             <Link href="/combinar">Combinar</Link>
-            <Link href="/sobre">Sobre o criador</Link>
             <Link href="/despensa">Despensa</Link>
             <Link href="/favoritos">Favoritos</Link>
           </nav>
@@ -54,7 +53,6 @@ export function Footer() {
           <Link className={styles.link} href="/despensa">
             Despensa
           </Link>
-          <Link className={styles.link} href="/sobre">Sobre o criador</Link>
           <Link className={styles.link} href="/favoritos">
             Favoritos
           </Link>
