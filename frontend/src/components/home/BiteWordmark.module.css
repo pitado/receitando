@@ -118,3 +118,20 @@
 /* O link da marca não fica aninhado em outro elemento interativo. */
 .wordmark { text-decoration: none; -webkit-tap-highlight-color: transparent; }
 .crumb { border-radius: 2px; }
+
+
+/* Marca vetorial enviada pelo criador; a máscara de mordidas continua funcional. */
+.wordmark { color: #98462B; }
+.word {
+  background: url("/receitando-wordmark.svg") center / contain no-repeat;
+  width: min(430px, 78vw);
+  aspect-ratio: 1950 / 280;
+  height: auto;
+  font-size: 0;
+  line-height: 0;
+}
+.compact .word { width: 250px; }
+@media (max-width: 640px) {
+  .compact .word { width: min(180px, 48vw); }
+  .compact .wordmark { min-height: 0; padding: 8px 4px; }
+}
