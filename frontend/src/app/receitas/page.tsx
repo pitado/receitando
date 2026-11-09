@@ -13,7 +13,8 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Receitas",
-  description: "Explore o catálogo de receitas do Receitando.",
+  description: "Explore receitas fáceis, rápidas, doces e salgadas. Encontre ingredientes, tempo de preparo e passo a passo para cozinhar em casa.",
+  alternates: { canonical: "https://receitando.miguelpita.com.br/receitas" },
 };
 
 const INITIAL_RECIPE_LIMIT = 36;

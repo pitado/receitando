@@ -5,11 +5,14 @@ import { listRecipes } from "@/services/recipes.service";
 const BASE_URL = "https://receitando.miguelpita.com.br";
 const PAGE_SIZE = 100;
 
+// Gera o sitemap sob demanda: não depende da API durante o build e reflete novas receitas.
+export const dynamic = "force-dynamic";
+
 async function getRecipeEntries(): Promise<MetadataRoute.Sitemap> {
   const entries: MetadataRoute.Sitemap = [];
   let offset = 0;
 
-  try {
+  {
     while (true) {
       const catalog = await listRecipes({
         limit: PAGE_SIZE,
@@ -35,9 +38,6 @@ async function getRecipeEntries(): Promise<MetadataRoute.Sitemap> {
         break;
       }
     }
-  } catch {
-    // Mantém o sitemap disponível mesmo se a API estiver temporariamente indisponível.
-    return [];
   }
 
   return entries;
@@ -62,6 +62,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly",
       priority: 0.8,
     },
+    { url: `${BASE_URL}/sobre`, changeFrequency: "monthly", priority: 0.6 },
     ...recipeEntries,
   ];
 }

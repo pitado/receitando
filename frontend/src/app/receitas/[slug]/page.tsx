@@ -20,7 +20,41 @@ import type { Recipe, RecipeDifficulty } from "@/types/recipe";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Detalhes da receita" };
+const BASE_URL = "https://receitando.miguelpita.com.br";
+function cleanSnippet(value: string): string {
+  return value.replace(/<[^>]*>/g, " ").replace(/&nbsp;/gi, " ").replace(/\s+/g, " ").replace(/\s+([,.;:!?])/g, "$1").trim();
+}
+
+function recipeSearchDescription(recipe: Recipe): string {
+  const title = cleanSnippet(recipe.title);
+  const raw = cleanSnippet(recipe.description || "");
+  // Evita usar listas de etapas e marcadores de preparo como descrição de busca.
+  const usable = raw && !/^(modo de preparo|ingredientes|\\d+[.)]|passo a passo\\s*[:;])/i.test(raw)
+    ? raw.split(/(?:modo de preparo|ingredientes)\\s*[:;]/i)[0].trim()
+    : "";
+  const intro = usable.length >= 35 ? usable : `Aprenda a fazer ${title} em casa com ingredientes e modo de preparo explicados passo a passo.`;
+  const extra = recipe.prepMinutes > 0 ? ` Pronto em ${recipe.prepMinutes} minutos.` : "";
+  return (intro + extra).slice(0, 158).trim();
+}
+
+export async function generateMetadata({ params }: RecipeDetailPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  try {
+    const recipe = await getRecipeBySlug(slug);
+    const description = recipeSearchDescription(recipe);
+    const url = `${BASE_URL}/receitas/${encodeURIComponent(recipe.slug)}`;
+    return {
+      title: recipe.title,
+      description,
+      alternates: { canonical: url },
+      openGraph: { title: `${recipe.title} | Receitando`, siteName: "Receitando", description, url, type: "article", locale: "pt_BR", images: recipe.imageUrl ? [{ url: recipe.imageUrl, alt: recipe.title }] : undefined },
+      twitter: { card: "summary_large_image", title: recipe.title, description, images: recipe.imageUrl ? [recipe.imageUrl] : undefined },
+      robots: { index: true, follow: true },
+    };
+  } catch {
+    return { title: "Receita não encontrada", robots: { index: false, follow: true } };
+  }
+}
 interface RecipeDetailPageProps { params: Promise<{ slug: string }>; }
 const difficultyLabels: Record<RecipeDifficulty, string> = { FACIL: "Fácil", MEDIA: "Média", DIFICIL: "Difícil" };
 
@@ -41,8 +75,22 @@ export default async function RecipeDetailPage({ params }: RecipeDetailPageProps
   const hasImageCredit = Boolean(recipe.imageUrl && (imageAttribution?.author || imageAttribution?.source || imageAttribution?.license || imageAttribution?.pageUrl));
   const transitionStyle = recipe.imageUrl ? ({ viewTransitionName: `recipe-image-${recipe.id}` } as CSSProperties) : undefined;
 
+  const structuredRecipe = {
+    "@context": "https://schema.org",
+    "@type": "Recipe",
+    name: recipe.title,
+    description: recipeSearchDescription(recipe),
+    url: `${BASE_URL}/receitas/${encodeURIComponent(recipe.slug)}`,
+    ...(recipe.imageUrl ? { image: [recipe.imageUrl] } : {}),
+    ...(recipe.prepMinutes > 0 ? { totalTime: `PT${recipe.prepMinutes}M` } : {}),
+    ...(recipe.servings > 0 ? { recipeYield: `${recipe.servings} porções` } : {}),
+    recipeIngredient: recipe.ingredients.map((item) => item.rawText || [item.quantity, item.unit, item.name].filter(Boolean).join(" ")),
+    recipeInstructions: instructionSteps.map((text) => ({ "@type": "HowToStep", text })),
+    ...(recipe.source.author ? { author: { "@type": "Person", name: recipe.source.author } } : {}),
+  };
   return (
     <article className={`container page-shell ${styles.page}`}>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredRecipe).replace(/</g, "\\u003c") }} />
       <nav aria-label="Navegação estrutural" className={styles.breadcrumb}><Link href="/receitas">Receitas</Link><span aria-hidden="true">/</span><span aria-current="page">{recipe.title}</span></nav>
       <header className={styles.header}>
         <div className={styles.intro}>
