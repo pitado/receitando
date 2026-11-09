@@ -1,3 +1,4 @@
+import { notifyNewRegistration } from "./lib/admin-notifications";
 import { bytesToBase64Url, hashPassword, sha256, verifyPassword } from "./lib/security";
 import {
   apiError,
@@ -83,6 +84,10 @@ async function handleRegister(request: Request, env: Env): Promise<Response> {
     .run();
 
   const session = await createSession(env, user.id);
+  // Never block a successful registration because an admin email failed.
+  try { await notifyNewRegistration(env); } catch (error) {
+    console.error("Registration notification failed", error instanceof Error ? error.name : "unknown");
+  }
   return json(request, env, { user: publicUser(user), ...session }, 201);
 }
 
