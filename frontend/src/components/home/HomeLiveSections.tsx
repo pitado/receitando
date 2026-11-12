@@ -195,7 +195,7 @@ export function HomeLiveSections({
         </div>
       </section>
 
-      <section className={styles.stepsSection}>
+      <section className={styles.stepsSection} data-nosnippet>
         <div className="home-container">
           <div className={styles.stepGrid}>
             <article>
