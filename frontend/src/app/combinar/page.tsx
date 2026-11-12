@@ -1,3 +1,12 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "O que cozinhar com os ingredientes que você tem?",
+  description: "Informe os ingredientes que você tem em casa e descubra quais receitas consegue preparar, o que ainda falta e novas ideias para aproveitar seus alimentos.",
+  alternates: { canonical: "https://receitando.miguelpita.com.br/combinar" },
+  robots: { index: true, follow: true },
+};
+
 import { IngredientMatcher } from "@/components/ingredient/IngredientMatcher";
 
 import styles from "./page.module.css";
