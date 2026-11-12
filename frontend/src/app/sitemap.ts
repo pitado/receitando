@@ -1,68 +1,14 @@
 import type { MetadataRoute } from "next";
 
-import { listRecipes } from "@/services/recipes.service";
-
 const BASE_URL = "https://receitando.miguelpita.com.br";
-const PAGE_SIZE = 100;
 
-// Gera o sitemap sob demanda: não depende da API durante o build e reflete novas receitas.
-export const dynamic = "force-dynamic";
-
-async function getRecipeEntries(): Promise<MetadataRoute.Sitemap> {
-  const entries: MetadataRoute.Sitemap = [];
-  let offset = 0;
-
-  {
-    while (true) {
-      const catalog = await listRecipes({
-        limit: PAGE_SIZE,
-        offset,
-        sort: "title",
-      });
-
-      entries.push(
-        ...catalog.items.map((recipe) => ({
-          url: `${BASE_URL}/receitas/${encodeURIComponent(recipe.slug)}`,
-          changeFrequency: "weekly" as const,
-          priority: 0.8,
-        })),
-      );
-
-      if (!catalog.pagination.hasMore || catalog.items.length === 0) {
-        break;
-      }
-
-      offset += catalog.items.length;
-
-      if (offset >= catalog.pagination.total) {
-        break;
-      }
-    }
-  }
-
-  return entries;
-}
-
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const recipeEntries = await getRecipeEntries();
-
+// Páginas institucionais e de descoberta.
+// As receitas individuais estão no sitemap dinâmico /sitemap-receitas.xml.
+export default function sitemap(): MetadataRoute.Sitemap {
   return [
-    {
-      url: BASE_URL,
-      changeFrequency: "daily",
-      priority: 1,
-    },
-    {
-      url: `${BASE_URL}/receitas`,
-      changeFrequency: "daily",
-      priority: 0.9,
-    },
-    {
-      url: `${BASE_URL}/combinar`,
-      changeFrequency: "weekly",
-      priority: 0.8,
-    },
+    { url: BASE_URL, changeFrequency: "weekly", priority: 1 },
+    { url: `${BASE_URL}/receitas`, changeFrequency: "daily", priority: 0.9 },
+    { url: `${BASE_URL}/combinar`, changeFrequency: "weekly", priority: 0.8 },
     { url: `${BASE_URL}/sobre`, changeFrequency: "monthly", priority: 0.6 },
-    ...recipeEntries,
   ];
 }
