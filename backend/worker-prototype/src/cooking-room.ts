@@ -83,9 +83,18 @@ export class CookingRoom extends DurableObject<Env> {
 
   async webSocketMessage(ws: WebSocket, raw: string | ArrayBuffer): Promise<void> {
     if (typeof raw !== "string" || raw.length > 1024) return;
-    let message: { type?: string; stepIndex?: number; completed?: boolean } | null;
+    let message: { type?: string; stepIndex?: number; completed?: boolean; reaction?: string } | null;
     try { message = JSON.parse(raw); } catch { return; }
-    if (!message || message.type !== "step:set" || !Number.isInteger(message.stepIndex) || typeof message.completed !== "boolean") return;
+    if (!message) return;
+    // Short-lived room interactions; no personal data or chat history is stored.
+    if (message.type === "social:react") {
+      if (!["heart", "clap", "help", "ready"].includes(message.reaction ?? "")) return;
+      const active = await this.ctx.storage.get<Room>("room");
+      if (!active || this.expired(active)) { ws.close(1008, "Sala expirada"); return; }
+      this.broadcast({ type: "social:event", reaction: message.reaction, at: Date.now() });
+      return;
+    }
+    if (message.type !== "step:set" || !Number.isInteger(message.stepIndex) || typeof message.completed !== "boolean") return;
     const index = message.stepIndex!;
     const completed = message.completed;
     try {
