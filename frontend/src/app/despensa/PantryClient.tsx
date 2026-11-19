@@ -21,6 +21,7 @@ import {
   type PantryItem,
   removePantryItem,
   savePantryItem,
+  updatePantryItem,
 } from "@/services/pantry.service";
 import { matchRecipesFromPantry } from "@/services/recipes.service";
 import type { MatchRecipeResult } from "@/types/recipe";
@@ -410,7 +411,7 @@ export function PantryClient() {
 
     try {
       setItems(
-        await savePantryItem(item.ingredientId, parsed, unit, expiresAt),
+        await updatePantryItem(item.id, parsed, unit, expiresAt),
       );
       cancelEditing();
     } catch (cause: unknown) {
