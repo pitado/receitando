@@ -485,7 +485,35 @@
   margin: 0;
 }
 
-.listHeader > span {
+.listActions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.refreshButton {
+  background: transparent;
+  border: 1px solid var(--pantry-border);
+  border-radius: 999px;
+  color: var(--pantry-ink);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  min-height: 34px;
+  padding: 7px 14px;
+}
+
+.refreshButton:hover:not(:disabled) {
+  background: var(--pantry-card);
+}
+
+.refreshButton:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.itemCount {
   background: var(--pantry-ink);
   border-radius: 999px;
   color: var(--pantry-cream);
