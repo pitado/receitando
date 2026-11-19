@@ -1,5 +1,5 @@
 .page { background:#96462b; min-height:100vh; color:#fbf2e8; font-family:var(--font-home-copy),system-ui,sans-serif; }
-.container { max-width:1180px; margin:0 auto; padding:48px 28px 90px; }
+.container { max-width:1200px; margin:0 auto; padding:48px 28px 90px; }
 .back { color:#f4dbc4; display:inline-block; font-weight:700; text-decoration:underline; text-underline-offset:5px; margin-bottom:45px; }
 .hero { max-width:890px; margin-bottom:46px; }
 .eyebrow { font-size:13px; letter-spacing:.16em; text-transform:uppercase; color:#edc070; font-weight:800; }
@@ -27,7 +27,7 @@
 
 /* Refinamento do visual já rebrandado. */
 .page { background: var(--home-cafe); color: var(--home-papel); }
-.container { max-width: 1180px; padding: clamp(28px,4vw,60px) 28px 95px; }
+.container { max-width: 1200px; padding: clamp(28px,4vw,60px) 28px 95px; }
 .hero { margin-bottom: 40px; }
 .hero h1 { max-width: 16ch; text-wrap: balance; }
 .hero p { color: #f1d9c4; }
