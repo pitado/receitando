@@ -120,6 +120,43 @@ async function addPantryItem(request: Request, env: Env, user: UserRow): Promise
   return listPantry(request, env, user);
 }
 
+async function updatePantryItem(
+  request: Request,
+  env: Env,
+  user: UserRow,
+  id: string,
+): Promise<Response> {
+  const body = await readJson(request);
+  if (!body) return apiError(request, env, 400, "Dados inválidos.");
+
+  const quantity = body.quantity === undefined || body.quantity === null ? null : body.quantity;
+  if (quantity !== null && (typeof quantity !== "number" || !Number.isFinite(quantity) || quantity < 0)) {
+    return apiError(request, env, 400, "Informe uma quantidade válida.");
+  }
+  if (body.unit !== undefined && body.unit !== null && typeof body.unit !== "string") {
+    return apiError(request, env, 400, "Informe uma unidade válida.");
+  }
+  const unit = typeof body.unit === "string" ? body.unit.trim() : null;
+  if (unit !== null && unit.length > 40) {
+    return apiError(request, env, 400, "A unidade deve ter no máximo 40 caracteres.");
+  }
+  const expiresAt = normalizeExpirationDate(body.expiresAt ?? null);
+  if (expiresAt === undefined) return apiError(request, env, 400, "Informe uma data de validade válida.");
+
+  const existing = await env.db
+    .prepare("SELECT id FROM pantry_items WHERE id = ? AND user_id = ? LIMIT 1")
+    .bind(id, user.id)
+    .first<{ id: string }>();
+  if (!existing) return apiError(request, env, 404, "Ingrediente não encontrado na sua despensa.");
+
+  await env.db
+    .prepare("UPDATE pantry_items SET quantity = ?, unit = ?, expires_at = ?, updated_at = ? WHERE id = ? AND user_id = ?")
+    .bind(quantity, quantity === null ? null : unit, expiresAt, new Date().toISOString(), id, user.id)
+    .run();
+
+  return listPantry(request, env, user);
+}
+
 async function removePantryItem(
   request: Request,
   env: Env,
@@ -153,6 +190,16 @@ export default {
       }
       if (request.method === "POST" && path === "/api/pantry") {
         return addPantryItem(request, env, user);
+      }
+      if (request.method === "PATCH" && path.startsWith("/api/pantry/")) {
+        const id = path.slice("/api/pantry/".length);
+        if (!id || id.includes("/")) return apiError(request, env, 400, "Identificador inválido.");
+        try {
+          return updatePantryItem(request, env, user, decodeURIComponent(id));
+        } catch (error) {
+          if (error instanceof URIError) return apiError(request, env, 400, "Identificador inválido.");
+          throw error;
+        }
       }
       if (request.method === "DELETE" && path.startsWith("/api/pantry/")) {
         return removePantryItem(
