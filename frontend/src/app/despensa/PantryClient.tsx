@@ -435,33 +435,60 @@ export function PantryClient() {
     }, 7000);
   }
 
+  function applyPantryAfterRemoval(nextItems: PantryItem[], item: PantryItem) {
+    setItems(nextItems);
+    if (nextItems.length === 0) {
+      setMatches([]);
+      setMatchStatus("idle");
+      setMatchError("");
+    }
+    if (editingId === item.id) cancelEditing();
+  }
+
   async function handleRemove(item: PantryItem) {
+    // Uma operação por vez: evita clique duplo e remoção simultânea de outro item.
+    if (savingId) return;
+
     setSavingId(item.ingredientId);
     setError(null);
 
     try {
       const nextItems = await removePantryItem(item.id);
-      setItems(nextItems);
-      if (nextItems.length === 0) {
-        setMatches([]);
-        setMatchStatus("idle");
-        setMatchError("");
-      }
-      if (editingId === item.id) cancelEditing();
+      applyPantryAfterRemoval(nextItems, item);
       showUndo(item);
     } catch (cause: unknown) {
-      setError(
-        getRequestError(cause, "Não foi possível remover o ingrediente."),
-      );
+      if (cause instanceof ApiError && cause.status === 404) {
+        // Já não existe no servidor (ex.: removido em outra aba): só sincroniza a lista,
+        // sem oferecer "Desfazer" para algo que este clique não removeu.
+        try {
+          applyPantryAfterRemoval(await getPantry(), item);
+        } catch {
+          setError("Esse ingrediente já não está na despensa. Atualize a página.");
+        }
+      } else {
+        setError(
+          getRequestError(cause, "Não foi possível remover o ingrediente."),
+        );
+      }
     } finally {
       setSavingId(null);
     }
   }
 
   async function undoRemove() {
-    if (!undoItem) return;
+    if (!undoItem || savingId) return;
 
     const item = undoItem;
+
+    // O ingrediente já voltou à despensa (ex.: adicionado de novo): não regravar
+    // por cima, o que sobrescreveria quantidade/validade atuais.
+    if (pantryIds.has(item.ingredientId)) {
+      setUndoItem(null);
+      if (undoTimer.current !== null) window.clearTimeout(undoTimer.current);
+      undoTimer.current = null;
+      return;
+    }
+
     setSavingId(item.ingredientId);
     setError(null);
 
@@ -829,7 +856,7 @@ export function PantryClient() {
                             <button
                               aria-label={`Remover ${item.ingredientName}`}
                               className={styles.removeButton}
-                              disabled={busy}
+                              disabled={Boolean(savingId)}
                               onClick={() => void handleRemove(item)}
                               type="button"
                             >
@@ -913,7 +940,7 @@ export function PantryClient() {
             <strong>{undoItem.ingredientName}</strong> foi removido.
           </span>
           <button
-            disabled={savingId === undoItem.ingredientId}
+            disabled={Boolean(savingId)}
             onClick={() => void undoRemove()}
             type="button"
           >
