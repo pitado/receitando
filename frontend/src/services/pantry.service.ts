@@ -63,3 +63,17 @@ export async function removePantryItem(id: string): Promise<PantryItem[]> {
   notifyPantryChanged();
   return pantry;
 }
+
+export async function updatePantryItem(
+  id: string,
+  quantity: number | null,
+  unit: string | null,
+  expiresAt: string | null,
+): Promise<PantryItem[]> {
+  const pantry = await apiRequest<PantryItem[]>(`/api/pantry/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    body: JSON.stringify({ quantity, unit, expiresAt }),
+  });
+  notifyPantryChanged();
+  return pantry;
+}
