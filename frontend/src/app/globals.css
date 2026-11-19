@@ -61,7 +61,7 @@
   --radius-card: 0.9rem;
   --radius-pill: 999px;
   --radius-round: 50%;
-  --page-gutter: clamp(1rem, 3.2vw, 1.75rem);
+  --page-gutter: clamp(1.25rem, 3.2vw, 1.75rem);
   --container-width: 75rem;
 
   --shadow-button: 0 0.2rem 0.8rem var(--color-shadow);
