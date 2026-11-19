@@ -30,8 +30,8 @@
   gap: 56px;
   grid-template-columns: 1.1fr 0.9fr;
   margin-inline: auto;
-  max-width: 1180px;
-  padding-inline: 40px;
+  max-width: 1200px;
+  padding-inline: 28px;
   width: 100%;
 }
 

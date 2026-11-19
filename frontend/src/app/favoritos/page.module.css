@@ -28,8 +28,8 @@
 .container,
 .guestGrid {
   margin-inline: auto;
-  max-width: 1180px;
-  padding-inline: 40px;
+  max-width: 1200px;
+  padding-inline: 28px;
   width: 100%;
 }
 
@@ -555,7 +555,7 @@
 @media (max-width: 768px) {
   .container,
   .guestGrid {
-    padding-inline: 22px;
+    padding-inline: 28px;
   }
 
   .guestGrid {
