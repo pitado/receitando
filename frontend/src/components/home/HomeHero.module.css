@@ -2,7 +2,7 @@
   background: var(--home-cafe);
   color: var(--home-papel);
   min-height: calc(100vh - var(--home-topo));
-  min-height: calc(100svh - var(--home-topo));
+  min-height: min(680px, calc(100svh - var(--home-topo)));
   display: flex;
   align-items: center;
   padding: 40px 0 56px;
@@ -60,6 +60,17 @@
   opacity: 0.5;
 }
 
+/* Impede que a vírgula fique sozinha na linha seguinte ao último chip. */
+.lastHaveChip {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.chipComma {
+  font-size: 0.65em;
+  vertical-align: baseline;
+}
+
 .haveChip:hover b { opacity: 1; }
 
 .missingChip {
@@ -85,20 +96,10 @@
 .recipeName {
   color: var(--home-mel);
   display: inline;
-  position: relative;
-}
-
-.recipeName::after {
-  animation: recipe-name-in 450ms ease both;
-  background: var(--home-mel);
-  bottom: -0.08em;
-  content: "";
-  height: 0.05em;
-  left: 0;
-  opacity: 0.4;
-  position: absolute;
-  transform-origin: left;
-  width: 100%;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--home-mel) 65%, transparent);
+  text-decoration-thickness: 0.035em;
+  text-underline-offset: 0.08em;
 }
 
 .controls {
@@ -179,7 +180,7 @@
   display: flex;
   flex-wrap: wrap;
   font: 400 17px/1.55 var(--font-home-copy), system-ui, sans-serif;
-  gap: 0;
+  gap: 8px 18px;
   margin-top: 28px;
   min-height: 28px;
 }
@@ -187,7 +188,6 @@
 .summary a {
   color: var(--home-papel);
   font-weight: 700;
-  margin-left: 18px;
   text-decoration-color: var(--home-gema);
   text-decoration-thickness: 3px;
   text-underline-offset: 4px;
@@ -195,15 +195,9 @@
 
 .summary a:hover { color: var(--home-gema); }
 
-@keyframes recipe-name-in {
-  from { opacity: 0; transform: translateY(0.25em); }
-  to { opacity: 0.4; transform: translateY(0); }
-}
-
 @media (max-width: 640px) {
   .hero {
-    min-height: calc(100vh - 76px);
-    min-height: calc(100svh - 76px);
+    min-height: auto;
     padding: 40px 0 48px;
   }
 
@@ -231,8 +225,4 @@
     margin-top: 8px;
     width: 100%;
   }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .recipeName::after { animation: none; }
 }
