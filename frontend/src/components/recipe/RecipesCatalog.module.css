@@ -45,20 +45,22 @@
 }
 
 .hero {
-  padding-top: 40px;
+  padding-top: 26px;
 }
 
 .heroHeading {
-  align-items: flex-end;
+  align-items: center;
   display: flex;
-  gap: 40px;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 12px;
+  justify-content: center;
+  text-align: center;
 }
 
 .heroHeading h1 {
   color: var(--catalog-cream);
   font-family: var(--font-home-title), Impact, sans-serif;
-  font-size: clamp(48px, 6.4vw, 84px);
+  font-size: clamp(48px, 6.1vw, 80px);
   font-weight: 400;
   letter-spacing: -0.015em;
   line-height: 0.98;
@@ -71,17 +73,20 @@
 }
 
 .catalogTotal {
-  flex-shrink: 0;
+  align-items: baseline;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
   margin: 0;
-  padding-bottom: 8px;
-  text-align: right;
+  text-align: center;
 }
 
 .catalogTotal strong {
   color: var(--catalog-gold);
-  display: block;
+  display: inline-block;
   font-family: var(--font-home-title), Impact, sans-serif;
-  font-size: 56px;
+  font-size: 38px;
   font-weight: 400;
   line-height: 1;
 }
@@ -92,7 +97,7 @@
 }
 
 .search {
-  margin-top: 34px;
+  margin-top: 24px;
   position: relative;
 }
 
@@ -760,17 +765,11 @@
   }
 
   .heroHeading {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  .catalogTotal {
-    text-align: left;
+    gap: 12px;
   }
 
   .catalogTotal strong {
-    font-size: 48px;
+    font-size: 34px;
   }
 
   .pantryBanner {
@@ -808,15 +807,15 @@
   }
 
   .hero {
-    padding-top: 34px;
+    padding-top: 24px;
   }
 
   .heroHeading h1 {
-    font-size: clamp(46px, 14vw, 62px);
+    font-size: clamp(40px, 11vw, 60px);
   }
 
   .search {
-    margin-top: 28px;
+    margin-top: 22px;
   }
 
   .search input {
@@ -894,5 +893,14 @@
   }
 }
 
-.externalIdeasLink { display:inline-block; margin-top:20px; color:#ffe0b1; font-size:14px; font-weight:750; text-decoration:underline; text-underline-offset:5px; }
+.externalIdeasLink {
+  color: #ffe0b1;
+  display: block;
+  font-size: 14px;
+  font-weight: 750;
+  margin-top: 16px;
+  text-align: center;
+  text-decoration: underline;
+  text-underline-offset: 5px;
+}
 .externalIdeasLink:hover {color:white;}
