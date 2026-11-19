@@ -72,10 +72,18 @@ async function addPantryItem(request: Request, env: Env, user: UserRow): Promise
   if (!body) return apiError(request, env, 400, "Dados inválidos.");
 
   const ingredientId = typeof body.ingredientId === "string" ? body.ingredientId.trim() : "";
-  const quantity = typeof body.quantity === "number" && Number.isFinite(body.quantity)
-    ? body.quantity
-    : null;
-  const unit = typeof body.unit === "string" ? body.unit.trim().slice(0, 40) : null;
+  const quantity = body.quantity === undefined || body.quantity === null ? null : body.quantity;
+  if (quantity !== null && (typeof quantity !== "number" || !Number.isFinite(quantity) || quantity < 0)) {
+    return apiError(request, env, 400, "Informe uma quantidade válida.");
+  }
+
+  if (body.unit !== undefined && body.unit !== null && typeof body.unit !== "string") {
+    return apiError(request, env, 400, "Informe uma unidade válida.");
+  }
+  if (typeof body.unit === "string" && body.unit.trim().length > 40) {
+    return apiError(request, env, 400, "A unidade deve ter no máximo 40 caracteres.");
+  }
+  const unit = typeof body.unit === "string" ? body.unit.trim() : null;
   const hasExpiresAt = Object.prototype.hasOwnProperty.call(body, "expiresAt");
   const expiresAt = hasExpiresAt ? normalizeExpirationDate(body.expiresAt) : undefined;
 
