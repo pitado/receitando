@@ -126,11 +126,38 @@ async function removePantryItem(
   user: UserRow,
   id: string,
 ): Promise<Response> {
+  // A checagem inclui user_id: item de outra conta responde igual a item inexistente (404),
+  // sem revelar que o ID existe e sem alterar nada.
+  const existing = await env.db
+    .prepare("SELECT id FROM pantry_items WHERE id = ? AND user_id = ? LIMIT 1")
+    .bind(id, user.id)
+    .first<{ id: string }>();
+  if (!existing) return apiError(request, env, 404, "Ingrediente não encontrado na sua despensa.");
+
   await env.db
     .prepare("DELETE FROM pantry_items WHERE id = ? AND user_id = ?")
     .bind(id, user.id)
     .run();
   return listPantry(request, env, user);
+}
+
+const MAX_PANTRY_ITEM_ID_LENGTH = 100;
+
+function parsePantryItemId(path: string): string | null {
+  const raw = path.slice("/api/pantry/".length);
+  if (!raw || raw.includes("/")) return null;
+
+  let id: string;
+  try {
+    id = decodeURIComponent(raw).trim();
+  } catch {
+    return null;
+  }
+
+  if (!id || id.length > MAX_PANTRY_ITEM_ID_LENGTH || /[\u0000-\u001f\u007f/\\]/.test(id)) {
+    return null;
+  }
+  return id;
 }
 
 export default {
@@ -155,12 +182,9 @@ export default {
         return addPantryItem(request, env, user);
       }
       if (request.method === "DELETE" && path.startsWith("/api/pantry/")) {
-        return removePantryItem(
-          request,
-          env,
-          user,
-          decodeURIComponent(path.slice("/api/pantry/".length)),
-        );
+        const itemId = parsePantryItemId(path);
+        if (!itemId) return apiError(request, env, 400, "Identificador do item inválido.");
+        return removePantryItem(request, env, user, itemId);
       }
       return apiError(request, env, 405, "Método não permitido.");
     }

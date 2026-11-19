@@ -312,6 +312,13 @@ A inclusão repetida do mesmo `ingredientId` para o mesmo usuário atualiza o re
 
 Remove somente o item pertencente ao usuário autenticado.
 
+| Situação | Resposta |
+| --- | --- |
+| Item removido | `200` com a lista atualizada da despensa |
+| Sem sessão válida | `401` |
+| ID vazio, com `/`, caracteres de controle, mal codificado ou com mais de 100 caracteres | `400` |
+| ID inexistente **ou** pertencente a outra conta | `404` (mesma resposta, sem revelar que o item existe) |
+
 ## Lista de compras
 
 Não existe uma rota exclusiva de lista de compras.
