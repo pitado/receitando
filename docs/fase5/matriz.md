@@ -1,0 +1,23 @@
+# Rastreabilidade das operações
+
+Base ba09a81. Em cada linha, a resposta de sucesso é HTTP 200 com a lista atualizada da entidade. No GET, é a lista consultada. As mutações são confirmadas com novas leituras independentes.
+
+| Entidade e operação | Interação → serviço frontend | Rota → função no Worker | Persistência e autorização | Resultado observado |
+|---|---|---|---|---|
+| Despensa · CREATE | Escolher sugestão → addIngredient → savePantryItem | POST /api/pantry → addPantryItem | Valida ingrediente, procura par da sessão, INSERT em pantry_items com UUID | Concluído · navegador e HTTP |
+| Despensa · READ | Abrir ou recarregar → loadPantry → getPantry | GET /api/pantry → listPantry | JOIN ingredients, WHERE p.user_id, ordenação por validade e nome | Concluído · GET e F5 |
+| Despensa · UPDATE | + quantidade ou valor → startEditing → saveItemDetails → savePantryItem | POST /api/pantry → addPantryItem | SELECT pelo par; UPDATE pelo id encontrado; altera quantidade, unidade, updated_at e opcionalmente expires_at | Concluído · mesmo ID por HTTP; valores recuperados na UI |
+| Despensa · DELETE | Remover → handleRemove → removePantryItem | DELETE /api/pantry/:itemId → removePantryItem | DELETE com id e user_id da sessão | Concluído · exclusão permanece após F5; item alheio preservado |
+| Comentário · CREATE | Deixe sua pitada → submitComment → createRecipeComment | POST /api/recipes/:recipeId/comments → createComment | Sessão, receita existente e texto aparado de 2 a 1200 caracteres; INSERT com autor | Concluído via HTTP; tela inspecionada |
+| Comentário · READ | Abrir detalhes → listRecipeComments | GET /api/recipes/:recipeId/comments → listComments | Consulta pública por receita com JOIN users, mais recentes primeiro; canEdit depende da sessão | Concluído via HTTP; F5 social não verificado |
+| Comentário · UPDATE | Editar → saveEdit → updateRecipeComment | PATCH /api/recipe-comments/:commentId → updateComment | commentOwner valida dono, verifica tamanho, UPDATE body e updated_at | Concluído via HTTP; GET devolveu texto editado, outra conta recebeu 403 |
+| Comentário · DELETE | Excluir → removeComment → deleteRecipeComment | DELETE /api/recipe-comments/:commentId → deleteComment | commentOwner valida dono antes do DELETE por id | Concluído via HTTP; GET retornou lista vazia, outra conta recebeu 403 |
+
+## Como localizar a implementação
+
+- [PantryClient.tsx](../../frontend/src/app/despensa/PantryClient.tsx) carrega despensa e catálogo em paralelo. Na inclusão otimista guarda os valores anteriores e restaura itens, busca e validade se a gravação falhar. A edição mantém o formulário e exibe itemError. A exclusão mostra erro e só substitui a lista após sucesso. Desfazer realiza nova gravação.
+- [pantry.service.ts](../../frontend/src/services/pantry.service.ts) monta JSON, codifica o ID para exclusão e notifica o restante da aplicação após sucesso. [api-client.ts](../../frontend/src/services/api-client.ts) envia cookies, desabilita cache e converte falhas HTTP/conexão em ApiError.
+- [session-cookie-worker.ts](../../backend/worker-prototype/src/session-cookie-worker.ts) trata cookie de sessão, origem e seleção do banco. [app-router.ts](../../backend/worker-prototype/src/app-router.ts) encaminha a chamada. [pantry-worker.ts](../../backend/worker-prototype/src/pantry-worker.ts) verifica o hash do token e a expiração. Falta de sessão gera 401; data inválida ou ingrediente vazio, 400; ingrediente desconhecido, 404. Unidade é aparada e limitada a 40 caracteres. Data omitida preserva a anterior no UPDATE, nulo a limpa. DELETE que não encontra item próprio retorna a lista do solicitante.
+- [Migração 0001](../../backend/worker-prototype/migrations/postgres/0001_baseline.sql) define chaves estrangeiras e unicidade de (user_id, ingredient_id). [postgres-adapter.ts](../../backend/worker-prototype/src/lib/postgres-adapter.ts) adapta os parâmetros das consultas para o cliente PostgreSQL.
+- [recipes.service.ts](../../frontend/src/services/recipes.service.ts) chama GET /api/recipes/match/pantry. [catalog64-worker.ts](../../backend/worker-prototype/src/catalog64-worker.ts) contém matchFromPantry. Na massa local, Banana retornou Bolo de banana.
+- [RecipeCommunity.tsx](../../frontend/src/components/recipe/RecipeCommunity.tsx) recarrega a conversa ao abrir a receita, restringe os controles por canEdit e exibe mensagens específicas ao falhar leitura, publicação, edição ou exclusão. [recipe-social.service.ts](../../frontend/src/services/recipe-social.service.ts) monta as rotas. [social-worker.ts](../../backend/worker-prototype/src/social-worker.ts) confere a propriedade no servidor, mesmo que um cliente ignore o controle visual. Comentário inexistente retorna 404.
