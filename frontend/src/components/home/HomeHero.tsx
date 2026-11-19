@@ -60,25 +60,36 @@ export function HomeHero({
       return <span>O que tem aí na sua cozinha?</span>;
     }
 
-    const have = ingredients.map((ingredient) => (
-      <button
-        aria-label={"Remover " + ingredient}
-        className={styles.haveChip}
-        key={ingredient}
-        onClick={() => onRemoveIngredient(ingredient)}
-        type="button"
-      >
-        <span>{ingredient}</span>
-        <b aria-hidden="true">×</b>
-      </button>
-    ));
+    const have = ingredients.map((ingredient, index) => {
+      const chip = (
+        <button
+          aria-label={"Remover " + ingredient}
+          className={styles.haveChip}
+          key={ingredient}
+          onClick={() => onRemoveIngredient(ingredient)}
+          type="button"
+        >
+          <span>{ingredient}</span>
+          <b aria-hidden="true">×</b>
+        </button>
+      );
+
+      // Mantém a pontuação junto do último ingrediente na quebra de linha.
+      if (index !== ingredients.length - 1) return chip;
+      return (
+        <span className={styles.lastHaveChip} key={ingredient}>
+          {chip}
+          <span aria-hidden="true" className={styles.chipComma}>,</span>
+        </span>
+      );
+    });
 
     if (matchState === "loading") {
-      return <><span>Com </span>{have}<span>, vamos descobrir o que dá pra fazer?</span></>;
+      return <><span>Com </span>{have}<span> vamos descobrir o que dá pra fazer?</span></>;
     }
 
     if (matchState === "error") {
-      return <><span>Com </span>{have}<span>, que tal explorar novas ideias?</span></>;
+      return <><span>Com </span>{have}<span> que tal explorar novas ideias?</span></>;
     }
 
     if (!bestMatch) {
@@ -86,7 +97,7 @@ export function HomeHero({
         <>
           <span>Com </span>
           {have}
-          <span>, ainda não fecha uma receita. Que tal mais um ingrediente?</span>
+          <span> ainda não fecha uma receita. Que tal mais um ingrediente?</span>
         </>
       );
     }
@@ -98,7 +109,7 @@ export function HomeHero({
         <>
           <span>Com </span>
           {have}
-          <span>, dá pra fazer </span>
+          <span> dá pra fazer </span>
           <RecipeName recipe={bestMatch} />
           <span>.</span>
         </>
@@ -122,7 +133,7 @@ export function HomeHero({
         <>
           <span>Com </span>
           {have}
-          <span>, falta só </span>
+          <span> falta só </span>
           {missingButtons}
           <span> pra fazer </span>
           <RecipeName recipe={bestMatch} />
@@ -136,7 +147,7 @@ export function HomeHero({
         <>
           <span>Com </span>
           {have}
-          <span>, faltam só </span>
+          <span> faltam só </span>
           {missingButtons[0]}
           <span> e </span>
           {missingButtons[1]}
@@ -151,7 +162,7 @@ export function HomeHero({
       <>
         <span>Com </span>
         {have}
-        <span>, você está a </span>
+        <span> você está a </span>
         <strong className={styles.missingCount}>{missing.length}</strong>
         <span> ingredientes de </span>
         <RecipeName recipe={bestMatch} />
@@ -167,6 +178,18 @@ export function HomeHero({
     onAddIngredient(candidate);
     setValue("");
   }
+
+  const summaryParts = [
+    readyCount > 0
+      ? `${readyCount} ${readyCount === 1 ? "receita pronta" : "receitas prontas"} pra fazer`
+      : null,
+    oneAwayCount > 0
+      ? oneAwayCount === 1
+        ? "Falta 1 ingrediente"
+        : `${oneAwayCount} receitas a 1 ingrediente de distância`
+      : null,
+    `${usableCount} ${usableCount === 1 ? "combinação encontrada" : "combinações encontradas"}`,
+  ].filter((part): part is string => part !== null);
 
   return (
     <section className={styles.hero} id="inicio">
@@ -224,11 +247,7 @@ export function HomeHero({
             <><span>Nenhuma combinação encontrada ainda. Experimente adicionar outro ingrediente.</span><a href="#combinacoes">Ver sugestões</a></>
           ) : (
             <>
-              {readyCount > 0 ? <span>{readyCount} {readyCount === 1 ? "pronta" : "prontas"} pra fazer</span> : null}
-              {readyCount > 0 && oneAwayCount > 0 ? <span>, </span> : null}
-              {oneAwayCount > 0 ? <span>{oneAwayCount} a um ingrediente de distância</span> : null}
-              {(readyCount > 0 || oneAwayCount > 0) ? <span>, </span> : null}
-              <span>{usableCount} {usableCount === 1 ? "combinação encontrada" : "combinações encontradas"}</span>
+              <span>{summaryParts.join(" · ")}</span>
               <a href="#combinacoes">Ver combinações</a>
             </>
           )}
