@@ -54,12 +54,12 @@ test("o perfil fica antes de Enviar no mobile e permite trocar a conta", async (
   await profile.click();
   await expect(page.getByRole("link", { name: "Meu perfil" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Editar @ e avatar" })).toHaveAttribute("href", "/conta?editar=1");
-  await expect(page.getByText("@cozinha_teste", { exact: true })).toBeVisible();
+  await expect(page.getByText("@cozinha_teste", { exact: true }).first()).toBeVisible();
 
   await page.getByRole("button", { name: "Trocar de conta" }).click();
   await expect(page).toHaveURL(/\/entrar$/);
   expect(logoutCalls).toBe(1);
-  await expect(page.getByRole("link", { name: "Entrar na minha conta" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Entrar na minha conta" }).first()).toBeVisible();
 });
 
 test("falha ao sair mantém a sessão visível e oferece nova tentativa", async ({ page }) => {
@@ -73,7 +73,7 @@ test("falha ao sair mantém a sessão visível e oferece nova tentativa", async 
   await page.goto("/");
   await page.getByRole("button", { name: "Conta @cozinha_teste" }).click();
   await page.getByRole("button", { name: "Sair da conta" }).click();
-  await expect(page.getByRole("alert")).toContainText("Não foi possível encerrar a sessão");
+  await expect(page.getByRole("alert").first()).toContainText("Não foi possível encerrar a sessão");
   await expect(page).toHaveURL(/\/$/);
   await expect(page.getByRole("button", { name: "Trocar de conta" })).toBeEnabled();
 });
