@@ -99,6 +99,7 @@ export function PantryClient() {
   const [query, setQuery] = useState("");
   const [nextExpiry, setNextExpiry] = useState("");
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [savingId, setSavingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [searchError, setSearchError] = useState("");
@@ -270,6 +271,19 @@ export function PantryClient() {
       return safeFirst - safeSecond || first.localeCompare(second, "pt-BR");
     });
   }, [ingredients, items]);
+
+  async function refreshPantry() {
+    if (refreshing || savingId) return;
+    setRefreshing(true);
+    setError(null);
+    try {
+      setItems(await getPantry());
+    } catch (cause: unknown) {
+      setError(getRequestError(cause, "Não foi possível atualizar a despensa."));
+    } finally {
+      setRefreshing(false);
+    }
+  }
 
   function focusSearch() {
     window.requestAnimationFrame(() => searchRef.current?.focus());
@@ -678,9 +692,19 @@ export function PantryClient() {
           <div className={styles.pantryList}>
             <div className={styles.listHeader}>
               <h2 id="pantry-title">O que já está em casa</h2>
-              <span>
-                {items.length} {items.length === 1 ? "item" : "itens"}
-              </span>
+              <div className={styles.listActions}>
+                <button
+                  className={styles.refreshButton}
+                  disabled={refreshing || Boolean(savingId)}
+                  onClick={() => void refreshPantry()}
+                  type="button"
+                >
+                  {refreshing ? "Atualizando…" : "Atualizar"}
+                </button>
+                <span className={styles.itemCount}>
+                  {items.length} {items.length === 1 ? "item" : "itens"}
+                </span>
+              </div>
             </div>
 
             {error ? (
