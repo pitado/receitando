@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 
 import { formatIngredientAmount } from "@/lib/format";
-import { CookingRoomConnection, type CookingRoom, type ConnectionStatus } from "@/services/cooking-room-connection";
+import { CookingRoomConnection, type CookingRoom, type ConnectionStatus, type SocialReaction, type SocialEvent } from "@/services/cooking-room-connection";
 import { getRecipeBySlug } from "@/services/recipes.service";
 import type { Recipe } from "@/types/recipe";
 
@@ -40,6 +40,8 @@ function displayDuration(seconds: number): string {
 export default function CookingRoomPage() {
   const { id } = useParams<{ id: string }>();
   const [room, setRoom] = useState<CookingRoom | null>(null);
+  const [socialEvents, setSocialEvents] = useState<SocialEvent[]>([]);
+  const [socialMessage, setSocialMessage] = useState("");
   const [status, setStatus] = useState("Conectando...");
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>("connecting");
   const [recipe, setRecipe] = useState<Recipe | null>(null);
@@ -57,6 +59,7 @@ export default function CookingRoomPage() {
     if (!id) return;
     const client = new CookingRoomConnection(id, {
       onRoom: setRoom,
+      onSocialEvent: (event) => setSocialEvents(previous => [...previous.slice(-5), event]),
       onStatus: (state, message) => {
         setConnectionStatus(state);
         setStatus(message);
@@ -106,6 +109,11 @@ export default function CookingRoomPage() {
   const suggestion = suggestedSeconds(currentStep);
   const timerRunning = timerEnd !== null;
   const invitation = shareUrl || "/cozinhar-junto/" + id;
+
+  function react(reaction: SocialReaction) {
+    if (!connection.current?.react(reaction)) return;
+    setSocialMessage(reaction === "help" ? "Pedido de ajuda enviado!" : "Interação enviada!");
+  }
 
   function toggle(index: number) {
     if (!room || !connected || index < 0 || index >= room.steps.length) return;
@@ -281,6 +289,23 @@ export default function CookingRoomPage() {
             </div>
 
             <aside className={styles.sidebar} aria-label="Ferramentas da cozinha">
+              <section className={styles.toolCard} aria-labelledby="social-title">
+                <p className={styles.sectionEyebrow}>JUNTOS, MESMO DE LONGE</p>
+                <div className={styles.toolHeading}><h2 id="social-title">Conexão da cozinha</h2><RecipeArtwork kind="heart" size={23} /></div>
+                <p className={styles.toolDescription}>Envie uma reação ou peça ajuda para quem está cozinhando com você.</p>
+                <div className={styles.socialActions}>
+                  <button type="button" disabled={!connected} onClick={() => react("heart")}>❤️ Coração</button>
+                  <button type="button" disabled={!connected} onClick={() => react("clap")}>👏 Aplausos</button>
+                  <button type="button" disabled={!connected} onClick={() => react("ready")}>✅ Estou pronto</button>
+                  <button type="button" disabled={!connected} onClick={() => react("help")}>🙋 Preciso de ajuda</button>
+                </div>
+                <p role="status" aria-live="polite" className={styles.socialStatus}>{socialMessage}</p>
+                <div aria-live="polite" aria-label="Interações recebidas" className={styles.socialFeed}>
+                  {socialEvents.length ? socialEvents.slice().reverse().map((event, index) => (
+                    <p key={event.at + "-" + index}>{event.reaction === "heart" ? "❤️ Alguém mandou carinho!" : event.reaction === "clap" ? "👏 Alguém aplaudiu!" : event.reaction === "ready" ? "✅ Alguém está pronto!" : "🙋 Alguém precisa de ajuda!"}</p>
+                  )) : <p>As interações de quem está na sala aparecerão aqui.</p>}
+                </div>
+              </section>
               <section className={styles.toolCard} aria-labelledby="timer-title">
                 <p className={styles.sectionEyebrow}>SUA BANCADA</p>
                 <div className={styles.toolHeading}><h2 id="timer-title">Timer de cozinha</h2><RecipeArtwork kind="clock" size={23} /></div>

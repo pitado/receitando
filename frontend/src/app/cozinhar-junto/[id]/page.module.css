@@ -420,3 +420,12 @@
   display:inline-block; vertical-align:middle; flex:none;
 }
 .avatarA svg, .avatarB svg { width:23px; height:23px; }
+
+/* Social cooking MVP: touch-friendly controls and readable live updates. */
+.socialActions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .55rem; margin-top: .85rem; }
+.socialActions button { min-height: 2.9rem; padding: .65rem .5rem; background: #f8eee4; color: #74442f; border: 1px solid #e5d5c5; border-radius: .7rem; font-size: .76rem; font-weight: 800; cursor: pointer; }
+.socialActions button:hover:not(:disabled) { background: #eed9c7; }
+.socialActions button:disabled { opacity: .5; cursor: not-allowed; }
+.socialStatus { min-height: 1.2rem; color: #496b35; font-size: .78rem; margin: .7rem 0; }
+.socialFeed { max-height: 10rem; overflow-y: auto; display: grid; gap: .4rem; }
+.socialFeed p { font-size: .77rem; padding: .55rem .7rem; border-radius: .6rem; background: #f6eee5; color: #684c3b; margin: 0; }
