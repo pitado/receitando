@@ -37,6 +37,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          mkdir -p /tmp/gantt-download
           echo "Buscando AppImage oficial do projeto bardsoftware/ganttproject"
           if gh release download ganttproject-3.3.3330 \
                 --repo bardsoftware/ganttproject \
@@ -81,6 +82,41 @@ jobs:
           fi
           ls -lh "$OUT_DIR"
 
+      - name: Registrar diagnóstico da execução
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$OUT_DIR"
+          {
+            echo "Projeto: Receitando - Fase 5"
+            echo "Workflow: $GITHUB_WORKFLOW"
+            echo "Run ID: $GITHUB_RUN_ID"
+            echo "Data UTC: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            echo "Resultado das etapas anteriores: ${{ job.status }}"
+            if [ -f "$OUT_DIR/Receitando_GanttProject_Exportado.pdf" ]; then
+              echo "PDF: gerado pelo GanttProject"
+              pdfinfo "$OUT_DIR/Receitando_GanttProject_Exportado.pdf" | grep -E 'Pages:|Page size:' || true
+            else
+              echo "PDF: não gerado; conferir logs da execução no GitHub Actions"
+            fi
+            if [ -f /tmp/gantt-export-pdf.log ]; then
+              echo "--- últimas mensagens da exportação ---"
+              tail -80 /tmp/gantt-export-pdf.log
+            fi
+          } > "$OUT_DIR/STATUS.txt"
+          cat "$OUT_DIR/STATUS.txt"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$OUT_DIR"
+          if ! git diff --cached --quiet; then
+            git commit -m "docs(fase5): registrar resultado da exportação GanttProject [skip ci]"
+            git push origin "HEAD:$GITHUB_REF_NAME" || {
+              git pull --rebase origin "$GITHUB_REF_NAME"
+              git push origin "HEAD:$GITHUB_REF_NAME"
+            }
+          fi
+
       - name: Publicar artefatos para download
         uses: actions/upload-artifact@v4
         with:
@@ -89,14 +125,3 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-      - name: Salvar exportação na branch de documentação
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/fase5/ganttproject/export/
-          if ! git diff --cached --quiet; then
-            git commit -m "docs(fase5): exportar PDF e PNG pelo GanttProject [skip ci]"
-            git push origin "HEAD:${GITHUB_REF_NAME}"
-          fi
