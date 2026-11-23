@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="Receitando - Escola de TI - Fase 5" company="UniCesumar / ADS" webLink="https://receitando.miguelpita.com.br/" view-date="2026-11-02" view-index="0" gantt-divider-location="870" resource-divider-location="300" version="3.3.3309" locale="pt_BR">
+  <description>Planejamento previsto: 02 a 19/11/2026. CRUD da despensa. Datas planejadas, sem comprovação de conclusão.</description>
+  <view zooming-state="default:6" id="gantt-chart">
+    <field id="tpd3" name="Atividade" width="345" order="0" />
+    <field id="tpc1" name="Responsável" width="128" order="1" />
+    <field id="tpd4" name="Início" width="102" order="2" />
+    <field id="tpd5" name="Término" width="102" order="3" />
+    <field id="tpd6" name="Duração" width="72" order="4" />
+    <field id="tpd9" name="Predecessoras" width="130" order="5" />
+    <option id="taskLabelRight" value="none" />
+    <option id="filter.completedTasks" value="false" />
+    <option id="filter.inProgressTodayTasks" value="false" />
+    <timeline>12</timeline>
+  </view>
+  <view id="resource-table">
+    <field id="0" name="Nome" width="220" order="0" />
+    <field id="1" name="Função" width="160" order="1" />
+  </view>
+  <calendars>
+    <day-types>
+      <day-type id="0" />
+      <day-type id="1" />
+      <default-week id="1" name="default" sun="0" mon="0" tue="0" wed="0" thu="0" fri="0" sat="0" />
+      <only-show-weekends value="false" />
+      <overriden-day-types /><days />
+    </day-types>
+  </calendars>
+  <tasks empty-milestones="true">
+    <taskproperties>
+      <taskproperty id="tpd0" name="type" type="default" valuetype="icon" />
+      <taskproperty id="tpd1" name="priority" type="default" valuetype="icon" />
+      <taskproperty id="tpd2" name="info" type="default" valuetype="icon" />
+      <taskproperty id="tpd3" name="name" type="default" valuetype="text" />
+      <taskproperty id="tpd4" name="begindate" type="default" valuetype="date" />
+      <taskproperty id="tpd5" name="enddate" type="default" valuetype="date" />
+      <taskproperty id="tpd6" name="duration" type="default" valuetype="int" />
+      <taskproperty id="tpd7" name="completion" type="default" valuetype="int" />
+      <taskproperty id="tpd8" name="coordinator" type="default" valuetype="text" />
+      <taskproperty id="tpd9" name="predecessorsr" type="default" valuetype="text" />
+      <taskproperty id="tpc1" name="Responsável" type="custom" valuetype="text" defaultvalue="" />
+      <taskproperty id="tpc2" name="Situação" type="custom" valuetype="text" defaultvalue="A confirmar" />
+    </taskproperties>
+    <task id="100" uid="00000000000000000000000000000100" name="01 - Planejamento e design" color="#D5E5F2" meeting="false" start="2026-11-02" duration="6" complete="0" expand="true">
+      <task id="1" uid="00000000000000000000000000000001" name="Planejamento e definição da funcionalidade" color="#718EAE" meeting="false" start="2026-11-02" duration="2" complete="0" expand="true">
+        <notes>Definir a despensa como foco do CRUD. | Responsável: Miguel | Previsto: 2026-11-02 a 2026-11-03. Situação: A confirmar. Não representa execução comprovada.</notes>
+        <customproperty taskproperty-id="tpc1" value="Miguel" />
+        <customproperty taskproperty-id="tpc2" value="A confirmar" />
+        <depend id="3" type="2" difference="0" hardness="Strong" />
+      </task>
+      <task id="2" uid="00000000000000000000000000000002" name="Mockups das telas principais" color="#718EAE" meeting="false" start="2026-11-03" duration="4" complete="0" expand="true">
+        <notes>Telas principais: Home, catálogo, despensa, combinar. | Responsável: Miguel | Previsto: 2026-11-03 a 2026-11-06. Situação: A confirmar. Não representa execução comprovada.</notes>
+        <customproperty taskproperty-id="tpc1" value="Miguel" />
+        <customproperty taskproperty-id="tpc2" value="A confirmar" />
+      </task>
+      <task id="3" uid="00000000000000000000000000000003" name="Mapeamento do backend e banco de dados" color="#718EAE" meeting="false" start="2026-11-04" duration="4" complete="0" expand="true">
+        <notes>Mapear API, tabelas e fluxo de dados. | Responsável: Miguel | Previsto: 2026-11-04 a 2026-11-07. Situação: A confirmar. Não representa execução comprovada.</notes>
+        <customproperty taskproperty-id="tpc1" value="Miguel" />
+        <customproperty taskproperty-id="tpc2" value="A confirmar" />
+        <depend id="6" type="2" difference="2" hardness="Strong" />
+        <depend id="7" type="2" difference="3" hardness="Strong" />
+      </task>
+    </task>
+    <task id="101" uid="00000000000000000000000000000101" name="02 - Desenvolvimento do CRUD" color="#D5E5F2" meeting="false" start="2026-11-06" duration="9" complete="0" expand="true">
+      <task id="4" uid="00000000000000000000000000000004" name="CREATE: cadastro de ingredientes" color="#2E719D" meeting="false" start="2026-11-06" duration="5" complete="0" expand="true">
+        <notes>Cadastrar ingredientes na despensa. | Responsável: João Matheus | Previsto: 2026-11-06 a 2026-11-10. Situação: A confirmar. Não representa execução comprovada.</notes>
+        <customproperty taskproperty-id="tpc1" value="João Matheus" />
+        <customproperty taskproperty-id="tpc2" value="A confirmar" />
+        <depend id="8" type="2" difference="2" hardness="Strong" />
+      </task>
+      <task id="5" uid="00000000000000000000000000000005" name="READ: listagem de ingredientes" color="#2E719D" meeting="false" start="2026-11-07" duration="4" complete="0" expand="true">
+        <notes>Consultar e listar ingredientes. | Responsável: José Augusto | Previsto: 2026-11-07 a 2026-11-10. Situação: A confirmar. Não representa execução comprovada.</notes>
+        <customproperty taskproperty-id="tpc1" value="José Augusto" />
+        <customproperty taskproperty-id="tpc2" value="A confirmar" />
+        <depend id="9" type="2" difference="2" hardness="Strong" />
+      </task>
+      <task id="6" uid="00000000000000000000000000000006" name="UPDATE: edição de ingredientes" color="#2E719D" meeting="false" start="2026-11-10" duration="4" complete="0" expand="true">
+        <notes>Editar dados de ingredientes. | Responsável: Thiago | Previsto: 2026-11-10 a 2026-11-13. Situação: A confirmar. Não representa execução comprovada.</notes>
+        <customproperty taskproperty-id="tpc1" value="Thiago" />
+        <customproperty taskproperty-id="tpc2" value="A confirmar" />
+      </task>
+      <task id="7" uid="00000000000000000000000000000007" name="DELETE: exclusão de ingredientes" color="#2E719D" meeting="false" start="2026-11-11" duration="4" complete="0" expand="true">
+        <notes>Excluir ingredientes. | Responsável: Gustavo | Previsto: 2026-11-11 a 2026-11-14. Situação: A confirmar. Não representa execução comprovada.</notes>
+        <customproperty taskproperty-id="tpc1" value="Gustavo" />
+        <customproperty taskproperty-id="tpc2" value="A confirmar" />
+      </task>
+    </task>
+    <task id="102" uid="00000000000000000000000000000102" name="03 - Integração e validação" color="#D5E5F2" meeting="false" start="2026-11-13" duration="6" complete="0" expand="true">
+      <task id="8" uid="00000000000000000000000000000008" name="Integração das funcionalidades" color="#4886B2" meeting="false" start="2026-11-13" duration="4" complete="0" expand="true">
+        <notes>Integrar operações incrementalmente. | Responsável: Miguel | Previsto: 2026-11-13 a 2026-11-16. Situação: A confirmar. Não representa execução comprovada.</notes>
+        <customproperty taskproperty-id="tpc1" value="Miguel" />
+        <customproperty taskproperty-id="tpc2" value="A confirmar" />
+        <depend id="11" type="2" difference="0" hardness="Strong" />
+      </task>
+      <task id="9" uid="00000000000000000000000000000009" name="Testes do CRUD" color="#4886B2" meeting="false" start="2026-11-13" duration="5" complete="0" expand="true">
+        <notes>Validar fluxos e persistência. | Responsável: Lucas | Previsto: 2026-11-13 a 2026-11-17. Situação: A confirmar. Não representa execução comprovada.</notes>
+        <customproperty taskproperty-id="tpc1" value="Lucas" />
+        <customproperty taskproperty-id="tpc2" value="A confirmar" />
+      </task>
+      <task id="10" uid="00000000000000000000000000000010" name="Revisão de código" color="#4886B2" meeting="false" start="2026-11-16" duration="3" complete="0" expand="true">
+        <notes>Revisar código e corrigir problemas. | Responsável: Equipe | Previsto: 2026-11-16 a 2026-11-18. Situação: A confirmar. Não representa execução comprovada.</notes>
+        <customproperty taskproperty-id="tpc1" value="Equipe" />
+        <customproperty taskproperty-id="tpc2" value="A confirmar" />
+        <depend id="12" type="2" difference="0" hardness="Strong" />
+      </task>
+      <task id="11" uid="00000000000000000000000000000011" name="Organização dos commits e merges" color="#4886B2" meeting="false" start="2026-11-17" duration="2" complete="0" expand="true">
+        <notes>Organizar branches e merges. | Responsável: Miguel | Previsto: 2026-11-17 a 2026-11-18. Situação: A confirmar. Não representa execução comprovada.</notes>
+        <customproperty taskproperty-id="tpc1" value="Miguel" />
+        <customproperty taskproperty-id="tpc2" value="A confirmar" />
+        <depend id="12" type="2" difference="0" hardness="Strong" />
+      </task>
+    </task>
+    <task id="103" uid="00000000000000000000000000000103" name="04 - Entrega" color="#D5E5F2" meeting="false" start="2026-11-19" duration="1" complete="0" expand="true">
+      <task id="12" uid="00000000000000000000000000000012" name="Demonstração e entrega" color="#234A68" meeting="true" start="2026-11-19" duration="0" complete="0" expand="true">
+        <notes>Marco planejado da entrega da Fase 5. | Responsável: Equipe | Previsto: 2026-11-19 a 2026-11-19. Situação: A confirmar. Não representa execução comprovada.</notes>
+        <customproperty taskproperty-id="tpc1" value="Equipe" />
+        <customproperty taskproperty-id="tpc2" value="A confirmar" />
+      </task>
+    </task>
+  </tasks>
+  <resources>
+    <resource id="0" name="Miguel" function="Default:1" contacts="" phone="" />
+    <resource id="1" name="João Matheus" function="Default:1" contacts="" phone="" />
+    <resource id="2" name="José Augusto" function="Default:1" contacts="" phone="" />
+    <resource id="3" name="Thiago" function="Default:1" contacts="" phone="" />
+    <resource id="4" name="Gustavo" function="Default:1" contacts="" phone="" />
+    <resource id="5" name="Lucas" function="Default:1" contacts="" phone="" />
+    <resource id="6" name="Equipe" function="Default:1" contacts="" phone="" />
+  </resources>
+  <allocations>
+    <allocation task-id="1" resource-id="0" function="Default:1" responsible="true" load="100.0" />
+    <allocation task-id="2" resource-id="0" function="Default:1" responsible="true" load="100.0" />
+    <allocation task-id="3" resource-id="0" function="Default:1" responsible="true" load="100.0" />
+    <allocation task-id="4" resource-id="1" function="Default:1" responsible="true" load="100.0" />
+    <allocation task-id="5" resource-id="2" function="Default:1" responsible="true" load="100.0" />
+    <allocation task-id="6" resource-id="3" function="Default:1" responsible="true" load="100.0" />
+    <allocation task-id="7" resource-id="4" function="Default:1" responsible="true" load="100.0" />
+    <allocation task-id="8" resource-id="0" function="Default:1" responsible="true" load="100.0" />
+    <allocation task-id="9" resource-id="5" function="Default:1" responsible="true" load="100.0" />
+    <allocation task-id="10" resource-id="6" function="Default:1" responsible="true" load="100.0" />
+    <allocation task-id="11" resource-id="0" function="Default:1" responsible="true" load="100.0" />
+    <allocation task-id="12" resource-id="6" function="Default:1" responsible="true" load="100.0" />
+  </allocations>
+  <vacations /><previous /><roles roleset-name="Default" /><roles />
+</project>
