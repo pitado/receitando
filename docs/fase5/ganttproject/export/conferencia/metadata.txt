@@ -1,0 +1,17 @@
+Producer:        iText® 5.5.13.7 ©2000-2026 iText Group NV (AGPL-version)
+CreationDate:    Mon Nov 23 01:26:08 2026 UTC
+ModDate:         Mon Nov 23 01:26:08 2026 UTC
+Custom Metadata: no
+Metadata Stream: no
+Tagged:          no
+UserProperties:  no
+Suspects:        no
+Form:            none
+JavaScript:      no
+Pages:           5
+Encrypted:       no
+Page size:       595 x 842 pts (A4)
+Page rot:        0
+File size:       100740 bytes
+Optimized:       no
+PDF version:     1.4

@@ -1,36 +1,36 @@
 Projeto: Receitando - Fase 5
 Workflow: Exportar GanttProject - Receitando Fase 5
-Run ID: 45092405836
-Data UTC: 2026-11-23T01:05:24Z
+Run ID: 45094468629
+Data UTC: 2026-11-23T01:26:15Z
 Resultado das etapas anteriores: success
 PDF: gerado pelo GanttProject
 Pages:           5
 Page size:       595 x 842 pts (A4)
 --- últimas mensagens da exportação ---
-Nov 23, 2026 1:04:56 AM com.bardsoftware.eclipsito.runtime.ModuleRuntime lambda$getVersionLayerStoreDirs$5
+Nov 23, 2026 1:25:45 AM com.bardsoftware.eclipsito.runtime.ModuleRuntime lambda$getVersionLayerStoreDirs$5
 FINE: Path `plugins` is not absolute. We'll try resolving it relative to user.dir=/tmp/squashfs-root/lib/app
-Nov 23, 2026 1:04:56 AM com.bardsoftware.eclipsito.runtime.ModuleRuntime build
+Nov 23, 2026 1:25:45 AM com.bardsoftware.eclipsito.runtime.ModuleRuntime build
 FINE: We will run with the following plugins:
-Nov 23, 2026 1:04:56 AM com.bardsoftware.eclipsito.runtime.ModuleRuntime lambda$build$3
-FINE: Plugin biz.ganttproject.impex.msproject2-3.3.3330 at /tmp/squashfs-root/lib/app/plugins/base/biz.ganttproject.impex.msproject2/plugin.xml
-Nov 23, 2026 1:04:56 AM com.bardsoftware.eclipsito.runtime.ModuleRuntime lambda$build$3
+Nov 23, 2026 1:25:45 AM com.bardsoftware.eclipsito.runtime.ModuleRuntime lambda$build$3
 FINE: Plugin org.ganttproject.chart.pert-3.3.3330 at /tmp/squashfs-root/lib/app/plugins/base/org.ganttproject.chart.pert/plugin.xml
-Nov 23, 2026 1:04:56 AM com.bardsoftware.eclipsito.runtime.ModuleRuntime lambda$build$3
+Nov 23, 2026 1:25:45 AM com.bardsoftware.eclipsito.runtime.ModuleRuntime lambda$build$3
+FINE: Plugin biz.ganttproject.impex.msproject2-3.3.3330 at /tmp/squashfs-root/lib/app/plugins/base/biz.ganttproject.impex.msproject2/plugin.xml
+Nov 23, 2026 1:25:45 AM com.bardsoftware.eclipsito.runtime.ModuleRuntime lambda$build$3
 FINE: Plugin biz.ganttproject.app.localization-3.3.3330 at /tmp/squashfs-root/lib/app/plugins/base/biz.ganttproject.app.localization/plugin.xml
-Nov 23, 2026 1:04:56 AM com.bardsoftware.eclipsito.runtime.ModuleRuntime lambda$build$3
+Nov 23, 2026 1:25:45 AM com.bardsoftware.eclipsito.runtime.ModuleRuntime lambda$build$3
 FINE: Plugin biz.ganttproject.impex.ical-3.3.3330 at /tmp/squashfs-root/lib/app/plugins/base/biz.ganttproject.impex.ical/plugin.xml
-Nov 23, 2026 1:04:56 AM com.bardsoftware.eclipsito.runtime.ModuleRuntime lambda$build$3
+Nov 23, 2026 1:25:45 AM com.bardsoftware.eclipsito.runtime.ModuleRuntime lambda$build$3
 FINE: Plugin org.ganttproject.impex.htmlpdf-3.3.3330 at /tmp/squashfs-root/lib/app/plugins/base/org.ganttproject.impex.htmlpdf/plugin.xml
-Nov 23, 2026 1:04:56 AM com.bardsoftware.eclipsito.runtime.ModuleRuntime lambda$build$3
+Nov 23, 2026 1:25:45 AM com.bardsoftware.eclipsito.runtime.ModuleRuntime lambda$build$3
 FINE: Plugin net.sourceforge.ganttproject-3.3.3330 at /tmp/squashfs-root/lib/app/plugins/base/ganttproject/plugin.xml
-Nov 23, 2026 1:04:56 AM com.bardsoftware.eclipsito.runtime.ModuleRuntime lambda$build$3
+Nov 23, 2026 1:25:45 AM com.bardsoftware.eclipsito.runtime.ModuleRuntime lambda$build$3
 FINE: Plugin biz.ganttproject.app.libs-3.3.3330 at /tmp/squashfs-root/lib/app/plugins/base/biz.ganttproject.app.libs/plugin.xml
-Nov 23, 2026 1:04:56 AM com.bardsoftware.eclipsito.runtime.ModuleRuntime lambda$build$3
+Nov 23, 2026 1:25:45 AM com.bardsoftware.eclipsito.runtime.ModuleRuntime lambda$build$3
 FINE: Plugin biz.ganttproject.core-3.3.3330 at /tmp/squashfs-root/lib/app/plugins/base/biz.ganttproject.core/plugin.xml
-Nov 23, 2026 1:04:56 AM com.bardsoftware.eclipsito.runtime.Runner run
+Nov 23, 2026 1:25:45 AM com.bardsoftware.eclipsito.runtime.Runner run
 FINE: Command line args: [-export, pdf, -out, /home/runner/work/receitando/receitando/docs/fase5/ganttproject/export/Receitando_GanttProject_Exportado.pdf, /home/runner/work/receitando/receitando/docs/fase5/ganttproject/Receitando_Fase5.gan]
-Nov 23, 2026 1:04:56 AM com.bardsoftware.eclipsito.runtime.Runner run
+Nov 23, 2026 1:25:45 AM com.bardsoftware.eclipsito.runtime.Runner run
 FINE: Launching application=net.sourceforge.ganttproject.GanttProject
 
-(AppRun:2622): dbind-WARNING **: 01:05:03.471: AT-SPI: Error retrieving accessibility bus address: org.freedesktop.DBus.Error.ServiceUnknown: The name org.a11y.Bus was not provided by any .service files
+(AppRun:2971): dbind-WARNING **: 01:25:51.758: AT-SPI: Error retrieving accessibility bus address: org.freedesktop.DBus.Error.ServiceUnknown: The name org.a11y.Bus was not provided by any .service files
 The log was written to /home/runner/ganttproject.log

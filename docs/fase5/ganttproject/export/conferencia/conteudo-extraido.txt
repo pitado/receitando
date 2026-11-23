@@ -1,0 +1,145 @@
+Receitando - Escola de TI -
+Fase 5                                                              Nov 23, 2026
+                                            https://receitando.miguelpita.com.br/
+UniCesumar / ADS
+
+Project manager                       Miguel, João Matheus, José Augusto,
+                                      Thiago, Gustavo, Lucas, Equipe
+Project dates                         Nov 2, 2026 - Nov 20, 2026
+
+Completion                            0%
+Tasks                                 16
+Resources                             7
+
+
+Planejamento previsto: 02 a 19/11/2026. CRUD da despensa. Datas planejadas,
+sem comprovação de conclusão.
+Receitando - Escola de TI - Fase 5                                                    Nov 23, 2026
+                                                                                                2
+Tasks
+  Name                                 Responsáve   Begin      End date   Durat   Predecessor
+                                       l            date                  ion     s
+  01 - Planejamento e design                        11/2/26    11/7/26    6
+    Planejamento e definição da        Miguel       11/2/26    11/3/26    2
+    funcionalidade
+    Mockups das telas principais       Miguel       11/3/26    11/6/26    4
+    Mapeamento do backend e banco      Miguel       11/4/26    11/7/26    4       1
+    de dados
+
+  02 - Desenvolvimento do CRUD                      11/6/26    11/14/26   9
+    CREATE: cadastro de ingredientes   João         11/6/26    11/10/26   5
+                                       Matheus
+   READ: listagem de ingredientes      José Augusto 11/7/26    11/10/26   4
+   UPDATE: edição de ingredientes      Thiago       11/10/26   11/13/26   4       3
+   DELETE: exclusão de ingredientes    Gustavo      11/11/26   11/14/26   4       3
+
+  03 - Integração e validação                       11/13/26   11/18/26   6
+    Integração das funcionalidades     Miguel       11/13/26   11/16/26   4       4
+    Testes do CRUD                     Lucas        11/13/26   11/17/26   5       5
+    Revisão de código                  Equipe       11/16/26   11/18/26   3
+    Organização dos commits e          Miguel       11/17/26   11/18/26   2       8
+    merges
+
+  04 - Entrega                                      11/19/26   11/19/26   1
+    Demonstração e entrega             Equipe       11/19/26   11/19/26   0       10, 11
+Receitando - Escola de TI - Fase 5                     Nov 23, 2026
+                                                                 3
+Resources
+  Name                               Default role
+  Miguel                             project manager
+  João Matheus                       project manager
+  José Augusto                       project manager
+  Thiago                             project manager
+  Gustavo                            project manager
+  Lucas                              project manager
+  Equipe                             project manager
+Receitando - Escola de TI - Fase 5                                                                                     Nov 23, 2026
+                                                                                                                                         4
+Gantt Chart
+                                                                                                     2026
+                                                                                                                                   Demonstração e
+
+                                                                                                   Week 45   Week 46    Week 47          Week 48
+                       Name                     Responsável   Begin date   End date D... Predecessors
+                                                                                                  11/1/26    11/8/26    11/15/26         11/22/26
+
+01 - Planejamento e design                                      11/2/26     11/7/26   6
+
+  Planejamento e definição da funcionalidade   Miguel           11/2/26     11/3/26   2
+
+  Mockups das telas principais                 Miguel           11/3/26     11/6/26   4
+
+  Mapeamento do backend e banco de dados       Miguel           11/4/26     11/7/26   4 1
+
+02 - Desenvolvimento do CRUD                                    11/6/26    11/14/26   9
+
+  CREATE: cadastro de ingredientes             João Matheus     11/6/26    11/10/26   5
+
+  READ: listagem de ingredientes               José Augusto     11/7/26    11/10/26   4
+
+  UPDATE: edição de ingredientes               Thiago          11/10/26    11/13/26   4 3-FS=P2D
+
+  DELETE: exclusão de ingredientes             Gustavo         11/11/26    11/14/26   4 3-FS=P3D
+
+03 - Integração e validação                                    11/13/26    11/18/26   6
+
+  Integração das funcionalidades               Miguel          11/13/26    11/16/26   4 4-FS=P2D
+
+  Testes do CRUD                               Lucas           11/13/26    11/17/26   5 5-FS=P2D
+
+  Revisão de código                            Equipe          11/16/26    11/18/26   3
+
+  Organização dos commits e merges             Miguel          11/17/26    11/18/26   2 8
+
+04 - Entrega                                                   11/19/26    11/19/26   1
+
+  Demonstração e entrega                       Equipe          11/19/26    11/19/26   0 10,11
+Receitando - Escola de TI - Fase 5                                               Nov 23, 2026
+                                                                                           5
+Resources Chart
+                                              2026
+                                                                                   Demonstração
+
+                                           Week 45          Week 46   Week 47             Week 4
+      Name                 Default role    11/1/26          11/8/26   11/15/26            11/22/26
+
+
+     Miguel              project manager             200%
+
+
+        Planejame...
+
+        Mockups d...
+
+        Mapeamen...
+
+        Integração...
+
+        Organizaçã...
+
+     João Matheus        project manager
+
+        CREATE: c...
+
+     José Augusto        project manager
+
+        READ: lista...
+
+     Thiago              project manager
+
+        UPDATE: e...
+
+     Gustavo             project manager
+
+        DELETE: e...
+
+     Lucas               project manager
+
+        Testes do ...
+
+     Equipe              project manager
+
+        Revisão de...
+
+        Demonstra...
+
