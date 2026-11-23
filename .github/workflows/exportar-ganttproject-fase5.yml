@@ -1,0 +1,102 @@
+name: Exportar GanttProject - Receitando Fase 5
+
+on:
+  push:
+    branches:
+      - docs/exporta-ganttproject-fase5
+    paths:
+      - .github/workflows/exportar-ganttproject-fase5.yml
+      - docs/fase5/ganttproject/Receitando_Fase5.gan
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  exportar:
+    name: Exportar PDF e PNG via GanttProject
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      PROJECT: docs/fase5/ganttproject/Receitando_Fase5.gan
+      OUT_DIR: docs/fase5/ganttproject/export
+    steps:
+      - name: Obter arquivos do projeto
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Instalar requisitos do GanttProject e validadores
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends xvfb xauth file poppler-utils curl ca-certificates
+
+      - name: Baixar GanttProject 3.3.3330 oficial
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Buscando AppImage oficial do projeto bardsoftware/ganttproject"
+          if gh release download ganttproject-3.3.3330 \
+                --repo bardsoftware/ganttproject \
+                --pattern '*3.3.3330.AppImage' \
+                --dir /tmp/gantt-download; then
+            ls -lh /tmp/gantt-download
+            cp /tmp/gantt-download/*.AppImage /tmp/ganttproject.AppImage
+          else
+            echo "Tentando o espelho oficial SourceForge."
+            curl -fL --retry 3 --retry-delay 5 --connect-timeout 20 --max-time 300 \
+              'https://sourceforge.net/projects/ganttproject/files/ganttproject-3.3.3323/ganttproject-3.3.3330.AppImage/download' \
+              -o /tmp/ganttproject.AppImage
+          fi
+          file /tmp/ganttproject.AppImage
+          test "$(stat -c%s /tmp/ganttproject.AppImage)" -gt 50000000
+          chmod +x /tmp/ganttproject.AppImage
+          cd /tmp
+          ./ganttproject.AppImage --appimage-extract >/dev/null
+          test -x /tmp/squashfs-root/AppRun
+
+      - name: Exportar PDF e PNG no GanttProject (Xvfb)
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$OUT_DIR"
+          PDF="$PWD/$OUT_DIR/Receitando_GanttProject_Exportado.pdf"
+          PNG="$PWD/$OUT_DIR/Receitando_GanttProject_Exportado.png"
+          GAN="$PWD/$PROJECT"
+          echo "GanttProject PDF: $GAN -> $PDF"
+          timeout 180s xvfb-run -a /tmp/squashfs-root/AppRun \
+            -export pdf -out "$PDF" "$GAN" 2>&1 | tee /tmp/gantt-export-pdf.log
+          test -s "$PDF"
+          file "$PDF"
+          pdfinfo "$PDF" | grep -E 'Pages:|Page size:'
+          echo "Exportando imagem PNG"
+          if timeout 180s xvfb-run -a /tmp/squashfs-root/AppRun \
+            -export png -out "$PNG" "$GAN" 2>&1 | tee /tmp/gantt-export-png.log; then
+            test -s "$PNG" || rm -f "$PNG"
+          else
+            echo "::warning::A exportação de PNG falhou; o PDF permanece como entrega principal."
+            rm -f "$PNG"
+          fi
+          ls -lh "$OUT_DIR"
+
+      - name: Publicar artefatos para download
+        uses: actions/upload-artifact@v4
+        with:
+          name: receitando-fase5-ganttproject-oficial
+          path: docs/fase5/ganttproject/export/
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Salvar exportação na branch de documentação
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/fase5/ganttproject/export/
+          if ! git diff --cached --quiet; then
+            git commit -m "docs(fase5): exportar PDF e PNG pelo GanttProject [skip ci]"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi
