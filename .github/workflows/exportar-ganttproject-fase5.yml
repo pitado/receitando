@@ -82,6 +82,18 @@ jobs:
           fi
           ls -lh "$OUT_DIR"
 
+      - name: Gerar prévias do PDF para conferência
+        if: success()
+        shell: bash
+        run: |
+          set -euo pipefail
+          PDF="$OUT_DIR/Receitando_GanttProject_Exportado.pdf"
+          mkdir -p "$OUT_DIR/conferencia"
+          pdfinfo "$PDF" | tee "$OUT_DIR/conferencia/metadata.txt"
+          pdftoppm -f 1 -l 2 -scale-to 1600 -png -singlefile "$PDF" "$OUT_DIR/conferencia/pdf-pagina-1" || true
+          pdftotext -layout "$PDF" "$OUT_DIR/conferencia/conteudo-extraido.txt"
+          ls -lh "$OUT_DIR/conferencia"
+
       - name: Registrar diagnóstico da execução
         if: always()
         shell: bash
