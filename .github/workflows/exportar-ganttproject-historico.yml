@@ -71,10 +71,24 @@ jobs:
           PDF="$PWD/$OUT_DIR/Receitando_GanttProject_Exportado.pdf"
           PNG="$PWD/$OUT_DIR/Receitando_GanttProject_Exportado.png"
           GAN="$PWD/$PROJECT"
-          echo "GanttProject PDF: $GAN -> $PDF"
+          scratch="$(mktemp -d)"
+          trap 'rm -rf "$scratch"' EXIT
+          echo "Exportando o relatório nativo do GanttProject"
           timeout 180s xvfb-run -a /tmp/squashfs-root/AppRun \
-            -export pdf -out "$PDF" "$GAN" 2>&1 | tee /tmp/gantt-export-pdf.log
-          test -s "$PDF"
+            -export pdf -out "$scratch/relatorio.pdf" "$GAN" 2>&1 | tee /tmp/gantt-export-pdf.log
+
+          # A capa do GanttProject exibe o limite exclusivo do período.
+          # A página do gráfico conserva as datas registradas de cada etapa.
+          pdfseparate "$scratch/relatorio.pdf" "$scratch/pagina-%d.pdf"
+          for page in "$scratch"/pagina-*.pdf; do
+            pdftotext -layout "$page" "$scratch/pagina.txt"
+            if grep -q '^Gantt Chart[[:space:]]*$' "$scratch/pagina.txt"; then
+              cp "$page" "$scratch/diagrama.pdf"
+              break
+            fi
+          done
+          test -s "$scratch/diagrama.pdf"
+          mv "$scratch/diagrama.pdf" "$PDF"
           file "$PDF"
           pdfinfo "$PDF" | grep -E 'Pages:|Page size:'
           echo "Exportando imagem PNG"
@@ -92,7 +106,8 @@ jobs:
           pdfinfo "$PDF" | tee "$OUT_DIR/conferencia/metadata.txt"
           pdftotext -layout "$PDF" "$OUT_DIR/conferencia/conteudo-extraido.txt"
           grep -F 'Receitando Juntos em tempo real' "$OUT_DIR/conferencia/conteudo-extraido.txt"
-          grep -F '10/08/2026 a 19/11/2026' "$OUT_DIR/conferencia/conteudo-extraido.txt"
+          grep -E 'Estrutura inicial e deploy do frontend +8/10/26 +8/13/26' "$OUT_DIR/conferencia/conteudo-extraido.txt"
+          grep -E 'Identidade, indexação e acabamento visual +11/8/26 +11/19/26' "$OUT_DIR/conferencia/conteudo-extraido.txt"
 
       - name: Registrar e publicar o resultado da exportação
         shell: bash
