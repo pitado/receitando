@@ -1,41 +1,48 @@
-Receitando - Histórico do projeto                                                                                                                                                                        Nov 24, 2026
-                                                                                                                                                                                                                               3
-Gantt Chart
-                                                                       2026
+UNICESUMAR / ADS / ESCOLA DE TI
 
-                                                                   Week 33    Week 34   Week 35   Week 36   Week 37   Week 38   Week 39   Week 40   Week 41   Week 42    Week 43    Week 44    Week 45    Week 46   Week 47    Week 48
-                      Name                     Begin date   End date
-                                                                   8/9/26     8/16/26   8/23/26   8/30/26   9/6/26    9/13/26   9/20/26   9/27/26   10/4/26   10/11/26   10/18/26   10/25/26   11/1/26    11/8/26   11/15/26   11/22/26
 
-Estrutura inicial e deploy do frontend           8/10/26     8/13/26
+Diagrama de Gantt do Receitando
+Histórico do projeto • 10/08/2026 a 19/11/2026
 
-Contas, autenticação e primeira API              8/13/26     8/18/26
 
-Despensa, catálogo, combinação e favoritos       8/18/26     8/19/26
+                                                    Primeiro          Último          AGO                  SET                  OUT             NOV
+  Etapa
+                                                    registro         registro
+                                                                                 10   17    24   01   08    15   22   01   08    15   22   01   08    15
 
-Comunidade e conteúdo da página inicial          8/18/26     8/24/26
+  Estrutura inicial e deploy do frontend           10/08/2026       13/08/2026
 
-Identidade visual, página inicial e 404          8/18/26     8/24/26
+  Contas, autenticação e primeira API              13/08/2026       18/08/2026
 
-Catálogo Wikilivros, busca e API v2              8/24/26      9/2/26
+  Despensa, catálogo, combinação e favoritos       18/08/2026       19/08/2026
 
-Documentação, segurança e testes                 8/24/26     8/28/26
+  Comunidade e conteúdo da página inicial          18/08/2026       24/08/2026
 
-Adaptação de receitas e despensa inteligente     8/28/26     8/28/26
+  Identidade visual, página inicial e 404          18/08/2026       24/08/2026
 
-Redesign, busca e navegação                      8/28/26     9/14/26
+  Catálogo Wikilivros, busca e API v2              24/08/2026       02/09/2026
 
-Envio de receitas, imagens e moderação            9/1/26     9/14/26
+  Documentação, segurança e testes                 24/08/2026       28/08/2026
 
-Indexação e métricas do site                      9/1/26      9/9/26
+  Adaptação de receitas e despensa inteligente     28/08/2026       28/08/2026
 
-Redesign das principais telas                    10/6/26     10/7/26
+  Redesign, busca e navegação                      28/08/2026       14/09/2026
 
-Receitando Juntos em tempo real                 10/29/26    10/30/26
+  Envio de receitas, imagens e moderação           01/09/2026       14/09/2026
 
-Migração para Neon, arquitetura e escala        10/29/26    10/31/26
+  Indexação e métricas do site                     01/09/2026       09/09/2026
 
-Catálogo autoral e fontes brasileiras           10/30/26    10/30/26
+  Redesign das principais telas                    06/10/2026       07/10/2026
 
-Identidade, indexação e acabamento visual        11/8/26    11/19/26
+  Receitando Juntos em tempo real                  29/10/2026       30/10/2026
+
+  Migração para Neon, arquitetura e escala         29/10/2026       31/10/2026
+
+  Catálogo autoral e fontes brasileiras            30/10/2026       30/10/2026
+
+  Identidade, indexação e acabamento visual        08/11/2026       19/11/2026
+
+
+Cada barra vai do primeiro ao último registro da etapa no GitHub.                                                          Evidências por etapa no GitHub
+As datas usam os merges na main e os commits iniciais, no horário de Brasília.
 
