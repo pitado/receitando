@@ -7,6 +7,7 @@ on:
     paths:
       - .github/workflows/exportar-ganttproject-historico.yml
       - docs/ganttproject/Receitando_Historico.gan
+      - docs/ganttproject/exportar_diagrama.py
   workflow_dispatch:
 
 permissions:
@@ -18,7 +19,7 @@ concurrency:
 
 jobs:
   exportar:
-    name: Exportar PDF e PNG via GanttProject
+    name: Validar o projeto e exportar PDF e PNG
     if: github.ref == 'refs/heads/docs/gantt-historico-receitando'
     runs-on: ubuntu-24.04
     timeout-minutes: 25
@@ -34,7 +35,7 @@ jobs:
       - name: Instalar requisitos do GanttProject e validadores
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y --no-install-recommends xvfb xauth file poppler-utils curl ca-certificates
+          sudo apt-get install -y --no-install-recommends xvfb xauth file poppler-utils curl ca-certificates python3-reportlab fonts-dejavu-core
 
       - name: Baixar GanttProject 3.3.3330 oficial
         env:
@@ -63,51 +64,55 @@ jobs:
           ./ganttproject.AppImage --appimage-extract >/dev/null
           test -x /tmp/squashfs-root/AppRun
 
-      - name: Exportar PDF e PNG no GanttProject (Xvfb)
+      - name: Conferir o projeto no GanttProject
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p "$OUT_DIR"
-          PDF="$PWD/$OUT_DIR/Receitando_GanttProject_Exportado.pdf"
-          PNG="$PWD/$OUT_DIR/Receitando_GanttProject_Exportado.png"
-          GAN="$PWD/$PROJECT"
           scratch="$(mktemp -d)"
           trap 'rm -rf "$scratch"' EXIT
-          echo "Exportando o relatório nativo do GanttProject"
           timeout 180s xvfb-run -a /tmp/squashfs-root/AppRun \
-            -export pdf -out "$scratch/relatorio.pdf" "$GAN" 2>&1 | tee /tmp/gantt-export-pdf.log
+            -export pdf -out "$scratch/ganttproject.pdf" "$PWD/$PROJECT" 2>&1 | tee /tmp/gantt-export-pdf.log
+          pdfinfo "$scratch/ganttproject.pdf"
 
-          # A capa do GanttProject exibe o limite exclusivo do período.
-          # A página do gráfico conserva as datas registradas de cada etapa.
-          pdfseparate "$scratch/relatorio.pdf" "$scratch/pagina-%d.pdf"
-          for page in "$scratch"/pagina-*.pdf; do
-            pdftotext -layout "$page" "$scratch/pagina.txt"
-            if grep -q '^Gantt Chart[[:space:]]*$' "$scratch/pagina.txt"; then
-              cp "$page" "$scratch/diagrama.pdf"
-              break
-            fi
-          done
-          test -s "$scratch/diagrama.pdf"
-          mv "$scratch/diagrama.pdf" "$PDF"
-          file "$PDF"
-          pdfinfo "$PDF" | grep -E 'Pages:|Page size:'
-          echo "Exportando imagem PNG"
-          timeout 180s xvfb-run -a /tmp/squashfs-root/AppRun \
-            -export png -out "$PNG" "$GAN" 2>&1 | tee /tmp/gantt-export-png.log
-          test -s "$PNG"
-          file --brief --mime-type "$PNG" | grep -Fx 'image/png'
+      - name: Exportar o diagrama em PDF e PNG
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$OUT_DIR/conferencia"
+          PDF="$OUT_DIR/Receitando_GanttProject_Exportado.pdf"
+          imagem="$OUT_DIR/Receitando_GanttProject_Exportado"
+          /usr/bin/python3 docs/ganttproject/exportar_diagrama.py "$PROJECT" "$PDF"
+          pdftoppm -r 160 -singlefile -png "$PDF" "$imagem"
+          file --brief --mime-type "$imagem.png" | grep -Fx 'image/png'
 
-      - name: Conferir o conteúdo do PDF
+      - name: Conferir a página e as datas exportadas
         shell: bash
         run: |
           set -euo pipefail
           PDF="$OUT_DIR/Receitando_GanttProject_Exportado.pdf"
-          mkdir -p "$OUT_DIR/conferencia"
-          pdfinfo "$PDF" | tee "$OUT_DIR/conferencia/metadata.txt"
-          pdftotext -layout "$PDF" "$OUT_DIR/conferencia/conteudo-extraido.txt"
-          grep -F 'Receitando Juntos em tempo real' "$OUT_DIR/conferencia/conteudo-extraido.txt"
-          grep -E 'Estrutura inicial e deploy do frontend +8/10/26 +8/13/26' "$OUT_DIR/conferencia/conteudo-extraido.txt"
-          grep -E 'Identidade, indexação e acabamento visual +11/8/26 +11/19/26' "$OUT_DIR/conferencia/conteudo-extraido.txt"
+          META="$OUT_DIR/conferencia/metadata.txt"
+          TEXTO="$OUT_DIR/conferencia/conteudo-extraido.txt"
+          pdfinfo "$PDF" | tee "$META"
+          grep -Eq '^Pages:[[:space:]]+1$' "$META"
+          awk '/^Page size:/ { landscape = $3 > $5 } END { exit !landscape }' "$META"
+          pdftotext -layout "$PDF" "$TEXTO"
+          PYTHONPATH=docs/ganttproject /usr/bin/python3 - "$PROJECT" "$TEXTO" <<'PY'
+          import sys
+          from pathlib import Path
+          from exportar_diagrama import as_br, read_stages
+
+          stages = read_stages(Path(sys.argv[1]))
+          text = Path(sys.argv[2]).read_text()
+          lines = {" ".join(line.split()) for line in text.splitlines()}
+          for stage in stages:
+              row = f"{stage.name} {as_br(stage.start)} {as_br(stage.end)}"
+              if row not in lines:
+                  raise SystemExit(f"Etapa ou data ausente no PDF: {row}")
+          note = "Cada barra vai do primeiro ao último registro da etapa no GitHub."
+          if note not in text:
+              raise SystemExit("Nota sobre os intervalos ausente no PDF.")
+          print(f"{len(stages)} etapas conferidas.")
+          PY
 
       - name: Registrar e publicar o resultado da exportação
         shell: bash
@@ -121,7 +126,7 @@ jobs:
             echo "Data UTC: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
             echo "Resultado das etapas anteriores: ${{ job.status }}"
             if [ -f "$OUT_DIR/Receitando_GanttProject_Exportado.pdf" ]; then
-              echo "PDF: gerado pelo GanttProject"
+              echo "PDF: exportado a partir do projeto GanttProject"
               pdfinfo "$OUT_DIR/Receitando_GanttProject_Exportado.pdf" | grep -E 'Pages:|Page size:' || true
             else
               echo "PDF: não gerado; conferir logs da execução no GitHub Actions"

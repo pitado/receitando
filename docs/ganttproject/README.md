@@ -2,8 +2,8 @@
 
 Período registrado de **10/08/2026 a 19/11/2026**, no horário de Brasília. O gráfico reúne o trabalho integrado à `main` em 16 etapas. A origem de cada linha está nos PRs e nos commits abaixo.
 
-- [PDF exportado pelo GanttProject](export/Receitando_GanttProject_Exportado.pdf)
-- [PNG exportado pelo GanttProject](export/Receitando_GanttProject_Exportado.png)
+- [Diagrama em PDF (A4 paisagem)](export/Receitando_GanttProject_Exportado.pdf)
+- [Diagrama em PNG](export/Receitando_GanttProject_Exportado.png)
 - [Projeto editável do GanttProject](Receitando_Historico.gan)
 
 ## Etapas e evidências
