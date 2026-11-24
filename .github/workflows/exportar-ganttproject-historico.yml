@@ -1,0 +1,135 @@
+name: Exportar GanttProject - Histórico do Receitando
+
+on:
+  push:
+    branches:
+      - docs/gantt-historico-receitando
+    paths:
+      - .github/workflows/exportar-ganttproject-historico.yml
+      - docs/ganttproject/Receitando_Historico.gan
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: gantt-historico-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  exportar:
+    name: Exportar PDF e PNG via GanttProject
+    if: github.ref == 'refs/heads/docs/gantt-historico-receitando'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      PROJECT: docs/ganttproject/Receitando_Historico.gan
+      OUT_DIR: docs/ganttproject/export
+    steps:
+      - name: Obter arquivos do projeto
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Instalar requisitos do GanttProject e validadores
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends xvfb xauth file poppler-utils curl ca-certificates
+
+      - name: Baixar GanttProject 3.3.3330 oficial
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/gantt-download
+          echo "Buscando AppImage oficial do projeto bardsoftware/ganttproject"
+          if gh release download ganttproject-3.3.3330 \
+                --repo bardsoftware/ganttproject \
+                --pattern '*3.3.3330.AppImage' \
+                --dir /tmp/gantt-download; then
+            ls -lh /tmp/gantt-download
+            cp /tmp/gantt-download/*.AppImage /tmp/ganttproject.AppImage
+          else
+            echo "Tentando o espelho oficial SourceForge."
+            curl -fL --retry 3 --retry-delay 5 --connect-timeout 20 --max-time 300 \
+              'https://sourceforge.net/projects/ganttproject/files/ganttproject-3.3.3323/ganttproject-3.3.3330.AppImage/download' \
+              -o /tmp/ganttproject.AppImage
+          fi
+          file /tmp/ganttproject.AppImage
+          test "$(stat -c%s /tmp/ganttproject.AppImage)" -gt 50000000
+          chmod +x /tmp/ganttproject.AppImage
+          cd /tmp
+          ./ganttproject.AppImage --appimage-extract >/dev/null
+          test -x /tmp/squashfs-root/AppRun
+
+      - name: Exportar PDF e PNG no GanttProject (Xvfb)
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$OUT_DIR"
+          PDF="$PWD/$OUT_DIR/Receitando_GanttProject_Exportado.pdf"
+          PNG="$PWD/$OUT_DIR/Receitando_GanttProject_Exportado.png"
+          GAN="$PWD/$PROJECT"
+          echo "GanttProject PDF: $GAN -> $PDF"
+          timeout 180s xvfb-run -a /tmp/squashfs-root/AppRun \
+            -export pdf -out "$PDF" "$GAN" 2>&1 | tee /tmp/gantt-export-pdf.log
+          test -s "$PDF"
+          file "$PDF"
+          pdfinfo "$PDF" | grep -E 'Pages:|Page size:'
+          echo "Exportando imagem PNG"
+          timeout 180s xvfb-run -a /tmp/squashfs-root/AppRun \
+            -export png -out "$PNG" "$GAN" 2>&1 | tee /tmp/gantt-export-png.log
+          test -s "$PNG"
+          file --brief --mime-type "$PNG" | grep -Fx 'image/png'
+
+      - name: Conferir o conteúdo do PDF
+        shell: bash
+        run: |
+          set -euo pipefail
+          PDF="$OUT_DIR/Receitando_GanttProject_Exportado.pdf"
+          mkdir -p "$OUT_DIR/conferencia"
+          pdfinfo "$PDF" | tee "$OUT_DIR/conferencia/metadata.txt"
+          pdftotext -layout "$PDF" "$OUT_DIR/conferencia/conteudo-extraido.txt"
+          grep -F 'Receitando Juntos em tempo real' "$OUT_DIR/conferencia/conteudo-extraido.txt"
+          grep -F '10/08/2026 a 19/11/2026' "$OUT_DIR/conferencia/conteudo-extraido.txt"
+
+      - name: Registrar e publicar o resultado da exportação
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$OUT_DIR"
+          {
+            echo "Projeto: Receitando - Histórico do projeto"
+            echo "Workflow: $GITHUB_WORKFLOW"
+            echo "Run ID: $GITHUB_RUN_ID"
+            echo "Data UTC: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            echo "Resultado das etapas anteriores: ${{ job.status }}"
+            if [ -f "$OUT_DIR/Receitando_GanttProject_Exportado.pdf" ]; then
+              echo "PDF: gerado pelo GanttProject"
+              pdfinfo "$OUT_DIR/Receitando_GanttProject_Exportado.pdf" | grep -E 'Pages:|Page size:' || true
+            else
+              echo "PDF: não gerado; conferir logs da execução no GitHub Actions"
+            fi
+            if [ -f /tmp/gantt-export-pdf.log ]; then
+              echo "--- últimas mensagens da exportação ---"
+              tail -80 /tmp/gantt-export-pdf.log
+            fi
+          } > "$OUT_DIR/STATUS.txt"
+          cat "$OUT_DIR/STATUS.txt"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$OUT_DIR"
+          if ! git diff --cached --quiet; then
+            git commit -m "docs(gantt): publicar o histórico exportado pelo GanttProject [skip ci]"
+            git push origin "HEAD:$GITHUB_REF_NAME"
+          fi
+
+      - name: Publicar artefatos para download
+        uses: actions/upload-artifact@v4
+        with:
+          name: receitando-gantt-historico
+          path: docs/ganttproject/export/
+          if-no-files-found: error
+          retention-days: 30
+

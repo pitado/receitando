@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="Receitando - Histórico do projeto" company="UniCesumar / ADS / Escola de TI" webLink="https://github.com/pitado/receitando" view-date="2026-08-10" view-index="0" gantt-divider-location="535" resource-divider-location="300" version="3.3.3309" locale="pt_BR">
+  <description>Execução registrada no GitHub de 10/08/2026 a 19/11/2026 (horário de Brasília). São 16 etapas baseadas em 151 PRs integrados à main e nos commits iniciais. As barras indicam o intervalo entre os primeiros e os últimos registros de cada etapa.</description>
+  <view zooming-state="default:6" id="gantt-chart">
+    <field id="tpd3" name="Etapa" width="330" order="0" />
+    <field id="tpd4" name="Início" width="87" order="1" />
+    <field id="tpd5" name="Término" width="87" order="2" />
+    <option id="taskLabelRight" value="none" />
+  </view>
+  <view id="resource-table">
+    <field id="0" name="Nome" width="220" order="0" />
+    <field id="1" name="Função" width="160" order="1" />
+  </view>
+  <calendars>
+    <day-types>
+      <day-type id="0" />
+      <day-type id="1" />
+      <default-week id="1" name="default" sun="0" mon="0" tue="0" wed="0" thu="0" fri="0" sat="0" />
+      <only-show-weekends value="false" />
+      <overriden-day-types />
+      <days />
+    </day-types>
+  </calendars>
+  <tasks empty-milestones="true">
+    <taskproperties>
+      <taskproperty id="tpd3" name="name" type="default" valuetype="text" />
+      <taskproperty id="tpd4" name="begindate" type="default" valuetype="date" />
+      <taskproperty id="tpd5" name="enddate" type="default" valuetype="date" />
+      <taskproperty id="tpd7" name="completion" type="default" valuetype="int" />
+    </taskproperties>
+    <task id="1" uid="00000000000000000000000000000001" name="Estrutura inicial e deploy do frontend" color="#51799A" meeting="false" start="2026-08-10" duration="4" complete="100" expand="true">
+      <notes>Primeiros arquivos da aplicação, domínio, deploy do frontend e verificação automática.
+Período registrado: 10/08/2026 a 13/08/2026.
+PRs integrados à main: #17.
+Commits iniciais: 381f63dc, 52a515d7, 163e0048, 634a1552.</notes>
+    </task>
+    <task id="2" uid="00000000000000000000000000000002" name="Contas, autenticação e primeira API" color="#51799A" meeting="false" start="2026-08-13" duration="6" complete="100" expand="true">
+      <notes>Login, cadastro, sessão e perfil, recuperação por e-mail e publicação da primeira API no Worker com D1.
+Período registrado: 13/08/2026 a 18/08/2026.
+PRs integrados à main: #1, #15, #16, #18, #19, #20, #21, #22, #23, #24, #25, #33, #34, #35, #36, #37, #38.</notes>
+    </task>
+    <task id="3" uid="00000000000000000000000000000003" name="Despensa, catálogo, combinação e favoritos" color="#51799A" meeting="false" start="2026-08-18" duration="2" complete="100" expand="true">
+      <notes>Despensa ligada à conta, catálogo inicial e Combinador. Inclui as primeiras iterações de fonte de receitas.
+Período registrado: 18/08/2026 a 19/08/2026.
+PRs integrados à main: #28, #31, #32, #43, #44, #45, #46, #47, #48, #49, #50, #51, #53, #54, #56.</notes>
+    </task>
+    <task id="4" uid="00000000000000000000000000000004" name="Comunidade e conteúdo da página inicial" color="#51799A" meeting="false" start="2026-08-18" duration="7" complete="100" expand="true">
+      <notes>Avaliações, comentários, conteúdo da comunidade e estabilização do feed.
+Período registrado: 18/08/2026 a 24/08/2026.
+PRs integrados à main: #39, #40, #41, #42, #79, #81, #82.</notes>
+    </task>
+    <task id="5" uid="00000000000000000000000000000005" name="Identidade visual, página inicial e 404" color="#4E8177" meeting="false" start="2026-08-18" duration="7" complete="100" expand="true">
+      <notes>Marca, favicon, cabeçalho, rodapé, artes visuais e página de erro.
+Período registrado: 18/08/2026 a 24/08/2026.
+PRs integrados à main: #26, #27, #29, #30, #57, #58, #59, #60, #61, #62, #63, #64, #65, #66, #67, #68, #69, #71, #72, #73, #74, #75, #76, #77.</notes>
+    </task>
+    <task id="6" uid="00000000000000000000000000000006" name="Catálogo Wikilivros, busca e API v2" color="#4E8177" meeting="false" start="2026-08-24" duration="10" complete="100" expand="true">
+      <notes>Fontes e imagens livres, importação, busca, paginação, API v2 e migração de imagens para o R2.
+Período registrado: 24/08/2026 a 02/09/2026.
+PRs integrados à main: #83, #85, #86, #87, #88, #89, #116, #118, #136.</notes>
+    </task>
+    <task id="7" uid="00000000000000000000000000000007" name="Documentação, segurança e testes" color="#4E8177" meeting="false" start="2026-08-24" duration="5" complete="100" expand="true">
+      <notes>Escopo, organização do repositório, autenticação com cookie HttpOnly, testes E2E e documentação.
+Período registrado: 24/08/2026 a 28/08/2026.
+PRs integrados à main: #78, #90, #91, #92, #94, #95, #96, #98, #102, #103, #104, #105, #106, #107, #108, #110, #112.</notes>
+    </task>
+    <task id="8" uid="00000000000000000000000000000008" name="Adaptação de receitas e despensa inteligente" color="#4E8177" meeting="false" start="2026-08-28" duration="1" complete="100" expand="true">
+      <notes>Motor de adaptação culinária, validade, priorização por ingredientes e lista de compras.
+Período registrado: 28/08/2026 a 28/08/2026.
+PRs integrados à main: #114, #117, #124, #126.</notes>
+    </task>
+    <task id="9" uid="00000000000000000000000000000009" name="Redesign, busca e navegação" color="#6B719F" meeting="false" start="2026-08-28" duration="18" complete="100" expand="true">
+      <notes>Busca por ingredientes, redesign editorial, navegação mobile e ajustes de acessibilidade e usabilidade.
+Período registrado: 28/08/2026 a 14/09/2026.
+PRs integrados à main: #119, #120, #121, #123, #125, #137, #138, #139, #140, #141, #142, #143, #144, #149, #151, #152, #153, #154, #155.</notes>
+    </task>
+    <task id="10" uid="0000000000000000000000000000000a" name="Envio de receitas, imagens e moderação" color="#6B719F" meeting="false" start="2026-09-01" duration="14" complete="100" expand="true">
+      <notes>Envio e upload de fotos pelo celular, armazenamento de imagens e área de moderação.
+Período registrado: 01/09/2026 a 14/09/2026.
+PRs integrados à main: #129, #130, #131, #132, #147, #150.</notes>
+    </task>
+    <task id="11" uid="0000000000000000000000000000000b" name="Indexação e métricas do site" color="#6B719F" meeting="false" start="2026-09-01" duration="9" complete="100" expand="true">
+      <notes>Sitemap, robots.txt e configuração do Cloudflare Web Analytics.
+Período registrado: 01/09/2026 a 09/09/2026.
+PRs integrados à main: #128, #133, #134, #135, #148.</notes>
+    </task>
+    <task id="12" uid="0000000000000000000000000000000c" name="Redesign das principais telas" color="#6B719F" meeting="false" start="2026-10-06" duration="2" complete="100" expand="true">
+      <notes>Atualização visual da Home, cadastro e recuperação de senha, despensa, receitas e favoritos.
+Período registrado: 06/10/2026 a 07/10/2026.
+PRs integrados à main: #158, #159, #160, #162, #164.</notes>
+    </task>
+    <task id="13" uid="0000000000000000000000000000000d" name="Receitando Juntos em tempo real" color="#AB774A" meeting="false" start="2026-10-29" duration="2" complete="100" expand="true">
+      <notes>Salas, presença, preparo sincronizado por WebSocket e experiência guiada.
+Período registrado: 29/10/2026 a 30/10/2026.
+PRs integrados à main: #168, #169, #170.</notes>
+    </task>
+    <task id="14" uid="0000000000000000000000000000000e" name="Migração para Neon, arquitetura e escala" color="#AB774A" meeting="false" start="2026-10-29" duration="3" complete="100" expand="true">
+      <notes>Migração para PostgreSQL via Hyperdrive, testes de integração e carga, documentação de arquitetura e UML.
+Período registrado: 29/10/2026 a 31/10/2026.
+PRs integrados à main: #166, #171, #172, #173, #176, #177, #178, #179, #180, #181, #182.</notes>
+    </task>
+    <task id="15" uid="0000000000000000000000000000000f" name="Catálogo autoral e fontes brasileiras" color="#AB774A" meeting="false" start="2026-10-30" duration="1" complete="100" expand="true">
+      <notes>Catálogo autoral inicial e curadoria de fontes brasileiras com verificação de direitos autorais.
+Período registrado: 30/10/2026 a 30/10/2026.
+PRs integrados à main: #174, #175.</notes>
+    </task>
+    <task id="16" uid="00000000000000000000000000000010" name="Identidade, indexação e acabamento visual" color="#AB774A" meeting="false" start="2026-11-08" duration="12" complete="100" expand="true">
+      <notes>Nova identidade, metadados e indexação de receitas, ajustes na Home e alinhamento de catálogo e layout.
+Período registrado: 08/11/2026 a 19/11/2026.
+PRs integrados à main: #186, #187, #189, #190, #191, #192.</notes>
+    </task>
+  </tasks>
+  <resources />
+  <allocations />
+  <vacations />
+  <previous />
+  <roles roleset-name="Default" />
+  <roles />
+</project>
